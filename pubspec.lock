@@ -117,10 +117,10 @@ packages:
     dependency: "direct dev"
     description:
       name: bloc_tools
-      sha256: "77cb31b13054241feaae6f3b2a5fee498b87165cc40d7789afb495120cb49c3a"
+      sha256: fa7fdef35d4ec5e8f2111a2079cef2204008d20dc15953812f46afde379b33ba
       url: "https://pub.dev"
     source: hosted
-    version: "0.1.0-dev.23"
+    version: "0.1.0-dev.24"
   boolean_selector:
     dependency: transitive
     description:
@@ -415,10 +415,10 @@ packages:
     dependency: transitive
     description:
       name: hooks
-      sha256: e79ed1e8e1929bc6ecb6ec85f0cb519c887aa5b423705ded0d0f2d9226def388
+      sha256: "025f060e86d2d4c3c47b56e33caf7f93bf9283340f26d23424ebcfccf34f621e"
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.2"
+    version: "1.0.3"
   http:
     dependency: transitive
     description:
@@ -850,6 +850,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.7.3"
+  record_use:
+    dependency: transitive
+    description:
+      name: record_use
+      sha256: "2551bd8eecfe95d14ae75f6021ad0248be5c27f138c2ec12fcb52b500b3ba1ed"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.6.0"
   retry:
     dependency: transitive
     description:
@@ -866,6 +874,46 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.28.0"
+  screen_retriever:
+    dependency: transitive
+    description:
+      name: screen_retriever
+      sha256: "570dbc8e4f70bac451e0efc9c9bb19fa2d6799a11e6ef04f946d7886d2e23d0c"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.2.0"
+  screen_retriever_linux:
+    dependency: transitive
+    description:
+      name: screen_retriever_linux
+      sha256: f7f8120c92ef0784e58491ab664d01efda79a922b025ff286e29aa123ea3dd18
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.2.0"
+  screen_retriever_macos:
+    dependency: transitive
+    description:
+      name: screen_retriever_macos
+      sha256: "71f956e65c97315dd661d71f828708bd97b6d358e776f1a30d5aa7d22d78a149"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.2.0"
+  screen_retriever_platform_interface:
+    dependency: transitive
+    description:
+      name: screen_retriever_platform_interface
+      sha256: ee197f4581ff0d5608587819af40490748e1e39e648d7680ecf95c05197240c0
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.2.0"
+  screen_retriever_windows:
+    dependency: transitive
+    description:
+      name: screen_retriever_windows
+      sha256: "449ee257f03ca98a57288ee526a301a430a344a161f9202b4fcc38576716fe13"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.2.0"
   shared_preferences:
     dependency: transitive
     description:
@@ -1179,10 +1227,10 @@ packages:
     dependency: transitive
     description:
       name: vm_service
-      sha256: "046d3928e16fa4dc46e8350415661755ab759d9fc97fc21b5ab295f71e4f0499"
+      sha256: "0016aef94fc66495ac78af5859181e3f3bf2026bd8eecc72b9565601e19ab360"
       url: "https://pub.dev"
     source: hosted
-    version: "15.1.0"
+    version: "15.2.0"
   watcher:
     dependency: transitive
     description:
@@ -1231,6 +1279,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "5.15.0"
+  window_manager:
+    dependency: "direct main"
+    description:
+      name: window_manager
+      sha256: "7eb6d6c4164ec08e1bf978d6e733f3cebe792e2a23fb07cbca25c2872bfdbdcd"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.5.1"
   xdg_directories:
     dependency: transitive
     description:

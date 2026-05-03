@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart'; 
 import 'package:erp_repository/erp_repository.dart';
+import 'package:window_manager/window_manager.dart'; // 🌟 استدعاء المكتبة هنا
 
 import '../../auth/cubit/auth_cubit.dart'; 
 import '../../login/view/login_page.dart';
@@ -52,10 +53,21 @@ class AppView extends StatelessWidget {
         fontFamily: 'Tahoma', 
       ),
       
-      home: BlocBuilder<AuthCubit, AuthState>(
-        // 🌟 التعديل السحري هنا: نمنع التطبيق من تدمير شاشة الدخول أثناء التحميل
+      // 🌟 استخدام BlocConsumer بدلاً من BlocBuilder
+      home: BlocConsumer<AuthCubit, AuthState>(
+        // 🌟 المستمع (Listener) لتغيير شريط الويندوز في الأعلى
+        listenWhen: (previous, current) => previous.userName != current.userName || previous.status != current.status,
+        listener: (context, state) async {
+          if (state.status == AuthStatus.authenticated && state.userName != null) {
+            // إضافة اسم الموظف ودوره بجانب اسم البرنامج في الويندوز
+            await windowManager.setTitle(' بيتنا Our Home - [ ${state.userName} | ${state.roleName} ]');
+          } else {
+            // إرجاع الاسم الافتراضي عند تسجيل الخروج
+            await windowManager.setTitle(' بيتنا Our Home');
+          }
+        },
+        // 🌟 حماية التطبيق من الكراش أثناء الانتقال
         buildWhen: (previous, current) {
-          // إذا كان غير مسجل وبدأ بالتحميل، لا تقم بإعادة رسم كامل التطبيق
           if ((previous.status == AuthStatus.unauthenticated || previous.status == AuthStatus.error) && 
               current.status == AuthStatus.loading) {
             return false; 
