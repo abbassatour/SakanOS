@@ -3,10 +3,26 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:local_storage_api/local_storage_api.dart';
 import '../../cubit/payments_cubit.dart';
-import 'pin_verify_dialog.dart'; // سننشئ هذا الملف المساعد لاحقاً
+import 'pin_verify_dialog.dart'; 
+
+// 🌟 استدعاء الحارس الشخصي والصلاحيات
+import '../../../auth/cubit/auth_cubit.dart';
+import '../../../core/constants/app_permissions.dart';
 
 Future<void> showEditPaymentDialog(BuildContext parentContext, PaymentsLedgerData entry) async {
-  // 1. طلب رمز الإدارة أولاً
+  
+  // ==========================================
+  // 🛡️ طبقة الحماية الأولى (Defense in Depth)
+  // ==========================================
+  final authState = parentContext.read<AuthCubit>().state;
+  if (!authState.hasPermission(AppPermissions.editPayments)) {
+    ScaffoldMessenger.of(parentContext).showSnackBar(
+      const SnackBar(content: Text('حماية النظام: لا تملك الصلاحية لتعديل القيود المالية.'), backgroundColor: Colors.red),
+    );
+    return; // طرد فوري
+  }
+
+  // 1. طلب رمز الإدارة أولاً (طبقة الحماية الثانية)
   bool isAuthorized = await verifyPinCode(parentContext, '0938457732', 'تعديل القيود يتطلب صلاحيات الإدارة');
   if (!isAuthorized) return;
 
@@ -23,7 +39,7 @@ Future<void> showEditPaymentDialog(BuildContext parentContext, PaymentsLedgerDat
           
           double amount = double.tryParse(amountController.text) ?? 0;
           double discountPct = double.tryParse(discountController.text) ?? 0;
-          double effectiveAmount = amount + (amount * (discountPct / 100));
+          double effectiveAmount = amount + (amount * (discountPct / 100)); // نتركه هنا للعمليات الحسابية إن لزم الأمر
 
           return AlertDialog(
             title: const Text('تعديل الدفعة القديمة', style: TextStyle(color: Colors.orange)),
