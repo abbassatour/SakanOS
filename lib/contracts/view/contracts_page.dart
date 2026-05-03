@@ -9,6 +9,10 @@ import 'widgets/contracts_search_bar.dart';
 import 'widgets/contracts_data_table.dart';
 import 'widgets/empty_contracts_view.dart';
 
+// 🌟 استدعاء الحارس الشخصي والصلاحيات
+import '../../auth/cubit/auth_cubit.dart';
+import '../../core/constants/app_permissions.dart';
+
 class ContractsPage extends StatelessWidget {
   const ContractsPage({super.key});
 
@@ -30,10 +34,19 @@ class _ContractsViewState extends State<ContractsView> {
 
   @override
   Widget build(BuildContext context) {
+    // 🌟 جلب حالة الصلاحيات للمستخدم الحالي
+    final authState = context.watch<AuthCubit>().state;
+    
+    // 🌟 التحقق من صلاحية إنشاء العقود
+    final canCreate = authState.hasPermission(AppPermissions.createContracts);
+
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
       // لا يوجد AppBar
-      floatingActionButton: _buildFAB(context),
+      
+      // 🌟 تمرير الصلاحية لدالة بناء الزر العائم
+      floatingActionButton: _buildFAB(context, canCreate),
+      
       body: SafeArea(
         child: BlocConsumer<ContractsCubit, ContractsState>(
           listener: (context, state) {
@@ -96,25 +109,32 @@ class _ContractsViewState extends State<ContractsView> {
     );
   }
 
-  FloatingActionButton _buildFAB(BuildContext context) {
+  // ==========================================
+  // 🛡️ حماية الزر العائم (الزر الباهت)
+  // ==========================================
+  FloatingActionButton _buildFAB(BuildContext context, bool canCreate) {
     return FloatingActionButton.extended(
-      onPressed: () => Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => MultiBlocProvider(
-            providers:[
-              BlocProvider.value(value: context.read<ContractsCubit>()),
-              BlocProvider.value(value: context.read<BuildingsCubit>()),
-              BlocProvider.value(value: context.read<SettingsCubit>()),
-            ],
-            child: const AddContractPage(),
-          ),
-        ),
-      ),
+      onPressed: canCreate 
+        ? () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => MultiBlocProvider(
+                providers:[
+                  BlocProvider.value(value: context.read<ContractsCubit>()),
+                  BlocProvider.value(value: context.read<BuildingsCubit>()),
+                  BlocProvider.value(value: context.read<SettingsCubit>()),
+                ],
+                child: const AddContractPage(),
+              ),
+            ),
+          )
+        : null, // تعطيل الضغط
       icon: const Icon(Icons.add_home_work),
       label: const Text('عقد جديد', style: TextStyle(fontWeight: FontWeight.bold)),
-      backgroundColor: Colors.teal.shade600,
-      foregroundColor: Colors.white,
+      backgroundColor: canCreate ? Colors.teal.shade600 : Colors.grey.shade300,
+      foregroundColor: canCreate ? Colors.white : Colors.grey.shade600,
+      elevation: canCreate ? 6 : 0, // إزالة الظل لجعله يبدو مطفأً
+      tooltip: canCreate ? 'إنشاء عقد جديد' : 'لا تملك صلاحية إنشاء عقود',
     );
   }
 }
