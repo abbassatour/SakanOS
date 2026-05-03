@@ -5,10 +5,18 @@ import 'package:local_storage_api/local_storage_api.dart' show Client; // است
 import '../../cubit/clients_cubit.dart';
 import 'verify_pin_dialog.dart';
 
+// 🌟 استدعاء الحارس الشخصي والصلاحيات
+import '../../../auth/cubit/auth_cubit.dart';
+import '../../../core/constants/app_permissions.dart';
+
 void showEditClientDialog(BuildContext parentContext, Client client) {
   final nameController = TextEditingController(text: client.name);
   final phoneController = TextEditingController(text: client.phone);
   final nationalIdController = TextEditingController(text: client.nationalId ?? '');
+
+  // 🌟 جلب الصلاحيات لمعرفة ما إذا كان يملك صلاحية (حذف العملاء) أم لا
+  final authState = parentContext.read<AuthCubit>().state;
+  final bool canDelete = authState.hasPermission(AppPermissions.deleteClients);
 
   showDialog(
     context: parentContext,
@@ -126,24 +134,29 @@ void showEditClientDialog(BuildContext parentContext, Client client) {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children:[
-              // 🗑️ زر الحذف (مفصول وواضح)
-              TextButton.icon(
-                style: TextButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  backgroundColor: Colors.red.shade50,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))
-                ),
-                icon: const Icon(Icons.delete_forever, color: Colors.red),
-                label: const Text('حذف ونقل للسلة', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
-                onPressed: () async {
-                  Navigator.pop(dialogContext); // إغلاق النافذة
-                  bool isAuthorized = await showVerifyPinDialog(parentContext); 
-                  if (isAuthorized && parentContext.mounted) {
-                    parentContext.read<ClientsCubit>().deleteClient(client.id);
-                    ScaffoldMessenger.of(parentContext).showSnackBar(const SnackBar(content: Text('تم نقل العميل لسلة المحذوفات'), backgroundColor: Colors.green));
-                  }
-                },
-              ),
+              // ==========================================
+              // 👻 الإخفاء التام لزر الحذف
+              // ==========================================
+              if (canDelete)
+                TextButton.icon(
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    backgroundColor: Colors.red.shade50,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))
+                  ),
+                  icon: const Icon(Icons.delete_forever, color: Colors.red),
+                  label: const Text('حذف ونقل للسلة', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+                  onPressed: () async {
+                    Navigator.pop(dialogContext); // إغلاق النافذة
+                    bool isAuthorized = await showVerifyPinDialog(parentContext); 
+                    if (isAuthorized && parentContext.mounted) {
+                      parentContext.read<ClientsCubit>().deleteClient(client.id);
+                      ScaffoldMessenger.of(parentContext).showSnackBar(const SnackBar(content: Text('تم نقل العميل لسلة المحذوفات'), backgroundColor: Colors.green));
+                    }
+                  },
+                )
+              else
+                const SizedBox.shrink(), // مساحة فارغة بدلاً من الزر ليحافظ على التصميم
               
               // ✏️ أزرار الحفظ والإلغاء
               Row(
