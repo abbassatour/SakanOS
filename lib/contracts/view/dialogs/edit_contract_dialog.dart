@@ -7,6 +7,10 @@ import '../../../buildings/cubit/buildings_cubit.dart';
 import '../../cubit/contracts_cubit.dart';
 import 'verify_pin_dialog.dart';
 
+// 🌟 استدعاء الحارس الشخصي والصلاحيات
+import '../../../auth/cubit/auth_cubit.dart';
+import '../../../core/constants/app_permissions.dart';
+
 void showEditContractDialog(BuildContext parentContext, Contract contract) {
   final detailsController = TextEditingController(text: contract.apartmentDetails);
   final guarantorController = TextEditingController(text: contract.guarantorName);
@@ -15,6 +19,11 @@ void showEditContractDialog(BuildContext parentContext, Contract contract) {
   final monthlyAmountController = TextEditingController(text: contract.agreedMonthlyAmount.toString());
   // 🌟 متغير لحفظ التاريخ المختار (ونعرض تاريخ العقد الحالي كقيمة افتراضية)
   DateTime selectedDate = contract.contractDate.toLocal();
+
+  // 🌟 جلب حالة الصلاحيات للمستخدم الحالي
+  final authState = parentContext.read<AuthCubit>().state;
+  final bool canEdit = authState.hasPermission(AppPermissions.createContracts); // استخدمنا createContracts كصلاحية عامة للعقود
+  final bool isSuperAdmin = authState.isSystemAdmin;
 
   showDialog(
     context: parentContext,
@@ -60,22 +69,24 @@ void showEditContractDialog(BuildContext parentContext, Contract contract) {
                         children:[
                           const Text('📅 تاريخ التوقيع:', style: TextStyle(fontWeight: FontWeight.bold)),
                           TextButton.icon(
-                            icon: const Icon(Icons.edit_calendar, color: Colors.blue),
+                            icon: Icon(Icons.edit_calendar, color: canEdit ? Colors.blue : Colors.grey),
                             label: Text(
                               '${selectedDate.year}/${selectedDate.month}/${selectedDate.day}', 
-                              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue)
+                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: canEdit ? Colors.blue : Colors.grey)
                             ),
-                            onPressed: () async {
-                              final pickedDate = await showDatePicker(
-                                context: dialogContext,
-                                initialDate: selectedDate,
-                                firstDate: DateTime(2000),
-                                lastDate: DateTime.now(),
-                              );
-                              if (pickedDate != null) {
-                                setState(() => selectedDate = pickedDate);
-                              }
-                            },
+                            onPressed: canEdit 
+                              ? () async {
+                                  final pickedDate = await showDatePicker(
+                                    context: dialogContext,
+                                    initialDate: selectedDate,
+                                    firstDate: DateTime(2000),
+                                    lastDate: DateTime.now(),
+                                  );
+                                  if (pickedDate != null) {
+                                    setState(() => selectedDate = pickedDate);
+                                  }
+                                }
+                              : null, // تعطيل إذا لم يكن لديه صلاحية
                           ),
                         ],
                       ),
@@ -84,6 +95,7 @@ void showEditContractDialog(BuildContext parentContext, Contract contract) {
                     // 🌟 حقل تعديل المبلغ الشهري
                     TextField(
                       controller: monthlyAmountController, 
+                      enabled: canEdit, // تعطيل الحقل إذا لم يكن لديه صلاحية
                       decoration: const InputDecoration(
                         labelText: 'المبلغ الشهري المتفق عليه', 
                         border: OutlineInputBorder(),
@@ -93,14 +105,19 @@ void showEditContractDialog(BuildContext parentContext, Contract contract) {
                     ),
                     const SizedBox(height: 16),
                     
-                    TextField(controller: detailsController, decoration: const InputDecoration(labelText: 'وصف العقد / التفاصيل (الشروط الإضافية)', border: OutlineInputBorder()), maxLines: 2),
+                    TextField(
+                      controller: detailsController, 
+                      enabled: canEdit, // تعطيل الحقل إذا لم يكن لديه صلاحية
+                      decoration: const InputDecoration(labelText: 'وصف العقد / التفاصيل (الشروط الإضافية)', border: OutlineInputBorder()), 
+                      maxLines: 2
+                    ),
                     const SizedBox(height: 16),
                     
                     Row(
                       children:[
-                        Expanded(flex: 2, child: TextField(controller: guarantorController, decoration: const InputDecoration(labelText: 'اسم الكفيل', border: OutlineInputBorder()))),
+                        Expanded(flex: 2, child: TextField(controller: guarantorController, enabled: canEdit, decoration: const InputDecoration(labelText: 'اسم الكفيل', border: OutlineInputBorder()))),
                         const SizedBox(width: 12),
-                        Expanded(flex: 1, child: TextField(controller: monthsController, decoration: const InputDecoration(labelText: 'المدة (أشهر)', border: OutlineInputBorder()), keyboardType: TextInputType.number)),
+                        Expanded(flex: 1, child: TextField(controller: monthsController, enabled: canEdit, decoration: const InputDecoration(labelText: 'المدة (أشهر)', border: OutlineInputBorder()), keyboardType: TextInputType.number)),
                       ],
                     ),
                     const SizedBox(height: 16),
@@ -129,41 +146,46 @@ void showEditContractDialog(BuildContext parentContext, Contract contract) {
                             ],
                           ),
                           TextButton.icon(
-                            icon: const Icon(Icons.upload_file, color: Colors.blue),
-                            label: Text(contract.contractFileUrl != null && contract.contractFileUrl!.isNotEmpty ? 'استبدال الملف' : 'إرفاق ملف'),
-                            onPressed: () async {
-                              bool isAuthorized = await showVerifyPinDialog(parentContext);
-                              if (!isAuthorized) return; 
-                              
-                              FilePickerResult? result = await FilePicker.platform.pickFiles(
-                                type: FileType.custom,
-                                allowedExtensions: ['doc', 'docx', 'pdf'], 
-                              );
-
-                              if (result != null && result.files.single.path != null) {
-                                final filePath = result.files.single.path!;
-                                final extension = result.files.single.extension ?? 'docx';
-                                
-                                if(parentContext.mounted) {
-                                  ScaffoldMessenger.of(parentContext).showSnackBar(
-                                    const SnackBar(content: Text('جاري رفع الملف الجديد للسحابة... ⏳'), backgroundColor: Colors.orange)
+                            icon: Icon(Icons.upload_file, color: canEdit ? Colors.blue : Colors.grey),
+                            label: Text(
+                              contract.contractFileUrl != null && contract.contractFileUrl!.isNotEmpty ? 'استبدال الملف' : 'إرفاق ملف',
+                              style: TextStyle(color: canEdit ? Colors.blue : Colors.grey)
+                            ),
+                            onPressed: canEdit 
+                              ? () async {
+                                  bool isAuthorized = await showVerifyPinDialog(parentContext);
+                                  if (!isAuthorized) return; 
+                                  
+                                  FilePickerResult? result = await FilePicker.platform.pickFiles(
+                                    type: FileType.custom,
+                                    allowedExtensions:['doc', 'docx', 'pdf'], 
                                   );
 
-                                  await parentContext.read<ContractsCubit>().attachContractFile(
-                                    contractId: contract.id,
-                                    filePath: filePath,
-                                    extension: extension,
-                                  );
+                                  if (result != null && result.files.single.path != null) {
+                                    final filePath = result.files.single.path!;
+                                    final extension = result.files.single.extension ?? 'docx';
+                                    
+                                    if(parentContext.mounted) {
+                                      ScaffoldMessenger.of(parentContext).showSnackBar(
+                                        const SnackBar(content: Text('جاري رفع الملف الجديد للسحابة... ⏳'), backgroundColor: Colors.orange)
+                                      );
 
-                                  if(parentContext.mounted) {
-                                    ScaffoldMessenger.of(parentContext).showSnackBar(
-                                      const SnackBar(content: Text('تم استبدال/إرفاق الملف بنجاح! ✅'), backgroundColor: Colors.green)
-                                    );
-                                    Navigator.pop(dialogContext); 
+                                      await parentContext.read<ContractsCubit>().attachContractFile(
+                                        contractId: contract.id,
+                                        filePath: filePath,
+                                        extension: extension,
+                                      );
+
+                                      if(parentContext.mounted) {
+                                        ScaffoldMessenger.of(parentContext).showSnackBar(
+                                          const SnackBar(content: Text('تم استبدال/إرفاق الملف بنجاح! ✅'), backgroundColor: Colors.green)
+                                        );
+                                        Navigator.pop(dialogContext); 
+                                      }
+                                    }
                                   }
                                 }
-                              }
-                            },
+                              : null, // تعطيل إذا لم يكن لديه صلاحية
                           ),
                         ],
                       ),
@@ -174,58 +196,71 @@ void showEditContractDialog(BuildContext parentContext, Contract contract) {
             ),
             actionsAlignment: MainAxisAlignment.spaceBetween, 
             actions:[
-              TextButton.icon(
-                icon: const Icon(Icons.delete_forever, color: Colors.red),
-                label: const Text('إلغاء العقد نهائياً', style: TextStyle(color: Colors.red)),
-                onPressed: () async {
-                  Navigator.pop(dialogContext); 
-                  
-                  bool isAuthorized = await showVerifyPinDialog(parentContext); 
-                  
-                  if (isAuthorized && parentContext.mounted) {
-                    ScaffoldMessenger.of(parentContext).showSnackBar(
-                      SnackBar(content: const Text('جاري إلغاء العقد وتحرير الشقة... ⏳'), backgroundColor: Colors.red.shade400, duration: const Duration(seconds: 1))
-                    );
-
-                    await parentContext.read<ContractsCubit>().deleteContract(contract.id);
+              // ==========================================
+              // 👻 الإخفاء التام لزر الحذف (متاح للآدمن فقط)
+              // ==========================================
+              if (isSuperAdmin)
+                TextButton.icon(
+                  icon: const Icon(Icons.delete_forever, color: Colors.red),
+                  label: const Text('إلغاء العقد نهائياً', style: TextStyle(color: Colors.red)),
+                  onPressed: () async {
+                    Navigator.pop(dialogContext); 
                     
-                    if (parentContext.mounted) {
-                      parentContext.read<BuildingsCubit>().loadData();
+                    bool isAuthorized = await showVerifyPinDialog(parentContext); 
+                    
+                    if (isAuthorized && parentContext.mounted) {
+                      ScaffoldMessenger.of(parentContext).showSnackBar(
+                        SnackBar(content: const Text('جاري إلغاء العقد وتحرير الشقة... ⏳'), backgroundColor: Colors.red.shade400, duration: const Duration(seconds: 1))
+                      );
+
+                      await parentContext.read<ContractsCubit>().deleteContract(contract.id);
                       
-                      final currentState = parentContext.read<ContractsCubit>().state;
-                      if (currentState.status != ContractsStatus.failure) {
-                        ScaffoldMessenger.of(parentContext).showSnackBar(
-                          const SnackBar(content: Text('تم إلغاء العقد بنجاح! ✅'), backgroundColor: Colors.green)
-                        );
+                      if (parentContext.mounted) {
+                        parentContext.read<BuildingsCubit>().loadData();
+                        
+                        final currentState = parentContext.read<ContractsCubit>().state;
+                        if (currentState.status != ContractsStatus.failure) {
+                          ScaffoldMessenger.of(parentContext).showSnackBar(
+                            const SnackBar(content: Text('تم إلغاء العقد بنجاح! ✅'), backgroundColor: Colors.green)
+                          );
+                        }
                       }
                     }
-                  }
-                },
-              ),
+                  },
+                )
+              else
+                const SizedBox.shrink(), // مساحة فارغة بدلاً من الزر
+
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children:[
                   TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('إلغاء')),
+                  // 🌟 الزر الباهت لحفظ التعديلات
                   ElevatedButton(
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.blue, foregroundColor: Colors.white),
-                    onPressed: () async {
-                    if (monthsController.text.isNotEmpty && monthlyAmountController.text.isNotEmpty) {
-                      Navigator.pop(dialogContext); 
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: canEdit ? Colors.blue : Colors.grey.shade300, 
+                      foregroundColor: canEdit ? Colors.white : Colors.grey.shade600
+                    ),
+                    onPressed: canEdit 
+                      ? () async {
+                          if (monthsController.text.isNotEmpty && monthlyAmountController.text.isNotEmpty) {
+                            Navigator.pop(dialogContext); 
 
-                      bool isAuthorized = await showVerifyPinDialog(parentContext);
-                      
-                      if (isAuthorized && parentContext.mounted) {
-                        parentContext.read<ContractsCubit>().updateContract(
-                          id: contract.id,
-                          details: detailsController.text,
-                          guarantorName: guarantorController.text.isEmpty ? 'بدون كفيل' : guarantorController.text,
-                          installmentsCount: int.parse(monthsController.text), // شکلي
-                          agreedMonthlyAmount: double.parse(monthlyAmountController.text), // 🌟 تمرير المبلغ الجديد
-                          contractDate: selectedDate,
-                        );
-                      }
-                    }
-                  },
+                            bool isAuthorized = await showVerifyPinDialog(parentContext);
+                            
+                            if (isAuthorized && parentContext.mounted) {
+                              parentContext.read<ContractsCubit>().updateContract(
+                                id: contract.id,
+                                details: detailsController.text,
+                                guarantorName: guarantorController.text.isEmpty ? 'بدون كفيل' : guarantorController.text,
+                                installmentsCount: int.parse(monthsController.text), // شکلي
+                                agreedMonthlyAmount: double.parse(monthlyAmountController.text), // 🌟 تمرير المبلغ الجديد
+                                contractDate: selectedDate,
+                              );
+                            }
+                          }
+                        }
+                      : null, // تعطيل إذا لم يكن لديه صلاحية
                     child: const Text('حفظ التعديلات النصية'),
                   ),
                 ],
