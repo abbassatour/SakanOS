@@ -11,7 +11,10 @@ import '../../core/utils/excel_export_helper.dart';
 import 'dialogs/add_payment_dialog.dart'; 
 import 'dialogs/edit_payment_dialog.dart'; 
 import 'dialogs/delete_payment_dialog.dart'; 
-// تم إزالة استدعاء deleted_payments_view.dart لأننا نستخدم سلة المحذوفات الشاملة الآن
+
+// 🌟 استدعاء الحارس الشخصي والصلاحيات
+import '../../auth/cubit/auth_cubit.dart';
+import '../../core/constants/app_permissions.dart';
 
 // ==========================================
 // 🌟 دالة مساعدة لتنسيق الأرقام بالفواصل
@@ -35,6 +38,14 @@ class PaymentsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 🌟 جلب حالة الصلاحيات للمستخدم الحالي
+    final authState = context.watch<AuthCubit>().state;
+    
+    // 🌟 استخراج الصلاحيات 
+    final canAdd = authState.hasPermission(AppPermissions.addPayments);
+    final canEdit = authState.hasPermission(AppPermissions.editPayments);
+    final canDelete = authState.hasPermission(AppPermissions.deletePayments);
+
     return Scaffold(
       backgroundColor: Colors.grey.shade50, // لون خلفية هادئ للصفحة
       // 🌟 تم إزالة الـ AppBar والعنوان بالكامل لتبدأ الشاشة بشريط البحث فوراً
@@ -218,19 +229,25 @@ class PaymentsView extends StatelessWidget {
 
                         const SizedBox(width: 8),
                         
-                        // زر إدخال دفعة
-                        SizedBox(
-                          height: 48,
-                          child: ElevatedButton.icon(
-                            onPressed: () => showAddPaymentDialog(context, state.selectedContractId!),
-                            icon: const Icon(Icons.add_card, size: 20),
-                            label: const Text('إدخال دفعة', style: TextStyle(fontWeight: FontWeight.bold)),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.deepOrange.shade600, 
-                              foregroundColor: Colors.white, 
-                              elevation: 2,
-                              padding: const EdgeInsets.symmetric(horizontal: 20),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))
+                        // ==========================================
+                        // 🛡️ حماية زر "إدخال دفعة" (الزر الباهت)
+                        // ==========================================
+                        Tooltip(
+                          message: canAdd ? 'إضافة دفعة مالية جديدة' : 'لا تملك صلاحية إدخال دفعات',
+                          child: SizedBox(
+                            height: 48,
+                            child: ElevatedButton.icon(
+                              onPressed: canAdd ? () => showAddPaymentDialog(context, state.selectedContractId!) : null,
+                              icon: const Icon(Icons.add_card, size: 20),
+                              label: const Text('إدخال دفعة', style: TextStyle(fontWeight: FontWeight.bold)),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: canAdd ? Colors.deepOrange.shade600 : Colors.grey.shade300, 
+                                foregroundColor: canAdd ? Colors.white : Colors.grey.shade600, 
+                                elevation: canAdd ? 2 : 0,
+                                disabledBackgroundColor: Colors.grey.shade300,
+                                padding: const EdgeInsets.symmetric(horizontal: 20),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))
+                              ),
                             ),
                           ),
                         ),
@@ -378,16 +395,25 @@ class PaymentsView extends StatelessWidget {
                                                   },
                                                 ),
                                                 Container(width: 1, height: 24, color: Colors.grey.shade300, margin: const EdgeInsets.symmetric(horizontal: 4)), // خط فاصل
+                                                
+                                                // ==========================================
+                                                // 🛡️ حماية أيقونة التعديل (باهتة)
+                                                // ==========================================
                                                 IconButton(
-                                                  icon: const Icon(Icons.edit_note, color: Colors.orange),
-                                                  tooltip: 'تعديل قيمة الدفعة (للإدارة فقط)',
-                                                  onPressed: () => showEditPaymentDialog(context, entry),
+                                                  icon: Icon(Icons.edit_note, color: canEdit ? Colors.orange : Colors.grey.shade300),
+                                                  tooltip: canEdit ? 'تعديل قيمة الدفعة (للإدارة فقط)' : 'لا تملك صلاحية تعديل الدفعات',
+                                                  onPressed: canEdit ? () => showEditPaymentDialog(context, entry) : null,
                                                 ),
-                                                IconButton(
-                                                  icon: Icon(Icons.delete_forever, color: isLatestEntry ? Colors.red : Colors.grey.shade300),
-                                                  tooltip: isLatestEntry ? 'إلغاء آخر دفعة' : 'لا يمكن حذف الدفعات القديمة',
-                                                  onPressed: isLatestEntry ? () => showDeletePaymentDialog(context, entry) : null,
-                                                ),
+                                                
+                                                // ==========================================
+                                                // 🛡️ حماية أيقونة الحذف (إخفاء تام)
+                                                // ==========================================
+                                                if (canDelete)
+                                                  IconButton(
+                                                    icon: Icon(Icons.delete_forever, color: isLatestEntry ? Colors.red : Colors.grey.shade300),
+                                                    tooltip: isLatestEntry ? 'إلغاء آخر دفعة' : 'لا يمكن حذف الدفعات القديمة',
+                                                    onPressed: isLatestEntry ? () => showDeletePaymentDialog(context, entry) : null,
+                                                  ),
                                               ],
                                             )),
                                           ]);
