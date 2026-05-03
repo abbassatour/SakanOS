@@ -5,6 +5,10 @@ import 'package:erp_repository/erp_repository.dart';
 import '../cubit/recycle_bin_cubit.dart';
 import 'dialogs/verify_hard_delete_dialog.dart'; // 🌟 استدعاء الديالوج الموحد
 
+// 🌟 استدعاء الحارس الشخصي والصلاحيات
+import '../../auth/cubit/auth_cubit.dart';
+import '../../core/constants/app_permissions.dart';
+
 class RecycleBinPage extends StatelessWidget {
   const RecycleBinPage({super.key});
 
@@ -22,6 +26,11 @@ class RecycleBinView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 🌟 جلب الصلاحيات لمعرفة ما إذا كان يملك حق الاستعادة أو الحذف النهائي
+    final authState = context.watch<AuthCubit>().state;
+    final bool canRestore = authState.hasPermission(AppPermissions.restoreItems);
+    final bool canHardDelete = authState.hasPermission(AppPermissions.hardDeleteItems);
+
     return DefaultTabController(
       length: 5,
       child: Scaffold(
@@ -52,7 +61,7 @@ class RecycleBinView extends StatelessWidget {
           },
           builder: (context, state) {
             if (state.status == RecycleBinStatus.loading) {
-              return const Center(child: CircularProgressIndicator());
+              return const Center(child: CircularProgressIndicator(color: Colors.red));
             }
 
             return TabBarView(
@@ -63,6 +72,8 @@ class RecycleBinView extends StatelessWidget {
                   items: state.deletedClients, 
                   emptyMessage: 'العملاء',
                   icon: Icons.person_off,
+                  canRestore: canRestore, // 🌟 تمرير الصلاحية
+                  canHardDelete: canHardDelete, // 🌟 تمرير الصلاحية
                   getTitle: (item) => item.name, 
                   getSubtitle: (item) => 'رقم الهاتف: ${item.phone}',
                   getUpdatedAt: (item) => item.updatedAt,
@@ -75,6 +86,8 @@ class RecycleBinView extends StatelessWidget {
                   items: state.deletedBuildings, 
                   emptyMessage: 'المحاضر', 
                   icon: Icons.domain_disabled,
+                  canRestore: canRestore,
+                  canHardDelete: canHardDelete,
                   getTitle: (item) => 'محضر: ${item.name}', 
                   getSubtitle: (item) => 'الموقع: ${item.location}',
                   getUpdatedAt: (item) => item.updatedAt,
@@ -87,6 +100,8 @@ class RecycleBinView extends StatelessWidget {
                   items: state.deletedApartments, 
                   emptyMessage: 'الوحدات (الشقق/المحلات)', 
                   icon: Icons.do_not_disturb_alt,
+                  canRestore: canRestore,
+                  canHardDelete: canHardDelete,
                   getTitle: (item) => 'وحدة رقم: ${item.apartmentNumber}', 
                   getSubtitle: (item) => 'المساحة: ${item.area} م²',
                   getUpdatedAt: (item) => item.updatedAt,
@@ -99,6 +114,8 @@ class RecycleBinView extends StatelessWidget {
                   items: state.deletedContracts, 
                   emptyMessage: 'العقود', 
                   icon: Icons.file_copy_outlined,
+                  canRestore: canRestore,
+                  canHardDelete: canHardDelete,
                   getTitle: (item) => 'عقد بيع (${item.apartmentDetails})', 
                   getSubtitle: (item) => 'المساحة الإجمالية: ${item.totalArea} م²',
                   getUpdatedAt: (item) => item.updatedAt,
@@ -111,6 +128,8 @@ class RecycleBinView extends StatelessWidget {
                   items: state.deletedPayments, 
                   emptyMessage: 'المدفوعات والإيصالات', 
                   icon: Icons.money_off,
+                  canRestore: canRestore,
+                  canHardDelete: canHardDelete,
                   getTitle: (item) => 'إيصال رقم: ${item.id.split('-').first.toUpperCase()}', 
                   getSubtitle: (item) => 'مبلغ الدفعة: ${item.amountPaid}',
                   getUpdatedAt: (item) => item.updatedAt,
@@ -125,12 +144,14 @@ class RecycleBinView extends StatelessWidget {
     );
   }
 
-  // 🌟 الدالة السحرية المطورة لبناء القوائم (تدعم احتساب الأيام المتبقية)
+  // 🌟 الدالة السحرية المطورة لبناء القوائم (تدعم احتساب الأيام المتبقية وتخفي الأزرار بناءً على الصلاحيات)
   Widget _buildList<T>({
     required BuildContext context, 
     required List<T> items, 
     required String emptyMessage, 
     required IconData icon,
+    required bool canRestore, // 🌟
+    required bool canHardDelete, // 🌟
     required String Function(T) getTitle, 
     required String Function(T) getSubtitle, 
     required DateTime Function(T) getUpdatedAt, 
@@ -176,26 +197,30 @@ class RecycleBinView extends StatelessWidget {
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children:[
-                IconButton(
-                  icon: const Icon(Icons.restore, color: Colors.green, size: 30),
-                  tooltip: 'استعادة',
-                  onPressed: () {
-                    onRestore(item);
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تمت الاستعادة بنجاح.'), backgroundColor: Colors.green));
-                  },
-                ),
-                IconButton(
-                  icon: const Icon(Icons.delete_forever, color: Colors.red),
-                  tooltip: 'حذف نهائي الآن',
-                  onPressed: () {
-                    // 🌟 استدعاء الديالوج الأمني الموحد!
-                    showVerifyHardDeleteDialog(
-                      context: context,
-                      itemName: title,
-                      onConfirm: () => onHardDelete(item),
-                    );
-                  },
-                ),
+                // 👻 إخفاء زر الاستعادة إذا لم يكن يملك الصلاحية
+                if (canRestore)
+                  IconButton(
+                    icon: const Icon(Icons.restore, color: Colors.green, size: 30),
+                    tooltip: 'استعادة',
+                    onPressed: () {
+                      onRestore(item);
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تمت الاستعادة بنجاح.'), backgroundColor: Colors.green));
+                    },
+                  ),
+                
+                // 👻 إخفاء زر الحذف المدمر إذا لم يكن يملك الصلاحية (متاح غالباً للمدير فقط)
+                if (canHardDelete)
+                  IconButton(
+                    icon: const Icon(Icons.delete_forever, color: Colors.red),
+                    tooltip: 'حذف نهائي الآن',
+                    onPressed: () {
+                      showVerifyHardDeleteDialog(
+                        context: context,
+                        itemName: title,
+                        onConfirm: () => onHardDelete(item),
+                      );
+                    },
+                  ),
               ],
             ),
           ),
