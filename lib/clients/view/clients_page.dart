@@ -220,6 +220,7 @@ class _ClientsViewState extends State<ClientsView> {
                                     DataColumn(label: Text('رقم الهاتف', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueAccent, fontSize: 14))),
                                     DataColumn(label: Text('الرقم الوطني', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueAccent, fontSize: 14))),
                                     DataColumn(label: Text('تاريخ الإضافة', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueAccent, fontSize: 14))),
+                                    DataColumn(label: Text('آخر تعديل بواسطة', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueAccent, fontSize: 14))),
                                     DataColumn(label: Text('إجراءات', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueAccent, fontSize: 14))), 
                                   ],
                                   rows: filteredClients.asMap().entries.map((mapEntry) {
@@ -293,6 +294,41 @@ class _ClientsViewState extends State<ClientsView> {
                                             child: Text('${client.createdAt.year}/${client.createdAt.month.toString().padLeft(2,'0')}/${client.createdAt.day.toString().padLeft(2,'0')}', 
                                               style: TextStyle(color: Colors.blue.shade700, fontWeight: FontWeight.bold, fontSize: 13)
                                             ),
+                                          )
+                                        ),
+
+                                        // ==========================================
+                                        // 🌟 الخلية الجديدة: آخر تعديل بواسطة
+                                        // ==========================================
+                                        DataCell(
+                                          Column(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children:[
+                                              Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children:[
+                                                  Icon(Icons.person_outline, size: 14, color: Colors.orange.shade700),
+                                                  const SizedBox(width: 4),
+                                                  Text(
+                                                    state.userNamesMap[client.userId] ?? 'مجهول', // جلب الاسم من الـ State
+                                                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.orange.shade800),
+                                                  ),
+                                                ],
+                                              ),
+                                              const SizedBox(height: 2),
+                                              Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children:[
+                                                  const Icon(Icons.access_time, size: 12, color: Colors.grey),
+                                                  const SizedBox(width: 4),
+                                                  Text(
+                                                    '${client.updatedAt.year}/${client.updatedAt.month.toString().padLeft(2,'0')}/${client.updatedAt.day.toString().padLeft(2,'0')} ${client.updatedAt.hour}:${client.updatedAt.minute.toString().padLeft(2,'0')}',
+                                                    style: const TextStyle(fontSize: 11, color: Colors.grey),
+                                                  ),
+                                                ],
+                                              )
+                                            ],
                                           )
                                         ),
                                         DataCell(

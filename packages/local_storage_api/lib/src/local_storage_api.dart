@@ -153,4 +153,12 @@ Future<void> handleRollingCheckpoint(String contractId, String scheduleId, Strin
 
   Future<LocalUser?> getLocalUserById(String id) => _db.getLocalUserById(id);
   Future<AppRole?> getRoleById(String id) => _db.getRoleById(id);
+
+
+  // ==========================================
+  // 🕒 دوال تتبع النشاطات (Activity Log)
+  // ==========================================
+  Future<List<PaymentsLedgerData>> getRecentPayments(int limit) => _db.getRecentPayments(limit);
+  Future<List<Contract>> getRecentContracts(int limit) => _db.getRecentContracts(limit);
+  Future<List<Client>> getRecentClients(int limit) => _db.getRecentClients(limit);
 }

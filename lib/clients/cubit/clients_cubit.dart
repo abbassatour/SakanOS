@@ -1,3 +1,4 @@
+//lib\clients\cubit\clients_cubit.dart
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:erp_repository/erp_repository.dart';
@@ -16,7 +17,18 @@ class ClientsCubit extends Cubit<ClientsState> {
     if (state.status == ClientsStatus.initial) emit(state.copyWith(status: ClientsStatus.loading));
     try {
       final clients = await _erpRepository.getClients();
-      emit(state.copyWith(status: ClientsStatus.success, clients: clients));
+      
+      // 🌟 السحر هنا: جلب المستخدمين وصنع قاموس للأسماء
+      final allUsers = await _erpRepository.getAllUsers();
+      final Map<String, String> namesMap = {
+        for (var user in allUsers) user.id: user.fullName ?? 'مدير النظام'
+      };
+
+      emit(state.copyWith(
+        status: ClientsStatus.success, 
+        clients: clients,
+        userNamesMap: namesMap, // 🌟 تمرير القاموس للواجهة
+      ));
     } catch (e) {
       emit(state.copyWith(status: ClientsStatus.failure, errorMessage: e.toString()));
     }

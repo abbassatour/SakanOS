@@ -1205,4 +1205,113 @@ class ErpRepository {
 
   Future<LocalUser?> getLocalUserById(String id) => _localApi.getLocalUserById(id);
   Future<AppRole?> getRoleById(String id) => _localApi.getRoleById(id);
+
+  // ==========================================
+  // 🕒 نظام تتبع النشاطات (Activity Log)
+  // ==========================================
+  Future<List<ActivityItem>> getRecentActivities({int limitPerType = 20, int finalLimit = 30}) async {
+    final List<ActivityItem> allActivities =[];
+
+    // 1. جلب البيانات الخام من قاعدة البيانات المخبأة
+    final recentPayments = await _localApi.getRecentPayments(limitPerType);
+    final recentContracts = await _localApi.getRecentContracts(limitPerType);
+    final recentClients = await _localApi.getRecentClients(limitPerType);
+
+    // 2. تحويل الدفعات إلى نشاطات
+    for (var p in recentPayments) {
+      allActivities.add(ActivityItem(
+        entityId: p.id,
+        type: ActivityType.payment,
+        title: 'حركة مالية (دفعة/تعديل)',
+        description: 'دفعة بقيمة ${p.amountPaid} للعقد ${p.contractId.substring(0, 5)}...', // أخذنا جزء من الآي دي للتوضيح
+        timestamp: p.updatedAt,
+        userId: p.userId,
+      ));
+    }
+
+    // 3. تحويل العقود إلى نشاطات (وسنأخذ بعين الاعتبار إذا كان هناك إجراء رادار)
+    for (var c in recentContracts) {
+      if (c.lastActionDate != null && c.lastActionDate!.difference(c.updatedAt).inMinutes.abs() < 5) {
+        // إذا كان وقت الإجراء قريباً جداً من وقت التحديث، نعتبره "إجراء إداري"
+        allActivities.add(ActivityItem(
+          entityId: c.id,
+          type: ActivityType.adminAction,
+          title: 'إجراء إداري (ملاحظة)',
+          description: c.lastActionNote ?? 'تم تسجيل ملاحظة على العقد',
+          timestamp: c.updatedAt,
+          userId: c.userId,
+        ));
+      } else {
+        // تحديث أو إضافة عقد عادي
+        allActivities.add(ActivityItem(
+          entityId: c.id,
+          type: ActivityType.contract,
+          title: 'إضافة/تعديل عقد',
+          description: 'عقد جديد أو معدل للعميل ${c.clientId.substring(0, 5)}...',
+          timestamp: c.updatedAt,
+          userId: c.userId,
+        ));
+      }
+    }
+
+    // 4. تحويل العملاء إلى نشاطات
+    for (var c in recentClients) {
+      allActivities.add(ActivityItem(
+        entityId: c.id,
+        type: ActivityType.client,
+        title: 'إضافة/تعديل عميل',
+        description: 'العميل: ${c.name}',
+        timestamp: c.updatedAt,
+        userId: c.userId,
+      ));
+    }
+
+    // 5. 🌟 ترتيب جميع النشاطات تنازلياً حسب الوقت (من الأحدث للأقدم)
+    allActivities.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+
+    // 6. قص القائمة لتكون بالعدد المطلوب فقط (مثلاً أحدث 30 حدث في كل النظام)
+    final trimmedActivities = allActivities.length > finalLimit 
+        ? allActivities.sublist(0, finalLimit) 
+        : allActivities;
+
+    // 7. 🕵️‍♂️ جلب أسماء المستخدمين بخطوة واحدة ذكية (لتجنب إرهاق القاعدة بالاستعلامات المتكررة)
+    final allUsers = await _localApi.getAllLocalUsers();
+    final Map<String, String> userNamesMap = {
+      for (var user in allUsers) user.id: user.fullName ?? 'مدير النظام'
+    };
+
+    // تعبئة الأسماء
+    for (var activity in trimmedActivities) {
+      if (userNamesMap.containsKey(activity.userId)) {
+        activity.userName = userNamesMap[activity.userId]!;
+      }
+    }
+
+    return trimmedActivities;
+  }
+  
+}
+
+
+// نموذج يمثل حركة أو نشاط واحد في النظام
+enum ActivityType { payment, contract, client, adminAction }
+
+class ActivityItem {
+  final String entityId; // آي دي العنصر (للانتقال لصفحته عند الضغط)
+  final ActivityType type; // نوع النشاط (دفعة، عقد، عميل...)
+  final String title; // العنوان (مثال: دفعة جديدة، تعديل عقد)
+  final String description; // التفاصيل (مثال: مبلغ 500$ للعقد كذا)
+  final DateTime timestamp; // وقت حدوث التعديل
+  final String userId; // آي دي المستخدم (لجلب اسمه لاحقاً)
+  String userName; // اسم المستخدم (سيتم تعبئته لاحقاً)
+
+  ActivityItem({
+    required this.entityId,
+    required this.type,
+    required this.title,
+    required this.description,
+    required this.timestamp,
+    required this.userId,
+    this.userName = 'مستخدم غير معروف',
+  });
 }

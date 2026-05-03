@@ -1125,6 +1125,35 @@ class AppDatabase extends _$AppDatabase {
   // جلب قالب بناءً على الآي دي
   Future<AppRole?> getRoleById(String id) => 
       (select(appRoles)..where((t) => t.id.equals(id))).getSingleOrNull();
+
+
+  // ==========================================
+  // 🕒 استعلامات سجل النشاطات (Activity Log) السريعة
+  // ==========================================
+  
+  // 1. جلب أحدث الدفعات
+  Future<List<PaymentsLedgerData>> getRecentPayments(int limitCount) => 
+      (select(paymentsLedger)
+        ..where((t) => t.isDeleted.equals(false))
+        ..orderBy([(t) => OrderingTerm.desc(t.updatedAt)])
+        ..limit(limitCount)
+      ).get();
+
+  // 2. جلب أحدث العقود (إضافة أو تعديل)
+  Future<List<Contract>> getRecentContracts(int limitCount) => 
+      (select(contracts)
+        ..where((t) => t.isDeleted.equals(false))
+        ..orderBy([(t) => OrderingTerm.desc(t.updatedAt)])
+        ..limit(limitCount)
+      ).get();
+
+  // 3. جلب أحدث العملاء
+  Future<List<Client>> getRecentClients(int limitCount) => 
+      (select(clients)
+        ..where((t) => t.isDeleted.equals(false))
+        ..orderBy([(t) => OrderingTerm.desc(t.updatedAt)])
+        ..limit(limitCount)
+      ).get();
 }
 
 LazyDatabase _openConnection() {
@@ -1135,3 +1164,7 @@ LazyDatabase _openConnection() {
     return NativeDatabase.createInBackground(file);
   });
 }
+
+
+
+
