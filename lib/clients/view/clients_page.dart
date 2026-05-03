@@ -12,6 +12,10 @@ import '../../schedule/cubit/schedule_cubit.dart';
 import '../../profile/cubit/client_profile_cubit.dart';
 import '../../profile/view/client_profile_page.dart';
 
+// 🌟 استدعاء الحارس الشخصي والصلاحيات
+import '../../auth/cubit/auth_cubit.dart';
+import '../../core/constants/app_permissions.dart';
+
 class ClientsPage extends StatelessWidget {
   const ClientsPage({super.key});
 
@@ -33,17 +37,33 @@ class _ClientsViewState extends State<ClientsView> {
 
   @override
   Widget build(BuildContext context) {
+    // 🌟 جلب حالة الصلاحيات للمستخدم الحالي
+    final authState = context.watch<AuthCubit>().state;
+    
+    // 🌟 استخراج الصلاحيات كمتغيرات منطقية (True / False)
+    final canCreate = authState.hasPermission(AppPermissions.createClients);
+    final canEdit = authState.hasPermission(AppPermissions.editClients);
+
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
       // لا يوجد AppBar أبداً
+      
+      // ==========================================
+      // 🛡️ حماية زر إضافة عميل (استراتيجية الزر الباهت)
+      // ==========================================
       floatingActionButton: FloatingActionButton.extended(
         heroTag: null,
-        onPressed: () => showAddClientDialog(context),
+        // إذا لم يكن لديه صلاحية، نعطيه null لتعطيل الضغط
+        onPressed: canCreate ? () => showAddClientDialog(context) : null,
         icon: const Icon(Icons.person_add),
         label: const Text('إضافة عميل', style: TextStyle(fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.blueAccent,
-        foregroundColor: Colors.white,
+        // تغيير اللون وإزالة الظل بناءً على الصلاحية
+        backgroundColor: canCreate ? Colors.blueAccent : Colors.grey.shade300,
+        foregroundColor: canCreate ? Colors.white : Colors.grey.shade600,
+        elevation: canCreate ? 6 : 0, 
+        tooltip: canCreate ? 'إضافة عميل جديد' : 'لا تملك صلاحية إضافة عملاء',
       ),
+      
       // 🌟 الشاشة تبدأ فوراً من المنطقة الآمنة
       body: SafeArea(
         child: BlocConsumer<ClientsCubit, ClientsState>(
@@ -276,10 +296,13 @@ class _ClientsViewState extends State<ClientsView> {
                                           )
                                         ),
                                         DataCell(
+                                          // ==========================================
+                                          // 🛡️ حماية أيقونة التعديل (الزر الباهت)
+                                          // ==========================================
                                           IconButton(
-                                            icon: const Icon(Icons.edit_note, color: Colors.blue, size: 22), // أيقونة أصغر قليلاً
-                                            tooltip: 'تعديل أو حذف العميل',
-                                            onPressed: () => showEditClientDialog(context, client), 
+                                            icon: Icon(Icons.edit_note, color: canEdit ? Colors.blue : Colors.grey.shade400, size: 22), 
+                                            tooltip: canEdit ? 'تعديل بيانات العميل' : 'لا تملك صلاحية التعديل',
+                                            onPressed: canEdit ? () => showEditClientDialog(context, client) : null, 
                                           ),
                                         ),
                                       ]
