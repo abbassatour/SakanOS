@@ -551,7 +551,10 @@ class ErpRepository {
   }
 
   Future<void> deleteClient(String clientId) async { 
-    await _localApi.deleteClient(clientId);
+    final String? safeUserId = currentUserId;
+    if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
+    
+    await _localApi.deleteClient(clientId, safeUserId);
     syncPendingData();
   }
 
@@ -594,8 +597,11 @@ class ErpRepository {
   Future<List<Client>> getDeletedClients() => _localApi.getDeletedClients();
 
   Future<void> restoreClient(String clientId) async {
-    await _localApi.restoreClient(clientId);
-    await syncPendingData(); // 🌟 رفع أمر الاستعادة للسحابة فوراً
+    final String? safeUserId = currentUserId;
+    if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
+
+    await _localApi.restoreClient(clientId, safeUserId);
+    await syncPendingData(); 
   }
 
   Future<void> forceHardDeleteClient(String clientId) async {
@@ -646,7 +652,10 @@ class ErpRepository {
 
 
   Future<void> deleteContract(String contractId) async {
-    await _localApi.deleteContract(contractId);
+    final String? safeUserId = currentUserId;
+    if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
+
+    await _localApi.deleteContract(contractId, safeUserId);
     syncPendingData();
   }
 
@@ -722,8 +731,11 @@ class ErpRepository {
   Future<List<Contract>> getDeletedContracts() => _localApi.getDeletedContracts();
 
   Future<void> restoreContract(String contractId) async {
-    await _localApi.restoreContract(contractId);
-    await syncPendingData(); // 🌟 رفع الاستعادة للسحابة
+    final String? safeUserId = currentUserId;
+    if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
+
+    await _localApi.restoreContract(contractId, safeUserId);
+    await syncPendingData(); 
   }
 
   Future<void> forceHardDeleteContract(String contractId) async {
@@ -870,8 +882,11 @@ class ErpRepository {
   Future<List<PaymentsLedgerData>> getDeletedLedgerEntries() => _localApi.getDeletedLedgerEntries();
 
   Future<void> restoreLedgerEntry(String entryId) async {
-    await _localApi.restoreLedgerEntry(entryId);
-    await syncPendingData(); // رفع الاستعادة فوراً للسحابة
+    final String? safeUserId = currentUserId;
+    if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
+
+    await _localApi.restoreLedgerEntry(entryId, safeUserId);
+    await syncPendingData(); 
   }
 
   Future<void> forceHardDeleteLedgerEntry(String entryId) async {
@@ -908,15 +923,17 @@ class ErpRepository {
   // أضف هذه الدالة في قسم الإعدادات داخل ErpRepository
   Future<void> softDeleteMaterialPrice(String priceId) async {
     final db = _localApi.database;
-    // 1. نقوم بتحديث السطر ليصبح محذوفاً محلياً، ونجعله غير متزامن ليتم رفعه للسحابة
+    final String? safeUserId = currentUserId;
+    if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
+
     await (db.update(db.materialPricesHistory)..where((t) => t.id.equals(priceId))).write(
-      const MaterialPricesHistoryCompanion(
-        isDeleted: drift.Value(true),
-        isSynced: drift.Value(false), // إجبار محرك المزامنة على رفعه
+      MaterialPricesHistoryCompanion(
+        isDeleted: const drift.Value(true),
+        userId: drift.Value(safeUserId), // 🌟 توثيق من حذف التسعيرة
+        updatedAt: drift.Value(DateTime.now().toUtc()),
+        isSynced: const drift.Value(false), 
       )
     );
-    
-    // 2. تفعيل محرك المزامنة لرفع التعديل للسحابة
     await syncPendingData();
   }
 
@@ -1202,13 +1219,19 @@ class ErpRepository {
 
   // 3. استعادة شقة/محل
   Future<void> restoreApartment(String apartmentId) async {
-    await _localApi.database.restoreSoftDeletedApartment(apartmentId);
+    final String? safeUserId = currentUserId;
+    if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
+
+    await _localApi.database.restoreSoftDeletedApartment(apartmentId, safeUserId);
     await syncPendingData();
   }
 
   // 4. استعادة محضر (سيستعيد معه شققه آلياً بفضل الدالة المحلية)
   Future<void> restoreBuilding(String buildingId) async {
-    await _localApi.database.restoreSoftDeletedBuilding(buildingId);
+    final String? safeUserId = currentUserId;
+    if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
+
+    await _localApi.database.restoreSoftDeletedBuilding(buildingId, safeUserId);
     await syncPendingData();
   }
 

@@ -356,33 +356,26 @@ class AppDatabase extends _$AppDatabase {
   // ==========================================
   
   /// حذف عميل (يحذف معه آلياً: عقوده، أقساطه، ومدفوعاته)
-  Future<void> softDeleteClient(String clientId) async {
+  Future<void> softDeleteClient(String clientId, String userId) async {
     return transaction(() async {
-      // 🌍 التوقيت الحالي بـ UTC لتسجيل متى تم الحذف بدقة عالمية
       final nowUtc = Value(DateTime.now().toUtc());
 
-      // 1. حذف العميل نفسه
+      // 1. حذف العميل
       await (update(clients)..where((t) => t.id.equals(clientId))).write(
-        ClientsCompanion(isDeleted: const Value(true), updatedAt: nowUtc, isSynced: const Value(false)),
+        ClientsCompanion(isDeleted: const Value(true), userId: Value(userId), updatedAt: nowUtc, isSynced: const Value(false)),
       );
 
-      // 2. جلب كل عقود هذا العميل
+      // 2. حذف توابعه (العقود والأقساط والدفعات) مع توثيق من قام بالحذف
       final clientContracts = await (select(contracts)..where((t) => t.clientId.equals(clientId))).get();
-
       for (final contract in clientContracts) {
-        // أ. حذف العقد
         await (update(contracts)..where((t) => t.id.equals(contract.id))).write(
-          ContractsCompanion(isDeleted: const Value(true), updatedAt: nowUtc, isSynced: const Value(false)),
+          ContractsCompanion(isDeleted: const Value(true), userId: Value(userId), updatedAt: nowUtc, isSynced: const Value(false)),
         );
-
-        // ب. حذف جدول استحقاقات هذا العقد
         await (update(installmentsSchedule)..where((t) => t.contractId.equals(contract.id))).write(
-          InstallmentsScheduleCompanion(isDeleted: const Value(true), updatedAt: nowUtc, isSynced: const Value(false)),
+          InstallmentsScheduleCompanion(isDeleted: const Value(true), userId: Value(userId), updatedAt: nowUtc, isSynced: const Value(false)),
         );
-
-        // ج. حذف جميع مدفوعات هذا العقد (دفتر الأستاذ)
         await (update(paymentsLedger)..where((t) => t.contractId.equals(contract.id))).write(
-          PaymentsLedgerCompanion(isDeleted: const Value(true), updatedAt: nowUtc, isSynced: const Value(false)),
+          PaymentsLedgerCompanion(isDeleted: const Value(true), userId: Value(userId), updatedAt: nowUtc, isSynced: const Value(false)),
         );
       }
     });
@@ -453,27 +446,21 @@ class AppDatabase extends _$AppDatabase {
   
   
   /// حذف عقد (يحذف معه آلياً: أقساطه ومدفوعاته)
-  Future<void> softDeleteContract(String contractId) async {
+  Future<void> softDeleteContract(String contractId, String userId) async {
     return transaction(() async {
-      // 🌍 التوقيت الحالي بـ UTC
       final nowUtc = Value(DateTime.now().toUtc());
-
-      // 1. حذف العقد
       await (update(contracts)..where((t) => t.id.equals(contractId))).write(
-        ContractsCompanion(isDeleted: const Value(true), updatedAt: nowUtc, isSynced: const Value(false)),
+        ContractsCompanion(isDeleted: const Value(true), userId: Value(userId), updatedAt: nowUtc, isSynced: const Value(false)),
       );
-
-      // 2. حذف جدول استحقاقات العقد
       await (update(installmentsSchedule)..where((t) => t.contractId.equals(contractId))).write(
-        InstallmentsScheduleCompanion(isDeleted: const Value(true), updatedAt: nowUtc, isSynced: const Value(false)),
+        InstallmentsScheduleCompanion(isDeleted: const Value(true), userId: Value(userId), updatedAt: nowUtc, isSynced: const Value(false)),
       );
-
-      // 3. حذف جميع مدفوعات العقد
       await (update(paymentsLedger)..where((t) => t.contractId.equals(contractId))).write(
-        PaymentsLedgerCompanion(isDeleted: const Value(true), updatedAt: nowUtc, isSynced: const Value(false)),
+        PaymentsLedgerCompanion(isDeleted: const Value(true), userId: Value(userId), updatedAt: nowUtc, isSynced: const Value(false)),
       );
     });
   }
+
 
   // ==========================================
   // --- استعلامات دفتر المدفوعات (Ledger) ---
@@ -769,14 +756,15 @@ class AppDatabase extends _$AppDatabase {
       (select(clients)..where((t) => t.isDeleted.equals(true))).get();
 
   // 2. استعادة عميل محذوف
-  Future<void> restoreSoftDeletedClient(String clientId) async {
+  Future<void> restoreSoftDeletedClient(String clientId, String userId) async {
     return transaction(() async {
       final nowUtc = Value(DateTime.now().toUtc());
       await (update(clients)..where((t) => t.id.equals(clientId))).write(
         ClientsCompanion(
-          isDeleted: const Value(false), // إرجاع للحياة
-          updatedAt: nowUtc, // تحديث الوقت
-          isSynced: const Value(false) // إجبار السحابة على المزامنة وإلغاء الحذف هناك
+          isDeleted: const Value(false), 
+          userId: Value(userId), // 🌟 توثيق من استعاده
+          updatedAt: nowUtc, 
+          isSynced: const Value(false) 
         ),
       );
     });
@@ -808,23 +796,17 @@ class AppDatabase extends _$AppDatabase {
       (select(contracts)..where((t) => t.isDeleted.equals(true))).get();
 
   // 2. استعادة عقد (ويستعيد معه جداول الأقساط والمدفوعات الخاصة به)
-  Future<void> restoreSoftDeletedContract(String contractId) async {
+  Future<void> restoreSoftDeletedContract(String contractId, String userId) async {
     return transaction(() async {
       final nowUtc = Value(DateTime.now().toUtc());
-
-      // أ. استعادة العقد
       await (update(contracts)..where((t) => t.id.equals(contractId))).write(
-        ContractsCompanion(isDeleted: const Value(false), updatedAt: nowUtc, isSynced: const Value(false)),
+        ContractsCompanion(isDeleted: const Value(false), userId: Value(userId), updatedAt: nowUtc, isSynced: const Value(false)),
       );
-
-      // ب. استعادة جدول الاستحقاقات التابع له
       await (update(installmentsSchedule)..where((t) => t.contractId.equals(contractId))).write(
-        InstallmentsScheduleCompanion(isDeleted: const Value(false), updatedAt: nowUtc, isSynced: const Value(false)),
+        InstallmentsScheduleCompanion(isDeleted: const Value(false), userId: Value(userId), updatedAt: nowUtc, isSynced: const Value(false)),
       );
-
-      // ج. استعادة الدفعات (دفتر الأستاذ) التابعة له
       await (update(paymentsLedger)..where((t) => t.contractId.equals(contractId))).write(
-        PaymentsLedgerCompanion(isDeleted: const Value(false), updatedAt: nowUtc, isSynced: const Value(false)),
+        PaymentsLedgerCompanion(isDeleted: const Value(false), userId: Value(userId), updatedAt: nowUtc, isSynced: const Value(false)),
       );
     });
   }
@@ -899,10 +881,11 @@ class AppDatabase extends _$AppDatabase {
       (select(paymentsLedger)..where((t) => t.isDeleted.equals(true))).get();
 
   // 4. استعادة دفعة من المحذوفات
-  Future<int> restoreLedgerEntry(String entryId) {
+  Future<int> restoreLedgerEntry(String entryId, String userId) {
     return (update(paymentsLedger)..where((t) => t.id.equals(entryId))).write(
       PaymentsLedgerCompanion(
         isDeleted: const Value(false),
+        userId: Value(userId), // 🌟 توثيق
         updatedAt: Value(DateTime.now().toUtc()),
         isSynced: const Value(false),
       ),
@@ -1004,18 +987,14 @@ class AppDatabase extends _$AppDatabase {
   }
 
   // 2. استعادة محضر (يستعيد معه الشقق التابعة له آلياً)
-  Future<void> restoreSoftDeletedBuilding(String buildingId) async {
+  Future<void> restoreSoftDeletedBuilding(String buildingId, String userId) async {
     return transaction(() async {
       final nowUtc = Value(DateTime.now().toUtc());
-
-      // أ. استعادة المحضر
       await (update(buildings)..where((t) => t.id.equals(buildingId))).write(
-        BuildingsCompanion(isDeleted: const Value(false), updatedAt: nowUtc, isSynced: const Value(false)),
+        BuildingsCompanion(isDeleted: const Value(false), userId: Value(userId), updatedAt: nowUtc, isSynced: const Value(false)),
       );
-
-      // ب. استعادة الشقق التابعة له
       await (update(apartments)..where((t) => t.buildingId.equals(buildingId))).write(
-        ApartmentsCompanion(isDeleted: const Value(false), updatedAt: nowUtc, isSynced: const Value(false)),
+        ApartmentsCompanion(isDeleted: const Value(false), userId: Value(userId), updatedAt: nowUtc, isSynced: const Value(false)),
       );
     });
   }
@@ -1033,10 +1012,11 @@ class AppDatabase extends _$AppDatabase {
   }
 
   // 4. استعادة شقة/محل بشكل مستقل
-  Future<int> restoreSoftDeletedApartment(String apartmentId) {
+  Future<int> restoreSoftDeletedApartment(String apartmentId, String userId) {
     return (update(apartments)..where((t) => t.id.equals(apartmentId))).write(
       ApartmentsCompanion(
         isDeleted: const Value(false),
+        userId: Value(userId), // 🌟 توثيق
         updatedAt: Value(DateTime.now().toUtc()),
         isSynced: const Value(false),
       ),

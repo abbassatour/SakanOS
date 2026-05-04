@@ -31,7 +31,7 @@ class LocalStorageApi {
   Future<List<Client>> getClients() => _db.getActiveClients();
   Future<String> addClient(ClientsCompanion client) => _db.insertClient(client);
   Future<bool> updateClient(Client client) => _db.updateClient(client);
-  Future<void> deleteClient(String id) => _db.softDeleteClient(id);
+  Future<void> deleteClient(String id, String userId) => _db.softDeleteClient(id, userId);
 
   // ==========================================
   // 📄 العقود
@@ -39,7 +39,7 @@ class LocalStorageApi {
   Future<List<Contract>> getAllContracts() => _db.getActiveContracts();
   Future<void> addContractWithSchedules(ContractsCompanion contract, int count, DateTime start, String userId, String contractType) => 
       _db.insertContractWithSchedules(contract, count, start, userId, contractType);
-  Future<void> deleteContract(String id) => _db.softDeleteContract(id);
+  Future<void> deleteContract(String id, String userId) => _db.softDeleteContract(id, userId);
   Future<int> markContractActionTaken(String contractId, String note, String userId) => 
       _db.markContractActionTaken(contractId, note, userId);
 
@@ -100,7 +100,7 @@ Future<void> handleRollingCheckpoint(String contractId, String scheduleId, Strin
   // 🗑️ دوال سلة المحذوفات (العملاء)
   // ==========================================
   Future<List<Client>> getDeletedClients() => _db.getDeletedClients();
-  Future<void> restoreClient(String id) => _db.restoreSoftDeletedClient(id);
+  Future<void> restoreClient(String id, String userId) => _db.restoreSoftDeletedClient(id, userId);
   Future<void> hardDeleteClientLocal(String id) => _db.hardDeleteClient(id);
   Future<void> autoCleanOldDeletedClients() => _db.autoCleanOldDeletedClients();
   
@@ -108,7 +108,7 @@ Future<void> handleRollingCheckpoint(String contractId, String scheduleId, Strin
   // 🗑️ دوال سلة المحذوفات (العقود)
   // ==========================================
   Future<List<Contract>> getDeletedContracts() => _db.getDeletedContracts();
-  Future<void> restoreContract(String id) => _db.restoreSoftDeletedContract(id);
+  Future<void> restoreContract(String id, String userId) => _db.restoreSoftDeletedContract(id, userId);
   Future<void> hardDeleteContractLocal(String id) => _db.hardDeleteContract(id);
   Future<void> autoCleanOldDeletedContracts() => _db.autoCleanOldDeletedContracts();
   
@@ -134,7 +134,7 @@ Future<void> handleRollingCheckpoint(String contractId, String scheduleId, Strin
 
   Future<int> softDeleteLedgerEntry(String id, String userId) => _db.softDeleteLedgerEntry(id, userId);
   Future<List<PaymentsLedgerData>> getDeletedLedgerEntries() => _db.getDeletedLedgerEntries();
-  Future<int> restoreLedgerEntry(String id) => _db.restoreLedgerEntry(id);
+  Future<int> restoreLedgerEntry(String id, String userId) => _db.restoreLedgerEntry(id, userId);
   Future<int> forceHardDeleteLedgerEntry(String id) => _db.forceHardDeleteLedgerEntry(id);
   Future<void> autoCleanOldDeletedLedgerEntries() => _db.autoCleanOldDeletedLedgerEntries();
 
