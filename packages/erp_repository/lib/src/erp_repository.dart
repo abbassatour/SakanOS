@@ -823,30 +823,55 @@ class ErpRepository {
     await syncPendingData(); 
   }
 
-  Future<void> markWhatsAppAsSent(String entryId) async { 
-    await _localApi.updateWhatsAppStatus(entryId);
-    syncPendingData();
+  // ==========================================
+  // 2. إرسال الواتساب
+  // ==========================================
+  Future<int> markWhatsAppAsSent(String entryId, String userId) {
+    return (update(paymentsLedger)..where((t) => t.id.equals(entryId))).write(
+      PaymentsLedgerCompanion(
+        isWhatsAppSent: const Value(true), 
+        userId: Value(userId), // 🌟 توثيق من ضغط زر الإرسال
+        updatedAt: Value(DateTime.now().toUtc()), 
+        isSynced: const Value(false)
+      ),
+    );
   }
 
   // ==========================================
   // 💰 إدارة التعديل وسلة المحذوفات للإيصالات
   // ==========================================
-  Future<void> updateLedgerEntryAmount({
+  Future<int> updateLedgerEntryAmount({
     required String entryId,
     required double newAmount,
     required double newDiscount,
     required double newConvertedMeters,
-  }) async {
-    await _localApi.updateLedgerEntryAmount(
-      entryId: entryId, 
-      newAmount: newAmount, 
-      newDiscount: newDiscount, 
-      newConvertedMeters: newConvertedMeters
+    required String userId, // 🌟 استلام المستخدم
+  }) {
+    return (update(paymentsLedger)..where((t) => t.id.equals(entryId))).write(
+      PaymentsLedgerCompanion(
+        amountPaid: Value(newAmount),
+        fees: Value(newDiscount),
+        convertedMeters: Value(newConvertedMeters),
+        userId: Value(userId), // 🌟 حفظ من قام بتعديل المبلغ
+        updatedAt: Value(DateTime.now().toUtc()), 
+        isSynced: const Value(false),
+      ),
     );
   }
 
-  Future<void> softDeleteLedgerEntry(String entryId) async {
-    await _localApi.softDeleteLedgerEntry(entryId);
+
+  // ==========================================
+  // 3. الحذف الوهمي لدفعة (Soft Delete)
+  // ==========================================
+  Future<int> softDeleteLedgerEntry(String entryId, String userId) {
+    return (update(paymentsLedger)..where((t) => t.id.equals(entryId))).write(
+      PaymentsLedgerCompanion(
+        isDeleted: const Value(true),
+        userId: Value(userId), // 🌟 توثيق من قام بحذف الدفعة
+        updatedAt: Value(DateTime.now().toUtc()),
+        isSynced: const Value(false),
+      ),
+    );
   }
 
   Future<List<PaymentsLedgerData>> getDeletedLedgerEntries() => _localApi.getDeletedLedgerEntries();
