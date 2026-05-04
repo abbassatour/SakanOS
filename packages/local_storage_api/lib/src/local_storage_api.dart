@@ -38,7 +38,9 @@ class LocalStorageApi {
   Future<void> addContractWithSchedules(ContractsCompanion contract, int count, DateTime start, String userId, String contractType) => 
       _db.insertContractWithSchedules(contract, count, start, userId, contractType);
   Future<void> deleteContract(String id) => _db.softDeleteContract(id);
-  Future<int> markContractActionTaken(String contractId, String note) => _db.markContractActionTaken(contractId, note);
+  Future<int> markContractActionTaken(String contractId, String note, String userId) => 
+      _db.markContractActionTaken(contractId, note, userId);
+
 
   // ==========================================
   // 💰 دفتر الأستاذ
@@ -61,13 +63,14 @@ class LocalStorageApi {
   // 📅 جدول الاستحقاقات (Installments Schedule)
   // ==========================================
   Future<List<InstallmentsScheduleData>> getContractSchedule(String contractId) => _db.getScheduleForContract(contractId);
-  Future<int> updateScheduleStatus(String id, String status) => _db.updateScheduleStatus(id, status);
+  Future<int> updateScheduleStatus(String id, String status, String userId) => 
+      _db.updateScheduleStatus(id, status, userId);
   Future<int> deleteScheduleEntry(String id) => _db.softDeleteScheduleEntry(id);
   // 🌟 أضف هذا السطر في قسم (جدول الاستحقاقات)
   Future<List<InstallmentsScheduleData>> getAllOverdueSchedules() => _db.getAllOverdueSchedules();
   // 🌟 السطر الجديد
-  Future<int> updateIndividualSchedule(String id, DateTime newDueDate, String? notes) => 
-      _db.updateIndividualSchedule(id, newDueDate, notes);
+  Future<int> updateIndividualSchedule(String id, DateTime newDueDate, String? notes, String userId) => 
+      _db.updateIndividualSchedule(id, newDueDate, notes, userId);
   Future<void> restructureContractSchedule({required String contractId, required int newRemainingMonths, required DateTime newStartDate, required String userId}) =>
       _db.restructureContractSchedule(contractId: contractId, newRemainingMonths: newRemainingMonths, newStartDate: newStartDate, userId: userId);
 Future<void> handleRollingCheckpoint(String contractId, String scheduleId, String action, DateTime nextDate, String userId) =>
