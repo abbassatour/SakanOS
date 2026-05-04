@@ -675,7 +675,20 @@ class ErpRepository {
       )
     );
 
-    // ... (باقي كود الدالة كما هو)
+    // 2. السحر المحاسبي (تسوية لوحة المراقبة) 
+    // سنتركه يعمل على الرقم الشكلي حالياً حتى ننتقل لتعديل صفحة المراقبة لاحقاً
+    await (db.update(db.installmentsSchedule)
+      ..where((t) => t.contractId.equals(id))
+      ..where((t) => t.installmentNumber.isBiggerThanValue(installmentsCount)) 
+      ..where((t) => t.status.equals('pending')) 
+    ).write(
+      const InstallmentsScheduleCompanion(
+        isDeleted: drift.Value(true), 
+        isSynced: drift.Value(false), 
+      )
+    );
+
+    // 3. رفع التعديلات للسحابة فوراً
     await syncPendingData();
   }
 
