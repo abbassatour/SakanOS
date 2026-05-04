@@ -583,13 +583,14 @@ class AppDatabase extends _$AppDatabase {
   // ==========================================
   // ✏️ تعديل قسط فردي (تأجيل + ملاحظات)
   // ==========================================
-  Future<int> updateIndividualSchedule(String scheduleId, DateTime newDueDate, String? notes) {
+  Future<int> updateIndividualSchedule(String scheduleId, DateTime newDueDate, String? notes, String userId) {
     return (update(installmentsSchedule)..where((t) => t.id.equals(scheduleId))).write(
       InstallmentsScheduleCompanion(
-        dueDate: Value(newDueDate.toUtc()), // 🌍 توقيت عالمي
+        dueDate: Value(newDueDate.toUtc()), 
         notes: Value(notes),
+        userId: Value(userId), // 🌟 حفظ آي دي الشخص الذي أجل القسط
         updatedAt: Value(DateTime.now().toUtc()), 
-        isSynced: const Value(false) // ليتم رفعه للسحابة
+        isSynced: const Value(false) 
       )
     );
   }
