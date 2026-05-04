@@ -21,7 +21,9 @@ class LocalStorageApi {
   Future<List<Apartment>> getAllApartments() => _db.getAllActiveApartments();
   Future<List<Apartment>> getApartmentsByBuilding(String buildingId) => _db.getApartmentsForBuilding(buildingId);
   Future<String> addApartment(ApartmentsCompanion apartment) => _db.insertApartment(apartment);
-  Future<int> changeApartmentStatus(String id, String status) => _db.updateApartmentStatus(id, status);
+  // استبدل الدالة القديمة لتغيير حالة الشقة بهذه:
+  Future<int> changeApartmentStatus(String id, String status, String userId) => 
+      _db.updateApartmentStatus(id, status, userId);
 
   // ==========================================
   // 👥 العملاء

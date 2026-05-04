@@ -706,12 +706,12 @@ class AppDatabase extends _$AppDatabase {
     return row.id;
   }
 
-  // 🌟 أهم دالة: تغيير حالة الشقة (مثلاً من available إلى sold عند توقيع العقد)
-  Future<int> updateApartmentStatus(String apartmentId, String newStatus) {
-    // 🌍 تسجيل وقت التحديث بصيغة UTC
+  // 🌟 أهم دالة: تغيير حالة الشقة 
+  Future<int> updateApartmentStatus(String apartmentId, String newStatus, String userId) {
     return (update(apartments)..where((t) => t.id.equals(apartmentId))).write(
       ApartmentsCompanion(
         status: Value(newStatus), 
+        userId: Value(userId), // 🌟 توثيق من قام بتغيير الحالة
         updatedAt: Value(DateTime.now().toUtc()), 
         isSynced: const Value(false)
       )
@@ -977,18 +977,28 @@ class AppDatabase extends _$AppDatabase {
   // ==========================================
 
   // 1. الحذف الوهمي لمحضر (يحذف معه الشقق التابعة له آلياً)
-  Future<void> softDeleteBuilding(String buildingId) async {
+  Future<void> softDeleteBuilding(String buildingId, String userId) async {
     return transaction(() async {
       final nowUtc = Value(DateTime.now().toUtc());
 
       // أ. حذف المحضر
       await (update(buildings)..where((t) => t.id.equals(buildingId))).write(
-        BuildingsCompanion(isDeleted: const Value(true), updatedAt: nowUtc, isSynced: const Value(false)),
+        BuildingsCompanion(
+          isDeleted: const Value(true), 
+          userId: Value(userId), // 🌟 توثيق من حذف المحضر
+          updatedAt: nowUtc, 
+          isSynced: const Value(false)
+        ),
       );
 
       // ب. حذف الشقق التابعة له
       await (update(apartments)..where((t) => t.buildingId.equals(buildingId))).write(
-        ApartmentsCompanion(isDeleted: const Value(true), updatedAt: nowUtc, isSynced: const Value(false)),
+        ApartmentsCompanion(
+          isDeleted: const Value(true), 
+          userId: Value(userId), // 🌟 توثيق من حذف الشقق تبعا للمحضر
+          updatedAt: nowUtc, 
+          isSynced: const Value(false)
+        ),
       );
     });
   }
@@ -1011,10 +1021,11 @@ class AppDatabase extends _$AppDatabase {
   }
 
   // 3. الحذف الوهمي لشقة/محل بشكل مستقل
-  Future<int> softDeleteApartment(String apartmentId) {
+  Future<int> softDeleteApartment(String apartmentId, String userId) {
     return (update(apartments)..where((t) => t.id.equals(apartmentId))).write(
       ApartmentsCompanion(
         isDeleted: const Value(true),
+        userId: Value(userId), // 🌟 توثيق من حذف الشقة
         updatedAt: Value(DateTime.now().toUtc()),
         isSynced: const Value(false),
       ),

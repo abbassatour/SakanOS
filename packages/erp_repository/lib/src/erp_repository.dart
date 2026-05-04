@@ -927,8 +927,11 @@ class ErpRepository {
   Future<List<Apartment>> getAllApartments() => _localApi.getAllApartments();
 
   Future<void> changeApartmentStatus(String apartmentId, String status) async {
-    await _localApi.changeApartmentStatus(apartmentId, status);
-    await syncPendingData(); // 🌟 تفعيل الرفع السحابي الفوري
+    final String? safeUserId = currentUserId;
+    if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
+
+    await _localApi.changeApartmentStatus(apartmentId, status, safeUserId);
+    await syncPendingData(); 
   }
 
   Future<void> addBuilding(BuildingsCompanion building) async {
@@ -956,17 +959,18 @@ class ErpRepository {
     required String location,
   }) async {
     final db = _localApi.database;
+    final String? safeUserId = currentUserId;
+    if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
 
     await (db.update(db.buildings)..where((t) => t.id.equals(id))).write(
       BuildingsCompanion(
         name: drift.Value(name),
         location: drift.Value(location),
-        // 🌍 التعديل الضروري: UTC
+        userId: drift.Value(safeUserId), // 🌟 توثيق التعديل
         updatedAt: drift.Value(DateTime.now().toUtc()),
-        isSynced: const drift.Value(false), // إجبار المزامنة
+        isSynced: const drift.Value(false), 
       )
     );
-
     await syncPendingData();
   }
 
@@ -978,18 +982,19 @@ class ErpRepository {
     required String directionName,
   }) async {
     final db = _localApi.database;
+    final String? safeUserId = currentUserId;
+    if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
 
     await (db.update(db.apartments)..where((t) => t.id.equals(id))).write(
       ApartmentsCompanion(
         apartmentNumber: drift.Value(apartmentNumber),
         area: drift.Value(area),
         directionName: drift.Value(directionName),
-        // 🌍 التعديل الضروري: UTC
+        userId: drift.Value(safeUserId), // 🌟 توثيق التعديل
         updatedAt: drift.Value(DateTime.now().toUtc()),
-        isSynced: const drift.Value(false), // إجبار المزامنة
+        isSynced: const drift.Value(false), 
       )
     );
-
     await syncPendingData();
   }
   
@@ -1163,6 +1168,8 @@ class ErpRepository {
   // 1. حذف شقة/محل (مع التحقق من الحالة)
   Future<void> softDeleteApartment(String apartmentId) async {
     final db = _localApi.database;
+    final String? safeUserId = currentUserId;
+    if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
     
     // التحقق المزدوج للأمان
     final apt = await (db.select(db.apartments)..where((t) => t.id.equals(apartmentId))).getSingle();
@@ -1170,24 +1177,26 @@ class ErpRepository {
       throw Exception('⚠️ لا يمكن حذف هذه الوحدة لأن حالتها حالياً: ${apt.status}');
     }
 
-    await db.softDeleteApartment(apartmentId);
-    await syncPendingData(); // رفع أمر الحذف للسحابة فوراً
+    await db.softDeleteApartment(apartmentId, safeUserId); // 🌟 تمرير المستخدم
+    await syncPendingData(); 
   }
 
   // 2. حذف محضر بالكامل (مع التحقق من الشقق التابعة له)
   Future<void> softDeleteBuilding(String buildingId) async {
     final db = _localApi.database;
+    final String? safeUserId = currentUserId;
+    if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
 
     // جلب جميع الشقق والمحلات التابعة لهذا المحضر الفعالة
     final buildingApartments = await (db.select(db.apartments)..where((t) => t.buildingId.equals(buildingId) & t.isDeleted.equals(false))).get();
     
-    // التحقق: هل توجد أي شقة أو محل حالته مباع/محجوز؟
+    // التحقق
     final hasSoldApartments = buildingApartments.any((apt) => apt.status != 'available');
     if (hasSoldApartments) {
       throw Exception('⛔ لا يمكن حذف هذا المحضر لاحتوائه على وحدات مباعة. يرجى حذف الوحدات المتاحة يدوياً إن أردت.');
     }
 
-    await db.softDeleteBuilding(buildingId);
+    await db.softDeleteBuilding(buildingId, safeUserId); // 🌟 تمرير المستخدم
     await syncPendingData(); 
   }
 
