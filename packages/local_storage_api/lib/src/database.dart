@@ -546,11 +546,11 @@ class AppDatabase extends _$AppDatabase {
   
 
   // تحديث حالة القسط (مثلاً من pending إلى paid)
-  Future<int> updateScheduleStatus(String id, String status) {
-    // 🌍 تسجيل وقت التحديث بصيغة UTC
+  Future<int> updateScheduleStatus(String id, String status, String userId) {
     return (update(installmentsSchedule)..where((t) => t.id.equals(id))).write(
       InstallmentsScheduleCompanion(
         status: Value(status), 
+        userId: Value(userId), // 🌟 حفظ من قام بتغيير الحالة
         updatedAt: Value(DateTime.now().toUtc()), 
         isSynced: const Value(false)
       )
