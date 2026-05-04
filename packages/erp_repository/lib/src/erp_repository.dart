@@ -563,13 +563,22 @@ class ErpRepository {
     String? nationalId,
   }) async {
     final db = _localApi.database;
+    
+    // 🌟 1. جلب آي دي المستخدم الحالي الذي يقوم بعملية التعديل الآن
+    final String? safeUserId = currentUserId;
+    if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
 
+    // 2. تحديث بيانات العميل + استبدال المستخدم
     await (db.update(db.clients)..where((t) => t.id.equals(id))).write(
       ClientsCompanion(
         name: drift.Value(name),
         phone: drift.Value(phone),
         nationalId: drift.Value(nationalId),
-        // 🌍 التعديل الضروري: UTC
+        
+        // 🌟 3. هنا السحر: استبدال المستخدم القديم بالمستخدم الذي قام بالتعديل
+        userId: drift.Value(safeUserId), 
+        
+        // 🌍 تحديث الوقت
         updatedAt: drift.Value(DateTime.now().toUtc()),
         isSynced: const drift.Value(false), 
       )
@@ -636,44 +645,37 @@ class ErpRepository {
     syncPendingData();
   }
 
-  // 🌟 تعديل بيانات العقد + تسوية جدول الاستحقاقات (تم تحديثها لدعم المبلغ الشهري المفتوح)
   Future<void> updateContract({
     required String id,
     required String apartmentDetails,
     required String guarantorName,
-    required int installmentsCount, // سنبقيه شكلياً كما طلبت
-    required double agreedMonthlyAmount, // 🌟 الإضافة الجديدة: المبلغ الشهري المتفق عليه
+    required int installmentsCount,
+    required double agreedMonthlyAmount,
     required DateTime contractDate,
   }) async {
     final db = _localApi.database;
+    
+    // 🌟 جلب آي دي المستخدم الحالي
+    final String? safeUserId = currentUserId;
+    if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
 
-    // 1. تحديث بيانات العقد الأساسية
     await (db.update(db.contracts)..where((t) => t.id.equals(id))).write(
       ContractsCompanion(
         apartmentDetails: drift.Value(apartmentDetails),
         guarantorName: drift.Value(guarantorName),
-        installmentsCount: drift.Value(installmentsCount), // الرقم الشكلي
-        agreedMonthlyAmount: drift.Value(agreedMonthlyAmount), // 🌟 حفظ المبلغ الشهري
+        installmentsCount: drift.Value(installmentsCount),
+        agreedMonthlyAmount: drift.Value(agreedMonthlyAmount),
         contractDate: drift.Value(contractDate.toUtc()), 
+        
+        // 🌟 استبدال المستخدم القديم بالمستخدم الذي عدّل العقد
+        userId: drift.Value(safeUserId),
+
         updatedAt: drift.Value(DateTime.now().toUtc()),
         isSynced: const drift.Value(false), 
       )
     );
 
-    // 2. السحر المحاسبي (تسوية لوحة المراقبة) 
-    // سنتركه يعمل على الرقم الشكلي حالياً حتى ننتقل لتعديل صفحة المراقبة لاحقاً
-    await (db.update(db.installmentsSchedule)
-      ..where((t) => t.contractId.equals(id))
-      ..where((t) => t.installmentNumber.isBiggerThanValue(installmentsCount)) 
-      ..where((t) => t.status.equals('pending')) 
-    ).write(
-      const InstallmentsScheduleCompanion(
-        isDeleted: drift.Value(true), 
-        isSynced: drift.Value(false), 
-      )
-    );
-
-    // 3. رفع التعديلات للسحابة فوراً
+    // ... (باقي كود الدالة كما هو)
     await syncPendingData();
   }
 
