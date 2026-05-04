@@ -396,17 +396,18 @@ class AppDatabase extends _$AppDatabase {
   // ==========================================
 
 
-    // ==========================================
+  // ==========================================
   // 🎯 تسجيل إجراء إداري على العقد (لإسكات الرادار)
   // ==========================================
-  Future<int> markContractActionTaken(String contractId, String note) {
+  Future<int> markContractActionTaken(String contractId, String note, String userId) {
     final nowUtc = DateTime.now().toUtc();
     return (update(contracts)..where((t) => t.id.equals(contractId))).write(
       ContractsCompanion(
         lastActionDate: Value(nowUtc),
         lastActionNote: Value(note),
+        userId: Value(userId), // 🌟 حفظ آي دي الشخص الذي سجل الملاحظة
         updatedAt: Value(nowUtc), 
-        isSynced: const Value(false) // ليتم رفعه للسحابة
+        isSynced: const Value(false)
       )
     );
   }
