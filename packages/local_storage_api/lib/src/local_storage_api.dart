@@ -47,7 +47,7 @@ class LocalStorageApi {
   // ==========================================
   Future<List<PaymentsLedgerData>> getContractLedger(String contractId) => _db.getLedgerForContract(contractId);
   Future<String> addLedgerEntry(PaymentsLedgerCompanion entry) => _db.insertLedgerEntry(entry);
-  Future<int> updateWhatsAppStatus(String entryId) => _db.markWhatsAppAsSent(entryId);
+  Future<int> updateWhatsAppStatus(String entryId, String userId) => _db.markWhatsAppAsSent(entryId, userId);
   Future<List<PaymentsLedgerData>> getAllPayments() => _db.getAllActivePayments();
 
 
@@ -115,10 +115,22 @@ Future<void> handleRollingCheckpoint(String contractId, String scheduleId, Strin
   // ==========================================
   // 💰 دوال التعديل وسلة محذوفات المدفوعات
   // ==========================================
-  Future<int> updateLedgerEntryAmount({required String entryId, required double newAmount, required double newDiscount, required double newConvertedMeters}) =>
-      _db.updateLedgerEntryAmount(entryId: entryId, newAmount: newAmount, newDiscount: newDiscount, newConvertedMeters: newConvertedMeters);
+    Future<int> updateLedgerEntryAmount({
+    required String entryId, 
+    required double newAmount, 
+    required double newDiscount, 
+    required double newConvertedMeters, 
+    required String userId, // 🌟
+  }) => _db.updateLedgerEntryAmount(
+      entryId: entryId, 
+      newAmount: newAmount, 
+      newDiscount: newDiscount, 
+      newConvertedMeters: newConvertedMeters, 
+      userId: userId
+  );
 
-  Future<int> softDeleteLedgerEntry(String id) => _db.softDeleteLedgerEntry(id);
+
+  Future<int> softDeleteLedgerEntry(String id, String userId) => _db.softDeleteLedgerEntry(id, userId);
   Future<List<PaymentsLedgerData>> getDeletedLedgerEntries() => _db.getDeletedLedgerEntries();
   Future<int> restoreLedgerEntry(String id) => _db.restoreLedgerEntry(id);
   Future<int> forceHardDeleteLedgerEntry(String id) => _db.forceHardDeleteLedgerEntry(id);

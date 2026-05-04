@@ -494,11 +494,14 @@ class AppDatabase extends _$AppDatabase {
     return row.id;
   }
   
-  Future<int> markWhatsAppAsSent(String entryId) {
-    // 🌍 تسجيل وقت التحديث بصيغة UTC
+  // ==========================================
+  // 2. إرسال الواتساب
+  // ==========================================
+  Future<int> markWhatsAppAsSent(String entryId, String userId) {
     return (update(paymentsLedger)..where((t) => t.id.equals(entryId))).write(
       PaymentsLedgerCompanion(
         isWhatsAppSent: const Value(true), 
+        userId: Value(userId), // 🌟 توثيق من ضغط زر الإرسال
         updatedAt: Value(DateTime.now().toUtc()), 
         isSynced: const Value(false)
       ),
@@ -855,29 +858,36 @@ class AppDatabase extends _$AppDatabase {
   // 🗑️ سلة المحذوفات وتعديل المدفوعات (Ledger)
   // ==========================================
 
+  // ==========================================
   // 1. تعديل دفعة قديمة (تحديث المبلغ والخصم والأمتار)
+  // ==========================================
   Future<int> updateLedgerEntryAmount({
     required String entryId,
     required double newAmount,
     required double newDiscount,
     required double newConvertedMeters,
+    required String userId, // 🌟 استلام المستخدم
   }) {
     return (update(paymentsLedger)..where((t) => t.id.equals(entryId))).write(
       PaymentsLedgerCompanion(
         amountPaid: Value(newAmount),
         fees: Value(newDiscount),
         convertedMeters: Value(newConvertedMeters),
+        userId: Value(userId), // 🌟 حفظ من قام بتعديل المبلغ
         updatedAt: Value(DateTime.now().toUtc()), 
         isSynced: const Value(false),
       ),
     );
   }
 
-  // 2. الحذف الوهمي لدفعة (Soft Delete)
-  Future<int> softDeleteLedgerEntry(String entryId) {
+  // ==========================================
+  // 3. الحذف الوهمي لدفعة (Soft Delete)
+  // ==========================================
+  Future<int> softDeleteLedgerEntry(String entryId, String userId) {
     return (update(paymentsLedger)..where((t) => t.id.equals(entryId))).write(
       PaymentsLedgerCompanion(
         isDeleted: const Value(true),
+        userId: Value(userId), // 🌟 توثيق من قام بحذف الدفعة
         updatedAt: Value(DateTime.now().toUtc()),
         isSynced: const Value(false),
       ),

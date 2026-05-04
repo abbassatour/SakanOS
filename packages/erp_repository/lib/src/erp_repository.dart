@@ -824,54 +824,47 @@ class ErpRepository {
   }
 
   // ==========================================
-  // 2. إرسال الواتساب
+  // 🌟 توثيق إرسال الواتساب
   // ==========================================
-  Future<int> markWhatsAppAsSent(String entryId, String userId) {
-    return (update(paymentsLedger)..where((t) => t.id.equals(entryId))).write(
-      PaymentsLedgerCompanion(
-        isWhatsAppSent: const Value(true), 
-        userId: Value(userId), // 🌟 توثيق من ضغط زر الإرسال
-        updatedAt: Value(DateTime.now().toUtc()), 
-        isSynced: const Value(false)
-      ),
-    );
+  Future<void> markWhatsAppAsSent(String entryId) async { 
+    final String? safeUserId = currentUserId;
+    if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
+
+    await _localApi.updateWhatsAppStatus(entryId, safeUserId);
+    await syncPendingData();
   }
 
   // ==========================================
-  // 💰 إدارة التعديل وسلة المحذوفات للإيصالات
+  // 🌟 تعديل دفعة مالية
   // ==========================================
-  Future<int> updateLedgerEntryAmount({
+  Future<void> updateLedgerEntryAmount({
     required String entryId,
     required double newAmount,
     required double newDiscount,
     required double newConvertedMeters,
-    required String userId, // 🌟 استلام المستخدم
-  }) {
-    return (update(paymentsLedger)..where((t) => t.id.equals(entryId))).write(
-      PaymentsLedgerCompanion(
-        amountPaid: Value(newAmount),
-        fees: Value(newDiscount),
-        convertedMeters: Value(newConvertedMeters),
-        userId: Value(userId), // 🌟 حفظ من قام بتعديل المبلغ
-        updatedAt: Value(DateTime.now().toUtc()), 
-        isSynced: const Value(false),
-      ),
+  }) async {
+    final String? safeUserId = currentUserId;
+    if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
+
+    await _localApi.updateLedgerEntryAmount(
+      entryId: entryId, 
+      newAmount: newAmount, 
+      newDiscount: newDiscount, 
+      newConvertedMeters: newConvertedMeters,
+      userId: safeUserId, // 🌟 تمرير المستخدم
     );
+    await syncPendingData(); // رفع للسحابة
   }
 
+  // ==========================================
+  // 🌟 حذف دفعة لسلة المحذوفات
+  // ==========================================
+  Future<void> softDeleteLedgerEntry(String entryId) async {
+    final String? safeUserId = currentUserId;
+    if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
 
-  // ==========================================
-  // 3. الحذف الوهمي لدفعة (Soft Delete)
-  // ==========================================
-  Future<int> softDeleteLedgerEntry(String entryId, String userId) {
-    return (update(paymentsLedger)..where((t) => t.id.equals(entryId))).write(
-      PaymentsLedgerCompanion(
-        isDeleted: const Value(true),
-        userId: Value(userId), // 🌟 توثيق من قام بحذف الدفعة
-        updatedAt: Value(DateTime.now().toUtc()),
-        isSynced: const Value(false),
-      ),
-    );
+    await _localApi.softDeleteLedgerEntry(entryId, safeUserId);
+    await syncPendingData();
   }
 
   Future<List<PaymentsLedgerData>> getDeletedLedgerEntries() => _localApi.getDeletedLedgerEntries();
