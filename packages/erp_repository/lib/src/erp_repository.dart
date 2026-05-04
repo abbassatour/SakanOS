@@ -617,10 +617,15 @@ class ErpRepository {
   }
 
 
+  // ==========================================
   // 🌟 تسجيل إجراء الرادار
+  // ==========================================
   Future<void> markContractActionTaken({required String contractId, required String note}) async {
-    await _localApi.markContractActionTaken(contractId, note);
-    await syncPendingData(); // رفع الإجراء للسحابة
+    final String? safeUserId = currentUserId;
+    if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
+
+    await _localApi.markContractActionTaken(contractId, note, safeUserId);
+    await syncPendingData(); 
   }
   
   Future<void> addContract(ContractsCompanion contractCompanion) async {
@@ -645,6 +650,9 @@ class ErpRepository {
     syncPendingData();
   }
 
+  // ==========================================
+  // 🌟 تعديل العقد الأساسي
+  // ==========================================
   Future<void> updateContract({
     required String id,
     required String apartmentDetails,
@@ -655,10 +663,10 @@ class ErpRepository {
   }) async {
     final db = _localApi.database;
     
-    // 🌟 جلب آي دي المستخدم الحالي
     final String? safeUserId = currentUserId;
     if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
 
+    // 1. تحديث بيانات العقد الأساسية (مع استبدال المستخدم)
     await (db.update(db.contracts)..where((t) => t.id.equals(id))).write(
       ContractsCompanion(
         apartmentDetails: drift.Value(apartmentDetails),
@@ -666,17 +674,13 @@ class ErpRepository {
         installmentsCount: drift.Value(installmentsCount),
         agreedMonthlyAmount: drift.Value(agreedMonthlyAmount),
         contractDate: drift.Value(contractDate.toUtc()), 
-        
-        // 🌟 استبدال المستخدم القديم بالمستخدم الذي عدّل العقد
-        userId: drift.Value(safeUserId),
-
+        userId: drift.Value(safeUserId), // 🌟 حفظ آي دي الشخص الذي عدّل العقد
         updatedAt: drift.Value(DateTime.now().toUtc()),
         isSynced: const drift.Value(false), 
       )
     );
 
-    // 2. السحر المحاسبي (تسوية لوحة المراقبة) 
-    // سنتركه يعمل على الرقم الشكلي حالياً حتى ننتقل لتعديل صفحة المراقبة لاحقاً
+    // 2. السحر المحاسبي (تسوية لوحة المراقبة) - حافظنا عليه بالكامل!
     await (db.update(db.installmentsSchedule)
       ..where((t) => t.contractId.equals(id))
       ..where((t) => t.installmentNumber.isBiggerThanValue(installmentsCount)) 
@@ -688,7 +692,6 @@ class ErpRepository {
       )
     );
 
-    // 3. رفع التعديلات للسحابة فوراً
     await syncPendingData();
   }
 
@@ -748,19 +751,37 @@ class ErpRepository {
   
   // 🌟 أضف هذا السطر في قسم (جدول الاستحقاقات)
   Future<List<InstallmentsScheduleData>> getAllOverdueSchedules() => _localApi.getAllOverdueSchedules();
+
+  
+  // ==========================================
+  // 🌟 تعديل قسط فردي
+  // ==========================================
   Future<void> updateIndividualSchedule({
     required String scheduleId,
     required DateTime newDueDate,
     String? notes,
   }) async {
-    await _localApi.updateIndividualSchedule(scheduleId, newDueDate, notes);
-    await syncPendingData(); // رفع التعديل للسحابة
+    final String? safeUserId = currentUserId;
+    if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
+
+    await _localApi.updateIndividualSchedule(scheduleId, newDueDate, notes, safeUserId);
+    await syncPendingData(); 
   }
+
+    
+  
+  // ==========================================
+  // 🌟 تعديل تاريخ العقد فقط
+  // ==========================================
   Future<void> updateContractDateOnly({required String id, required DateTime contractDate}) async {
+    final String? safeUserId = currentUserId;
+    if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
+
     final db = _localApi.database;
     await (db.update(db.contracts)..where((t) => t.id.equals(id))).write(
       ContractsCompanion(
         contractDate: drift.Value(contractDate.toUtc()),
+        userId: drift.Value(safeUserId), // 🌟 توثيق التعديل
         updatedAt: drift.Value(DateTime.now().toUtc()),
         isSynced: const drift.Value(false), 
       )
@@ -777,21 +798,29 @@ class ErpRepository {
   Future<List<PaymentsLedgerData>> getAllPayments() => _localApi.getAllPayments();
   // داخل ErpRepository
   Future<void> addLedgerEntry(PaymentsLedgerCompanion entryCompanion) async {
-    if (currentUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
-    final companionWithUser = entryCompanion.copyWith(userId: drift.Value(currentUserId!));
+    final String? safeUserId = currentUserId; // 🌟 1. جلبنا المستخدم الحالي بأمان
+    if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
+
+    final companionWithUser = entryCompanion.copyWith(userId: drift.Value(safeUserId));
     await _localApi.addLedgerEntry(companionWithUser);
     
     if (entryCompanion.scheduleId.present && entryCompanion.scheduleId.value != null) {
-      await _localApi.updateScheduleStatus(entryCompanion.scheduleId.value!, 'paid');
+      // 🌟 2. أضفنا safeUserId هنا كمعامل ثالث لإصلاح الخطأ
+      await _localApi.updateScheduleStatus(entryCompanion.scheduleId.value!, 'paid', safeUserId);
     }
-    // أضف await هنا 🚨
+    
     await syncPendingData(); 
   }
 
-  // وتأكد من إضافة await في updateScheduleStatus أيضاً
+  // ==========================================
+  // 🌟 تحديث حالة القسط (من الداشبورد أو الإيصالات)
+  // ==========================================
   Future<void> updateScheduleStatus(String scheduleId, String status) async {
-    await _localApi.updateScheduleStatus(scheduleId, status);
-    await syncPendingData(); // أضف await هنا 🚨
+    final String? safeUserId = currentUserId;
+    if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
+
+    await _localApi.updateScheduleStatus(scheduleId, status, safeUserId);
+    await syncPendingData(); 
   }
 
   Future<void> markWhatsAppAsSent(String entryId) async { 
@@ -967,13 +996,15 @@ class ErpRepository {
   }
 
   // ==========================================
-  // 📎 إرفاق ملف Word للعقد (تحديث العقد)
+  // 🌟 إرفاق ملف Word للعقد 
   // ==========================================
   Future<void> attachFileToContract(String contractId, File file, String extension) async {
+    final String? safeUserId = currentUserId;
+    if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
+
     try {
       print('🚀 [1] بدأ رفع الملف للعقد: $contractId');
       
-      // 1. رفع الملف إلى السحابة وجلب الرابط
       final fileUrl = await _cloudApi.uploadContractFile(
         contractId: contractId, 
         file: file, 
@@ -981,28 +1012,25 @@ class ErpRepository {
       );
       print('✅ [2] تم رفع الملف بنجاح! الرابط: $fileUrl');
 
-      // 2. تحديث العقد محلياً ليحتوي على هذا الرابط
       final db = _localApi.database;
       await (db.update(db.contracts)..where((t) => t.id.equals(contractId))).write(
         ContractsCompanion(
           contractFileUrl: drift.Value(fileUrl),
-          // 🌍 التعديل الضروري: UTC
+          userId: drift.Value(safeUserId), // 🌟 حفظ آي دي الشخص الذي رفع الملف
           updatedAt: drift.Value(DateTime.now().toUtc()),
-          isSynced: const drift.Value(false), // إجبار المزامنة
+          isSynced: const drift.Value(false),
         )
       );
       print('✅ [3] تم حفظ الرابط في قاعدة البيانات المحلية (Drift).');
 
-      // 3. دفع التعديل الجديد للسحابة
       print('⏳[4] جاري مزامنة التعديل مع جدول Supabase...');
       await syncPendingData();
       print('✅ [5] تمت المزامنة بنجاح وانتهت العملية.');
 
     } catch (e, stacktrace) {
-      // 🚨 هذا سيمسك أي خطأ صامت ويطبعه لك!
       print('❌❌ خطأ فادح أثناء إرفاق الملف: $e');
       print('🔍 التفاصيل: $stacktrace');
-      throw Exception('فشل الإرفاق: $e'); // لإجبار الـ UI على إظهار الخطأ
+      throw Exception('فشل الإرفاق: $e'); 
     }
   }
 
