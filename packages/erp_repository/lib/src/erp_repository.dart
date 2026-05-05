@@ -148,6 +148,10 @@ class ErpRepository {
           apartmentDetails: drift.Value(c['apartment_details']?.toString() ?? ''),
           totalArea: double.tryParse(c['total_area']?.toString() ?? '0') ?? 0.0,
           baseMeterPriceAtSigning: double.tryParse(c['base_meter_price_at_signing']?.toString() ?? '0') ?? 0.0,
+          
+          // 🌟 [الإضافة الجديدة]: سحب الدفعة الأولى من السحابة
+          downPayment: drift.Value(double.tryParse(c['down_payment']?.toString() ?? '0') ?? 0.0),
+
           installmentsCount: drift.Value(int.tryParse(c['installments_count']?.toString() ?? '48') ?? 48),
           agreedMonthlyAmount: drift.Value(double.tryParse(c['agreed_monthly_amount']?.toString() ?? '0') ?? 0.0),
           coefficients: drift.Value(c['coefficients']?.toString() ?? '{}'),
@@ -155,11 +159,8 @@ class ErpRepository {
           guarantorName: c['guarantor_name']?.toString() ?? 'بدون كفيل', 
           contractFileUrl: drift.Value(c['contract_file_url']?.toString()), 
           userId: c['user_id']?.toString() ?? '',
-
           lastActionDate: drift.Value(c['last_action_date'] != null ? DateTime.tryParse(c['last_action_date'].toString())?.toUtc() : null),
           lastActionNote: drift.Value(c['last_action_note']?.toString()),
-
-          
           isCompleted: drift.Value(c['is_completed'] == true),
           isDeleted: drift.Value(c['is_deleted'] == true),
           updatedAt: drift.Value(DateTime.tryParse(c['updated_at']?.toString() ?? '')?.toUtc() ?? DateTime.now().toUtc()),
@@ -345,40 +346,38 @@ class ErpRepository {
 
     // 2. مزامنة العقود
     try {
-    final pendingContracts = await (db.select(db.contracts)..where((t) => t.isSynced.equals(false))).get();
-    for (var c in pendingContracts) {
-      await _cloudApi.upsertContract({
-        'id': c.id, 
-        'client_id': c.clientId, // تم التوحيد
-        'apartment_id': c.apartmentId, 
-        'contract_type': c.contractType, 
-        'apartment_details': c.apartmentDetails, 
-        'total_area': _safeNum(c.totalArea), 
-        'base_meter_price_at_signing': _safeNum(c.baseMeterPriceAtSigning), 
-        'installments_count': c.installmentsCount, 
-        'agreed_monthly_amount': _safeNum(c.agreedMonthlyAmount),
-        
-        'coefficients': c.coefficients, 
-        // 🌍 التعديل الضروري: UTC
-        'contract_date': c.contractDate.toUtc().toIso8601String(), 
-        'guarantor_name': c.guarantorName,
-        'contract_file_url': c.contractFileUrl,
-        'user_id': c.userId, 
-        'is_completed': c.isCompleted, 
+      final pendingContracts = await (db.select(db.contracts)..where((t) => t.isSynced.equals(false))).get();
+      for (var c in pendingContracts) {
+        await _cloudApi.upsertContract({
+          'id': c.id, 
+          'client_id': c.clientId, 
+          'apartment_id': c.apartmentId, 
+          'contract_type': c.contractType, 
+          'apartment_details': c.apartmentDetails, 
+          'total_area': _safeNum(c.totalArea), 
+          'base_meter_price_at_signing': _safeNum(c.baseMeterPriceAtSigning), 
+          
+          // 🌟 [الإضافة الجديدة]: رفع الدفعة الأولى للسحابة
+          'down_payment': _safeNum(c.downPayment),
 
-        // 🌟 السطرين الجديدين للرفع
-        'last_action_date': c.lastActionDate?.toUtc().toIso8601String(),
-        'last_action_note': c.lastActionNote,
-
-        
-        'is_deleted': c.isDeleted, 
-        'updated_at': c.updatedAt.toUtc().toIso8601String()
-      });
-      await (db.update(db.contracts)..where((t) => t.id.equals(c.id))).write(
-        const ContractsCompanion(isSynced: drift.Value(true))
-      );
-    }
-  } catch (e) { print('Sync Contracts Failed: $e'); }
+          'installments_count': c.installmentsCount, 
+          'agreed_monthly_amount': _safeNum(c.agreedMonthlyAmount),
+          'coefficients': c.coefficients, 
+          'contract_date': c.contractDate.toUtc().toIso8601String(), 
+          'guarantor_name': c.guarantorName,
+          'contract_file_url': c.contractFileUrl,
+          'user_id': c.userId, 
+          'is_completed': c.isCompleted, 
+          'last_action_date': c.lastActionDate?.toUtc().toIso8601String(),
+          'last_action_note': c.lastActionNote,
+          'is_deleted': c.isDeleted, 
+          'updated_at': c.updatedAt.toUtc().toIso8601String()
+        });
+        await (db.update(db.contracts)..where((t) => t.id.equals(c.id))).write(
+          const ContractsCompanion(isSynced: drift.Value(true))
+        );
+      }
+    } catch (e) { print('Sync Contracts Failed: $e'); }
 
     // 3. مزامنة جدول الاستحقاقات
     try {

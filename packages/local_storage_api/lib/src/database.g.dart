@@ -2065,6 +2065,18 @@ class $ContractsTable extends Contracts
         type: DriftSqlType.double,
         requiredDuringInsert: true,
       );
+  static const VerificationMeta _downPaymentMeta = const VerificationMeta(
+    'downPayment',
+  );
+  @override
+  late final GeneratedColumn<double> downPayment = GeneratedColumn<double>(
+    'down_payment',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0.0),
+  );
   static const VerificationMeta _installmentsCountMeta = const VerificationMeta(
     'installmentsCount',
   );
@@ -2244,6 +2256,7 @@ class $ContractsTable extends Contracts
     contractType,
     totalArea,
     baseMeterPriceAtSigning,
+    downPayment,
     installmentsCount,
     coefficients,
     guarantorName,
@@ -2327,6 +2340,15 @@ class $ContractsTable extends Contracts
       );
     } else if (isInserting) {
       context.missing(_baseMeterPriceAtSigningMeta);
+    }
+    if (data.containsKey('down_payment')) {
+      context.handle(
+        _downPaymentMeta,
+        downPayment.isAcceptableOrUnknown(
+          data['down_payment']!,
+          _downPaymentMeta,
+        ),
+      );
     }
     if (data.containsKey('installments_count')) {
       context.handle(
@@ -2482,6 +2504,10 @@ class $ContractsTable extends Contracts
         DriftSqlType.double,
         data['${effectivePrefix}base_meter_price_at_signing'],
       )!,
+      downPayment: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}down_payment'],
+      )!,
       installmentsCount: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}installments_count'],
@@ -2555,6 +2581,7 @@ class Contract extends DataClass implements Insertable<Contract> {
   final String contractType;
   final double totalArea;
   final double baseMeterPriceAtSigning;
+  final double downPayment;
   final int installmentsCount;
   final String coefficients;
   final String guarantorName;
@@ -2577,6 +2604,7 @@ class Contract extends DataClass implements Insertable<Contract> {
     required this.contractType,
     required this.totalArea,
     required this.baseMeterPriceAtSigning,
+    required this.downPayment,
     required this.installmentsCount,
     required this.coefficients,
     required this.guarantorName,
@@ -2606,6 +2634,7 @@ class Contract extends DataClass implements Insertable<Contract> {
     map['base_meter_price_at_signing'] = Variable<double>(
       baseMeterPriceAtSigning,
     );
+    map['down_payment'] = Variable<double>(downPayment);
     map['installments_count'] = Variable<int>(installmentsCount);
     map['coefficients'] = Variable<String>(coefficients);
     map['guarantor_name'] = Variable<String>(guarantorName);
@@ -2640,6 +2669,7 @@ class Contract extends DataClass implements Insertable<Contract> {
       contractType: Value(contractType),
       totalArea: Value(totalArea),
       baseMeterPriceAtSigning: Value(baseMeterPriceAtSigning),
+      downPayment: Value(downPayment),
       installmentsCount: Value(installmentsCount),
       coefficients: Value(coefficients),
       guarantorName: Value(guarantorName),
@@ -2678,6 +2708,7 @@ class Contract extends DataClass implements Insertable<Contract> {
       baseMeterPriceAtSigning: serializer.fromJson<double>(
         json['baseMeterPriceAtSigning'],
       ),
+      downPayment: serializer.fromJson<double>(json['downPayment']),
       installmentsCount: serializer.fromJson<int>(json['installmentsCount']),
       coefficients: serializer.fromJson<String>(json['coefficients']),
       guarantorName: serializer.fromJson<String>(json['guarantorName']),
@@ -2709,6 +2740,7 @@ class Contract extends DataClass implements Insertable<Contract> {
       'baseMeterPriceAtSigning': serializer.toJson<double>(
         baseMeterPriceAtSigning,
       ),
+      'downPayment': serializer.toJson<double>(downPayment),
       'installmentsCount': serializer.toJson<int>(installmentsCount),
       'coefficients': serializer.toJson<String>(coefficients),
       'guarantorName': serializer.toJson<String>(guarantorName),
@@ -2734,6 +2766,7 @@ class Contract extends DataClass implements Insertable<Contract> {
     String? contractType,
     double? totalArea,
     double? baseMeterPriceAtSigning,
+    double? downPayment,
     int? installmentsCount,
     String? coefficients,
     String? guarantorName,
@@ -2757,6 +2790,7 @@ class Contract extends DataClass implements Insertable<Contract> {
     totalArea: totalArea ?? this.totalArea,
     baseMeterPriceAtSigning:
         baseMeterPriceAtSigning ?? this.baseMeterPriceAtSigning,
+    downPayment: downPayment ?? this.downPayment,
     installmentsCount: installmentsCount ?? this.installmentsCount,
     coefficients: coefficients ?? this.coefficients,
     guarantorName: guarantorName ?? this.guarantorName,
@@ -2795,6 +2829,9 @@ class Contract extends DataClass implements Insertable<Contract> {
       baseMeterPriceAtSigning: data.baseMeterPriceAtSigning.present
           ? data.baseMeterPriceAtSigning.value
           : this.baseMeterPriceAtSigning,
+      downPayment: data.downPayment.present
+          ? data.downPayment.value
+          : this.downPayment,
       installmentsCount: data.installmentsCount.present
           ? data.installmentsCount.value
           : this.installmentsCount,
@@ -2840,6 +2877,7 @@ class Contract extends DataClass implements Insertable<Contract> {
           ..write('contractType: $contractType, ')
           ..write('totalArea: $totalArea, ')
           ..write('baseMeterPriceAtSigning: $baseMeterPriceAtSigning, ')
+          ..write('downPayment: $downPayment, ')
           ..write('installmentsCount: $installmentsCount, ')
           ..write('coefficients: $coefficients, ')
           ..write('guarantorName: $guarantorName, ')
@@ -2867,6 +2905,7 @@ class Contract extends DataClass implements Insertable<Contract> {
     contractType,
     totalArea,
     baseMeterPriceAtSigning,
+    downPayment,
     installmentsCount,
     coefficients,
     guarantorName,
@@ -2893,6 +2932,7 @@ class Contract extends DataClass implements Insertable<Contract> {
           other.contractType == this.contractType &&
           other.totalArea == this.totalArea &&
           other.baseMeterPriceAtSigning == this.baseMeterPriceAtSigning &&
+          other.downPayment == this.downPayment &&
           other.installmentsCount == this.installmentsCount &&
           other.coefficients == this.coefficients &&
           other.guarantorName == this.guarantorName &&
@@ -2917,6 +2957,7 @@ class ContractsCompanion extends UpdateCompanion<Contract> {
   final Value<String> contractType;
   final Value<double> totalArea;
   final Value<double> baseMeterPriceAtSigning;
+  final Value<double> downPayment;
   final Value<int> installmentsCount;
   final Value<String> coefficients;
   final Value<String> guarantorName;
@@ -2940,6 +2981,7 @@ class ContractsCompanion extends UpdateCompanion<Contract> {
     this.contractType = const Value.absent(),
     this.totalArea = const Value.absent(),
     this.baseMeterPriceAtSigning = const Value.absent(),
+    this.downPayment = const Value.absent(),
     this.installmentsCount = const Value.absent(),
     this.coefficients = const Value.absent(),
     this.guarantorName = const Value.absent(),
@@ -2964,6 +3006,7 @@ class ContractsCompanion extends UpdateCompanion<Contract> {
     this.contractType = const Value.absent(),
     required double totalArea,
     required double baseMeterPriceAtSigning,
+    this.downPayment = const Value.absent(),
     this.installmentsCount = const Value.absent(),
     this.coefficients = const Value.absent(),
     required String guarantorName,
@@ -2993,6 +3036,7 @@ class ContractsCompanion extends UpdateCompanion<Contract> {
     Expression<String>? contractType,
     Expression<double>? totalArea,
     Expression<double>? baseMeterPriceAtSigning,
+    Expression<double>? downPayment,
     Expression<int>? installmentsCount,
     Expression<String>? coefficients,
     Expression<String>? guarantorName,
@@ -3018,6 +3062,7 @@ class ContractsCompanion extends UpdateCompanion<Contract> {
       if (totalArea != null) 'total_area': totalArea,
       if (baseMeterPriceAtSigning != null)
         'base_meter_price_at_signing': baseMeterPriceAtSigning,
+      if (downPayment != null) 'down_payment': downPayment,
       if (installmentsCount != null) 'installments_count': installmentsCount,
       if (coefficients != null) 'coefficients': coefficients,
       if (guarantorName != null) 'guarantor_name': guarantorName,
@@ -3045,6 +3090,7 @@ class ContractsCompanion extends UpdateCompanion<Contract> {
     Value<String>? contractType,
     Value<double>? totalArea,
     Value<double>? baseMeterPriceAtSigning,
+    Value<double>? downPayment,
     Value<int>? installmentsCount,
     Value<String>? coefficients,
     Value<String>? guarantorName,
@@ -3070,6 +3116,7 @@ class ContractsCompanion extends UpdateCompanion<Contract> {
       totalArea: totalArea ?? this.totalArea,
       baseMeterPriceAtSigning:
           baseMeterPriceAtSigning ?? this.baseMeterPriceAtSigning,
+      downPayment: downPayment ?? this.downPayment,
       installmentsCount: installmentsCount ?? this.installmentsCount,
       coefficients: coefficients ?? this.coefficients,
       guarantorName: guarantorName ?? this.guarantorName,
@@ -3113,6 +3160,9 @@ class ContractsCompanion extends UpdateCompanion<Contract> {
       map['base_meter_price_at_signing'] = Variable<double>(
         baseMeterPriceAtSigning.value,
       );
+    }
+    if (downPayment.present) {
+      map['down_payment'] = Variable<double>(downPayment.value);
     }
     if (installmentsCount.present) {
       map['installments_count'] = Variable<int>(installmentsCount.value);
@@ -3174,6 +3224,7 @@ class ContractsCompanion extends UpdateCompanion<Contract> {
           ..write('contractType: $contractType, ')
           ..write('totalArea: $totalArea, ')
           ..write('baseMeterPriceAtSigning: $baseMeterPriceAtSigning, ')
+          ..write('downPayment: $downPayment, ')
           ..write('installmentsCount: $installmentsCount, ')
           ..write('coefficients: $coefficients, ')
           ..write('guarantorName: $guarantorName, ')
@@ -8176,6 +8227,7 @@ typedef $$ContractsTableCreateCompanionBuilder =
       Value<String> contractType,
       required double totalArea,
       required double baseMeterPriceAtSigning,
+      Value<double> downPayment,
       Value<int> installmentsCount,
       Value<String> coefficients,
       required String guarantorName,
@@ -8201,6 +8253,7 @@ typedef $$ContractsTableUpdateCompanionBuilder =
       Value<String> contractType,
       Value<double> totalArea,
       Value<double> baseMeterPriceAtSigning,
+      Value<double> downPayment,
       Value<int> installmentsCount,
       Value<String> coefficients,
       Value<String> guarantorName,
@@ -8339,6 +8392,11 @@ class $$ContractsTableFilterComposer
 
   ColumnFilters<double> get baseMeterPriceAtSigning => $composableBuilder(
     column: $table.baseMeterPriceAtSigning,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get downPayment => $composableBuilder(
+    column: $table.downPayment,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -8543,6 +8601,11 @@ class $$ContractsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<double> get downPayment => $composableBuilder(
+    column: $table.downPayment,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get installmentsCount => $composableBuilder(
     column: $table.installmentsCount,
     builder: (column) => ColumnOrderings(column),
@@ -8687,6 +8750,11 @@ class $$ContractsTableAnnotationComposer
 
   GeneratedColumn<double> get baseMeterPriceAtSigning => $composableBuilder(
     column: $table.baseMeterPriceAtSigning,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get downPayment => $composableBuilder(
+    column: $table.downPayment,
     builder: (column) => column,
   );
 
@@ -8888,6 +8956,7 @@ class $$ContractsTableTableManager
                 Value<String> contractType = const Value.absent(),
                 Value<double> totalArea = const Value.absent(),
                 Value<double> baseMeterPriceAtSigning = const Value.absent(),
+                Value<double> downPayment = const Value.absent(),
                 Value<int> installmentsCount = const Value.absent(),
                 Value<String> coefficients = const Value.absent(),
                 Value<String> guarantorName = const Value.absent(),
@@ -8911,6 +8980,7 @@ class $$ContractsTableTableManager
                 contractType: contractType,
                 totalArea: totalArea,
                 baseMeterPriceAtSigning: baseMeterPriceAtSigning,
+                downPayment: downPayment,
                 installmentsCount: installmentsCount,
                 coefficients: coefficients,
                 guarantorName: guarantorName,
@@ -8936,6 +9006,7 @@ class $$ContractsTableTableManager
                 Value<String> contractType = const Value.absent(),
                 required double totalArea,
                 required double baseMeterPriceAtSigning,
+                Value<double> downPayment = const Value.absent(),
                 Value<int> installmentsCount = const Value.absent(),
                 Value<String> coefficients = const Value.absent(),
                 required String guarantorName,
@@ -8959,6 +9030,7 @@ class $$ContractsTableTableManager
                 contractType: contractType,
                 totalArea: totalArea,
                 baseMeterPriceAtSigning: baseMeterPriceAtSigning,
+                downPayment: downPayment,
                 installmentsCount: installmentsCount,
                 coefficients: coefficients,
                 guarantorName: guarantorName,
