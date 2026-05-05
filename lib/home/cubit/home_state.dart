@@ -15,8 +15,9 @@ class HomeState extends Equatable {
     this.latestPayments = const[],
     this.groupedRevenue = const {},
     this.priceTrend = const {},
-    this.costTrend = const {}, // 🌟 إضافة مسار التكلفة
+    this.costTrend = const {}, 
     this.contractsByType = const {},
+    this.recentActivities = const[], // 🌟 الإضافة الجديدة: سجل التغييرات
     this.errorMessage,
   });
 
@@ -31,8 +32,9 @@ class HomeState extends Equatable {
   
   final Map<String, double> groupedRevenue; 
   final Map<String, double> priceTrend; 
-  final Map<String, double> costTrend; // 🌟 إضافة مسار التكلفة
+  final Map<String, double> costTrend; 
   final Map<String, int> contractsByType; 
+  final List<ActivityItem> recentActivities; // 🌟 الإضافة الجديدة
   final String? errorMessage;
   
   double get averageSellPrice => totalAreaSold == 0 ? 0.0 : totalRevenue / totalAreaSold;
@@ -47,8 +49,9 @@ class HomeState extends Equatable {
     List<PaymentsLedgerData>? latestPayments,
     Map<String, double>? groupedRevenue,
     Map<String, double>? priceTrend,
-    Map<String, double>? costTrend, // 🌟 إضافة مسار التكلفة
+    Map<String, double>? costTrend, 
     Map<String, int>? contractsByType,
+    List<ActivityItem>? recentActivities, // 🌟 الإضافة الجديدة
     String? errorMessage,
   }) {
     return HomeState(
@@ -61,8 +64,9 @@ class HomeState extends Equatable {
       latestPayments: latestPayments ?? this.latestPayments,
       groupedRevenue: groupedRevenue ?? this.groupedRevenue,
       priceTrend: priceTrend ?? this.priceTrend,
-      costTrend: costTrend ?? this.costTrend, // 🌟 إضافة مسار التكلفة
+      costTrend: costTrend ?? this.costTrend, 
       contractsByType: contractsByType ?? this.contractsByType,
+      recentActivities: recentActivities ?? this.recentActivities, // 🌟 الإضافة الجديدة
       errorMessage: errorMessage ?? this.errorMessage,
     );
   }
@@ -71,6 +75,6 @@ class HomeState extends Equatable {
   List<Object?> get props =>[
         status, timeFilter, referenceDate, totalRevenue, totalAreaSold, 
         activeContractsCount, latestPayments, groupedRevenue, priceTrend, 
-        costTrend, contractsByType, averageSellPrice, // 🌟 تأكدنا من الفواصل هنا
+        costTrend, contractsByType, recentActivities, averageSellPrice, // 🌟 أضفنا recentActivities هنا
       ];
 }

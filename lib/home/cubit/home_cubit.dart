@@ -3,7 +3,7 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:erp_repository/erp_repository.dart';
 import 'package:intl/intl.dart';
-import 'package:local_storage_api/local_storage_api.dart' show PaymentsLedgerData, Contract, MaterialPricesHistoryData; // 🌟 أضفنا MaterialPricesHistoryData
+import 'package:local_storage_api/local_storage_api.dart' show PaymentsLedgerData, Contract, MaterialPricesHistoryData; 
 
 part 'home_state.dart';
 
@@ -14,15 +14,19 @@ class HomeCubit extends Cubit<HomeState> {
 
   List<Contract> _cachedContracts =[];
   List<PaymentsLedgerData> _cachedPayments =[];
-  List<MaterialPricesHistoryData> _cachedPrices =[]; // 🌟 ذاكرة التكلفة
+  List<MaterialPricesHistoryData> _cachedPrices =[]; 
+  List<ActivityItem> _cachedActivities =[]; // 🌟 ذاكرة الأنشطة الحديثة
 
   Future<void> fetchDashboardData() async {
     emit(state.copyWith(status: HomeStatus.loading)); 
     try {
       _cachedContracts = await _erpRepository.getAllContracts();
       _cachedPayments = await _erpRepository.getAllPayments(); 
-      _cachedPrices = await _erpRepository.getAllMaterialPricesHistory(); // 🌟 جلب الأسعار للخط الأحمر
+      _cachedPrices = await _erpRepository.getAllMaterialPricesHistory(); 
       
+      // 🌟 السحر هنا: جلب أحدث 20 حركة في النظام بالكامل لغرفة العمليات
+      _cachedActivities = await _erpRepository.getRecentActivities(limitPerType: 10, finalLimit: 20); 
+
       _processAndEmitData();
     } catch (e) {
       emit(state.copyWith(status: HomeStatus.failure, errorMessage: e.toString()));
@@ -66,7 +70,7 @@ class HomeCubit extends Cubit<HomeState> {
     
     Map<String, double> tempGroupedRev = {};
     Map<String, List<double>> tempPriceTrend = {}; 
-    Map<String, List<double>> tempCostTrend = {}; // 🌟 قوالب التكلفة
+    Map<String, List<double>> tempCostTrend = {}; 
 
     final refDate = state.referenceDate;
     
@@ -152,7 +156,6 @@ class HomeCubit extends Cubit<HomeState> {
       }
     }
     
-    // --- 1. حساب المتوسطات المبدئية مع ترك الصفر دلالة على عدم وجود بيانات ---
     Map<String, double> finalPriceTrend = {};
     tempPriceTrend.forEach((key, prices) {
       finalPriceTrend[key] = prices.isEmpty ? 0.0 : prices.fold(0.0, (a, b) => a + b) / prices.length;
@@ -163,14 +166,9 @@ class HomeCubit extends Cubit<HomeState> {
       finalCostTrend[key] = costs.isEmpty ? 0.0 : costs.fold(0.0, (a, b) => a + b) / costs.length;
     });
 
-    // --- 2. تطبيق خوارزمية التعبئة الأمامية (Forward Fill - LOCF) ---
-    // هذه الخوارزمية ستبحث عن آخر قيمة غير صفرية وتنسخها للأيام/الأشهر التي تليها والتي لا تحتوي على بيانات
-    
-    // دالة مساعدة لتطبيق الخوارزمية على أي Map مرتب زمنيًا
     void applyForwardFill(Map<String, double> trendData) {
       double lastKnownValue = 0.0;
       
-      // أولاً: البحث عن أول قيمة حقيقية (غير صفرية) لتكون هي نقطة الانطلاق (في حال كانت أول الفترات فارغة)
       for (var value in trendData.values) {
         if (value > 0) {
           lastKnownValue = value;
@@ -178,17 +176,15 @@ class HomeCubit extends Cubit<HomeState> {
         }
       }
 
-      // ثانياً: المرور على البيانات وملء الفراغات
       for (var key in trendData.keys) {
         if (trendData[key] == 0.0) {
-          trendData[key] = lastKnownValue; // ملء الفراغ بآخر قيمة معروفة
+          trendData[key] = lastKnownValue; 
         } else {
-          lastKnownValue = trendData[key]!; // تحديث آخر قيمة معروفة
+          lastKnownValue = trendData[key]!; 
         }
       }
     }
 
-    // تطبيق الخوارزمية على مخطط السعر ومخطط التكلفة
     applyForwardFill(finalPriceTrend);
     applyForwardFill(finalCostTrend);
 
@@ -204,8 +200,9 @@ class HomeCubit extends Cubit<HomeState> {
       latestPayments: latestFive,
       groupedRevenue: tempGroupedRev, 
       priceTrend: finalPriceTrend,
-      costTrend: finalCostTrend, // 🌟
+      costTrend: finalCostTrend, 
       contractsByType: byType,
+      recentActivities: _cachedActivities, // 🌟 تمرير الأنشطة للواجهة
     ));
   }
 }
