@@ -7,11 +7,12 @@ class PaymentsState extends Equatable {
   const PaymentsState({
     this.status = PaymentsStatus.initial,
     this.clients = const[],
-    this.contracts = const [],
+    this.contracts = const[],
     this.apartments = const[], 
-    this.buildings = const [],  
+    this.buildings = const[],  
     this.ledgerEntries = const[], 
     this.deletedLedgerEntries = const[], // 🌟 سلة المحذوفات للمدفوعات
+    this.userNamesMap = const {}, // 🌟 الإضافة الجديدة: قاموس الأسماء
     this.selectedContractId,      
     this.errorMessage,
   });
@@ -23,6 +24,7 @@ class PaymentsState extends Equatable {
   final List<Building> buildings;   
   final List<PaymentsLedgerData> ledgerEntries; 
   final List<PaymentsLedgerData> deletedLedgerEntries; // 🌟
+  final Map<String, String> userNamesMap; // 🌟 الإضافة الجديدة
   final String? selectedContractId;             
   final String? errorMessage;
 
@@ -34,6 +36,7 @@ class PaymentsState extends Equatable {
     List<Building>? buildings,   
     List<PaymentsLedgerData>? ledgerEntries,
     List<PaymentsLedgerData>? deletedLedgerEntries, // 🌟
+    Map<String, String>? userNamesMap, // 🌟 الإضافة الجديدة
     String? selectedContractId, 
     String? errorMessage,
   }) {
@@ -45,6 +48,7 @@ class PaymentsState extends Equatable {
       buildings: buildings ?? this.buildings,    
       ledgerEntries: ledgerEntries ?? this.ledgerEntries,
       deletedLedgerEntries: deletedLedgerEntries ?? this.deletedLedgerEntries, // 🌟
+      userNamesMap: userNamesMap ?? this.userNamesMap, // 🌟 الإضافة الجديدة
       selectedContractId: selectedContractId ?? this.selectedContractId,
       errorMessage: errorMessage ?? this.errorMessage,
     );
@@ -59,6 +63,7 @@ class PaymentsState extends Equatable {
         buildings,  
         ledgerEntries,
         deletedLedgerEntries, // 🌟
+        userNamesMap, // 🌟 الإضافة الجديدة
         selectedContractId,
         errorMessage
       ];

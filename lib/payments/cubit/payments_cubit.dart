@@ -26,12 +26,19 @@ class PaymentsCubit extends Cubit<PaymentsState> {
       final apartments = await _erpRepository.getAllApartments();
       final buildings = await _erpRepository.getBuildings();
       
+      // 🌟 السحر هنا: جلب المستخدمين وصنع قاموس للأسماء
+      final allUsers = await _erpRepository.getAllUsers();
+      final Map<String, String> namesMap = {
+        for (var user in allUsers) user.id: user.fullName ?? 'مدير النظام'
+      };
+
       emit(state.copyWith(
         status: PaymentsStatus.success,
         clients: clients,
         contracts: contracts,
         apartments: apartments, 
         buildings: buildings,   
+        userNamesMap: namesMap, // 🌟 تمرير القاموس للواجهة
       ));
     } catch (e) {
       emit(state.copyWith(status: PaymentsStatus.failure, errorMessage: e.toString()));
