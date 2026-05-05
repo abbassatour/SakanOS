@@ -19,7 +19,19 @@ class BuildingsCubit extends Cubit<BuildingsState> {
     try {
       final buildings = await _erpRepository.getBuildings();
       final apartments = await _erpRepository.getAllApartments();
-      emit(state.copyWith(status: BuildingsStatus.success, buildings: buildings, apartments: apartments));
+      
+      // 🌟 السحر هنا: جلب المستخدمين وصنع قاموس للأسماء
+      final allUsers = await _erpRepository.getAllUsers();
+      final Map<String, String> namesMap = {
+        for (var user in allUsers) user.id: user.fullName ?? 'مدير النظام'
+      };
+
+      emit(state.copyWith(
+        status: BuildingsStatus.success, 
+        buildings: buildings, 
+        apartments: apartments,
+        userNamesMap: namesMap, // 🌟 تمرير القاموس للواجهة
+      ));
     } catch (e) {
       emit(state.copyWith(status: BuildingsStatus.failure, errorMessage: e.toString()));
     }
