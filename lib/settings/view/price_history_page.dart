@@ -82,6 +82,10 @@ class PriceHistoryPage extends StatelessWidget {
                                     DataColumn(label: Text('كوفراج (م³)', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.indigo))),
                                     DataColumn(label: Text('حصويات (م³)', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.indigo))),
                                     DataColumn(label: Text('عامل (يوم)', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.indigo))),
+                                    
+                                    // 🌟 العامود الجديد
+                                    DataColumn(label: Text('مُدخل/مُعدِّل التسعيرة', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.indigo))),
+                                    
                                     DataColumn(label: Text('إجراء', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.indigo))),
                                   ],
                                   rows: sortedHistory.asMap().entries.map((mapEntry) {
@@ -105,6 +109,42 @@ class PriceHistoryPage extends StatelessWidget {
                                         DataCell(Text(formatWithCommas(price.formworkAndPouringWages), style: const TextStyle(fontWeight: FontWeight.bold))),
                                         DataCell(Text(formatWithCommas(price.aggregateMaterialsPrice), style: const TextStyle(fontWeight: FontWeight.bold))),
                                         DataCell(Text(formatWithCommas(price.ordinaryWorkerWage), style: const TextStyle(fontWeight: FontWeight.bold))),
+                                        
+                                        // ==========================================
+                                        // 🌟 الخلية الجديدة: عرض اسم المستخدم وتاريخ الإدخال
+                                        // ==========================================
+                                        DataCell(
+                                          Column(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children:[
+                                              Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children:[
+                                                  Icon(Icons.person_outline, size: 14, color: Colors.orange.shade700),
+                                                  const SizedBox(width: 4),
+                                                  Text(
+                                                    state.userNamesMap[price.userId] ?? 'مجهول', // جلب الاسم من القاموس
+                                                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.orange.shade800),
+                                                  ),
+                                                ],
+                                              ),
+                                              const SizedBox(height: 2),
+                                              Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children:[
+                                                  const Icon(Icons.access_time, size: 12, color: Colors.grey),
+                                                  const SizedBox(width: 4),
+                                                  Text(
+                                                    '${price.createdAt.year}/${price.createdAt.month.toString().padLeft(2,'0')}/${price.createdAt.day.toString().padLeft(2,'0')} ${price.createdAt.hour}:${price.createdAt.minute.toString().padLeft(2,'0')}',
+                                                    style: const TextStyle(fontSize: 11, color: Colors.grey),
+                                                  ),
+                                                ],
+                                              )
+                                            ],
+                                          )
+                                        ),
+
                                         DataCell(
                                           IconButton(
                                             icon: const Icon(Icons.delete_outline, color: Colors.red),
