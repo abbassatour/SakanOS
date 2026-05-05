@@ -81,7 +81,17 @@ class SettingsCubit extends Cubit<SettingsState> {
       final history = await _erpRepository.getAllMaterialPricesHistory();
       // نستبعد الأسعار المحذوفة من العرض
       final activeHistory = history.where((p) => p.isDeleted == false).toList();
-      emit(state.copyWith(priceHistory: activeHistory));
+      
+      // 🌟 السحر هنا: جلب المستخدمين وصنع قاموس للأسماء
+      final allUsers = await _erpRepository.getAllUsers();
+      final Map<String, String> namesMap = {
+        for (var user in allUsers) user.id: user.fullName ?? 'مدير النظام'
+      };
+
+      emit(state.copyWith(
+        priceHistory: activeHistory,
+        userNamesMap: namesMap, // 🌟 تمرير القاموس للواجهة
+      ));
     } catch (e) {
       emit(state.copyWith(errorMessage: "تعذر جلب السجل: $e"));
     }
@@ -136,7 +146,7 @@ class SettingsCubit extends Cubit<SettingsState> {
       if (userId == null) throw Exception('يجب تسجيل الدخول أولاً.');
 
       final historicalPrice = MaterialPricesHistoryCompanion.insert(
-        effectiveDate: Value(effectiveDate.toUtc()), // 🌟 تم تصحيح drift.Value إلى Value فقط
+        effectiveDate: Value(effectiveDate.toUtc()), 
         ironPrice: iron,
         cementPrice: cement,
         block15Price: block15,
