@@ -20,10 +20,17 @@ class ContractsCubit extends Cubit<ContractsState> {
       final clients = await _erpRepository.getClients();
       final allContracts = await _erpRepository.getAllContracts();
       
+      // 🌟 السحر هنا: جلب المستخدمين وصنع قاموس للأسماء
+      final allUsers = await _erpRepository.getAllUsers();
+      final Map<String, String> namesMap = {
+        for (var user in allUsers) user.id: user.fullName ?? 'مدير النظام'
+      };
+
       emit(state.copyWith(
         status: ContractsStatus.success, 
         clients: clients, 
-        contracts: allContracts
+        contracts: allContracts,
+        userNamesMap: namesMap, // 🌟 تمرير القاموس للواجهة
       ));
     } catch (e) {
       emit(state.copyWith(status: ContractsStatus.failure, errorMessage: e.toString()));
@@ -48,7 +55,7 @@ class ContractsCubit extends Cubit<ContractsState> {
     required double basePrice,
     required int installmentsCount, 
     required String guarantorName, 
-    required double agreedMonthlyAmount, // 🌟 السطر الجديد
+    required double agreedMonthlyAmount,
     Map<String, double> coefficients = const {}, 
     DateTime? customDate, 
     double? histIron,
@@ -88,7 +95,7 @@ class ContractsCubit extends Cubit<ContractsState> {
         totalArea: area,
         baseMeterPriceAtSigning: basePrice,
         installmentsCount: Value(installmentsCount), 
-        agreedMonthlyAmount: Value(agreedMonthlyAmount), // 🌟 حفظ المبلغ المتفق عليه
+        agreedMonthlyAmount: Value(agreedMonthlyAmount), 
         coefficients: Value(jsonEncode(coefficients)),
         contractDate: contractDateToSave, 
         guarantorName: guarantorName, 
@@ -160,7 +167,7 @@ class ContractsCubit extends Cubit<ContractsState> {
     required String details,
     required String guarantorName,
     required int installmentsCount,
-    required double agreedMonthlyAmount, // 🌟 المعطى الجديد
+    required double agreedMonthlyAmount, 
     required DateTime contractDate, 
   }) async {
     try {
@@ -169,7 +176,7 @@ class ContractsCubit extends Cubit<ContractsState> {
         apartmentDetails: details,
         guarantorName: guarantorName,
         installmentsCount: installmentsCount,
-        agreedMonthlyAmount: agreedMonthlyAmount, // 🌟 تمريره للـ Repository
+        agreedMonthlyAmount: agreedMonthlyAmount, 
         contractDate: contractDate, 
       );
       await fetchData(); 
