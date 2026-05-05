@@ -191,6 +191,29 @@ class BuildingsView extends StatelessWidget {
                                         '📍 ${building.location ?? 'بدون عنوان'}  |  🚪 ${bldApartments.length} شقق  |  🏪 ${bldShops.length} محلات',
                                         style: TextStyle(color: Colors.grey.shade600, fontSize: 13, fontWeight: FontWeight.w600),
                                       ),
+                                      const SizedBox(height: 6),
+                                      // ==========================================
+                                      // 🌟 الإضافة 1: اسم وتاريخ التعديل للمحضر نفسه
+                                      // ==========================================
+                                      Row(
+                                        children:[
+                                          Icon(Icons.edit_calendar, size: 12, color: Colors.orange.shade700),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            'آخر تعديل بواسطة: ',
+                                            style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
+                                          ),
+                                          Text(
+                                            state.userNamesMap[building.userId] ?? 'مجهول',
+                                            style: TextStyle(fontSize: 11, color: Colors.orange.shade800, fontWeight: FontWeight.bold),
+                                          ),
+                                          const SizedBox(width: 6),
+                                          Text(
+                                            '(${building.updatedAt.year}/${building.updatedAt.month}/${building.updatedAt.day})',
+                                            style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
+                                          ),
+                                        ],
+                                      ),
                                     ],
                                   ),
                                 ),
@@ -272,17 +295,23 @@ class BuildingsView extends StatelessWidget {
                                                     child: ClipRRect(
                                                       borderRadius: BorderRadius.circular(10),
                                                       child: DataTable(
-                                                        headingRowHeight: 50, dataRowMinHeight: 55, dataRowMaxHeight: 60,
-                                                        horizontalMargin: 24, columnSpacing: 40, dividerThickness: 0.5,
+                                                        headingRowHeight: 50, 
+                                                        dataRowMinHeight: 55, 
+                                                        dataRowMaxHeight: 65, // 🌟 قمت بتكبيرها قليلاً لتستوعب سطرين
+                                                        horizontalMargin: 24, columnSpacing: 30, dividerThickness: 0.5,
                                                         headingRowColor: WidgetStateProperty.all(Colors.indigo.shade50.withOpacity(0.5)),
                                                         columns: const[
                                                           DataColumn(label: Text('رقم الشقة', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.indigo))),
                                                           DataColumn(label: Text('المساحة', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.indigo))),
                                                           DataColumn(label: Text('الاتجاه', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.indigo))),
                                                           DataColumn(label: Text('الحالة', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.indigo))),
+                                                          
+                                                          // 🌟 العامود الجديد
+                                                          DataColumn(label: Text('آخر تعديل بواسطة', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.indigo))),
+                                                          
                                                           DataColumn(label: Text('إجراءات', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.indigo))),
                                                         ],
-                                                        rows: floorApts.map((apt) => _buildDataRow(context, apt, isShop: false)).toList(),
+                                                        rows: floorApts.map((apt) => _buildDataRow(context, apt, isShop: false, userNamesMap: state.userNamesMap)).toList(),
                                                       ),
                                                     ),
                                                   ),
@@ -362,17 +391,23 @@ class BuildingsView extends StatelessWidget {
                                                   child: ClipRRect(
                                                     borderRadius: BorderRadius.circular(10),
                                                     child: DataTable(
-                                                      headingRowHeight: 50, dataRowMinHeight: 55, dataRowMaxHeight: 60,
-                                                      horizontalMargin: 24, columnSpacing: 40, dividerThickness: 0.5,
+                                                      headingRowHeight: 50, 
+                                                      dataRowMinHeight: 55, 
+                                                      dataRowMaxHeight: 65, // 🌟 التكبير للسطرين
+                                                      horizontalMargin: 24, columnSpacing: 30, dividerThickness: 0.5,
                                                       headingRowColor: WidgetStateProperty.all(Colors.orange.shade50),
                                                       columns: const[
                                                         DataColumn(label: Text('رقم/رمز المحل', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.orange))),
                                                         DataColumn(label: Text('المساحة', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.orange))),
                                                         DataColumn(label: Text('الواجهة', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.orange))),
                                                         DataColumn(label: Text('الحالة', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.orange))),
+                                                        
+                                                        // 🌟 العامود الجديد للمحلات أيضاً
+                                                        DataColumn(label: Text('آخر تعديل بواسطة', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.orange))),
+                                                        
                                                         DataColumn(label: Text('إجراءات', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.orange))),
                                                       ],
-                                                      rows: bldShops.map((shop) => _buildDataRow(context, shop, isShop: true)).toList(),
+                                                      rows: bldShops.map((shop) => _buildDataRow(context, shop, isShop: true, userNamesMap: state.userNamesMap)).toList(),
                                                     ),
                                                   ),
                                                 ),
@@ -458,8 +493,10 @@ class BuildingsView extends StatelessWidget {
     );
   }
 
-  // دالة مساعدة لرسم صف في الجدول (للشقق والمحلات)
-  DataRow _buildDataRow(BuildContext context, Apartment apt, {required bool isShop}) {
+  // ==========================================
+  // 🌟 الإضافة 2: تعديل دالة رسم الصف لتستقبل القاموس وترسم الخلية
+  // ==========================================
+  DataRow _buildDataRow(BuildContext context, Apartment apt, {required bool isShop, required Map<String, String> userNamesMap}) {
     final isAvailable = apt.status == 'available';
     final mainColor = isShop ? Colors.orange : Colors.indigo;
     
@@ -497,6 +534,42 @@ class BuildingsView extends StatelessWidget {
             ),
           ),
         ),
+
+        // ==========================================
+        // 🌟 الخلية الجديدة: آخر تعديل بواسطة (مدمجة هنا)
+        // ==========================================
+        DataCell(
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children:[
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children:[
+                  Icon(Icons.person_outline, size: 13, color: mainColor.shade400),
+                  const SizedBox(width: 4),
+                  Text(
+                    userNamesMap[apt.userId] ?? 'مجهول',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: mainColor.shade700),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 2),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children:[
+                  const Icon(Icons.access_time, size: 11, color: Colors.grey),
+                  const SizedBox(width: 4),
+                  Text(
+                    '${apt.updatedAt.year}/${apt.updatedAt.month.toString().padLeft(2,'0')}/${apt.updatedAt.day.toString().padLeft(2,'0')} ${apt.updatedAt.hour}:${apt.updatedAt.minute.toString().padLeft(2,'0')}',
+                    style: const TextStyle(fontSize: 10, color: Colors.grey),
+                  ),
+                ],
+              )
+            ],
+          )
+        ),
+
         DataCell(
           Row(
             mainAxisSize: MainAxisSize.min,
