@@ -303,6 +303,10 @@ class PaymentsView extends StatelessWidget {
                                           DataColumn(label: Text('سعر المتر', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.deepOrange))),
                                           DataColumn(label: Text('الأمتار المحولة', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.deepOrange))),
                                           DataColumn(label: Text('تاريخ الدفع', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.deepOrange))),
+                                          
+                                          // 🌟 العامود الجديد
+                                          DataColumn(label: Text('آخر تعديل بواسطة', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.deepOrange))),
+                                          
                                           DataColumn(label: Text('إجراءات', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.deepOrange))),
                                         ],
                                         rows: state.ledgerEntries.asMap().entries.map((mapEntry) {
@@ -331,6 +335,41 @@ class PaymentsView extends StatelessWidget {
                                             
                                             DataCell(Text('${entry.paymentDate.year}/${entry.paymentDate.month}/${entry.paymentDate.day}', style: const TextStyle(color: Colors.black87))),
                                             
+                                            // ==========================================
+                                            // 🌟 الخلية الجديدة: عرض اسم المستخدم وتاريخ التعديل
+                                            // ==========================================
+                                            DataCell(
+                                              Column(
+                                                mainAxisAlignment: MainAxisAlignment.center,
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children:[
+                                                  Row(
+                                                    mainAxisSize: MainAxisSize.min,
+                                                    children:[
+                                                      Icon(Icons.person_outline, size: 14, color: Colors.orange.shade700),
+                                                      const SizedBox(width: 4),
+                                                      Text(
+                                                        state.userNamesMap[entry.userId] ?? 'مجهول', // جلب الاسم من القاموس
+                                                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.orange.shade800),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  const SizedBox(height: 2),
+                                                  Row(
+                                                    mainAxisSize: MainAxisSize.min,
+                                                    children:[
+                                                      const Icon(Icons.access_time, size: 12, color: Colors.grey),
+                                                      const SizedBox(width: 4),
+                                                      Text(
+                                                        '${entry.updatedAt.year}/${entry.updatedAt.month.toString().padLeft(2,'0')}/${entry.updatedAt.day.toString().padLeft(2,'0')} ${entry.updatedAt.hour}:${entry.updatedAt.minute.toString().padLeft(2,'0')}',
+                                                        style: const TextStyle(fontSize: 11, color: Colors.grey),
+                                                      ),
+                                                    ],
+                                                  )
+                                                ],
+                                              )
+                                            ),
+
                                             DataCell(Row(
                                               mainAxisSize: MainAxisSize.min,
                                               children:[
