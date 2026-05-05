@@ -17,14 +17,20 @@ import '../../../schedule/cubit/schedule_cubit.dart';
 class ContractsDataTable extends StatelessWidget {
   final List<dynamic> contracts; 
   final List<dynamic> clients;
+  final Map<String, String> userNamesMap; // 🌟 الإضافة الجديدة: استقبال قاموس الأسماء
 
-  const ContractsDataTable({super.key, required this.contracts, required this.clients});
+  const ContractsDataTable({
+    super.key, 
+    required this.contracts, 
+    required this.clients,
+    required this.userNamesMap, // 🌟 الإضافة الجديدة
+  });
 
   @override
   Widget build(BuildContext context) {
     return Card(
       elevation: 2,
-      margin: EdgeInsets.zero, // 🌟 إزالة الهوامش المهدورة لأن الـ ListView تتكفل بها
+      margin: EdgeInsets.zero, 
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: Colors.grey.shade200)),
       clipBehavior: Clip.antiAlias,
       child: SingleChildScrollView(
@@ -33,14 +39,18 @@ class ContractsDataTable extends StatelessWidget {
           constraints: BoxConstraints(minWidth: MediaQuery.of(context).size.width - 32),
           child: DataTable(
             headingRowColor: WidgetStateProperty.all(Colors.teal.shade50),
-            dataRowMinHeight: 55, // 🌟 تصغير الأسطر
-            dataRowMaxHeight: 70, // 🌟 تصغير الأسطر
+            dataRowMinHeight: 55, 
+            dataRowMaxHeight: 70, 
             columns: const[
               DataColumn(label: Text('رقم العقد', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.teal))),
               DataColumn(label: Text('العميل', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.teal))),
               DataColumn(label: Text('النوع', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.teal))),
               DataColumn(label: Text('سعر المتر', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.teal))),
               DataColumn(label: Text('ملف العقد', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.teal))),
+              
+              // 🌟 العامود الجديد
+              DataColumn(label: Text('آخر تعديل بواسطة', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.teal))),
+              
               DataColumn(label: Text('إجراءات', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.teal))),
             ],
             rows: contracts.asMap().entries.map((entry) {
@@ -60,6 +70,41 @@ class ContractsDataTable extends StatelessWidget {
                   DataCell(Text('${NumberFormatters.formatWithCommas(contract.baseMeterPriceAtSigning)} ل.س', style: const TextStyle(color: Colors.teal, fontWeight: FontWeight.bold))),
                   DataCell(_buildFileAction(context, contract)),
                   
+                  // ==========================================
+                  // 🌟 الخلية الجديدة: عرض اسم المستخدم وتاريخ التعديل
+                  // ==========================================
+                  DataCell(
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children:[
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children:[
+                            Icon(Icons.person_outline, size: 14, color: Colors.orange.shade700),
+                            const SizedBox(width: 4),
+                            Text(
+                              userNamesMap[contract.userId] ?? 'مجهول', // جلب الاسم من القاموس
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.orange.shade800),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 2),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children:[
+                            const Icon(Icons.access_time, size: 12, color: Colors.grey),
+                            const SizedBox(width: 4),
+                            Text(
+                              '${contract.updatedAt.year}/${contract.updatedAt.month.toString().padLeft(2,'0')}/${contract.updatedAt.day.toString().padLeft(2,'0')} ${contract.updatedAt.hour}:${contract.updatedAt.minute.toString().padLeft(2,'0')}',
+                              style: const TextStyle(fontSize: 11, color: Colors.grey),
+                            ),
+                          ],
+                        )
+                      ],
+                    )
+                  ),
+
                  DataCell(Row(
                     mainAxisSize: MainAxisSize.min,
                     children:[

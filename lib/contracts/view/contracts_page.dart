@@ -98,7 +98,14 @@ class _ContractsViewState extends State<ContractsView> {
                       ? const EmptyContractsView(message: 'لا توجد نتائج للبحث', icon: Icons.search_off, iconColor: Colors.grey)
                       : ListView(
                           padding: const EdgeInsets.all(16), 
-                          children:[ContractsDataTable(contracts: filteredContracts, clients: state.clients)],
+                          children:[
+                            ContractsDataTable(
+                              contracts: filteredContracts, 
+                              clients: state.clients,
+                              // 🌟 تمرير قاموس الأسماء للجدول
+                              userNamesMap: state.userNamesMap, 
+                            )
+                          ],
                         ),
                 ),
               ],
