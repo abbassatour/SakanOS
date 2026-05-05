@@ -112,35 +112,31 @@ class Apartments extends Table {
 // ==========================================
 @TableIndex(name: 'idx_contracts_sync', columns: {#isDeleted, #updatedAt, #clientId})
 class Contracts extends Table {
-  // 🌟 تم التحويل إلى v7
   TextColumn get id => text().clientDefault(() => _uuid.v7())();
   TextColumn get clientId => text().references(Clients, #id)(); 
-  
-  // 🌟 الارتباط الجديد بالشقة
   TextColumn get apartmentId => text().nullable().references(Apartments, #id)(); 
   TextColumn get apartmentDetails => text().withDefault(const Constant('أسهم/غير مخصص'))();
 
   TextColumn get contractType => text().withDefault(const Constant('لاحق التخصص'))(); 
   RealColumn get totalArea => real()(); 
   RealColumn get baseMeterPriceAtSigning => real()(); 
+  
+  // 🌟 [الإضافة الجديدة]: الدفعة الأولى (المقدمة) المرفقة مع العقد
+  RealColumn get downPayment => real().withDefault(const Constant(0.0))(); 
+
   IntColumn get installmentsCount => integer().withDefault(const Constant(48))(); 
   TextColumn get coefficients => text().withDefault(const Constant('{}'))(); 
   TextColumn get guarantorName => text()();
   TextColumn get contractFileUrl => text().nullable()();
   
-  // 🌟 السطر الجديد: المبلغ المتفق عليه شهرياً (يفيد حصراً عقود لاحق التخصص)
   RealColumn get agreedMonthlyAmount => real().withDefault(const Constant(0.0))(); 
-  
   
   TextColumn get userId => text()();
   
-  // 🌍 ملاحظة: هذا الحقل لا يحتاج لـ clientDefault لأنه يُدخل يدوياً عند توقيع العقد، 
-  // لكن يجب أن نتأكد في واجهة المستخدم (UI) أو الـ Logic أن يتم تمريره كـ UTC.
   DateTimeColumn get contractDate => dateTime()(); 
   
   BoolColumn get isCompleted => boolean().withDefault(const Constant(false))(); 
   
-  // 🌍 [تعديل التوقيت]: الحفظ بـ UTC
   DateTimeColumn get createdAt => dateTime().clientDefault(() => DateTime.now().toUtc())();
   DateTimeColumn get updatedAt => dateTime().clientDefault(() => DateTime.now().toUtc())();
   
