@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../cubit/home_cubit.dart';
 import 'widgets/kpi_section.dart';
 import 'widgets/charts_section.dart';
+import 'widgets/recent_activities_section.dart'; // 🌟 الاستدعاء الجديد
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -87,6 +88,13 @@ class _HomePageState extends State<HomePage> {
                         const SizedBox(height: 20), 
                         
                         ChartsSection(state: state),
+
+                        const SizedBox(height: 24), 
+                        
+                        // ==========================================
+                        // 🌟 القسم الجديد: سجل النشاطات الحديثة
+                        // ==========================================
+                        RecentActivitiesSection(activities: state.recentActivities),
                       ]),
                     ),
                   ),
