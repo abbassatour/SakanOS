@@ -31,6 +31,7 @@ class PriceHistoryPage extends StatelessWidget {
         child: BlocBuilder<SettingsCubit, SettingsState>(
           builder: (context, state) {
             
+            // 🌟 السحر هنا: الترتيب التنازلي حسب تاريخ التسعيرة (الأحدث أولاً)
             final sortedHistory = List.of(state.priceHistory)..sort((a, b) {
               return b.effectiveDate.compareTo(a.effectiveDate); 
             });
