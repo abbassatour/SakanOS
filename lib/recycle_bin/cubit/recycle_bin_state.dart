@@ -8,9 +8,16 @@ class RecycleBinState extends Equatable {
     this.status = RecycleBinStatus.initial,
     this.deletedBuildings = const [],
     this.deletedApartments = const[],
-    this.deletedClients = const [],
+    this.deletedClients = const[],
     this.deletedContracts = const [],
     this.deletedPayments = const[],
+    
+    // 🌟 الإضافات الجديدة: البيانات المرجعية لترجمة الـ IDs إلى أسماء مقروءة في الواجهة
+    this.referenceClients = const[],
+    this.referenceContracts = const[],
+    this.referenceBuildings = const[],
+    this.userNamesMap = const {},
+    
     this.errorMessage,
   });
 
@@ -20,6 +27,13 @@ class RecycleBinState extends Equatable {
   final List<Client> deletedClients;
   final List<Contract> deletedContracts;
   final List<PaymentsLedgerData> deletedPayments;
+
+  // 🌟 (هذه القوائم ستدمج الفعال + المحذوف لضمان عدم فقدان المرجع)
+  final List<Client> referenceClients;
+  final List<Contract> referenceContracts;
+  final List<Building> referenceBuildings;
+  final Map<String, String> userNamesMap; // لمعرفة من قام بالحذف
+
   final String? errorMessage;
 
   RecycleBinState copyWith({
@@ -29,6 +43,12 @@ class RecycleBinState extends Equatable {
     List<Client>? deletedClients,
     List<Contract>? deletedContracts,
     List<PaymentsLedgerData>? deletedPayments,
+    
+    List<Client>? referenceClients,
+    List<Contract>? referenceContracts,
+    List<Building>? referenceBuildings,
+    Map<String, String>? userNamesMap,
+    
     String? errorMessage,
   }) {
     return RecycleBinState(
@@ -38,6 +58,12 @@ class RecycleBinState extends Equatable {
       deletedClients: deletedClients ?? this.deletedClients,
       deletedContracts: deletedContracts ?? this.deletedContracts,
       deletedPayments: deletedPayments ?? this.deletedPayments,
+      
+      referenceClients: referenceClients ?? this.referenceClients,
+      referenceContracts: referenceContracts ?? this.referenceContracts,
+      referenceBuildings: referenceBuildings ?? this.referenceBuildings,
+      userNamesMap: userNamesMap ?? this.userNamesMap,
+      
       errorMessage: errorMessage ?? this.errorMessage,
     );
   }
@@ -50,6 +76,10 @@ class RecycleBinState extends Equatable {
         deletedClients,
         deletedContracts,
         deletedPayments,
+        referenceClients,   // 🌟
+        referenceContracts, // 🌟
+        referenceBuildings, // 🌟
+        userNamesMap,       // 🌟
         errorMessage,
       ];
 }
