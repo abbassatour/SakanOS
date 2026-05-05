@@ -4,8 +4,10 @@ import 'dart:convert';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:erp_repository/erp_repository.dart';
-import 'package:local_storage_api/local_storage_api.dart' show ContractsCompanion, Contract, Client, MaterialPricesHistoryCompanion;
+// 🌟 أضفنا PaymentsLedgerCompanion لإنشاء الإيصال الآلي
+import 'package:local_storage_api/local_storage_api.dart' show ContractsCompanion, Contract, Client, MaterialPricesHistoryCompanion, PaymentsLedgerCompanion;
 import 'package:drift/drift.dart' show Value;
+import 'package:uuid/uuid.dart'; // 🌟 أضفنا مكتبة الـ UUID لتوليد المعرفات
 
 part 'contracts_state.dart';
 
@@ -20,7 +22,6 @@ class ContractsCubit extends Cubit<ContractsState> {
       final clients = await _erpRepository.getClients();
       final allContracts = await _erpRepository.getAllContracts();
       
-      // 🌟 السحر هنا: جلب المستخدمين وصنع قاموس للأسماء
       final allUsers = await _erpRepository.getAllUsers();
       final Map<String, String> namesMap = {
         for (var user in allUsers) user.id: user.fullName ?? 'مدير النظام'
@@ -30,7 +31,7 @@ class ContractsCubit extends Cubit<ContractsState> {
         status: ContractsStatus.success, 
         clients: clients, 
         contracts: allContracts,
-        userNamesMap: namesMap, // 🌟 تمرير القاموس للواجهة
+        userNamesMap: namesMap, 
       ));
     } catch (e) {
       emit(state.copyWith(status: ContractsStatus.failure, errorMessage: e.toString()));
@@ -53,6 +54,7 @@ class ContractsCubit extends Cubit<ContractsState> {
     required String? apartmentId, 
     required double area,
     required double basePrice,
+    required double downPayment, // 🌟 [الإضافة الجديدة]: الدفعة الأولى
     required int installmentsCount, 
     required String guarantorName, 
     required double agreedMonthlyAmount,
@@ -72,6 +74,7 @@ class ContractsCubit extends Cubit<ContractsState> {
 
       final contractDateToSave = customDate?.toUtc() ?? DateTime.now().toUtc();
 
+      // 1. تسجيل التسعيرة التاريخية إن وجدت
       if (customDate != null && histIron != null) {
         final historicalPrices = MaterialPricesHistoryCompanion.insert(
           effectiveDate: Value(contractDateToSave), 
@@ -87,13 +90,19 @@ class ContractsCubit extends Cubit<ContractsState> {
         await _erpRepository.savePrices(historicalPrices);
       }
 
+      // 🌟 2. توليد ID العقد هنا لكي نستخدمه فوراً لإنشاء الإيصال المالي
+      final String newContractId = const Uuid().v7();
+
+      // 3. إنشاء العقد
       final newContract = ContractsCompanion.insert(
+        id: Value(newContractId), // 🌟 تعيين الـ ID المولّد
         clientId: clientId,
         apartmentId: Value(apartmentId), 
         contractType: Value(contractType),
         apartmentDetails: Value(details), 
         totalArea: area,
         baseMeterPriceAtSigning: basePrice,
+        downPayment: Value(downPayment), // 🌟 حفظ الدفعة الأولى في جدول العقود كمرجع
         installmentsCount: Value(installmentsCount), 
         agreedMonthlyAmount: Value(agreedMonthlyAmount), 
         coefficients: Value(jsonEncode(coefficients)),
@@ -103,7 +112,25 @@ class ContractsCubit extends Cubit<ContractsState> {
       );
       
       await _erpRepository.addContract(newContract);
+
+      // ==========================================
+      // 🌟 4. السحر المحاسبي: إدخال الدفعة الأولى في دفتر الأستاذ!
+      // ==========================================
+      if (downPayment > 0) {
+        final downPaymentEntry = PaymentsLedgerCompanion.insert(
+          contractId: newContractId, // ربط الإيصال بالعقد الجديد
+          paymentDate: contractDateToSave, // الدفعة تمت في نفس يوم توقيع العقد
+          amountPaid: downPayment, // مبلغ الدفعة
+          meterPriceAtPayment: basePrice, // سعر المتر عند التوقيع
+          convertedMeters: basePrice > 0 ? (downPayment / basePrice) : 0, // الأمتار المشتراة
+          pricesSnapshot: const Value('{"note": "الدفعة الأولى عند توقيع العقد"}'),
+          userId: userId,
+        );
+        // إضافة الإيصال إلى المستودع ليتم مزامنته وعرضه في المراقبة
+        await _erpRepository.addLedgerEntry(downPaymentEntry);
+      }
       
+      // 5. تحديث حالة الشقة إلى مباعة
       if (apartmentId != null && apartmentId.isNotEmpty) {
         await _erpRepository.changeApartmentStatus(apartmentId, 'sold');
       }
