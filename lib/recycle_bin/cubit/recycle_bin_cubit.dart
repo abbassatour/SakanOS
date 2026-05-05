@@ -11,7 +11,7 @@ class RecycleBinCubit extends Cubit<RecycleBinState> {
 
   final ErpRepository _erpRepository;
 
-  /// جلب كافة البيانات المحذوفة في النظام مع بياناتها المرجعية
+  /// جلب كافة البيانات المحذوفة والفعالة (كـ مراجع)
   Future<void> loadAllDeletedData() async {
     emit(state.copyWith(status: RecycleBinStatus.loading));
     try {
@@ -25,7 +25,7 @@ class RecycleBinCubit extends Cubit<RecycleBinState> {
       final activeClients = await _erpRepository.getClients();
       final activeContracts = await _erpRepository.getAllContracts();
 
-      final allClients = [...activeClients, ...delClients];
+      final allClients =[...activeClients, ...delClients];
       final allContracts = [...activeContracts, ...delContracts];
       final allBuildings =[...activeBuildings, ...delBuildings];
 
@@ -52,23 +52,23 @@ class RecycleBinCubit extends Cubit<RecycleBinState> {
   }
 
   // ==========================================
-  // ♻️ دوال الاستعادة (مع نظام الحماية الذكي)
+  // ♻️ حماية دوال الاستعادة (Restore Safeguards)
   // ==========================================
 
   Future<void> restoreBuilding(String id) async {
-    // المحضر هو "الأب الأكبر"، استعادته مسموحة دائماً وسيقوم الـ Repository باستعادة شققه آلياً
+    // المحضر هو الأب الأكبر، مسموح استعادته دائماً
     await _erpRepository.restoreBuilding(id);
     await loadAllDeletedData();
   }
 
   Future<void> restoreApartment(String id) async {
-    // 🛡️ حماية: التحقق من أن المحضر غير محذوف
+    // 🛡️ حماية الاستعادة: هل المحضر محذوف؟
     final apt = state.deletedApartments.firstWhere((a) => a.id == id);
     final building = state.referenceBuildings.firstWhere((b) => b.id == apt.buildingId);
     
     if (building.isDeleted) {
-      emit(state.copyWith(status: RecycleBinStatus.failure, errorMessage: '⛔ لا يمكنك استعادة هذه الشقة لأن المحضر التابعة له (${building.name}) لا يزال في سلة المحذوفات. الرجاء استعادة المحضر أولاً.'));
-      emit(state.copyWith(status: RecycleBinStatus.success)); // تصفير الحالة بعد عرض الخطأ
+      emit(state.copyWith(status: RecycleBinStatus.failure, errorMessage: '⛔ لا يمكنك استعادة هذه الشقة لأن محضرها التابعة له (${building.name}) لا يزال محذوفاً.'));
+      emit(state.copyWith(status: RecycleBinStatus.success)); 
       return;
     }
 
@@ -77,33 +77,27 @@ class RecycleBinCubit extends Cubit<RecycleBinState> {
   }
 
   Future<void> restoreClient(String id) async {
-    // العميل هو "أب"، استعادته مسموحة دائماً
+    // العميل هو أب، مسموح استعادته دائماً
     await _erpRepository.restoreClient(id);
     await loadAllDeletedData();
   }
 
   Future<void> restoreContract(String id) async {
-    // 🛡️ حماية: التحقق من العميل والشقة
     final contract = state.deletedContracts.firstWhere((c) => c.id == id);
     
-    // 1. التحقق من العميل
+    // 🛡️ حماية الاستعادة 1: هل العميل محذوف؟
     final client = state.referenceClients.firstWhere((c) => c.id == contract.clientId);
     if (client.isDeleted) {
-      emit(state.copyWith(status: RecycleBinStatus.failure, errorMessage: '⛔ لا يمكنك استعادة هذا العقد لأن العميل (${client.name}) لا يزال محذوفاً. الرجاء استعادة العميل أولاً.'));
+      emit(state.copyWith(status: RecycleBinStatus.failure, errorMessage: '⛔ العميل (${client.name}) الخاص بهذا العقد لا يزال محذوفاً. الرجاء استعادته أولاً.'));
       emit(state.copyWith(status: RecycleBinStatus.success));
       return;
     }
 
-    // 2. التحقق من الشقة (إذا كان العقد مخصصاً لشقة)
-    /* 
-    ملاحظة: في مستودعك حالياً، استعادة العقد تقوم آلياً بتغيير حالة الشقة إلى "مباعة".
-    لذلك يجب أن نتأكد من أن الشقة غير محذوفة أصلاً!
-    */
+    // 🛡️ حماية الاستعادة 2: هل الشقة محذوفة؟
     if (contract.apartmentId != null) {
-      // هل الشقة من ضمن الشقق المحذوفة؟
       final isApartmentDeleted = state.deletedApartments.any((a) => a.id == contract.apartmentId);
       if (isApartmentDeleted) {
-        emit(state.copyWith(status: RecycleBinStatus.failure, errorMessage: '⛔ الشقة المرتبطة بهذا العقد موجودة في سلة المحذوفات. الرجاء استعادة الشقة أولاً قبل استعادة العقد.'));
+        emit(state.copyWith(status: RecycleBinStatus.failure, errorMessage: '⛔ الوحدة العقارية المرتبطة بهذا العقد لا تزال محذوفة. الرجاء استعادتها أولاً.'));
         emit(state.copyWith(status: RecycleBinStatus.success));
         return;
       }
@@ -114,12 +108,12 @@ class RecycleBinCubit extends Cubit<RecycleBinState> {
   }
 
   Future<void> restorePayment(String id) async {
-    // 🛡️ حماية: التحقق من أن العقد غير محذوف
+    // 🛡️ حماية الاستعادة: هل العقد محذوف؟
     final payment = state.deletedPayments.firstWhere((p) => p.id == id);
     final contract = state.referenceContracts.firstWhere((c) => c.id == payment.contractId);
 
     if (contract.isDeleted) {
-      emit(state.copyWith(status: RecycleBinStatus.failure, errorMessage: '⛔ لا يمكنك استعادة هذه الدفعة لأن العقد الخاص بها لا يزال محذوفاً. الرجاء استعادة العقد أولاً.'));
+      emit(state.copyWith(status: RecycleBinStatus.failure, errorMessage: '⛔ لا يمكنك استعادة هذه الدفعة لأن عقدها لا يزال محذوفاً. الرجاء استعادة العقد أولاً.'));
       emit(state.copyWith(status: RecycleBinStatus.success));
       return;
     }
@@ -129,26 +123,43 @@ class RecycleBinCubit extends Cubit<RecycleBinState> {
   }
 
   // ==========================================
-  // 💥 دوال الحذف النهائي (Hard Delete)
+  // 💥 حماية دوال التدمير النهائي (Hard Delete Safeguards)
   // ==========================================
-  // ملاحظة: الحذف النهائي تم برمجته بشكل آمن في Repository حيث يحذف الأبناء أولاً (Cascade Delete).
   
   Future<void> hardDeleteBuilding(String id) async {
+    // آمنة: القاعدة تقوم بحذف الشقق التابعة له آلياً (Cascade Delete).
     await _erpRepository.forceHardDeleteBuilding(id);
     await loadAllDeletedData();
   }
 
   Future<void> hardDeleteApartment(String id) async {
+    // 🛡️ حماية التدمير: هل الشقة مرتبطة بعقد؟
+    final isLinkedToContract = state.referenceContracts.any((c) => c.apartmentId == id);
+    if (isLinkedToContract) {
+      emit(state.copyWith(status: RecycleBinStatus.failure, errorMessage: '⛔ لا يمكن تدمير هذه الوحدة لأنها مرتبطة بعقد بيع (سواء فعال أو محذوف). يجب تدمير العقد أولاً!'));
+      emit(state.copyWith(status: RecycleBinStatus.success));
+      return;
+    }
+
     await _erpRepository.forceHardDeleteApartment(id);
     await loadAllDeletedData();
   }
 
   Future<void> hardDeleteClient(String id) async {
+    // 🛡️ حماية التدمير الأهم: هل العميل لديه عقود؟
+    final hasContracts = state.referenceContracts.any((c) => c.clientId == id);
+    if (hasContracts) {
+      emit(state.copyWith(status: RecycleBinStatus.failure, errorMessage: '⛔ لا يمكن تدمير هذا العميل لارتباطه بعقود في النظام. الرجاء تدمير عقوده أولاً ليُسمح لك بذلك.'));
+      emit(state.copyWith(status: RecycleBinStatus.success));
+      return;
+    }
+
     await _erpRepository.forceHardDeleteClient(id);
     await loadAllDeletedData();
   }
 
   Future<void> hardDeleteContract(String id) async {
+    // آمنة: القاعدة تقوم بحذف الدفعات والأقساط التابعة له آلياً (Cascade Delete).
     await _erpRepository.forceHardDeleteContract(id);
     await loadAllDeletedData();
   }
