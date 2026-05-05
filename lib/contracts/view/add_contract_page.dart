@@ -37,6 +37,9 @@ class _AddContractPageState extends State<AddContractPage> {
   final durationCoefficientCtrl = TextEditingController(text: '0'); 
   final guarantorController = TextEditingController(); 
   final monthlyAmountCtrl = TextEditingController(); 
+  
+  // 🌟 [الإضافة الجديدة]: متحكم الدفعة الأولى
+  final downPaymentCtrl = TextEditingController(text: '0'); 
 
   // معاملات إضافية للتجهيزات المشتركة
   final blockCoeffCtrl = TextEditingController(text: '0');
@@ -70,6 +73,7 @@ class _AddContractPageState extends State<AddContractPage> {
   void dispose() {
     areaController.dispose(); priceController.dispose(); monthsController.dispose();
     durationCoefficientCtrl.dispose(); guarantorController.dispose(); monthlyAmountCtrl.dispose();
+    downPaymentCtrl.dispose(); // 🌟 تنظيف المتحكم الجديد
     blockCoeffCtrl.dispose(); coloredPlasterCoeffCtrl.dispose(); marbleStairsCoeffCtrl.dispose();
     marbleFinsCoeffCtrl.dispose(); plumbingCoeffCtrl.dispose(); chimneysCoeffCtrl.dispose();
     histIronCtrl.dispose(); histCementCtrl.dispose(); histBlockCtrl.dispose();
@@ -112,8 +116,7 @@ class _AddContractPageState extends State<AddContractPage> {
           // سحب معاملات الشقة/المحل
           final Map<String, dynamic> aptMap = jsonDecode(apt.customCoefficients);
           aptMap.forEach((k, v) {
-            // 🌟 الفلتر الذكي: نتجاهل أي مفتاح يبدأ بكلمة مساحة، أو يحتوي على (متر) أو (م2) 
-            // لأنها بيانات هندسية وصفية وليست أرقاماً مالية للضرب!
+            // 🌟 الفلتر الذكي
             if (!k.startsWith('مساحة') && !k.contains('(متر)') && !k.contains('(م2)')) {
               autoImportedCoefficients[k] = (v as num).toDouble();
             }
@@ -135,11 +138,11 @@ class _AddContractPageState extends State<AddContractPage> {
     // 1. المعاملات الآلية
     autoImportedCoefficients.forEach((key, value) => finalCoeffs[key] = value / 100.0);
 
-    // 2. نسبة التقسيط (باستخدام الدالة الآمنة)
+    // 2. نسبة التقسيط
     double durVal = _safeParseDouble(durationCoefficientCtrl);
     if (durVal != 0.0) finalCoeffs['نسبة التقسيط'] = durVal / 100.0;
 
-    // 3. التجهيزات المشتركة (باستخدام الدالة الآمنة)
+    // 3. التجهيزات المشتركة
     void addSharedCoeff(String key, TextEditingController ctrl) {
       double val = _safeParseDouble(ctrl);
       if (val != 0.0) finalCoeffs[key] = val / 100.0;
@@ -168,7 +171,6 @@ class _AddContractPageState extends State<AddContractPage> {
 
     MaterialPricesHistoryData targetPrices;
     if (isHistoricalContract) {
-      // التحقق الآمن من الحقول
       if (_safeParseDouble(histIronCtrl) == 0 || _safeParseDouble(histCementCtrl) == 0 || _safeParseDouble(histWorkerCtrl) == 0) {
          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('الرجاء تعبئة أسعار المواد التاريخية الأساسية بشكل صحيح!'), backgroundColor: Colors.red));
          return;
@@ -191,11 +193,10 @@ class _AddContractPageState extends State<AddContractPage> {
       targetPrices = currentPrices;
     }
 
-    // 🌟 تجميع كافة المعاملات بأمان
     Map<String, double> finalCoeffs = _buildFinalCoefficients(isAllocated);
 
     double dummyAreaForCalculation = isAllocated ? _safeParseDouble(areaController) : 1.0;
-    if (dummyAreaForCalculation == 0.0) dummyAreaForCalculation = 1.0; // حماية إضافية من القسمة على صفر
+    if (dummyAreaForCalculation == 0.0) dummyAreaForCalculation = 1.0; 
 
     final calculations = CalculatorHelper.calculateContractValues(
       area: dummyAreaForCalculation,
@@ -298,6 +299,8 @@ class _AddContractPageState extends State<AddContractPage> {
                             durationCoefficientCtrl: durationCoefficientCtrl,
                             priceController: priceController,
                             monthlyAmountCtrl: monthlyAmountCtrl,
+                            // 🌟 تمرير متحكم الدفعة الأولى إلى الواجهة
+                            downPaymentCtrl: downPaymentCtrl, 
                             onCalculate: () => _calculatePrice(settingsState.currentPrices),
                           ),
                           const SizedBox(height: 100), 
@@ -346,7 +349,6 @@ class _AddContractPageState extends State<AddContractPage> {
     
     if (monthlyAmountCtrl.text.isEmpty) return _showError('يرجى إدخال المبلغ المتفق عليه شهرياً!');
 
-    // 🌟 تجميع المعاملات بأمان تام
     Map<String, double> finalCoeffs = _buildFinalCoefficients(isAllocated);
 
     String generatedDetails = '';
@@ -365,6 +367,9 @@ class _AddContractPageState extends State<AddContractPage> {
 
     final double finalArea = isAllocated ? _safeParseDouble(areaController) : 0.0;
     final int finalMonths = isAllocated ? _safeParseInt(monthsController, defaultValue: 48) : 48; 
+    
+    // 🌟 جلب رقم الدفعة الأولى من المستخدم بأمان
+    final double finalDownPayment = _safeParseDouble(downPaymentCtrl);
 
     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('جاري الحفظ وتوقيع العقد... ⏳'), backgroundColor: Colors.teal));
     
@@ -375,13 +380,13 @@ class _AddContractPageState extends State<AddContractPage> {
       apartmentId: isAllocated ? selectedApartmentId : null,
       area: finalArea, 
       basePrice: _safeParseDouble(priceController), 
+      downPayment: finalDownPayment, // 🌟 إرسالها للـ Cubit
       installmentsCount: finalMonths, 
       guarantorName: guarantorController.text.trim(),
       agreedMonthlyAmount: agreedAmount, 
       coefficients: finalCoeffs, 
       customDate: isHistoricalContract ? selectedHistoricalDate : null, 
       
-      // 🛡️ الحفظ الآمن للمواد التاريخية
       histIron: isHistoricalContract ? _safeParseDouble(histIronCtrl) : null, 
       histCement: isHistoricalContract ? _safeParseDouble(histCementCtrl) : null,
       histBlock: isHistoricalContract ? _safeParseDouble(histBlockCtrl) : null,
