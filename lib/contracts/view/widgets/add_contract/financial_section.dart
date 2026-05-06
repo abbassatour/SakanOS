@@ -24,7 +24,9 @@ class FinancialSection extends StatelessWidget {
     required this.monthlyAmountCtrl, 
     required this.downPaymentCtrl, // 🌟 2. إضافته في الدالة البانية
     required this.onCalculate,
-  });fv Widget build(BuildContext context) {
+  });
+  
+  Widget build(BuildContext context) {
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: Colors.teal.shade200)),
