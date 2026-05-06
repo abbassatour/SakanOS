@@ -47,8 +47,7 @@ class PaymentsView extends StatelessWidget {
     final canDelete = authState.hasPermission(AppPermissions.deletePayments);
 
     return Scaffold(
-      backgroundColor: Colors.grey.shade50, // لون خلفية هادئ للصفحة
-      // 🌟 تم إزالة الـ AppBar والعنوان بالكامل لتبدأ الشاشة بشريط البحث فوراً
+      backgroundColor: Colors.grey.shade50,
       body: SafeArea(
         child: BlocBuilder<PaymentsCubit, PaymentsState>(
           builder: (context, state) {
@@ -63,10 +62,10 @@ class PaymentsView extends StatelessWidget {
             return Column(
               children:[
                 // ==========================================
-                // 🌟 القسم العلوي المطور (البحث والأزرار في سطر واحد أعلى الشاشة تماماً)
+                // 🌟 القسم العلوي
                 // ==========================================
                 Container(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 12), // تم تقليل الهوامش
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     boxShadow:[BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 4, offset: const Offset(0, 2))],
@@ -74,7 +73,6 @@ class PaymentsView extends StatelessWidget {
                   ),
                   child: Row(
                     children:[
-                      // أيقونة المحفظة مع خلفية ناعمة (مضغوطة بارتفاع 48)
                       Container(
                         height: 48,
                         width: 48,
@@ -84,22 +82,21 @@ class PaymentsView extends StatelessWidget {
                       ),
                       const SizedBox(width: 12),
                       
-                      // 🌟 حقل البحث (يأخذ كل المساحة المتبقية بذكاء)
                       Expanded(
                         child: SizedBox(
-                          height: 48, // 🌟 ارتفاع مضغوط
+                          height: 48, 
                           child: LayoutBuilder(
                             builder: (context, constraints) {
                               return DropdownMenu<String>(
                                 width: constraints.maxWidth, 
                                 enableSearch: true, 
                                 enableFilter: true, 
-                                hintText: '🔍 ابحث واختر العقد...', // تم مسح كلمة المطلوب
+                                hintText: '🔍 ابحث واختر العقد...', 
                                 textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                                 inputDecorationTheme: InputDecorationTheme(
                                   filled: true,
-                                  fillColor: Colors.grey.shade50, // لون رمادي ناعم جداً
-                                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0), // تنسيق الارتفاع
+                                  fillColor: Colors.grey.shade50, 
+                                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0), 
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(10),
                                     borderSide: BorderSide(color: Colors.grey.shade300),
@@ -131,11 +128,9 @@ class PaymentsView extends StatelessWidget {
                         ),
                       ),
                       
-                      // 🌟 الأزرار بجانب البحث تماماً وبنفس الارتفاع 48px
                       if (state.selectedContractId != null) ...[
                         const SizedBox(width: 12),
                         
-                        // زر الإكسل
                         SizedBox(
                           height: 48,
                           child: ElevatedButton.icon(
@@ -175,7 +170,6 @@ class PaymentsView extends StatelessWidget {
                         
                         const SizedBox(width: 8),
                         
-                        // زر الـ PDF 
                         SizedBox(
                           height: 48,
                           child: ElevatedButton.icon(
@@ -229,9 +223,6 @@ class PaymentsView extends StatelessWidget {
 
                         const SizedBox(width: 8),
                         
-                        // ==========================================
-                        // 🛡️ حماية زر "إدخال دفعة" (الزر الباهت)
-                        // ==========================================
                         Tooltip(
                           message: canAdd ? 'إضافة دفعة مالية جديدة' : 'لا تملك صلاحية إدخال دفعات',
                           child: SizedBox(
@@ -283,11 +274,11 @@ class PaymentsView extends StatelessWidget {
                               )
                             )
                           : ListView(
-                              padding: const EdgeInsets.all(16.0), // هوامش أقل لاستغلال المساحة
+                              padding: const EdgeInsets.all(16.0), 
                               children:[
                                 Card(
                                   elevation: 2,
-                                  margin: EdgeInsets.zero, // إزالة الهامش الإضافي الخارجي
+                                  margin: EdgeInsets.zero, 
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: Colors.grey.shade200)),
                                   clipBehavior: Clip.antiAlias,
                                   child: SingleChildScrollView(
@@ -299,45 +290,72 @@ class PaymentsView extends StatelessWidget {
                                         dataRowMaxHeight: 65,
                                         columns: const[
                                           DataColumn(label: Text('رقم الإيصال', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.deepOrange))),
-                                          DataColumn(label: Text('المبلغ المدفوع', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.deepOrange))),
+                                          DataColumn(label: Text('المبلغ (إيداع / سحب)', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.deepOrange))),
                                           DataColumn(label: Text('سعر المتر', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.deepOrange))),
                                           DataColumn(label: Text('الأمتار المحولة', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.deepOrange))),
                                           DataColumn(label: Text('تاريخ الدفع', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.deepOrange))),
-                                          
-                                          // 🌟 العامود الجديد
                                           DataColumn(label: Text('آخر تعديل بواسطة', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.deepOrange))),
-                                          
                                           DataColumn(label: Text('إجراءات', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.deepOrange))),
                                         ],
                                         rows: state.ledgerEntries.asMap().entries.map((mapEntry) {
                                           final int index = mapEntry.key;
                                           final entry = mapEntry.value;
                                           final bool isLatestEntry = index == 0;
+                                          
+                                          // 🌟 التحقق هل هي دفعة سالبة (استرداد)
+                                          final bool isRefund = entry.amountPaid < 0;
 
                                           return DataRow(
                                             color: WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
-                                              if (index.isEven) return Colors.grey.withOpacity(0.03); // تلوين سطر وترك سطر (Zebra Striping)
+                                              if (index.isEven) return Colors.grey.withOpacity(0.03); 
                                               return null; 
                                             }),
                                             cells:[
                                             DataCell(Text(entry.id.split('-').first.toUpperCase(), style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey.shade600, fontSize: 13))),
                                             
-                                            DataCell(Text('${formatWithCommas(entry.amountPaid)} ل.س', style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 15))),
+                                            // ==========================================
+                                            // 🌟 1. تمييز المبلغ (أخضر للإيداع، أحمر للاسترداد)
+                                            // ==========================================
+                                            DataCell(
+                                              Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children:[
+                                                  Icon(
+                                                    isRefund ? Icons.remove_circle_outline : Icons.add_circle_outline, 
+                                                    color: isRefund ? Colors.red : Colors.green, 
+                                                    size: 18
+                                                  ),
+                                                  const SizedBox(width: 6),
+                                                  Text(
+                                                    '${formatWithCommas(entry.amountPaid.abs())} ل.س', 
+                                                    style: TextStyle(color: isRefund ? Colors.red : Colors.green, fontWeight: FontWeight.bold, fontSize: 15)
+                                                  ),
+                                                ],
+                                              )
+                                            ),
+                                            
                                             DataCell(Text('${formatWithCommas(entry.meterPriceAtPayment)} ل.س', style: const TextStyle(color: Colors.black87))),
                                             
+                                            // ==========================================
+                                            // 🌟 2. تمييز الأمتار المخصومة
+                                            // ==========================================
                                             DataCell(
                                               Container(
                                                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                                decoration: BoxDecoration(color: Colors.deepOrange.shade50, borderRadius: BorderRadius.circular(6)),
-                                                child: Text('${entry.convertedMeters.toStringAsFixed(3)} م²', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.deepOrange.shade700, fontSize: 15)),
+                                                decoration: BoxDecoration(
+                                                  color: isRefund ? Colors.red.shade50 : Colors.deepOrange.shade50, 
+                                                  borderRadius: BorderRadius.circular(6),
+                                                  border: Border.all(color: isRefund ? Colors.red.shade100 : Colors.transparent)
+                                                ),
+                                                child: Text(
+                                                  '${isRefund ? "-" : "+"}${entry.convertedMeters.abs().toStringAsFixed(3)} م²', 
+                                                  style: TextStyle(fontWeight: FontWeight.bold, color: isRefund ? Colors.red.shade700 : Colors.deepOrange.shade700, fontSize: 15)
+                                                ),
                                               )
                                             ),
                                             
                                             DataCell(Text('${entry.paymentDate.year}/${entry.paymentDate.month}/${entry.paymentDate.day}', style: const TextStyle(color: Colors.black87))),
                                             
-                                            // ==========================================
-                                            // 🌟 الخلية الجديدة: عرض اسم المستخدم وتاريخ التعديل
-                                            // ==========================================
                                             DataCell(
                                               Column(
                                                 mainAxisAlignment: MainAxisAlignment.center,
@@ -349,7 +367,7 @@ class PaymentsView extends StatelessWidget {
                                                       Icon(Icons.person_outline, size: 14, color: Colors.orange.shade700),
                                                       const SizedBox(width: 4),
                                                       Text(
-                                                        state.userNamesMap[entry.userId] ?? 'مجهول', // جلب الاسم من القاموس
+                                                        state.userNamesMap[entry.userId] ?? 'مجهول', 
                                                         style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.orange.shade800),
                                                       ),
                                                     ],
@@ -387,19 +405,15 @@ class PaymentsView extends StatelessWidget {
                                                     
                                                     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('جاري تجهيز الفاتورة...')));
 
-                                                    // 🌟 السحر هنا: استخراج المعاملات المحاسبية قبل إرسالها للـ PDF
-                                                    double bonusPct = entry.fees; // حقل fees يحمل نسبة الخصم/البونص
+                                                    double bonusPct = entry.fees; 
                                                     double? originalInst;
                                                     double? meterPriceBonus;
 
                                                     if (bonusPct > 0) {
-                                                      // أصل القسط = المبلغ المدفوع + نسبة البونص
                                                       originalInst = entry.amountPaid + (entry.amountPaid * (bonusPct / 100));
-                                                      // سعر المتر بعد البونص = المبلغ المدفوع ÷ الأمتار التي حصل عليها فعلياً
                                                       meterPriceBonus = entry.amountPaid / entry.convertedMeters;
                                                     }
 
-                                                    // إرسال البيانات لمولد الـ PDF
                                                     final pdfBytes = await PdfGenerator.generateReceiptPdf(
                                                       entry: entry, 
                                                       contract: contract, 
@@ -435,18 +449,12 @@ class PaymentsView extends StatelessWidget {
                                                 ),
                                                 Container(width: 1, height: 24, color: Colors.grey.shade300, margin: const EdgeInsets.symmetric(horizontal: 4)), // خط فاصل
                                                 
-                                                // ==========================================
-                                                // 🛡️ حماية أيقونة التعديل (باهتة)
-                                                // ==========================================
                                                 IconButton(
                                                   icon: Icon(Icons.edit_note, color: canEdit ? Colors.orange : Colors.grey.shade300),
                                                   tooltip: canEdit ? 'تعديل قيمة الدفعة (للإدارة فقط)' : 'لا تملك صلاحية تعديل الدفعات',
                                                   onPressed: canEdit ? () => showEditPaymentDialog(context, entry) : null,
                                                 ),
                                                 
-                                                // ==========================================
-                                                // 🛡️ حماية أيقونة الحذف (إخفاء تام)
-                                                // ==========================================
                                                 if (canDelete)
                                                   IconButton(
                                                     icon: Icon(Icons.delete_forever, color: isLatestEntry ? Colors.red : Colors.grey.shade300),
