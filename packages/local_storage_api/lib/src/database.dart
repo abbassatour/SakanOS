@@ -211,7 +211,7 @@ class InstallmentsSchedule extends Table {
 
 
 // ==========================================
-// 7. دفتر الأستاذ للمدفوعات (Payments Ledger) 🚨 الأهم!
+// 7. الأقساط للمدفوعات (Payments Ledger) 🚨 الأهم!
 // ==========================================
 // هذا الجدول يسجل "الأموال الحقيقية" والأمتار التي اشترتها لحظة الدفع
 @TableIndex(name: 'idx_payments_sync', columns: {#isDeleted, #updatedAt, #contractId})

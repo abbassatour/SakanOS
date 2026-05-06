@@ -181,16 +181,16 @@ class ContractDetailsPage extends StatelessWidget {
                             Expanded(
                               child: _buildActionButton(
                                 icon: Icons.account_balance_wallet,
-                                label: 'دفتر الأستاذ والمدفوعات',
+                                label: 'صفحة الأقساط',
                                 color: Colors.deepOrange.shade600,
                                 onTap: () {
                                   // 1. تحديد العقد في صفحة الدفعات
                                   context.read<PaymentsCubit>().selectContract(contract.id);
-                                  // 2. تغيير التبويب الرئيسي إلى 4 (الأقساط/دفتر الأستاذ)
+                                  // 2. تغيير التبويب الرئيسي إلى 4 (الأقساط/الأقساط)
                                   context.read<DashboardCubit>().changeTab(4);
                                   // 3. إغلاق الصفحات المنبثقة والعودة للرئيسية
                                   Navigator.of(context).popUntil((route) => route.isFirst);
-                                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم تحويلك لدفتر الأستاذ الخاص بهذا العقد!'), backgroundColor: Colors.green));
+                                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم تحويلك لالأقساط الخاص بهذا العقد!'), backgroundColor: Colors.green));
                                 },
                               ),
                             ),

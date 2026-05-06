@@ -153,7 +153,7 @@ class PaymentsCubit extends Cubit<PaymentsState> {
       final double effectiveAmount = amountPaid + (amountPaid * (discountPercentage / 100));
       final double convertedMeters = effectiveAmount / meterPriceToUse;
 
-      // 1. تسجيل الدفعة الحقيقية في دفتر الأستاذ (بالمبلغ الكامل الذي دفعه)
+      // 1. تسجيل الدفعة الحقيقية في الأقساط (بالمبلغ الكامل الذي دفعه)
       final newEntry = PaymentsLedgerCompanion.insert(
         contractId: contractId,
         scheduleId: scheduleId != null ? Value(scheduleId) : const Value.absent(), 

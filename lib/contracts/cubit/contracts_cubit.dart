@@ -114,7 +114,7 @@ class ContractsCubit extends Cubit<ContractsState> {
       await _erpRepository.addContract(newContract);
 
       // ==========================================
-      // 🌟 4. السحر المحاسبي: إدخال الدفعة الأولى في دفتر الأستاذ!
+      // 🌟 4. السحر المحاسبي: إدخال الدفعة الأولى في الأقساط!
       // ==========================================
       if (downPayment > 0) {
         final downPaymentEntry = PaymentsLedgerCompanion.insert(

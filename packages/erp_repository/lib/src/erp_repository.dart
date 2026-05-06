@@ -206,7 +206,7 @@ class ErpRepository {
         await _localApi.syncSchedule(schedule);
       }
 
-      // 5. سحب دفتر الأستاذ (الدفعات)
+      // 5. سحب الأقساط (الدفعات)
       final cloudPayments = await _cloudApi.getPayments(lastSync: lastSyncTime);
       for (var p in cloudPayments) {
         final payment = PaymentsLedgerCompanion.insert(
@@ -802,7 +802,7 @@ class ErpRepository {
   
 
   // ==========================================
-  // 💰 دفتر الأستاذ (Payments Ledger)
+  // 💰 الأقساط (Payments Ledger)
   // ==========================================
   Future<List<PaymentsLedgerData>> getContractLedger(String contractId) => _localApi.getContractLedger(contractId);
   // 🌟 جلب كل الدفعات لغرفة العمليات (الداشبورد)

@@ -5,7 +5,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:erp_repository/erp_repository.dart';
 
 class ExcelExportHelper {
-  /// 🌟 دالة سحرية لتصدير "دفتر الأستاذ" إلى ملف Excel (.xlsx) حقيقي
+  /// 🌟 دالة سحرية لتصدير "الأقساط" إلى ملف Excel (.xlsx) حقيقي
   static Future<String?> exportLedgerToExcel({
     required List<PaymentsLedgerData> ledgerEntries,
     required Contract contract,
@@ -16,7 +16,7 @@ class ExcelExportHelper {
       var excel = Excel.createExcel();
       
       // تغيير اسم الورقة الافتراضية
-      String sheetName = 'دفتر الأستاذ - الأمتار المحولة';
+      String sheetName = ' الأمتار المحولة';
       excel.rename('Sheet1', sheetName);
       Sheet sheetObject = excel[sheetName];
 

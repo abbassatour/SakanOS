@@ -202,7 +202,7 @@ class LedgerPdfHelper {
             pw.SizedBox(height: 12),
 
             // --- جدول الحركات ---
-            pw.Text('📊 السجل المالي المفصل (دفتر الأستاذ)', style: pw.TextStyle(font: arabicBoldFont, fontSize: 10, color: primaryColor)),
+            pw.Text('📊 السجل المالي المفصل ', style: pw.TextStyle(font: arabicBoldFont, fontSize: 10, color: primaryColor)),
             pw.SizedBox(height: 8),
             
             pw.Table(

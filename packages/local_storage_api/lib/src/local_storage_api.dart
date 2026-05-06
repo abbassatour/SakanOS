@@ -45,7 +45,7 @@ class LocalStorageApi {
 
 
   // ==========================================
-  // 💰 دفتر الأستاذ
+  // 💰 الأقساط
   // ==========================================
   Future<List<PaymentsLedgerData>> getContractLedger(String contractId) => _db.getLedgerForContract(contractId);
   Future<String> addLedgerEntry(PaymentsLedgerCompanion entry) => _db.insertLedgerEntry(entry);
