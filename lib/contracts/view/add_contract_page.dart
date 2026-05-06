@@ -236,13 +236,35 @@ class _AddContractPageState extends State<AddContractPage> {
                             selectedDate: selectedHistoricalDate,
                             histIronCtrl: histIronCtrl, histCementCtrl: histCementCtrl, histBlockCtrl: histBlockCtrl,
                             histFormworkCtrl: histFormworkCtrl, histAggregatesCtrl: histAggregatesCtrl, histWorkerCtrl: histWorkerCtrl,
+                            // ==========================================
+                            // 🌟 التعديل هنا: انبثاق التاريخ تلقائياً!
+                            // ==========================================
                             onToggle: (val) async {
                               if (val) {
-                                if (await showVerifyPinDialog(context)) setState(() => isHistoricalContract = true);
+                                // 1. طلب الـ PIN أولاً
+                                if (await showVerifyPinDialog(context)) {
+                                  // 2. إذا نجح الـ PIN، نفتح نافذة التاريخ فوراً!
+                                  final pickedDate = await showDatePicker(
+                                    context: context, 
+                                    initialDate: selectedHistoricalDate, 
+                                    firstDate: DateTime(2000), 
+                                    lastDate: DateTime.now()
+                                  );
+                                  
+                                  // 3. نحدث الحالة بالكامل (تفعيل الوضع + حفظ التاريخ)
+                                  setState(() { 
+                                    isHistoricalContract = true; 
+                                    if (pickedDate != null) {
+                                      selectedHistoricalDate = pickedDate;
+                                    }
+                                  });
+                                }
                               } else {
+                                // إيقاف الوضع التاريخي
                                 setState(() { isHistoricalContract = false; priceController.clear(); });
                               }
                             },
+                            // زر التاريخ اليدوي بقي كما هو في حال أراد تعديل التاريخ لاحقاً
                             onDateTap: () async {
                               final pickedDate = await showDatePicker(context: context, initialDate: selectedHistoricalDate, firstDate: DateTime(2000), lastDate: DateTime.now());
                               if (pickedDate != null) setState(() => selectedHistoricalDate = pickedDate);
