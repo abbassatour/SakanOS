@@ -96,7 +96,7 @@ void showEditClientDialog(BuildContext parentContext, Client client) {
                 // 🌟 حقل الاسم
                 buildField(
                   controller: nameController,
-                  label: 'الاسم الرباعي',
+                  label: 'الاسم الثلاثي',
                   icon: Icons.person,
                 ),
                 

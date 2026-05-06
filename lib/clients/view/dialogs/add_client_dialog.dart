@@ -63,7 +63,7 @@ void showAddClientDialog(BuildContext parentContext) {
                 
                 buildField(
                   controller: nameController,
-                  label: 'الاسم الرباعي',
+                  label: 'الاسم الثلاثي',
                   icon: Icons.person,
                 ),
                 const SizedBox(height: 16),
