@@ -1,3 +1,4 @@
+// lib/contracts/view/widgets/add_contract/financial_section.dart
 import 'package:flutter/material.dart';
 import '../../../../core/utils/formatters.dart'; 
 
@@ -8,7 +9,8 @@ class FinancialSection extends StatelessWidget {
   final TextEditingController monthsController;
   final TextEditingController durationCoefficientCtrl;
   final TextEditingController priceController;
-  final TextEditingController monthlyAmountCtrl; // 🌟 تمت الإضافة هنا
+  final TextEditingController monthlyAmountCtrl; 
+  final TextEditingController downPaymentCtrl; // 🌟 1. تم تعريف المتحكم الجديد
   final VoidCallback onCalculate;
 
   const FinancialSection({
@@ -19,12 +21,10 @@ class FinancialSection extends StatelessWidget {
     required this.monthsController,
     required this.durationCoefficientCtrl,
     required this.priceController,
-    required this.monthlyAmountCtrl, // 🌟 تمت الإضافة هنا
+    required this.monthlyAmountCtrl, 
+    required this.downPaymentCtrl, // 🌟 2. إضافته في الدالة البانية
     required this.onCalculate,
-  });
-
-  @override
-  Widget build(BuildContext context) {
+  });fv Widget build(BuildContext context) {
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: Colors.teal.shade200)),
@@ -33,9 +33,11 @@ class FinancialSection extends StatelessWidget {
         child: Column(
           children:[
             
-            // 🌟 1. حقل المبلغ الشهري (يظهر دائماً وهو الأهم الآن)
+            // ==========================================
+            // 🌟 1. حقول الأساس المالي (الدفعة الأولى + القسط الشهري)
+            // ==========================================
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: Colors.orange.shade50,
                 borderRadius: BorderRadius.circular(8),
@@ -44,20 +46,44 @@ class FinancialSection extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children:[
-                  const Text('الأساس المالي للمراقبة', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.deepOrange)),
-                  const SizedBox(height: 8),
-                  TextField(
-                    controller: monthlyAmountCtrl,
-                    inputFormatters: [ThousandsFormatter()],
-                    decoration: const InputDecoration(
-                      labelText: 'المبلغ المتفق عليه شهرياً (ل.س)', 
-                      hintText: 'مثال: 150000',
-                      border: OutlineInputBorder(), 
-                      filled: true, 
-                      fillColor: Colors.white,
-                      prefixIcon: Icon(Icons.payments_outlined, color: Colors.orange)
-                    ),
-                    keyboardType: TextInputType.number,
+                  const Text('الأساس المالي للعقد', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.deepOrange, fontSize: 16)),
+                  const SizedBox(height: 12),
+                  Row(
+                    children:[
+                      // 🌟 حقل الدفعة الأولى
+                      Expanded(
+                        child: TextField(
+                          controller: downPaymentCtrl,
+                          inputFormatters: [ThousandsFormatter()],
+                          decoration: const InputDecoration(
+                            labelText: 'الدفعة الأولى (مقدم العقد)', 
+                            hintText: 'مثال: 5000000',
+                            border: OutlineInputBorder(), 
+                            filled: true, 
+                            fillColor: Colors.white,
+                            prefixIcon: Icon(Icons.price_check, color: Colors.green) // أيقونة خضراء للدفعة
+                          ),
+                          keyboardType: TextInputType.number,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      // حقل القسط الشهري
+                      Expanded(
+                        child: TextField(
+                          controller: monthlyAmountCtrl,
+                          inputFormatters:[ThousandsFormatter()],
+                          decoration: const InputDecoration(
+                            labelText: 'القسط الشهري المتفق عليه', 
+                            hintText: 'مثال: 150000',
+                            border: OutlineInputBorder(), 
+                            filled: true, 
+                            fillColor: Colors.white,
+                            prefixIcon: Icon(Icons.payments_outlined, color: Colors.orange)
+                          ),
+                          keyboardType: TextInputType.number,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
