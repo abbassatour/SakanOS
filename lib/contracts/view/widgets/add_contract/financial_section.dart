@@ -25,7 +25,8 @@ class FinancialSection extends StatelessWidget {
     required this.downPaymentCtrl, // 🌟 2. إضافته في الدالة البانية
     required this.onCalculate,
   });
-  
+
+  @override
   Widget build(BuildContext context) {
     return Card(
       elevation: 2,
