@@ -60,7 +60,8 @@ class RegisterView extends StatelessWidget {
                     const SizedBox(height: 8),
                     const Text(
                       '1️⃣ قم بفتح بريدك الإلكتروني واضغط على رابط التفعيل.\n'
-                      '2️⃣ أبلغ المدير ليقوم بتحديد صلاحياتك من لوحة التحكم.',
+                      '2️⃣ إذا كنت أول شخص يسجل في هذا النظام، سيتم تفعيل حسابك كمدير عام (Admin) تلقائياً.\n'
+                      '3️⃣ أما إذا كنت موظفاً جديداً، يرجى إبلاغ المدير ليقوم بتحديد صلاحياتك من لوحة التحكم.',
                       style: TextStyle(height: 1.6, fontSize: 14),
                     ),
                     const SizedBox(height: 16),
