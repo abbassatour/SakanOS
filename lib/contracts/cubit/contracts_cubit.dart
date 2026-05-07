@@ -243,4 +243,18 @@ class ContractsCubit extends Cubit<ContractsState> {
       ));
     }
   }
+
+
+  // ==========================================
+  // ⏪ التراجع عن تسليم الشقة
+  // ==========================================
+  Future<void> cancelContractHandover({required String contractId}) async {
+    emit(state.copyWith(status: ContractsStatus.loading));
+    try {
+      await _erpRepository.cancelContractHandover(contractId: contractId);
+      await fetchData(); 
+    } catch (e) {
+      emit(state.copyWith(status: ContractsStatus.failure, errorMessage: 'فشل إلغاء التسليم: $e'));
+    }
+  }
 }

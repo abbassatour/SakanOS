@@ -425,6 +425,24 @@ class AppDatabase extends _$AppDatabase {
       )
     );
   }
+
+
+  // ==========================================
+  // ⏪ التراجع عن تسليم الشقة
+  // ==========================================
+  Future<int> cancelContractHandover(String contractId, String userId) {
+    final nowUtc = DateTime.now().toUtc();
+    return (update(contracts)..where((t) => t.id.equals(contractId))).write(
+      ContractsCompanion(
+        isHandedOver: const Value(false),
+        actualHandoverDate: const Value(null), // تصفير التاريخ الفعلي
+        handoverNotes: const Value(null),      // تصفير الملاحظات
+        userId: Value(userId),
+        updatedAt: Value(nowUtc),
+        isSynced: const Value(false)
+      )
+    );
+  }
   
 
   // ==========================================

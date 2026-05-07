@@ -757,6 +757,17 @@ class ErpRepository {
   }
 
   // ==========================================
+  // ⏪ التراجع عن تسليم الشقة
+  // ==========================================
+  Future<void> cancelContractHandover({required String contractId}) async {
+    final String? safeUserId = currentUserId;
+    if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
+
+    await _localApi.cancelContractHandover(contractId, safeUserId);
+    await syncPendingData(); 
+  }
+  
+  // ==========================================
   // 🗑️ إدارة سلة المحذوفات للعقود
   // ==========================================
   Future<List<Contract>> getDeletedContracts() => _localApi.getDeletedContracts();

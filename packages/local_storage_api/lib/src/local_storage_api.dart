@@ -48,6 +48,10 @@ class LocalStorageApi {
   Future<int> markContractAsHandedOver(String contractId, DateTime actualDate, String? notes, String userId) => 
       _db.markContractAsHandedOver(contractId, actualDate, notes, userId);
 
+
+    Future<int> cancelContractHandover(String contractId, String userId) => 
+      _db.cancelContractHandover(contractId, userId);
+      
   // ==========================================
   // 💰 الأقساط
   // ==========================================
