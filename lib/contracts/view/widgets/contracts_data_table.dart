@@ -38,6 +38,9 @@ class ContractsDataTable extends StatelessWidget {
         child: ConstrainedBox(
           constraints: BoxConstraints(minWidth: MediaQuery.of(context).size.width - 32),
           child: DataTable(
+            // 🌟 [التحسين الجديد]: تضييق المسافات بين الأعمدة لتوفير المساحة للعمود الجديد (الافتراضي 56)
+            columnSpacing: 28, 
+            horizontalMargin: 16,
             headingRowColor: WidgetStateProperty.all(Colors.teal.shade50),
             dataRowMinHeight: 55, 
             dataRowMaxHeight: 70, 
@@ -48,9 +51,10 @@ class ContractsDataTable extends StatelessWidget {
               DataColumn(label: Text('سعر المتر', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.teal))),
               DataColumn(label: Text('ملف العقد', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.teal))),
               
-              // 🌟 العامود الجديد
-              DataColumn(label: Text('آخر تعديل بواسطة', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.teal))),
+              // 🌟 [العمود الجديد]: حالة التسليم
+              DataColumn(label: Text('التسليم', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.teal))),
               
+              DataColumn(label: Text('آخر تعديل بواسطة', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.teal))),
               DataColumn(label: Text('إجراءات', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.teal))),
             ],
             rows: contracts.asMap().entries.map((entry) {
@@ -60,6 +64,10 @@ class ContractsDataTable extends StatelessWidget {
               final clientIdx = clients.indexWhere((c) => c.id == contract.clientId);
               final actualClient = clientIdx >= 0 ? clients[clientIdx] : null;
               final clientName = actualClient != null ? actualClient.name : 'عميل محذوف';
+
+              // 🌟 المنطق الخاص بحالة التسليم
+              final bool isAllocated = contract.contractType == 'متخصص';
+              final bool isHandedOver = contract.isHandedOver ?? false; // استخدمنا ?? false للحماية الإضافية
 
               return DataRow(
                 color: WidgetStateProperty.resolveWith<Color?>((states) => index.isEven ? Colors.grey.withOpacity(0.03) : null),
@@ -71,7 +79,42 @@ class ContractsDataTable extends StatelessWidget {
                   DataCell(_buildFileAction(context, contract)),
                   
                   // ==========================================
-                  // 🌟 الخلية الجديدة: عرض اسم المستخدم وتاريخ التعديل
+                  // 🌟 [الخلية الجديدة]: عرض حالة التسليم بشارة مضغوطة
+                  // ==========================================
+                  DataCell(
+                    !isAllocated 
+                      ? const Center(child: Text('-', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)))
+                      : Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: isHandedOver ? Colors.teal.shade50 : Colors.orange.shade50,
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: isHandedOver ? Colors.teal.shade200 : Colors.orange.shade200),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children:[
+                              Icon(
+                                isHandedOver ? Icons.check_circle : Icons.hourglass_top,
+                                size: 14, 
+                                color: isHandedOver ? Colors.teal.shade700 : Colors.orange.shade700
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                isHandedOver ? 'مُسلّم' : 'انتظار',
+                                style: TextStyle(
+                                  fontSize: 12, 
+                                  fontWeight: FontWeight.bold, 
+                                  color: isHandedOver ? Colors.teal.shade700 : Colors.orange.shade700
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                  ),
+
+                  // ==========================================
+                  // 🌟 خلية المستخدم وتاريخ التعديل
                   // ==========================================
                   DataCell(
                     Column(
