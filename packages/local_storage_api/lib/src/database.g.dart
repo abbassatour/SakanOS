@@ -2077,6 +2077,66 @@ class $ContractsTable extends Contracts
     requiredDuringInsert: false,
     defaultValue: const Constant(0.0),
   );
+  static const VerificationMeta _isHandedOverMeta = const VerificationMeta(
+    'isHandedOver',
+  );
+  @override
+  late final GeneratedColumn<bool> isHandedOver = GeneratedColumn<bool>(
+    'is_handed_over',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_handed_over" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _agreedHandoverDateMeta =
+      const VerificationMeta('agreedHandoverDate');
+  @override
+  late final GeneratedColumn<DateTime> agreedHandoverDate =
+      GeneratedColumn<DateTime>(
+        'agreed_handover_date',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _actualHandoverDateMeta =
+      const VerificationMeta('actualHandoverDate');
+  @override
+  late final GeneratedColumn<DateTime> actualHandoverDate =
+      GeneratedColumn<DateTime>(
+        'actual_handover_date',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _gracePeriodMonthsMeta = const VerificationMeta(
+    'gracePeriodMonths',
+  );
+  @override
+  late final GeneratedColumn<int> gracePeriodMonths = GeneratedColumn<int>(
+    'grace_period_months',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _handoverNotesMeta = const VerificationMeta(
+    'handoverNotes',
+  );
+  @override
+  late final GeneratedColumn<String> handoverNotes = GeneratedColumn<String>(
+    'handover_notes',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _installmentsCountMeta = const VerificationMeta(
     'installmentsCount',
   );
@@ -2257,6 +2317,11 @@ class $ContractsTable extends Contracts
     totalArea,
     baseMeterPriceAtSigning,
     downPayment,
+    isHandedOver,
+    agreedHandoverDate,
+    actualHandoverDate,
+    gracePeriodMonths,
+    handoverNotes,
     installmentsCount,
     coefficients,
     guarantorName,
@@ -2347,6 +2412,51 @@ class $ContractsTable extends Contracts
         downPayment.isAcceptableOrUnknown(
           data['down_payment']!,
           _downPaymentMeta,
+        ),
+      );
+    }
+    if (data.containsKey('is_handed_over')) {
+      context.handle(
+        _isHandedOverMeta,
+        isHandedOver.isAcceptableOrUnknown(
+          data['is_handed_over']!,
+          _isHandedOverMeta,
+        ),
+      );
+    }
+    if (data.containsKey('agreed_handover_date')) {
+      context.handle(
+        _agreedHandoverDateMeta,
+        agreedHandoverDate.isAcceptableOrUnknown(
+          data['agreed_handover_date']!,
+          _agreedHandoverDateMeta,
+        ),
+      );
+    }
+    if (data.containsKey('actual_handover_date')) {
+      context.handle(
+        _actualHandoverDateMeta,
+        actualHandoverDate.isAcceptableOrUnknown(
+          data['actual_handover_date']!,
+          _actualHandoverDateMeta,
+        ),
+      );
+    }
+    if (data.containsKey('grace_period_months')) {
+      context.handle(
+        _gracePeriodMonthsMeta,
+        gracePeriodMonths.isAcceptableOrUnknown(
+          data['grace_period_months']!,
+          _gracePeriodMonthsMeta,
+        ),
+      );
+    }
+    if (data.containsKey('handover_notes')) {
+      context.handle(
+        _handoverNotesMeta,
+        handoverNotes.isAcceptableOrUnknown(
+          data['handover_notes']!,
+          _handoverNotesMeta,
         ),
       );
     }
@@ -2508,6 +2618,26 @@ class $ContractsTable extends Contracts
         DriftSqlType.double,
         data['${effectivePrefix}down_payment'],
       )!,
+      isHandedOver: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_handed_over'],
+      )!,
+      agreedHandoverDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}agreed_handover_date'],
+      ),
+      actualHandoverDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}actual_handover_date'],
+      ),
+      gracePeriodMonths: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}grace_period_months'],
+      )!,
+      handoverNotes: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}handover_notes'],
+      ),
       installmentsCount: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}installments_count'],
@@ -2582,6 +2712,11 @@ class Contract extends DataClass implements Insertable<Contract> {
   final double totalArea;
   final double baseMeterPriceAtSigning;
   final double downPayment;
+  final bool isHandedOver;
+  final DateTime? agreedHandoverDate;
+  final DateTime? actualHandoverDate;
+  final int gracePeriodMonths;
+  final String? handoverNotes;
   final int installmentsCount;
   final String coefficients;
   final String guarantorName;
@@ -2605,6 +2740,11 @@ class Contract extends DataClass implements Insertable<Contract> {
     required this.totalArea,
     required this.baseMeterPriceAtSigning,
     required this.downPayment,
+    required this.isHandedOver,
+    this.agreedHandoverDate,
+    this.actualHandoverDate,
+    required this.gracePeriodMonths,
+    this.handoverNotes,
     required this.installmentsCount,
     required this.coefficients,
     required this.guarantorName,
@@ -2635,6 +2775,17 @@ class Contract extends DataClass implements Insertable<Contract> {
       baseMeterPriceAtSigning,
     );
     map['down_payment'] = Variable<double>(downPayment);
+    map['is_handed_over'] = Variable<bool>(isHandedOver);
+    if (!nullToAbsent || agreedHandoverDate != null) {
+      map['agreed_handover_date'] = Variable<DateTime>(agreedHandoverDate);
+    }
+    if (!nullToAbsent || actualHandoverDate != null) {
+      map['actual_handover_date'] = Variable<DateTime>(actualHandoverDate);
+    }
+    map['grace_period_months'] = Variable<int>(gracePeriodMonths);
+    if (!nullToAbsent || handoverNotes != null) {
+      map['handover_notes'] = Variable<String>(handoverNotes);
+    }
     map['installments_count'] = Variable<int>(installmentsCount);
     map['coefficients'] = Variable<String>(coefficients);
     map['guarantor_name'] = Variable<String>(guarantorName);
@@ -2670,6 +2821,17 @@ class Contract extends DataClass implements Insertable<Contract> {
       totalArea: Value(totalArea),
       baseMeterPriceAtSigning: Value(baseMeterPriceAtSigning),
       downPayment: Value(downPayment),
+      isHandedOver: Value(isHandedOver),
+      agreedHandoverDate: agreedHandoverDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(agreedHandoverDate),
+      actualHandoverDate: actualHandoverDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(actualHandoverDate),
+      gracePeriodMonths: Value(gracePeriodMonths),
+      handoverNotes: handoverNotes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(handoverNotes),
       installmentsCount: Value(installmentsCount),
       coefficients: Value(coefficients),
       guarantorName: Value(guarantorName),
@@ -2709,6 +2871,15 @@ class Contract extends DataClass implements Insertable<Contract> {
         json['baseMeterPriceAtSigning'],
       ),
       downPayment: serializer.fromJson<double>(json['downPayment']),
+      isHandedOver: serializer.fromJson<bool>(json['isHandedOver']),
+      agreedHandoverDate: serializer.fromJson<DateTime?>(
+        json['agreedHandoverDate'],
+      ),
+      actualHandoverDate: serializer.fromJson<DateTime?>(
+        json['actualHandoverDate'],
+      ),
+      gracePeriodMonths: serializer.fromJson<int>(json['gracePeriodMonths']),
+      handoverNotes: serializer.fromJson<String?>(json['handoverNotes']),
       installmentsCount: serializer.fromJson<int>(json['installmentsCount']),
       coefficients: serializer.fromJson<String>(json['coefficients']),
       guarantorName: serializer.fromJson<String>(json['guarantorName']),
@@ -2741,6 +2912,11 @@ class Contract extends DataClass implements Insertable<Contract> {
         baseMeterPriceAtSigning,
       ),
       'downPayment': serializer.toJson<double>(downPayment),
+      'isHandedOver': serializer.toJson<bool>(isHandedOver),
+      'agreedHandoverDate': serializer.toJson<DateTime?>(agreedHandoverDate),
+      'actualHandoverDate': serializer.toJson<DateTime?>(actualHandoverDate),
+      'gracePeriodMonths': serializer.toJson<int>(gracePeriodMonths),
+      'handoverNotes': serializer.toJson<String?>(handoverNotes),
       'installmentsCount': serializer.toJson<int>(installmentsCount),
       'coefficients': serializer.toJson<String>(coefficients),
       'guarantorName': serializer.toJson<String>(guarantorName),
@@ -2767,6 +2943,11 @@ class Contract extends DataClass implements Insertable<Contract> {
     double? totalArea,
     double? baseMeterPriceAtSigning,
     double? downPayment,
+    bool? isHandedOver,
+    Value<DateTime?> agreedHandoverDate = const Value.absent(),
+    Value<DateTime?> actualHandoverDate = const Value.absent(),
+    int? gracePeriodMonths,
+    Value<String?> handoverNotes = const Value.absent(),
     int? installmentsCount,
     String? coefficients,
     String? guarantorName,
@@ -2791,6 +2972,17 @@ class Contract extends DataClass implements Insertable<Contract> {
     baseMeterPriceAtSigning:
         baseMeterPriceAtSigning ?? this.baseMeterPriceAtSigning,
     downPayment: downPayment ?? this.downPayment,
+    isHandedOver: isHandedOver ?? this.isHandedOver,
+    agreedHandoverDate: agreedHandoverDate.present
+        ? agreedHandoverDate.value
+        : this.agreedHandoverDate,
+    actualHandoverDate: actualHandoverDate.present
+        ? actualHandoverDate.value
+        : this.actualHandoverDate,
+    gracePeriodMonths: gracePeriodMonths ?? this.gracePeriodMonths,
+    handoverNotes: handoverNotes.present
+        ? handoverNotes.value
+        : this.handoverNotes,
     installmentsCount: installmentsCount ?? this.installmentsCount,
     coefficients: coefficients ?? this.coefficients,
     guarantorName: guarantorName ?? this.guarantorName,
@@ -2832,6 +3024,21 @@ class Contract extends DataClass implements Insertable<Contract> {
       downPayment: data.downPayment.present
           ? data.downPayment.value
           : this.downPayment,
+      isHandedOver: data.isHandedOver.present
+          ? data.isHandedOver.value
+          : this.isHandedOver,
+      agreedHandoverDate: data.agreedHandoverDate.present
+          ? data.agreedHandoverDate.value
+          : this.agreedHandoverDate,
+      actualHandoverDate: data.actualHandoverDate.present
+          ? data.actualHandoverDate.value
+          : this.actualHandoverDate,
+      gracePeriodMonths: data.gracePeriodMonths.present
+          ? data.gracePeriodMonths.value
+          : this.gracePeriodMonths,
+      handoverNotes: data.handoverNotes.present
+          ? data.handoverNotes.value
+          : this.handoverNotes,
       installmentsCount: data.installmentsCount.present
           ? data.installmentsCount.value
           : this.installmentsCount,
@@ -2878,6 +3085,11 @@ class Contract extends DataClass implements Insertable<Contract> {
           ..write('totalArea: $totalArea, ')
           ..write('baseMeterPriceAtSigning: $baseMeterPriceAtSigning, ')
           ..write('downPayment: $downPayment, ')
+          ..write('isHandedOver: $isHandedOver, ')
+          ..write('agreedHandoverDate: $agreedHandoverDate, ')
+          ..write('actualHandoverDate: $actualHandoverDate, ')
+          ..write('gracePeriodMonths: $gracePeriodMonths, ')
+          ..write('handoverNotes: $handoverNotes, ')
           ..write('installmentsCount: $installmentsCount, ')
           ..write('coefficients: $coefficients, ')
           ..write('guarantorName: $guarantorName, ')
@@ -2906,6 +3118,11 @@ class Contract extends DataClass implements Insertable<Contract> {
     totalArea,
     baseMeterPriceAtSigning,
     downPayment,
+    isHandedOver,
+    agreedHandoverDate,
+    actualHandoverDate,
+    gracePeriodMonths,
+    handoverNotes,
     installmentsCount,
     coefficients,
     guarantorName,
@@ -2933,6 +3150,11 @@ class Contract extends DataClass implements Insertable<Contract> {
           other.totalArea == this.totalArea &&
           other.baseMeterPriceAtSigning == this.baseMeterPriceAtSigning &&
           other.downPayment == this.downPayment &&
+          other.isHandedOver == this.isHandedOver &&
+          other.agreedHandoverDate == this.agreedHandoverDate &&
+          other.actualHandoverDate == this.actualHandoverDate &&
+          other.gracePeriodMonths == this.gracePeriodMonths &&
+          other.handoverNotes == this.handoverNotes &&
           other.installmentsCount == this.installmentsCount &&
           other.coefficients == this.coefficients &&
           other.guarantorName == this.guarantorName &&
@@ -2958,6 +3180,11 @@ class ContractsCompanion extends UpdateCompanion<Contract> {
   final Value<double> totalArea;
   final Value<double> baseMeterPriceAtSigning;
   final Value<double> downPayment;
+  final Value<bool> isHandedOver;
+  final Value<DateTime?> agreedHandoverDate;
+  final Value<DateTime?> actualHandoverDate;
+  final Value<int> gracePeriodMonths;
+  final Value<String?> handoverNotes;
   final Value<int> installmentsCount;
   final Value<String> coefficients;
   final Value<String> guarantorName;
@@ -2982,6 +3209,11 @@ class ContractsCompanion extends UpdateCompanion<Contract> {
     this.totalArea = const Value.absent(),
     this.baseMeterPriceAtSigning = const Value.absent(),
     this.downPayment = const Value.absent(),
+    this.isHandedOver = const Value.absent(),
+    this.agreedHandoverDate = const Value.absent(),
+    this.actualHandoverDate = const Value.absent(),
+    this.gracePeriodMonths = const Value.absent(),
+    this.handoverNotes = const Value.absent(),
     this.installmentsCount = const Value.absent(),
     this.coefficients = const Value.absent(),
     this.guarantorName = const Value.absent(),
@@ -3007,6 +3239,11 @@ class ContractsCompanion extends UpdateCompanion<Contract> {
     required double totalArea,
     required double baseMeterPriceAtSigning,
     this.downPayment = const Value.absent(),
+    this.isHandedOver = const Value.absent(),
+    this.agreedHandoverDate = const Value.absent(),
+    this.actualHandoverDate = const Value.absent(),
+    this.gracePeriodMonths = const Value.absent(),
+    this.handoverNotes = const Value.absent(),
     this.installmentsCount = const Value.absent(),
     this.coefficients = const Value.absent(),
     required String guarantorName,
@@ -3037,6 +3274,11 @@ class ContractsCompanion extends UpdateCompanion<Contract> {
     Expression<double>? totalArea,
     Expression<double>? baseMeterPriceAtSigning,
     Expression<double>? downPayment,
+    Expression<bool>? isHandedOver,
+    Expression<DateTime>? agreedHandoverDate,
+    Expression<DateTime>? actualHandoverDate,
+    Expression<int>? gracePeriodMonths,
+    Expression<String>? handoverNotes,
     Expression<int>? installmentsCount,
     Expression<String>? coefficients,
     Expression<String>? guarantorName,
@@ -3063,6 +3305,13 @@ class ContractsCompanion extends UpdateCompanion<Contract> {
       if (baseMeterPriceAtSigning != null)
         'base_meter_price_at_signing': baseMeterPriceAtSigning,
       if (downPayment != null) 'down_payment': downPayment,
+      if (isHandedOver != null) 'is_handed_over': isHandedOver,
+      if (agreedHandoverDate != null)
+        'agreed_handover_date': agreedHandoverDate,
+      if (actualHandoverDate != null)
+        'actual_handover_date': actualHandoverDate,
+      if (gracePeriodMonths != null) 'grace_period_months': gracePeriodMonths,
+      if (handoverNotes != null) 'handover_notes': handoverNotes,
       if (installmentsCount != null) 'installments_count': installmentsCount,
       if (coefficients != null) 'coefficients': coefficients,
       if (guarantorName != null) 'guarantor_name': guarantorName,
@@ -3091,6 +3340,11 @@ class ContractsCompanion extends UpdateCompanion<Contract> {
     Value<double>? totalArea,
     Value<double>? baseMeterPriceAtSigning,
     Value<double>? downPayment,
+    Value<bool>? isHandedOver,
+    Value<DateTime?>? agreedHandoverDate,
+    Value<DateTime?>? actualHandoverDate,
+    Value<int>? gracePeriodMonths,
+    Value<String?>? handoverNotes,
     Value<int>? installmentsCount,
     Value<String>? coefficients,
     Value<String>? guarantorName,
@@ -3117,6 +3371,11 @@ class ContractsCompanion extends UpdateCompanion<Contract> {
       baseMeterPriceAtSigning:
           baseMeterPriceAtSigning ?? this.baseMeterPriceAtSigning,
       downPayment: downPayment ?? this.downPayment,
+      isHandedOver: isHandedOver ?? this.isHandedOver,
+      agreedHandoverDate: agreedHandoverDate ?? this.agreedHandoverDate,
+      actualHandoverDate: actualHandoverDate ?? this.actualHandoverDate,
+      gracePeriodMonths: gracePeriodMonths ?? this.gracePeriodMonths,
+      handoverNotes: handoverNotes ?? this.handoverNotes,
       installmentsCount: installmentsCount ?? this.installmentsCount,
       coefficients: coefficients ?? this.coefficients,
       guarantorName: guarantorName ?? this.guarantorName,
@@ -3163,6 +3422,25 @@ class ContractsCompanion extends UpdateCompanion<Contract> {
     }
     if (downPayment.present) {
       map['down_payment'] = Variable<double>(downPayment.value);
+    }
+    if (isHandedOver.present) {
+      map['is_handed_over'] = Variable<bool>(isHandedOver.value);
+    }
+    if (agreedHandoverDate.present) {
+      map['agreed_handover_date'] = Variable<DateTime>(
+        agreedHandoverDate.value,
+      );
+    }
+    if (actualHandoverDate.present) {
+      map['actual_handover_date'] = Variable<DateTime>(
+        actualHandoverDate.value,
+      );
+    }
+    if (gracePeriodMonths.present) {
+      map['grace_period_months'] = Variable<int>(gracePeriodMonths.value);
+    }
+    if (handoverNotes.present) {
+      map['handover_notes'] = Variable<String>(handoverNotes.value);
     }
     if (installmentsCount.present) {
       map['installments_count'] = Variable<int>(installmentsCount.value);
@@ -3225,6 +3503,11 @@ class ContractsCompanion extends UpdateCompanion<Contract> {
           ..write('totalArea: $totalArea, ')
           ..write('baseMeterPriceAtSigning: $baseMeterPriceAtSigning, ')
           ..write('downPayment: $downPayment, ')
+          ..write('isHandedOver: $isHandedOver, ')
+          ..write('agreedHandoverDate: $agreedHandoverDate, ')
+          ..write('actualHandoverDate: $actualHandoverDate, ')
+          ..write('gracePeriodMonths: $gracePeriodMonths, ')
+          ..write('handoverNotes: $handoverNotes, ')
           ..write('installmentsCount: $installmentsCount, ')
           ..write('coefficients: $coefficients, ')
           ..write('guarantorName: $guarantorName, ')
@@ -8228,6 +8511,11 @@ typedef $$ContractsTableCreateCompanionBuilder =
       required double totalArea,
       required double baseMeterPriceAtSigning,
       Value<double> downPayment,
+      Value<bool> isHandedOver,
+      Value<DateTime?> agreedHandoverDate,
+      Value<DateTime?> actualHandoverDate,
+      Value<int> gracePeriodMonths,
+      Value<String?> handoverNotes,
       Value<int> installmentsCount,
       Value<String> coefficients,
       required String guarantorName,
@@ -8254,6 +8542,11 @@ typedef $$ContractsTableUpdateCompanionBuilder =
       Value<double> totalArea,
       Value<double> baseMeterPriceAtSigning,
       Value<double> downPayment,
+      Value<bool> isHandedOver,
+      Value<DateTime?> agreedHandoverDate,
+      Value<DateTime?> actualHandoverDate,
+      Value<int> gracePeriodMonths,
+      Value<String?> handoverNotes,
       Value<int> installmentsCount,
       Value<String> coefficients,
       Value<String> guarantorName,
@@ -8397,6 +8690,31 @@ class $$ContractsTableFilterComposer
 
   ColumnFilters<double> get downPayment => $composableBuilder(
     column: $table.downPayment,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isHandedOver => $composableBuilder(
+    column: $table.isHandedOver,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get agreedHandoverDate => $composableBuilder(
+    column: $table.agreedHandoverDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get actualHandoverDate => $composableBuilder(
+    column: $table.actualHandoverDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get gracePeriodMonths => $composableBuilder(
+    column: $table.gracePeriodMonths,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get handoverNotes => $composableBuilder(
+    column: $table.handoverNotes,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -8606,6 +8924,31 @@ class $$ContractsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<bool> get isHandedOver => $composableBuilder(
+    column: $table.isHandedOver,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get agreedHandoverDate => $composableBuilder(
+    column: $table.agreedHandoverDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get actualHandoverDate => $composableBuilder(
+    column: $table.actualHandoverDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get gracePeriodMonths => $composableBuilder(
+    column: $table.gracePeriodMonths,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get handoverNotes => $composableBuilder(
+    column: $table.handoverNotes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get installmentsCount => $composableBuilder(
     column: $table.installmentsCount,
     builder: (column) => ColumnOrderings(column),
@@ -8755,6 +9098,31 @@ class $$ContractsTableAnnotationComposer
 
   GeneratedColumn<double> get downPayment => $composableBuilder(
     column: $table.downPayment,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get isHandedOver => $composableBuilder(
+    column: $table.isHandedOver,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get agreedHandoverDate => $composableBuilder(
+    column: $table.agreedHandoverDate,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get actualHandoverDate => $composableBuilder(
+    column: $table.actualHandoverDate,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get gracePeriodMonths => $composableBuilder(
+    column: $table.gracePeriodMonths,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get handoverNotes => $composableBuilder(
+    column: $table.handoverNotes,
     builder: (column) => column,
   );
 
@@ -8957,6 +9325,11 @@ class $$ContractsTableTableManager
                 Value<double> totalArea = const Value.absent(),
                 Value<double> baseMeterPriceAtSigning = const Value.absent(),
                 Value<double> downPayment = const Value.absent(),
+                Value<bool> isHandedOver = const Value.absent(),
+                Value<DateTime?> agreedHandoverDate = const Value.absent(),
+                Value<DateTime?> actualHandoverDate = const Value.absent(),
+                Value<int> gracePeriodMonths = const Value.absent(),
+                Value<String?> handoverNotes = const Value.absent(),
                 Value<int> installmentsCount = const Value.absent(),
                 Value<String> coefficients = const Value.absent(),
                 Value<String> guarantorName = const Value.absent(),
@@ -8981,6 +9354,11 @@ class $$ContractsTableTableManager
                 totalArea: totalArea,
                 baseMeterPriceAtSigning: baseMeterPriceAtSigning,
                 downPayment: downPayment,
+                isHandedOver: isHandedOver,
+                agreedHandoverDate: agreedHandoverDate,
+                actualHandoverDate: actualHandoverDate,
+                gracePeriodMonths: gracePeriodMonths,
+                handoverNotes: handoverNotes,
                 installmentsCount: installmentsCount,
                 coefficients: coefficients,
                 guarantorName: guarantorName,
@@ -9007,6 +9385,11 @@ class $$ContractsTableTableManager
                 required double totalArea,
                 required double baseMeterPriceAtSigning,
                 Value<double> downPayment = const Value.absent(),
+                Value<bool> isHandedOver = const Value.absent(),
+                Value<DateTime?> agreedHandoverDate = const Value.absent(),
+                Value<DateTime?> actualHandoverDate = const Value.absent(),
+                Value<int> gracePeriodMonths = const Value.absent(),
+                Value<String?> handoverNotes = const Value.absent(),
                 Value<int> installmentsCount = const Value.absent(),
                 Value<String> coefficients = const Value.absent(),
                 required String guarantorName,
@@ -9031,6 +9414,11 @@ class $$ContractsTableTableManager
                 totalArea: totalArea,
                 baseMeterPriceAtSigning: baseMeterPriceAtSigning,
                 downPayment: downPayment,
+                isHandedOver: isHandedOver,
+                agreedHandoverDate: agreedHandoverDate,
+                actualHandoverDate: actualHandoverDate,
+                gracePeriodMonths: gracePeriodMonths,
+                handoverNotes: handoverNotes,
                 installmentsCount: installmentsCount,
                 coefficients: coefficients,
                 guarantorName: guarantorName,

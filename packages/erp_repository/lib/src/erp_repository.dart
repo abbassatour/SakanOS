@@ -152,9 +152,11 @@ class ErpRepository {
           // 🌟 [الإضافة الجديدة]: سحب الدفعة الأولى من السحابة
           downPayment: drift.Value(double.tryParse(c['down_payment']?.toString() ?? '0') ?? 0.0),
 
-          // 🌟[الإضافة الجديدة]: سحب بيانات الاستلام
+          // 🌟 [الإضافات الجديدة]: سحب بيانات الاستلام
           isHandedOver: drift.Value(c['is_handed_over'] == true),
-          handoverDate: drift.Value(c['handover_date'] != null ? DateTime.tryParse(c['handover_date'].toString())?.toUtc() : null),
+          agreedHandoverDate: drift.Value(c['agreed_handover_date'] != null ? DateTime.tryParse(c['agreed_handover_date'].toString())?.toUtc() : null),
+          actualHandoverDate: drift.Value(c['actual_handover_date'] != null ? DateTime.tryParse(c['actual_handover_date'].toString())?.toUtc() : null),
+          gracePeriodMonths: drift.Value(int.tryParse(c['grace_period_months']?.toString() ?? '0') ?? 0),
           handoverNotes: drift.Value(c['handover_notes']?.toString()),
 
           
@@ -366,9 +368,11 @@ class ErpRepository {
           // 🌟 [الإضافة الجديدة]: رفع الدفعة الأولى للسحابة
           'down_payment': _safeNum(c.downPayment),
 
-          // 🌟 [الإضافة الجديدة]: رفع بيانات الاستلام
+          // 🌟 [الإضافات الجديدة]: رفع بيانات الاستلام
           'is_handed_over': c.isHandedOver,
-          'handover_date': c.handoverDate?.toUtc().toIso8601String(),
+          'agreed_handover_date': c.agreedHandoverDate?.toUtc().toIso8601String(),
+          'actual_handover_date': c.actualHandoverDate?.toUtc().toIso8601String(),
+          'grace_period_months': c.gracePeriodMonths,
           'handover_notes': c.handoverNotes,
 
 
@@ -736,6 +740,22 @@ class ErpRepository {
     await syncPendingData();
   }
 
+
+  // ==========================================
+  // 🔑 تسليم الشقة (خاص بالعقود المتخصصة)
+  // ==========================================
+  Future<void> markContractAsHandedOver({
+    required String contractId, 
+    required DateTime actualHandoverDate, 
+    String? notes
+  }) async {
+    final String? safeUserId = currentUserId;
+    if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
+
+    await _localApi.markContractAsHandedOver(contractId, actualHandoverDate, notes, safeUserId);
+    await syncPendingData(); 
+  }
+
   // ==========================================
   // 🗑️ إدارة سلة المحذوفات للعقود
   // ==========================================
@@ -812,23 +832,7 @@ class ErpRepository {
     await syncPendingData();
   }
   
-  // ==========================================
-  // 🔑 تسليم الشقة (خاص بالعقود المتخصصة)
-  // ==========================================
-  Future<void> markContractAsHandedOver({
-    required String contractId, 
-    required DateTime handoverDate, 
-    String? notes
-  }) async {
-    final String? safeUserId = currentUserId;
-    if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
-
-    // 1. التحديث المحلي
-    await _localApi.markContractAsHandedOver(contractId, handoverDate, notes, safeUserId);
-    
-    // 2. تفعيل المزامنة الشبحية للرفع فوراً للسحابة
-    await syncPendingData(); 
-  }
+  
 
   // ==========================================
   // 💰 الأقساط (Payments Ledger)

@@ -125,11 +125,13 @@ class Contracts extends Table {
   RealColumn get downPayment => real().withDefault(const Constant(0.0))(); 
 
 
-  // 🌟[الإضافات الجديدة]: تسليم الشقة (Handover)
-  BoolColumn get isHandedOver => boolean().withDefault(const Constant(false))(); 
-  DateTimeColumn get handoverDate => dateTime().nullable()();
-  TextColumn get handoverNotes => text().nullable()();
   
+  // 🌟 [الإضافات الجديدة]: إدارة تسليم الشقة (Handover Management)
+  BoolColumn get isHandedOver => boolean().withDefault(const Constant(false))(); 
+  DateTimeColumn get agreedHandoverDate => dateTime().nullable()(); // الموعد المتفق عليه بالعقد
+  DateTimeColumn get actualHandoverDate => dateTime().nullable()(); // موعد التسليم الفعلي
+  IntColumn get gracePeriodMonths => integer().withDefault(const Constant(0))(); // فترة السماح بالأشهر
+  TextColumn get handoverNotes => text().nullable()(); // ملاحظات الاستلام
   IntColumn get installmentsCount => integer().withDefault(const Constant(48))(); 
   TextColumn get coefficients => text().withDefault(const Constant('{}'))(); 
   TextColumn get guarantorName => text()();
@@ -408,6 +410,24 @@ class AppDatabase extends _$AppDatabase {
   }
 
   // ==========================================
+  // 🎯 تسجيل تسليم الشقة للعميل (للعقود المتخصصة)
+  // ==========================================
+  Future<int> markContractAsHandedOver(String contractId, DateTime actualDate, String? notes, String userId) {
+    final nowUtc = DateTime.now().toUtc();
+    return (update(contracts)..where((t) => t.id.equals(contractId))).write(
+      ContractsCompanion(
+        isHandedOver: const Value(true),
+        actualHandoverDate: Value(actualDate.toUtc()), // 🌍 حفظ التاريخ الفعلي بـ UTC
+        handoverNotes: Value(notes),
+        userId: Value(userId), 
+        updatedAt: Value(nowUtc), 
+        isSynced: const Value(false) 
+      )
+    );
+  }
+  
+
+  // ==========================================
   // --- إضافة عقد مع قسط البداية فقط (نظام المدة المفتوحة) ---
   // ==========================================
   Future<void> insertContractWithSchedules(
@@ -445,22 +465,7 @@ class AppDatabase extends _$AppDatabase {
   
   Future<List<Contract>> getActiveContracts() =>   (select(contracts)..where((t) => t.isDeleted.equals(false))).get();
   
-  // ==========================================
-  // 🎯 تسجيل تسليم الشقة للعميل (للعقود المتخصصة)
-  // ==========================================
-  Future<int> markContractAsHandedOver(String contractId, DateTime date, String? notes, String userId) {
-    final nowUtc = DateTime.now().toUtc();
-    return (update(contracts)..where((t) => t.id.equals(contractId))).write(
-      ContractsCompanion(
-        isHandedOver: const Value(true),
-        handoverDate: Value(date.toUtc()), // تاريخ الاستلام الفعلي
-        handoverNotes: Value(notes),       // ملاحظات الاستلام (نواقص الخ..)
-        userId: Value(userId),             // من قام بالتسليم
-        updatedAt: Value(nowUtc), 
-        isSynced: const Value(false)       // لرفعها للسحابة
-      )
-    );
-  }
+  
   
   /// حذف عقد (يحذف معه آلياً: أقساطه ومدفوعاته)
   Future<void> softDeleteContract(String contractId, String userId) async {
