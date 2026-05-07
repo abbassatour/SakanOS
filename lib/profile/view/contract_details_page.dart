@@ -17,6 +17,12 @@ String formatWithCommas(num number) {
   return number.toInt().toString().replaceAllMapped(reg, (Match match) => '${match[1]},');
 }
 
+// 🌟 دالة مساعدة لتنسيق التواريخ بشكل أنيق وحماية من القيم الفارغة
+String _formatDateSafely(DateTime? date) {
+  if (date == null) return 'غير محدد';
+  return '${date.year}/${date.month.toString().padLeft(2, '0')}/${date.day.toString().padLeft(2, '0')}';
+}
+
 class ContractDetailsPage extends StatelessWidget {
   final Contract contract;
   final Client client;
@@ -252,7 +258,7 @@ class ContractDetailsPage extends StatelessWidget {
                       bgColor: bgColor,
                       child: Column(
                         children:[
-                          _buildInfoRow('تاريخ توقيع العقد:', '${contract.contractDate.year}/${contract.contractDate.month}/${contract.contractDate.day}', Icons.calendar_month),
+                          _buildInfoRow('تاريخ توقيع العقد:', _formatDateSafely(contract.contractDate), Icons.calendar_month),
                           const Divider(height: 24),
                           _buildInfoRow('المدة المسجلة:', '${contract.installmentsCount} أشهر', Icons.timer),
                           const Divider(height: 24),
@@ -266,6 +272,79 @@ class ContractDetailsPage extends StatelessWidget {
                 ),
 
                 const SliverToBoxAdapter(child: SizedBox(height: 24)),
+
+                // ==========================================
+                // 🔑 [القسم الجديد]: حالة تسليم العقار (للمتخصص فقط)
+                // ==========================================
+                if (isAllocated) ...[
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: _buildSectionCard(
+                        title: 'حالة تسليم العقار (المفتاح)',
+                        icon: Icons.vpn_key,
+                        // تغيير اللون ديناميكياً حسب حالة التسليم
+                        color: contract.isHandedOver ? Colors.teal.shade700 : Colors.orange.shade700,
+                        bgColor: contract.isHandedOver ? Colors.teal.shade50 : Colors.orange.shade50,
+                        child: Column(
+                          children:[
+                            // حالة التسليم البارزة
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                              decoration: BoxDecoration(
+                                color: contract.isHandedOver ? Colors.teal.shade100 : Colors.orange.shade100,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
+                                children:[
+                                  Icon(
+                                    contract.isHandedOver ? Icons.check_circle : Icons.hourglass_top, 
+                                    color: contract.isHandedOver ? Colors.teal.shade800 : Colors.orange.shade800
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Text(
+                                    contract.isHandedOver ? 'تم تسليم الشقة للعميل' : 'قيد الإنشاء / لم يتم التسليم بعد',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold, 
+                                      fontSize: 15, 
+                                      color: contract.isHandedOver ? Colors.teal.shade900 : Colors.orange.shade900
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const Divider(height: 24),
+                            _buildInfoRow('الموعد المتفق عليه بالعقد:', _formatDateSafely(contract.agreedHandoverDate), Icons.event),
+                            const Divider(height: 24),
+                            _buildInfoRow('فترة السماح (للمطور):', '${contract.gracePeriodMonths} أشهر', Icons.hourglass_empty),
+                            
+                            // التفاصيل الفعلية بعد التسليم
+                            if (contract.isHandedOver) ...[
+                              const Divider(height: 24),
+                              _buildInfoRow(
+                                'تاريخ التسليم الفعلي:', 
+                                _formatDateSafely(contract.actualHandoverDate), 
+                                Icons.event_available, 
+                                isBold: true, 
+                                valueColor: Colors.teal.shade800
+                              ),
+                              if (contract.handoverNotes != null && contract.handoverNotes!.isNotEmpty) ...[
+                                const Divider(height: 24),
+                                _buildInfoRow(
+                                  'ملاحظات / نواقص التسليم:', 
+                                  contract.handoverNotes!, 
+                                  Icons.note_alt, 
+                                  valueColor: Colors.red.shade700
+                                ),
+                              ]
+                            ]
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SliverToBoxAdapter(child: SizedBox(height: 24)),
+                ],
 
                 // ==========================================
                 // 📊 4. التحليل المالي والمعاملات (فك تشفير JSON)
