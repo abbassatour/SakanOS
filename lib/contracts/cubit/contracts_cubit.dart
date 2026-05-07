@@ -54,12 +54,15 @@ class ContractsCubit extends Cubit<ContractsState> {
     required String? apartmentId, 
     required double area,
     required double basePrice,
-    required double downPayment, // 🌟 [الإضافة الجديدة]: الدفعة الأولى
+    required double downPayment, 
     required int installmentsCount, 
     required String guarantorName, 
     required double agreedMonthlyAmount,
     Map<String, double> coefficients = const {}, 
     DateTime? customDate, 
+    // 🌟 [التعديل الأول]: أضفنا حقول التسليم المتفق عليها عند توقيع العقد
+    DateTime? agreedHandoverDate, 
+    int? gracePeriodMonths,
     double? histIron,
     double? histCement,
     double? histBlock,
@@ -90,19 +93,24 @@ class ContractsCubit extends Cubit<ContractsState> {
         await _erpRepository.savePrices(historicalPrices);
       }
 
-      // 🌟 2. توليد ID العقد هنا لكي نستخدمه فوراً لإنشاء الإيصال المالي
+      // 2. توليد ID العقد
       final String newContractId = const Uuid().v7();
 
       // 3. إنشاء العقد
       final newContract = ContractsCompanion.insert(
-        id: Value(newContractId), // 🌟 تعيين الـ ID المولّد
+        id: Value(newContractId),
         clientId: clientId,
         apartmentId: Value(apartmentId), 
         contractType: Value(contractType),
         apartmentDetails: Value(details), 
         totalArea: area,
         baseMeterPriceAtSigning: basePrice,
-        downPayment: Value(downPayment), // 🌟 حفظ الدفعة الأولى في جدول العقود كمرجع
+        downPayment: Value(downPayment), 
+        
+        // 🌟 [التعديل الثاني]: تمرير الحقول الجديدة لقاعدة البيانات
+        agreedHandoverDate: agreedHandoverDate != null ? Value(agreedHandoverDate.toUtc()) : const Value.absent(),
+        gracePeriodMonths: Value(gracePeriodMonths ?? 0),
+        
         installmentsCount: Value(installmentsCount), 
         agreedMonthlyAmount: Value(agreedMonthlyAmount), 
         coefficients: Value(jsonEncode(coefficients)),
@@ -113,20 +121,17 @@ class ContractsCubit extends Cubit<ContractsState> {
       
       await _erpRepository.addContract(newContract);
 
-      // ==========================================
-      // 🌟 4. السحر المحاسبي: إدخال الدفعة الأولى في الأقساط!
-      // ==========================================
+      // 4. السحر المحاسبي: إدخال الدفعة الأولى في الأقساط
       if (downPayment > 0) {
         final downPaymentEntry = PaymentsLedgerCompanion.insert(
-          contractId: newContractId, // ربط الإيصال بالعقد الجديد
-          paymentDate: contractDateToSave, // الدفعة تمت في نفس يوم توقيع العقد
-          amountPaid: downPayment, // مبلغ الدفعة
-          meterPriceAtPayment: basePrice, // سعر المتر عند التوقيع
-          convertedMeters: basePrice > 0 ? (downPayment / basePrice) : 0, // الأمتار المشتراة
+          contractId: newContractId, 
+          paymentDate: contractDateToSave, 
+          amountPaid: downPayment, 
+          meterPriceAtPayment: basePrice, 
+          convertedMeters: basePrice > 0 ? (downPayment / basePrice) : 0, 
           pricesSnapshot: const Value('{"note": "الدفعة الأولى عند توقيع العقد"}'),
           userId: userId,
         );
-        // إضافة الإيصال إلى المستودع ليتم مزامنته وعرضه في المراقبة
         await _erpRepository.addLedgerEntry(downPaymentEntry);
       }
       
@@ -209,6 +214,33 @@ class ContractsCubit extends Cubit<ContractsState> {
       await fetchData(); 
     } catch (e) {
       emit(state.copyWith(status: ContractsStatus.failure, errorMessage: 'حدث خطأ أثناء تعديل العقد: $e'));
+    }
+  }
+
+
+  // ==========================================
+  // 🔑 تسجيل تسليم الشقة الفعلي (Handover)
+  // ==========================================
+  Future<void> markContractAsHandedOver({
+    required String contractId,
+    required DateTime actualHandoverDate,
+    String? notes,
+  }) async {
+    emit(state.copyWith(status: ContractsStatus.loading));
+    try {
+      await _erpRepository.markContractAsHandedOver(
+        contractId: contractId,
+        actualHandoverDate: actualHandoverDate,
+        notes: notes,
+      );
+      
+      // 🌟 جلب البيانات من جديد لتحديث حالة العقد في الواجهة (ليختفي زر التسليم مثلاً)
+      await fetchData(); 
+    } catch (e) {
+      emit(state.copyWith(
+        status: ContractsStatus.failure, 
+        errorMessage: 'فشل عملية تسليم الشقة: $e'
+      ));
     }
   }
 }
