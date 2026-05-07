@@ -1,4 +1,4 @@
-//lib\buildings\cubit\buildings_cubit.dart
+// lib/buildings/cubit/buildings_cubit.dart
 import 'dart:convert';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
@@ -30,7 +30,7 @@ class BuildingsCubit extends Cubit<BuildingsState> {
         status: BuildingsStatus.success, 
         buildings: buildings, 
         apartments: apartments,
-        userNamesMap: namesMap, // 🌟 تمرير القاموس للواجهة
+        userNamesMap: namesMap, 
       ));
     } catch (e) {
       emit(state.copyWith(status: BuildingsStatus.failure, errorMessage: e.toString()));
@@ -46,11 +46,11 @@ class BuildingsCubit extends Cubit<BuildingsState> {
   }) async {
     try {
       final building = BuildingsCompanion.insert(
-        name: name, // تم التصحيح
+        name: name, 
         location: Value(location),
         floorCoefficients: Value(jsonEncode(floorCoeffs)),
         directionCoefficients: Value(jsonEncode(dirCoeffs)),
-        userId: const Value(''), // تم التصحيح إلى Value
+        userId: const Value(''), 
       );
       await _erpRepository.addBuilding(building);
       await loadData();
@@ -66,7 +66,7 @@ class BuildingsCubit extends Cubit<BuildingsState> {
     required double area,
     required String floorName,
     required String directionName,
-    String unitType = 'apartment', // 🌟 تمت الإضافة (افتراضياً شقة)
+    String unitType = 'apartment', 
     Map<String, double> customCoeffs = const {},
   }) async {
     try {
@@ -76,7 +76,7 @@ class BuildingsCubit extends Cubit<BuildingsState> {
         apartmentNumber: aptNumber,
         area: area,
         floorName: floorName,
-        directionName: directionName, // تم التصحيح (بدون Value)
+        directionName: directionName, 
         customCoefficients: Value(jsonEncode(customCoeffs)),
         status: const Value('available'), 
         userId: const Value(''),
@@ -96,7 +96,7 @@ class BuildingsCubit extends Cubit<BuildingsState> {
   }) async {
     try {
       await _erpRepository.updateBuilding(id: id, name: name, location: location);
-      await loadData(); // تحديث الشاشة
+      await loadData(); 
     } catch (e) {
       emit(state.copyWith(status: BuildingsStatus.failure, errorMessage: 'فشل تعديل المحضر: $e'));
     }
@@ -116,7 +116,7 @@ class BuildingsCubit extends Cubit<BuildingsState> {
         area: area,
         directionName: directionName,
       );
-      await loadData(); // تحديث الشاشة
+      await loadData(); 
     } catch (e) {
       emit(state.copyWith(status: BuildingsStatus.failure, errorMessage: 'فشل تعديل الشقة: $e'));
     }
@@ -126,9 +126,8 @@ class BuildingsCubit extends Cubit<BuildingsState> {
   Future<void> deleteBuilding(String buildingId) async {
     try {
       await _erpRepository.softDeleteBuilding(buildingId);
-      await loadData(); // تحديث الشاشة بعد الحذف
+      await loadData(); 
     } catch (e) {
-      // إرسال رسالة الخطأ للواجهة (ستظهر كـ SnackBar أحمر)
       emit(state.copyWith(status: BuildingsStatus.failure, errorMessage: e.toString().replaceAll('Exception:', '').trim()));
     }
   }
@@ -137,7 +136,7 @@ class BuildingsCubit extends Cubit<BuildingsState> {
   Future<void> deleteApartment(String apartmentId) async {
     try {
       await _erpRepository.softDeleteApartment(apartmentId);
-      await loadData(); // تحديث الشاشة بعد الحذف
+      await loadData(); 
     } catch (e) {
       emit(state.copyWith(status: BuildingsStatus.failure, errorMessage: e.toString().replaceAll('Exception:', '').trim()));
     }
