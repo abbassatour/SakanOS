@@ -152,6 +152,12 @@ class ErpRepository {
           // 🌟 [الإضافة الجديدة]: سحب الدفعة الأولى من السحابة
           downPayment: drift.Value(double.tryParse(c['down_payment']?.toString() ?? '0') ?? 0.0),
 
+          // 🌟[الإضافة الجديدة]: سحب بيانات الاستلام
+          isHandedOver: drift.Value(c['is_handed_over'] == true),
+          handoverDate: drift.Value(c['handover_date'] != null ? DateTime.tryParse(c['handover_date'].toString())?.toUtc() : null),
+          handoverNotes: drift.Value(c['handover_notes']?.toString()),
+
+          
           installmentsCount: drift.Value(int.tryParse(c['installments_count']?.toString() ?? '48') ?? 48),
           agreedMonthlyAmount: drift.Value(double.tryParse(c['agreed_monthly_amount']?.toString() ?? '0') ?? 0.0),
           coefficients: drift.Value(c['coefficients']?.toString() ?? '{}'),
@@ -359,6 +365,12 @@ class ErpRepository {
           
           // 🌟 [الإضافة الجديدة]: رفع الدفعة الأولى للسحابة
           'down_payment': _safeNum(c.downPayment),
+
+          // 🌟 [الإضافة الجديدة]: رفع بيانات الاستلام
+          'is_handed_over': c.isHandedOver,
+          'handover_date': c.handoverDate?.toUtc().toIso8601String(),
+          'handover_notes': c.handoverNotes,
+
 
           'installments_count': c.installmentsCount, 
           'agreed_monthly_amount': _safeNum(c.agreedMonthlyAmount),
@@ -800,6 +812,23 @@ class ErpRepository {
     await syncPendingData();
   }
   
+  // ==========================================
+  // 🔑 تسليم الشقة (خاص بالعقود المتخصصة)
+  // ==========================================
+  Future<void> markContractAsHandedOver({
+    required String contractId, 
+    required DateTime handoverDate, 
+    String? notes
+  }) async {
+    final String? safeUserId = currentUserId;
+    if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
+
+    // 1. التحديث المحلي
+    await _localApi.markContractAsHandedOver(contractId, handoverDate, notes, safeUserId);
+    
+    // 2. تفعيل المزامنة الشبحية للرفع فوراً للسحابة
+    await syncPendingData(); 
+  }
 
   // ==========================================
   // 💰 الأقساط (Payments Ledger)
