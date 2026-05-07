@@ -22,7 +22,7 @@ void showEditContractDialog(BuildContext parentContext, Contract contract) {
   // 🌟 متحكمات قسم الاستلام (Handover)
   final handoverNotesController = TextEditingController(text: contract.handoverNotes ?? '');
   DateTime? actualHandoverDate = contract.actualHandoverDate?.toLocal();
-  bool isHandoverFormVisible = contract.isHandedOver; // إذا كان مُسلماً مسبقاً، نظهر التفاصيل فوراً
+  bool isHandoverFormVisible = contract.isHandedOver; 
   bool isAllocated = contract.contractType == 'متخصص';
 
   // 🌟 جلب حالة الصلاحيات للمستخدم الحالي
@@ -38,7 +38,7 @@ void showEditContractDialog(BuildContext parentContext, Contract contract) {
           return AlertDialog(
             title: const Text('إدارة وتعديل تفاصيل العقد', style: TextStyle(color: Colors.blue)),
             content: SizedBox(
-              width: 500, // وسعنا النافذة قليلاً لتستوعب التصميم الجديد
+              width: 500, 
               child: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -139,7 +139,6 @@ void showEditContractDialog(BuildContext parentContext, Contract contract) {
                                     ),
                                   ],
                                 ),
-                                // عرض الموعد المتفق عليه كمرجع للإدارة
                                 if (contract.agreedHandoverDate != null)
                                   Tooltip(
                                     message: 'الموعد المتفق عليه في العقد الأساسي',
@@ -198,7 +197,9 @@ void showEditContractDialog(BuildContext parentContext, Contract contract) {
                               ),
                               const SizedBox(height: 12),
                               
-                              // زر حفظ/تحديث التسليم
+                              // ==========================================
+                              // 🌟 زر تأكيد وحفظ التسليم
+                              // ==========================================
                               SizedBox(
                                 width: double.infinity,
                                 child: ElevatedButton(
@@ -226,6 +227,9 @@ void showEditContractDialog(BuildContext parentContext, Contract contract) {
                                       );
                                       
                                       if(parentContext.mounted) {
+                                        // 🌟 السطر السحري لتحديث جدول المحاضر فوراً!
+                                        parentContext.read<BuildingsCubit>().loadData();
+                                        
                                         ScaffoldMessenger.of(parentContext).showSnackBar(const SnackBar(content: Text('تم توثيق الاستلام بنجاح! ✅'), backgroundColor: Colors.green));
                                         Navigator.pop(dialogContext); 
                                       }
@@ -236,7 +240,7 @@ void showEditContractDialog(BuildContext parentContext, Contract contract) {
                               ),
                               
                               // ==========================================
-                              // 🚨 [الإضافة الجديدة]: زر التراجع عن التسليم
+                              // 🌟 زر التراجع عن التسليم
                               // ==========================================
                               if (contract.isHandedOver) ...[
                                 const SizedBox(height: 8),
@@ -260,6 +264,9 @@ void showEditContractDialog(BuildContext parentContext, Contract contract) {
                                         await parentContext.read<ContractsCubit>().cancelContractHandover(contractId: contract.id);
                                         
                                         if(parentContext.mounted) {
+                                          // 🌟 السطر السحري لتحديث جدول المحاضر فوراً!
+                                          parentContext.read<BuildingsCubit>().loadData();
+                                          
                                           ScaffoldMessenger.of(parentContext).showSnackBar(const SnackBar(content: Text('تم إلغاء التسليم بنجاح!'), backgroundColor: Colors.green));
                                           Navigator.pop(dialogContext); 
                                         }
@@ -335,7 +342,6 @@ void showEditContractDialog(BuildContext parentContext, Contract contract) {
             ),
             actionsAlignment: MainAxisAlignment.spaceBetween, 
             actions:[
-              // 🌟 زر الحذف النهائي للآدمن
               if (isSuperAdmin)
                 TextButton.icon(
                   icon: const Icon(Icons.delete_forever, color: Colors.red),
@@ -359,7 +365,6 @@ void showEditContractDialog(BuildContext parentContext, Contract contract) {
               else
                 const SizedBox.shrink(), 
 
-              // 🌟 زر حفظ التعديلات النصية (منفصل عن التسليم)
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children:[
