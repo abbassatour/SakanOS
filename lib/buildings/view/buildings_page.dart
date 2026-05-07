@@ -297,7 +297,7 @@ class BuildingsView extends StatelessWidget {
                                                       child: DataTable(
                                                         headingRowHeight: 50, 
                                                         dataRowMinHeight: 55, 
-                                                        dataRowMaxHeight: 65, // 🌟 قمت بتكبيرها قليلاً لتستوعب سطرين
+                                                        dataRowMaxHeight: 65, 
                                                         horizontalMargin: 24, columnSpacing: 30, dividerThickness: 0.5,
                                                         headingRowColor: WidgetStateProperty.all(Colors.indigo.shade50.withOpacity(0.5)),
                                                         columns: const[
@@ -393,7 +393,7 @@ class BuildingsView extends StatelessWidget {
                                                     child: DataTable(
                                                       headingRowHeight: 50, 
                                                       dataRowMinHeight: 55, 
-                                                      dataRowMaxHeight: 65, // 🌟 التكبير للسطرين
+                                                      dataRowMaxHeight: 65, 
                                                       horizontalMargin: 24, columnSpacing: 30, dividerThickness: 0.5,
                                                       headingRowColor: WidgetStateProperty.all(Colors.orange.shade50),
                                                       columns: const[
@@ -494,11 +494,33 @@ class BuildingsView extends StatelessWidget {
   }
 
   // ==========================================
-  // 🌟 الإضافة 2: تعديل دالة رسم الصف لتستقبل القاموس وترسم الخلية
+  // 🌟 تعديل دالة رسم الصف لدعم حالة "مُسلّمة"
   // ==========================================
   DataRow _buildDataRow(BuildContext context, Apartment apt, {required bool isShop, required Map<String, String> userNamesMap}) {
-    final isAvailable = apt.status == 'available';
     final mainColor = isShop ? Colors.orange : Colors.indigo;
+    
+    // 🌟 الألوان والنصوص بناءً على الحالة
+    Color statusColor;
+    Color statusBorderColor;
+    Color statusBgColor;
+    String statusText;
+
+    if (apt.status == 'available') {
+      statusText = 'متاحة';
+      statusColor = Colors.green.shade700;
+      statusBorderColor = Colors.green.shade200;
+      statusBgColor = Colors.green.shade50;
+    } else if (apt.status == 'delivered') {
+      statusText = 'مُسلّمة';
+      statusColor = Colors.teal.shade700;
+      statusBorderColor = Colors.teal.shade200;
+      statusBgColor = Colors.teal.shade50;
+    } else { // 'sold'
+      statusText = 'مباعة';
+      statusColor = Colors.red.shade700;
+      statusBorderColor = Colors.red.shade200;
+      statusBgColor = Colors.red.shade50;
+    }
     
     return DataRow(
       cells:[
@@ -517,18 +539,20 @@ class BuildingsView extends StatelessWidget {
         ),
         DataCell(Text('${apt.area} م²', style: const TextStyle(fontWeight: FontWeight.w600))),
         DataCell(Text(apt.directionName ?? '-', style: TextStyle(color: Colors.grey.shade700))),
+        
+        // 🌟 عرض الحالة الجديدة بالألوان المخصصة
         DataCell(
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
             decoration: BoxDecoration(
-              color: isAvailable ? Colors.green.shade50 : Colors.red.shade50,
+              color: statusBgColor,
               borderRadius: BorderRadius.circular(6),
-              border: Border.all(color: isAvailable ? Colors.green.shade200 : Colors.red.shade200, width: 1),
+              border: Border.all(color: statusBorderColor, width: 1),
             ),
             child: Text(
-              isAvailable ? 'متاحة' : 'مباعة', 
+              statusText, 
               style: TextStyle(
-                color: isAvailable ? Colors.green.shade700 : Colors.red.shade700, 
+                color: statusColor, 
                 fontWeight: FontWeight.bold, fontSize: 12,
               ),
             ),
