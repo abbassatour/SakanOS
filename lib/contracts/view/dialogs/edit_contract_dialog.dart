@@ -198,7 +198,7 @@ void showEditContractDialog(BuildContext parentContext, Contract contract) {
                               ),
                               const SizedBox(height: 12),
                               
-                              // زر حفظ التسليم (منفصل عن حفظ التعديلات النصية)
+                              // زر حفظ/تحديث التسليم
                               SizedBox(
                                 width: double.infinity,
                                 child: ElevatedButton(
@@ -227,13 +227,47 @@ void showEditContractDialog(BuildContext parentContext, Contract contract) {
                                       
                                       if(parentContext.mounted) {
                                         ScaffoldMessenger.of(parentContext).showSnackBar(const SnackBar(content: Text('تم توثيق الاستلام بنجاح! ✅'), backgroundColor: Colors.green));
-                                        Navigator.pop(dialogContext); // إغلاق النافذة بعد التسليم
+                                        Navigator.pop(dialogContext); 
                                       }
                                     }
                                   } : null,
                                   child: Text(contract.isHandedOver ? 'تحديث بيانات الاستلام' : 'تأكيد وحفظ الاستلام'),
                                 ),
                               ),
+                              
+                              // ==========================================
+                              // 🚨 [الإضافة الجديدة]: زر التراجع عن التسليم
+                              // ==========================================
+                              if (contract.isHandedOver) ...[
+                                const SizedBox(height: 8),
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: OutlinedButton.icon(
+                                    style: OutlinedButton.styleFrom(
+                                      foregroundColor: Colors.red.shade700,
+                                      side: BorderSide(color: Colors.red.shade300),
+                                      padding: const EdgeInsets.symmetric(vertical: 12)
+                                    ),
+                                    icon: const Icon(Icons.cancel_presentation),
+                                    label: const Text('إلغاء التسليم (تراجع عن الإجراء)'),
+                                    onPressed: canEdit ? () async {
+                                      bool isAuthorized = await showVerifyPinDialog(parentContext);
+                                      if (!isAuthorized) return;
+
+                                      if(parentContext.mounted) {
+                                        ScaffoldMessenger.of(parentContext).showSnackBar(const SnackBar(content: Text('جاري إلغاء التسليم... ⏳'), backgroundColor: Colors.orange));
+                                        
+                                        await parentContext.read<ContractsCubit>().cancelContractHandover(contractId: contract.id);
+                                        
+                                        if(parentContext.mounted) {
+                                          ScaffoldMessenger.of(parentContext).showSnackBar(const SnackBar(content: Text('تم إلغاء التسليم بنجاح!'), backgroundColor: Colors.green));
+                                          Navigator.pop(dialogContext); 
+                                        }
+                                      }
+                                    } : null,
+                                  ),
+                                ),
+                              ]
                             ]
                           ],
                         ),
