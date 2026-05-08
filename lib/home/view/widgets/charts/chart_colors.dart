@@ -1,3 +1,4 @@
+//lib\home\view\widgets\charts\chart_colors.dart
 import 'package:flutter/material.dart';
 
 class ChartColors {
