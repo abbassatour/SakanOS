@@ -172,12 +172,19 @@ class ContractsCubit extends Cubit<ContractsState> {
     }
   }
 
+  // ==========================================
+  // ♻️ استعادة العقد من سلة المحذوفات
+  // ==========================================
   Future<void> restoreContract(Contract contract) async {
     try {
       await _erpRepository.restoreContract(contract.id);
+      
       if (contract.apartmentId != null && contract.apartmentId!.isNotEmpty) {
-        await _erpRepository.changeApartmentStatus(contract.apartmentId!, 'sold');
+        // 🌟 [اللمسة السحرية]: نتحقق، هل كان العقد مُسلّماً قبل حذفه؟
+        final targetStatus = contract.isHandedOver ? 'delivered' : 'sold';
+        await _erpRepository.changeApartmentStatus(contract.apartmentId!, targetStatus);
       }
+      
       await fetchDeletedContracts(); 
       await fetchData(); 
     } catch (e) {
