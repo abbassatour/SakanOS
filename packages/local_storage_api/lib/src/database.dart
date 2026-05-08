@@ -410,39 +410,73 @@ class AppDatabase extends _$AppDatabase {
   }
 
   // ==========================================
-  // 🎯 تسجيل تسليم الشقة للعميل (للعقود المتخصصة)
+  // 🎯 تسجيل تسليم الشقة للعميل (مع تغيير حالة الشقة في عملية واحدة)
   // ==========================================
-  Future<int> markContractAsHandedOver(String contractId, DateTime actualDate, String? notes, String userId) {
-    final nowUtc = DateTime.now().toUtc();
-    return (update(contracts)..where((t) => t.id.equals(contractId))).write(
-      ContractsCompanion(
-        isHandedOver: const Value(true),
-        actualHandoverDate: Value(actualDate.toUtc()), // 🌍 حفظ التاريخ الفعلي بـ UTC
-        handoverNotes: Value(notes),
-        userId: Value(userId), 
-        updatedAt: Value(nowUtc), 
-        isSynced: const Value(false) 
-      )
-    );
+  Future<void> markContractAsHandedOver(String contractId, String? apartmentId, DateTime actualDate, String? notes, String userId) async {
+    return transaction(() async {
+      final nowUtc = DateTime.now().toUtc();
+      
+      // 1. تحديث العقد
+      await (update(contracts)..where((t) => t.id.equals(contractId))).write(
+        ContractsCompanion(
+          isHandedOver: const Value(true),
+          actualHandoverDate: Value(actualDate.toUtc()),
+          handoverNotes: Value(notes),
+          userId: Value(userId), 
+          updatedAt: Value(nowUtc), 
+          isSynced: const Value(false) 
+        )
+      );
+
+      // 2. تحديث الشقة في نفس اللحظة
+      if (apartmentId != null && apartmentId.isNotEmpty) {
+        await (update(apartments)..where((t) => t.id.equals(apartmentId))).write(
+          ApartmentsCompanion(
+            status: const Value('delivered'), // 🌟 الحالة الجديدة
+            userId: Value(userId),
+            updatedAt: Value(nowUtc),
+            isSynced: const Value(false),
+          )
+        );
+      }
+    });
+  }
+
+  // ==========================================
+  // ⏪ التراجع عن تسليم الشقة (في عملية واحدة)
+  // ==========================================
+  Future<void> cancelContractHandover(String contractId, String? apartmentId, String userId) async {
+    return transaction(() async {
+      final nowUtc = DateTime.now().toUtc();
+      
+      // 1. التراجع في العقد
+      await (update(contracts)..where((t) => t.id.equals(contractId))).write(
+        ContractsCompanion(
+          isHandedOver: const Value(false),
+          actualHandoverDate: const Value(null), 
+          handoverNotes: const Value(null),      
+          userId: Value(userId),
+          updatedAt: Value(nowUtc),
+          isSynced: const Value(false)
+        )
+      );
+
+      // 2. إرجاع الشقة لحالة مباعة
+      if (apartmentId != null && apartmentId.isNotEmpty) {
+        await (update(apartments)..where((t) => t.id.equals(apartmentId))).write(
+          ApartmentsCompanion(
+            status: const Value('sold'), // 🌟 إعادتها مباعة
+            userId: Value(userId),
+            updatedAt: Value(nowUtc),
+            isSynced: const Value(false),
+          )
+        );
+      }
+    });
   }
 
 
-  // ==========================================
-  // ⏪ التراجع عن تسليم الشقة
-  // ==========================================
-  Future<int> cancelContractHandover(String contractId, String userId) {
-    final nowUtc = DateTime.now().toUtc();
-    return (update(contracts)..where((t) => t.id.equals(contractId))).write(
-      ContractsCompanion(
-        isHandedOver: const Value(false),
-        actualHandoverDate: const Value(null), // تصفير التاريخ الفعلي
-        handoverNotes: const Value(null),      // تصفير الملاحظات
-        userId: Value(userId),
-        updatedAt: Value(nowUtc),
-        isSynced: const Value(false)
-      )
-    );
-  }
+  
   
 
   // ==========================================

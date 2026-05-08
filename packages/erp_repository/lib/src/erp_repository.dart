@@ -746,24 +746,25 @@ class ErpRepository {
   // ==========================================
   Future<void> markContractAsHandedOver({
     required String contractId, 
+    required String? apartmentId, // 🌟 الإضافة هنا
     required DateTime actualHandoverDate, 
     String? notes
   }) async {
     final String? safeUserId = currentUserId;
     if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
 
-    await _localApi.markContractAsHandedOver(contractId, actualHandoverDate, notes, safeUserId);
-    await syncPendingData(); 
+    await _localApi.markContractAsHandedOver(contractId, apartmentId, actualHandoverDate, notes, safeUserId);
+    await syncPendingData(); // 🌟 ستُرفع الشقة والعقد معاً في نفس الوقت
   }
 
   // ==========================================
   // ⏪ التراجع عن تسليم الشقة
   // ==========================================
-  Future<void> cancelContractHandover({required String contractId}) async {
+  Future<void> cancelContractHandover({required String contractId, required String? apartmentId}) async {
     final String? safeUserId = currentUserId;
     if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
 
-    await _localApi.cancelContractHandover(contractId, safeUserId);
+    await _localApi.cancelContractHandover(contractId, apartmentId, safeUserId);
     await syncPendingData(); 
   }
   

@@ -45,12 +45,12 @@ class LocalStorageApi {
 
 
     // 🌟 دالة تسليم الشقة
-  Future<int> markContractAsHandedOver(String contractId, DateTime actualDate, String? notes, String userId) => 
-      _db.markContractAsHandedOver(contractId, actualDate, notes, userId);
+  Future<void> markContractAsHandedOver(String contractId, String? apartmentId, DateTime actualDate, String? notes, String userId) => 
+      _db.markContractAsHandedOver(contractId, apartmentId, actualDate, notes, userId);
 
 
-    Future<int> cancelContractHandover(String contractId, String userId) => 
-      _db.cancelContractHandover(contractId, userId);
+  Future<void> cancelContractHandover(String contractId, String? apartmentId, String userId) => 
+      _db.cancelContractHandover(contractId, apartmentId, userId);
       
   // ==========================================
   // 💰 الأقساط

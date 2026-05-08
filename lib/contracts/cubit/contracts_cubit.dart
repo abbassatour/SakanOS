@@ -228,22 +228,21 @@ class ContractsCubit extends Cubit<ContractsState> {
   }) async {
     emit(state.copyWith(status: ContractsStatus.loading));
     try {
+      final contract = state.contracts.firstWhere((c) => c.id == contractId);
+      
+      // نرسل العقد والشقة بطلب واحد للـ Repository
       await _erpRepository.markContractAsHandedOver(
         contractId: contractId,
+        apartmentId: contract.apartmentId, // 🌟 تمرير رقم الشقة
         actualHandoverDate: actualHandoverDate,
         notes: notes,
       );
       
-      // 🌟 جلب البيانات من جديد لتحديث حالة العقد في الواجهة (ليختفي زر التسليم مثلاً)
       await fetchData(); 
     } catch (e) {
-      emit(state.copyWith(
-        status: ContractsStatus.failure, 
-        errorMessage: 'فشل عملية تسليم الشقة: $e'
-      ));
+      emit(state.copyWith(status: ContractsStatus.failure, errorMessage: 'فشل عملية تسليم الشقة: $e'));
     }
   }
-
 
   // ==========================================
   // ⏪ التراجع عن تسليم الشقة
@@ -251,10 +250,17 @@ class ContractsCubit extends Cubit<ContractsState> {
   Future<void> cancelContractHandover({required String contractId}) async {
     emit(state.copyWith(status: ContractsStatus.loading));
     try {
-      await _erpRepository.cancelContractHandover(contractId: contractId);
+      final contract = state.contracts.firstWhere((c) => c.id == contractId);
+      
+      await _erpRepository.cancelContractHandover(
+        contractId: contractId,
+        apartmentId: contract.apartmentId, // 🌟 تمرير رقم الشقة
+      );
+      
       await fetchData(); 
     } catch (e) {
       emit(state.copyWith(status: ContractsStatus.failure, errorMessage: 'فشل إلغاء التسليم: $e'));
     }
   }
+
 }
