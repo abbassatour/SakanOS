@@ -10,15 +10,17 @@ class HomeState extends Equatable {
     this.timeFilter = TimeFilter.monthly,
     required this.referenceDate, 
     
-    // 🌟 الأرقام المالية والعقارية
     this.totalRevenue = 0.0,
     this.totalAreaSold = 0.0,
     this.activeContractsCount = 0,
     
-    // 🌟[الإضافات الجديدة العميقة]
-    this.totalPaidMeters = 0.0,         // الأمتار التي قبضنا ثمنها
-    this.totalOverdueDebts = 0.0,       // الديون المتأخرة المستعجلة
-    this.inventoryStatus = const {},    // حالة الشقق (متاحة، مباعة، مسلمة)
+    this.totalPaidMeters = 0.0,         
+    this.totalOverdueDebts = 0.0,       
+    
+    // 🌟 الإضافة الجديدة: الأمتار التي لم تُسلم بعد للعملاء
+    this.totalUndeliveredMeters = 0.0,  
+
+    this.inventoryStatus = const {},    
 
     this.latestPayments = const[],
     this.groupedRevenue = const {},
@@ -37,9 +39,9 @@ class HomeState extends Equatable {
   final double totalAreaSold;
   final int activeContractsCount;
   
-  // 🌟 [الإضافات الجديدة]
   final double totalPaidMeters;
   final double totalOverdueDebts;
+  final double totalUndeliveredMeters; // 🌟 الإضافة الجديدة
   final Map<String, int> inventoryStatus;
 
   final List<PaymentsLedgerData> latestPayments;
@@ -51,7 +53,6 @@ class HomeState extends Equatable {
   final String? errorMessage;
   
   double get averageSellPrice => totalAreaSold == 0 ? 0.0 : totalRevenue / totalAreaSold;
-  // 🌟 معادلة سريعة لمعرفة الأمتار المطلوبة من الشركة والتي لم تقبض ثمنها
   double get remainingMetersInDebt => totalAreaSold - totalPaidMeters;
 
   HomeState copyWith({
@@ -61,9 +62,10 @@ class HomeState extends Equatable {
     double? totalRevenue,
     double? totalAreaSold,
     int? activeContractsCount,
-    double? totalPaidMeters, // 🌟
-    double? totalOverdueDebts, // 🌟
-    Map<String, int>? inventoryStatus, // 🌟
+    double? totalPaidMeters, 
+    double? totalOverdueDebts, 
+    double? totalUndeliveredMeters, // 🌟
+    Map<String, int>? inventoryStatus, 
     List<PaymentsLedgerData>? latestPayments,
     Map<String, double>? groupedRevenue,
     Map<String, double>? priceTrend,
@@ -79,9 +81,10 @@ class HomeState extends Equatable {
       totalRevenue: totalRevenue ?? this.totalRevenue,
       totalAreaSold: totalAreaSold ?? this.totalAreaSold,
       activeContractsCount: activeContractsCount ?? this.activeContractsCount,
-      totalPaidMeters: totalPaidMeters ?? this.totalPaidMeters, // 🌟
-      totalOverdueDebts: totalOverdueDebts ?? this.totalOverdueDebts, // 🌟
-      inventoryStatus: inventoryStatus ?? this.inventoryStatus, // 🌟
+      totalPaidMeters: totalPaidMeters ?? this.totalPaidMeters, 
+      totalOverdueDebts: totalOverdueDebts ?? this.totalOverdueDebts, 
+      totalUndeliveredMeters: totalUndeliveredMeters ?? this.totalUndeliveredMeters, // 🌟
+      inventoryStatus: inventoryStatus ?? this.inventoryStatus, 
       latestPayments: latestPayments ?? this.latestPayments,
       groupedRevenue: groupedRevenue ?? this.groupedRevenue,
       priceTrend: priceTrend ?? this.priceTrend,
@@ -95,8 +98,8 @@ class HomeState extends Equatable {
   @override
   List<Object?> get props =>[
         status, timeFilter, referenceDate, totalRevenue, totalAreaSold, 
-        activeContractsCount, totalPaidMeters, totalOverdueDebts, inventoryStatus, // 🌟
-        latestPayments, groupedRevenue, priceTrend, costTrend, 
-        contractsByType, recentActivities, averageSellPrice, remainingMetersInDebt // 🌟
+        activeContractsCount, totalPaidMeters, totalOverdueDebts, totalUndeliveredMeters, // 🌟
+        inventoryStatus, latestPayments, groupedRevenue, priceTrend, costTrend, 
+        contractsByType, recentActivities, averageSellPrice, remainingMetersInDebt 
       ];
 }
