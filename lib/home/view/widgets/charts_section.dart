@@ -4,13 +4,16 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import '../../cubit/home_cubit.dart';
 
-// استيراد المكونات المقسمة
+// استيراد المكونات
 import 'charts/chart_colors.dart';
 import 'charts/chart_shared_widgets.dart';
 import 'charts/section_header.dart';
 import 'charts/revenue_chart.dart';
 import 'charts/trend_line_chart.dart';
 import 'charts/contracts_pie_chart.dart';
+// 🌟 استيراد المخططات الجديدة
+import 'charts/inventory_pie_chart.dart';
+import 'charts/meters_progress_chart.dart';
 
 class ChartsSection extends StatelessWidget {
   final HomeState state;
@@ -47,13 +50,13 @@ class ChartsSection extends StatelessWidget {
         ),
         const SizedBox(height: 24),
 
+        // 🌟 الصف الأول (أموال وأسعار)
         ChartRow(children:[
           Expanded(
             flex: 2,
             child: RevenueChart(
               title: 'التدفق النقدي والتحصيل',
-              // 🌟 مررنا الشرح هنا
-              description: 'يعرض إجمالي الأموال الفعلية التي دخلت الصندوق في كل فترة. يتم حسابه بناءً على (تاريخ الدفع) في إيصالات الزبائن، ولا يعتمد على تاريخ العقد. يساعد في معرفة السيولة المتاحة.',
+              description: 'يعرض إجمالي الأموال الفعلية التي دخلت الصندوق في كل فترة. يتم حسابه بناءً على (تاريخ الدفع) في إيصالات الزبائن.',
               data: state.groupedRevenue,
             ),
           ),
@@ -62,8 +65,7 @@ class ChartsSection extends StatelessWidget {
             flex: 2,
             child: TrendLineChart(
               title: 'تطور متوسط سعر المبيع',
-              // 🌟 مررنا الشرح هنا
-              description: 'يوضح تغير متوسط سعر بيع المتر المربع عبر الزمن. يتم حسابه بجمع أسعار المتر الموقعة مقسوماً على عدد العقود. يعكس حركة المبيعات وتأثرها بالسوق.',
+              description: 'يوضح تغير متوسط سعر بيع المتر المربع عبر الزمن.',
               data: state.priceTrend,
               color: ChartColors.orange,
               icon: Icons.trending_up_rounded,
@@ -73,13 +75,13 @@ class ChartsSection extends StatelessWidget {
         ]),
         const SizedBox(height: 16),
 
+        // 🌟 الصف الثاني (محافظ وتكاليف)
         ChartRow(children:[
           Expanded(
             flex: 1,
             child: ContractsPieChart(
               title: 'محفظة العقود حسب النوع',
-              // 🌟 مررنا الشرح هنا
-              description: 'يعرض التوزيع العددي والنسبي لأنواع العقود الموقعة. يساعد الإدارة في معرفة أكثر المنتجات العقارية مبيعاً وتوجهات العملاء.',
+              description: 'يعرض التوزيع العددي والنسبي لأنواع العقود الموقعة.',
               data: state.contractsByType,
             ),
           ),
@@ -87,14 +89,37 @@ class ChartsSection extends StatelessWidget {
           Expanded(
             flex: 2,
             child: TrendLineChart(
-              title: 'تطور سعر المتر لاحق التخصص',
-              // 🌟 مررنا الشرح هنا
-              description: 'يتتبع التغير في تكلفة بناء  المتر المربع اللحاق التخصص باستخدام المعادلة الهندسية (أسمنت، حديد، بلوك...). يعكس التكلفة المباشرة (الخام) ولا يشمل ربح الشركة أو معاملات التميز.',
+              title: 'تطور التكلفة الخام للمواد',
+              description: 'يتتبع التغير في تكلفة بناء المتر المربع باستخدام المعادلة الهندسية. يعكس التكلفة المباشرة (الخام).',
               data: state.costTrend,
               color: ChartColors.red,
               icon: Icons.warning_amber_rounded,
               peakLabel: 'أعلى فترة تكلفةً:',
               isCost: true,
+            ),
+          ),
+        ]),
+        
+        const SizedBox(height: 16),
+
+        // ==========================================
+        // 🌟 الصف الثالث الجديد (تشغيل وأمتار)
+        // ==========================================
+        ChartRow(children:[
+          Expanded(
+            flex: 1,
+            child: InventoryPieChart(
+              data: state.inventoryStatus,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            flex: 1,
+            child: MetersProgressChart(
+              totalSold: state.totalAreaSold,
+              paid: state.totalPaidMeters,
+              unpaid: state.remainingMetersInDebt,
+              undelivered: state.totalUndeliveredMeters,
             ),
           ),
         ]),
