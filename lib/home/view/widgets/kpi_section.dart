@@ -1,17 +1,18 @@
 // lib/home/view/widgets/kpi_section.dart
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../../cubit/home_cubit.dart';
+import 'package:our_home_erp_app/home/cubit/home_cubit.dart';
 
 class KpiSection extends StatelessWidget {
+  const KpiSection({required this.state, super.key});
   final HomeState state;
-  const KpiSection({super.key, required this.state});
 
   @override
   Widget build(BuildContext context) {
     final numberFormatter = NumberFormat.decimalPattern('ar_AR');
 
-    final kpis = [
+    final kpis =[
+      // 1. الأرقام القديمة (التي تعمل لديك بامتياز)
       _KpiData(
         icon: Icons.account_balance_wallet_rounded,
         gradient: const LinearGradient(colors: [Color(0xFF11998e), Color(0xFF38ef7d)]),
@@ -24,12 +25,33 @@ class KpiSection extends StatelessWidget {
         icon: Icons.square_foot_rounded,
         gradient: const LinearGradient(colors: [Color(0xFF1A237E), Color(0xFF3949AB)]),
         title: 'إجمالي المباع',
-        // ✅ صحيح
-
         value: '${numberFormatter.format(state.totalAreaSold)} م²',
         subtitle: 'المساحة الكلية للعقود',
         iconBg: const Color(0xFF1A237E),
       ),
+      
+      // ==========================================
+      // 🌟 [الإضافات الجديدة]: البطاقات الإدارية الخطيرة
+      // ==========================================
+      _KpiData(
+        icon: Icons.warning_amber_rounded,
+        gradient: const LinearGradient(colors:[Color(0xFFe53935), Color(0xFFe35d5b)]), // أحمر تحذيري
+        title: 'الديون المتأخرة الفورية',
+        value: '${numberFormatter.format(state.totalOverdueDebts.toInt())} ل.س',
+        subtitle: 'أقساط تجاوزت موعد الاستحقاق',
+        iconBg: const Color(0xFFe53935),
+      ),
+      _KpiData(
+        icon: Icons.construction_rounded,
+        gradient: const LinearGradient(colors:[Color(0xFFf5af19), Color(0xFFf12711)]), // برتقالي تنبيهي
+        title: 'الأمتار المتبقية ',
+        value: '${numberFormatter.format(state.remainingMetersInDebt)} م²',
+        subtitle: 'أمتار للشركة لم ي تم قبض ثمنها',
+        iconBg: const Color(0xFFf5af19),
+      ),
+      // ==========================================
+
+      // عودة للأرقام القديمة
       _KpiData(
         icon: Icons.trending_up_rounded,
         gradient: const LinearGradient(colors: [Color(0xFFf7971e), Color(0xFFffd200)]),
@@ -40,7 +62,7 @@ class KpiSection extends StatelessWidget {
       ),
       _KpiData(
         icon: Icons.description_rounded,
-        gradient: const LinearGradient(colors: [Color(0xFF7b4397), Color(0xFFdc2430)]),
+        gradient: const LinearGradient(colors:[Color(0xFF7b4397), Color(0xFFdc2430)]),
         title: 'العقود الفعّالة',
         value: numberFormatter.format(state.activeContractsCount),
         subtitle: 'إجمالي العقود المبرمة',
@@ -50,8 +72,14 @@ class KpiSection extends StatelessWidget {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        // ✅ شبكة تكيّفية: عمودان على الشاشات الصغيرة، أربعة على الكبيرة
-        final crossAxisCount = constraints.maxWidth < 700 ? 2 : 4;
+        // ✅ شبكة تكيّفية: 2 عمود للصغير، 3 للوسط، 6 للكبير جداً
+        var crossAxisCount = 2;
+        if (constraints.maxWidth >= 1200) {
+          crossAxisCount = 6;
+        } else if (constraints.maxWidth >= 800) {
+          crossAxisCount = 3;
+        }
+
         return GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
@@ -59,7 +87,7 @@ class KpiSection extends StatelessWidget {
             crossAxisCount: crossAxisCount,
             crossAxisSpacing: 16,
             mainAxisSpacing: 16,
-            childAspectRatio: 1.6,
+            childAspectRatio: constraints.maxWidth >= 1200 ? 1.4 : 1.6, // تعديل بسيط ليتناسب مع الشاشات العريضة
           ),
           itemCount: kpis.length,
           itemBuilder: (context, index) => _KpiCard(data: kpis[index]),
@@ -69,14 +97,8 @@ class KpiSection extends StatelessWidget {
   }
 }
 
-// ✅ نموذج بيانات الكرت
+// ✅ نموذج بيانات الكرت (بقي كما هو بدون أي مساس)
 class _KpiData {
-  final IconData icon;
-  final LinearGradient gradient;
-  final String title;
-  final String value;
-  final String subtitle;
-  final Color iconBg;
 
   const _KpiData({
     required this.icon,
@@ -86,11 +108,17 @@ class _KpiData {
     required this.subtitle,
     required this.iconBg,
   });
+  final IconData icon;
+  final LinearGradient gradient;
+  final String title;
+  final String value;
+  final String subtitle;
+  final Color iconBg;
 }
 
 class _KpiCard extends StatelessWidget {
-  final _KpiData data;
   const _KpiCard({required this.data});
+  final _KpiData data;
 
   @override
   Widget build(BuildContext context) {
@@ -98,7 +126,7 @@ class _KpiCard extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: data.gradient,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [
+        boxShadow:[
           BoxShadow(
             color: data.iconBg.withOpacity(0.35),
             blurRadius: 12,
@@ -111,11 +139,10 @@ class _KpiCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            // ✅ الصف العلوي: الأيقونة والعنوان
+          children:[
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
+              children:[
                 Flexible(
                   child: Text(
                     data.title,
@@ -137,8 +164,6 @@ class _KpiCard extends StatelessWidget {
                 ),
               ],
             ),
-
-            // ✅ القيمة الرئيسية
             Text(
               data.value,
               style: const TextStyle(
@@ -149,8 +174,6 @@ class _KpiCard extends StatelessWidget {
               ),
               overflow: TextOverflow.ellipsis,
             ),
-
-            // ✅ الوصف السفلي
             Text(
               data.subtitle,
               style: const TextStyle(
