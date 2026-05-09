@@ -12,11 +12,10 @@ class InventoryPieChart extends StatelessWidget {
     required this.data,
   });
 
-  // 🌟 ألوان ذات دلالة بصرية قوية
   Color _getColorForStatus(String status) {
-    if (status == 'متاحة') return Colors.teal.shade400; // أخضر: بضاعة جاهزة للبيع
-    if (status == 'مباعة') return Colors.orange.shade500; // برتقالي: التزام قيد العمل
-    if (status == 'مُسلّمة') return Colors.indigo.shade600; // أزرق غامق: إنجاز نهائي
+    if (status == 'متاحة') return Colors.teal.shade400; 
+    if (status == 'مباعة') return Colors.orange.shade500; 
+    if (status == 'مُسلّمة') return Colors.indigo.shade600; 
     return Colors.grey;
   }
 
@@ -29,15 +28,19 @@ class InventoryPieChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // حساب الإجمالي
     int total = data.values.fold(0, (sum, val) => sum + val);
+
+    // 🌟[الحل السحري]: تصفية الحالات التي قيمتها 0 حتى لا تنهار مكتبة fl_chart
+    final validData = data.entries.where((e) => e.value > 0).toList();
 
     return ChartCard(
       title: 'المخزون العقاري (الوحدات)',
-      description: 'يوضح حالة جميع الشقق والمحلات التجارية المُسجلة في النظام. يعطي الإدارة لمحة سريعة عن (المتاح للبيع) لتركيز جهود التسويق، وعن (المباع قيد التنفيذ)، و(المسلم نهائياً).',
+      description: 'يوضح حالة جميع الشقق والمحلات التجارية المُسجلة في النظام. يُعتبر هذا المخطط (جرداً شاملاً وتراكمياً) ولا يتأثر بالفلتر الزمني العلوي.',
       titleIcon: Icons.apartment_rounded,
       iconColor: Colors.teal.shade700,
-      chart: data.isEmpty || total == 0
-          ? const EmptyChart()
+      chart: total == 0 || validData.isEmpty
+          ? const EmptyChart() // سيظهر إذا لم تضف أي شقق للمحاضر بعد
           : Column(
               children:[
                 SizedBox(
@@ -45,7 +48,6 @@ class InventoryPieChart extends StatelessWidget {
                   child: Stack(
                     alignment: Alignment.center,
                     children:[
-                      // 🌟 نص في منتصف الدائرة
                       Column(
                         mainAxisSize: MainAxisSize.min,
                         children:[
@@ -55,33 +57,34 @@ class InventoryPieChart extends StatelessWidget {
                       ),
                       PieChart(
                         PieChartData(
-                          sectionsSpace: 4, // مسافة أنيقة بين الأقسام
-                          centerSpaceRadius: 55, // جعلها Doughnut بدلاً من Pie
+                          sectionsSpace: 4, 
+                          centerSpaceRadius: 55, 
                           startDegreeOffset: 270,
-                          sections: data.entries.map((e) {
-                            final pct = total == 0 ? 0.0 : (e.value / total) * 100;
+                          // 🌟 نمرر فقط البيانات التي قيمتها أكبر من صفر
+                          sections: validData.map((e) {
+                            final pct = (e.value / total) * 100;
                             return PieChartSectionData(
                               color: _getColorForStatus(e.key),
                               value: e.value.toDouble(),
                               title: '${pct.toStringAsFixed(0)}%',
-                              radius: e.value == 0 ? 0 : 25, // إخفاء القسم إذا كان صفراً
+                              radius: 25, 
                               titleStyle: const TextStyle(fontSize: 12, color: Colors.white, fontWeight: FontWeight.bold),
-                              badgeWidget: e.value == 0 ? null : Container(
+                              badgeWidget: Container(
                                 padding: const EdgeInsets.all(4),
                                 decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle, boxShadow:[BoxShadow(color: Colors.black12, blurRadius: 4)]),
                                 child: Icon(_getIconForStatus(e.key), size: 14, color: _getColorForStatus(e.key)),
                               ),
-                              badgePositionPercentageOffset: 1.4, // إبعاد الأيقونة قليلاً
+                              badgePositionPercentageOffset: 1.4, 
                             );
                           }).toList(),
                         ),
-                        duration: const Duration(milliseconds: 800), // 🌟 أنيميشن سلس
+                        duration: const Duration(milliseconds: 800), 
                       ),
                     ],
                   ),
                 ),
                 const SizedBox(height: 24),
-                // 🌟 ليجند (مفتاح الخريطة) أنيق جداً
+                // مفتاح الخريطة
                 Wrap(
                   spacing: 16,
                   runSpacing: 12,
