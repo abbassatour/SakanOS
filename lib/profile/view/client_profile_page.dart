@@ -131,7 +131,8 @@ class ClientProfilePage extends StatelessWidget {
                               Container(height: 30, width: 1, color: Colors.grey.shade200),
                               _buildTopStat('إجمالي المدفوعات', '${formatWithCommas(state.grandTotalPaid)} ل.س', Icons.account_balance_wallet, Colors.green),
                               Container(height: 30, width: 1, color: Colors.grey.shade200),
-                              _buildTopStat('أقساط متأخرة', state.totalOverdueAcrossAll.toString(), Icons.warning_rounded, state.totalOverdueAcrossAll > 0 ? Colors.red : Colors.green),
+                              // 🌟 [التعديل 1]: تحويل إجمالي المتأخرات إلى مبلغ مالي بدلاً من عدد أقساط
+                              _buildTopStat('ديون متأخرة', '${formatWithCommas(state.totalOverdueAcrossAll)} ل.س', Icons.warning_rounded, state.totalOverdueAcrossAll > 0 ? Colors.red : Colors.green),
                             ],
                           ),
                         ),
@@ -216,7 +217,6 @@ class ClientProfilePage extends StatelessWidget {
                                 child: Container(
                                   decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(12),
-                                    // 🌟 الحل الجذري الآمن: إطار بلون موحد لتجنب خطأ الـ RenderBox
                                     border: Border.all(color: Colors.grey.shade200, width: 1.5),
                                   ),
                                   child: Padding(
@@ -265,26 +265,47 @@ class ClientProfilePage extends StatelessWidget {
                                         // خط فاصل خفيف
                                         Container(width: 1, height: 50, color: Colors.grey.shade200, margin: const EdgeInsets.symmetric(horizontal: 12)),
                                         
-                                        // حالة المراقبة في الجهة اليسرى
+                                        // ==========================================
+                                        // 🌟 [التعديل 2]: حالة الديون المتأخرة والغرامات
+                                        // ==========================================
                                         Expanded(
-                                          flex: 1,
+                                          flex: 2, // تم التوسيع لتستوعب الأرقام الكبيرة
                                           child: Column(
                                             mainAxisAlignment: MainAxisAlignment.center,
+                                            crossAxisAlignment: CrossAxisAlignment.end,
                                             children:[
-                                              if (summary.overdueSchedulesCount > 0)
+                                              if (summary.totalOverdueWithPenalty > 0) ...[
                                                 Container(
                                                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                                   decoration: BoxDecoration(color: Colors.red.shade50, borderRadius: BorderRadius.circular(6)),
-                                                  child: Text('${summary.overdueSchedulesCount} متأخر', style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 12)),
-                                                )
-                                              else
+                                                  child: Text(
+                                                    '${formatWithCommas(summary.totalOverdueWithPenalty)} متأخر', 
+                                                    style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 12),
+                                                    maxLines: 1, overflow: TextOverflow.ellipsis,
+                                                  ),
+                                                ),
+                                                // 🌟 مؤشر وجود غرامة
+                                                if (summary.penaltyAmount > 0)
+                                                  Padding(
+                                                    padding: const EdgeInsets.only(top: 4, right: 2),
+                                                    child: Row(
+                                                      mainAxisSize: MainAxisSize.min,
+                                                      children:[
+                                                        Icon(Icons.local_fire_department, size: 12, color: Colors.deepOrange.shade600),
+                                                        const SizedBox(width: 2),
+                                                        Text('يحتوي غرامات', style: TextStyle(color: Colors.deepOrange.shade700, fontSize: 10, fontWeight: FontWeight.bold)),
+                                                      ],
+                                                    ),
+                                                  ),
+                                              ] else ...[
                                                 Container(
                                                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                                   decoration: BoxDecoration(color: Colors.green.shade50, borderRadius: BorderRadius.circular(6)),
-                                                  child: const Text('منتظم ✓', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 12)),
+                                                  child: const Text('منتظم مالياً ✓', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 12)),
                                                 ),
+                                              ],
                                               const SizedBox(height: 6),
-                                              Text('${summary.paidSchedulesCount} تسديدات', style: const TextStyle(color: Colors.grey, fontSize: 11, fontWeight: FontWeight.bold)),
+                                              Text('${summary.paidSchedulesCount} حركات مسددة', style: const TextStyle(color: Colors.grey, fontSize: 11, fontWeight: FontWeight.bold)),
                                             ],
                                           ),
                                         ),
@@ -319,6 +340,7 @@ class ClientProfilePage extends StatelessWidget {
         children:[
           Icon(icon, color: color.withOpacity(0.8), size: 22),
           const SizedBox(height: 6),
+          // 🌟 وضعنا TextOverflow و maxLines لحماية التصميم من الأرقام الكبيرة
           Text(value, style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: color), textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis),
           const SizedBox(height: 2),
           Text(label, style: const TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
