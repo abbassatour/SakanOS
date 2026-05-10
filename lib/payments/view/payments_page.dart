@@ -12,6 +12,9 @@ import 'dialogs/add_payment_dialog.dart';
 import 'dialogs/edit_payment_dialog.dart'; 
 import 'dialogs/delete_payment_dialog.dart'; 
 
+import 'dart:typed_data';
+import '../../core/utils/allocated_ledger_pdf.dart'; // 🌟 الاستيراد الجديد
+import '../../core/utils/unallocated_ledger_pdf.dart'; // 🌟 الاستيراد الجديد
 // 🌟 استدعاء الحارس الشخصي والصلاحيات
 import '../../auth/cubit/auth_cubit.dart';
 import '../../core/constants/app_permissions.dart';
@@ -198,10 +201,33 @@ class PaymentsView extends StatelessWidget {
                                 }
                               }
 
-                              final pdfBytes = await LedgerPdfHelper.generateLedgerReportPdf(
-                                ledgerEntries: state.ledgerEntries, contract: contract, client: client,
-                                apartment: selectedApartment, building: selectedBuilding,   
-                              );
+                              // ==========================================
+                              // 🌟 التوجيه الذكي: اختيار ملف الـ PDF المناسب
+                              // ==========================================
+                              final bool isAllocated = contract.contractType == 'متخصص';
+                              Uint8List pdfBytes;
+
+                              if (isAllocated) {
+                                // 🛡️ حماية للتأكد من جلب بيانات الشقة والمحضر
+                                if (selectedApartment == null || selectedBuilding == null) {
+                                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('خطأ: بيانات الشقة أو المحضر غير مكتملة، لا يمكن الطباعة.'), backgroundColor: Colors.red));
+                                  return;
+                                }
+
+                                pdfBytes = await AllocatedLedgerPdf.generatePdf(
+                                  ledgerEntries: state.ledgerEntries, 
+                                  contract: contract, 
+                                  client: client,
+                                  apartment: selectedApartment, 
+                                  building: selectedBuilding,   
+                                );
+                              } else {
+                                pdfBytes = await UnallocatedLedgerPdf.generatePdf(
+                                  ledgerEntries: state.ledgerEntries, 
+                                  contract: contract, 
+                                  client: client,
+                                );
+                              }
 
                               if (context.mounted) {
                                 Navigator.push(context, MaterialPageRoute(
