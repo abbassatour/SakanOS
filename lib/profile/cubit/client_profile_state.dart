@@ -2,20 +2,22 @@
 part of 'client_profile_cubit.dart';
 
 // ==========================================
-// 🌟 نموذج بيانات مخصص يربط العقد بإحصائياته المالية الدقيقة (مرن)
+// 🌟 نموذج بيانات مخصص يربط العقد بإحصائياته المالية الدقيقة (المرنة)
 // ==========================================
 class ContractProfileSummary {
   final Contract contract;
-  final double totalPaid;
-  final double totalDebt; // 🌟 الديون المتأخرة (تشمل الغرامة إن وجدت)
-  final double penaltyApplied; // 🌟 قيمة الغرامة التي تم إضافتها للدين
-  final int paidSchedulesCount; // أبقيناها كمرجع لواجهة المستخدم
+  final double totalPaid;             // ما دفعه فعلياً
+  final double baseOverdueAmount;     // الديون المتأخرة الأساسية
+  final double penaltyAmount;         // قيمة الغرامة المتراكمة (إن وجدت)
+  final double totalOverdueWithPenalty; // إجمالي المطلوب منه حالياً
+  final int paidSchedulesCount;       // عدد التسديدات (للمرجعية)
 
   ContractProfileSummary({
     required this.contract,
     required this.totalPaid,
-    required this.totalDebt,
-    required this.penaltyApplied,
+    required this.baseOverdueAmount,
+    required this.penaltyAmount,
+    required this.totalOverdueWithPenalty,
     required this.paidSchedulesCount,
   });
 }
@@ -30,7 +32,7 @@ class ClientProfileState extends Equatable {
   final Client? client;
   final List<ContractProfileSummary> contractsSummary;
   final double grandTotalPaid;
-  final double totalDebtAcrossAll; // 🌟 إجمالي ديون العميل (ليرة بدلاً من عدد أقساط)
+  final double totalOverdueAcrossAll; // 🌟 أصبحت double لتمثل مبلغاً مالياً وليس عدداً
   final String? errorMessage;
 
   const ClientProfileState({
@@ -38,7 +40,7 @@ class ClientProfileState extends Equatable {
     this.client,
     this.contractsSummary = const[],
     this.grandTotalPaid = 0.0,
-    this.totalDebtAcrossAll = 0.0, // 🌟
+    this.totalOverdueAcrossAll = 0.0, // 🌟
     this.errorMessage,
   });
 
@@ -47,7 +49,7 @@ class ClientProfileState extends Equatable {
     Client? client,
     List<ContractProfileSummary>? contractsSummary,
     double? grandTotalPaid,
-    double? totalDebtAcrossAll, // 🌟
+    double? totalOverdueAcrossAll, // 🌟
     String? errorMessage,
   }) {
     return ClientProfileState(
@@ -55,11 +57,11 @@ class ClientProfileState extends Equatable {
       client: client ?? this.client,
       contractsSummary: contractsSummary ?? this.contractsSummary,
       grandTotalPaid: grandTotalPaid ?? this.grandTotalPaid,
-      totalDebtAcrossAll: totalDebtAcrossAll ?? this.totalDebtAcrossAll,
+      totalOverdueAcrossAll: totalOverdueAcrossAll ?? this.totalOverdueAcrossAll,
       errorMessage: errorMessage ?? this.errorMessage,
     );
   }
 
   @override
-  List<Object?> get props => [status, client, contractsSummary, grandTotalPaid, totalDebtAcrossAll, errorMessage];
+  List<Object?> get props =>[status, client, contractsSummary, grandTotalPaid, totalOverdueAcrossAll, errorMessage];
 }
