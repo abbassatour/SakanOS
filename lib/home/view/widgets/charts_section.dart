@@ -107,6 +107,8 @@ class ChartsSection extends StatelessWidget {
                   const SnackBar(
                     content: Text('قريباً: فتح صفحة التحليل التفصيلي للمواد...'), 
                     backgroundColor: Colors.indigo
+                  )
+                );
               },
             ),
           ),
