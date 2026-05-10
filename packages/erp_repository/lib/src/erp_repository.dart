@@ -121,6 +121,7 @@ class ErpRepository {
         lastSyncTime = null; 
       }
 
+
       // 1. سحب العملاء
       final cloudClients = await _cloudApi.getClients(lastSync: lastSyncTime);
       for (var c in cloudClients) {
@@ -151,6 +152,10 @@ class ErpRepository {
           
           // 🌟 [الإضافة الجديدة]: سحب الدفعة الأولى من السحابة
           downPayment: drift.Value(double.tryParse(c['down_payment']?.toString() ?? '0') ?? 0.0),
+
+          isPenaltyActive: drift.Value(c['is_penalty_active'] == true),
+          penaltyPercentage: drift.Value(double.tryParse(c['penalty_percentage']?.toString() ?? '0') ?? 0.0),
+          penaltyIntervalMonths: drift.Value(int.tryParse(c['penalty_interval_months']?.toString() ?? '1') ?? 1),
 
           // 🌟 [الإضافات الجديدة]: سحب بيانات الاستلام
           isHandedOver: drift.Value(c['is_handed_over'] == true),
@@ -367,6 +372,10 @@ class ErpRepository {
           
           // 🌟 [الإضافة الجديدة]: رفع الدفعة الأولى للسحابة
           'down_payment': _safeNum(c.downPayment),
+
+          'is_penalty_active': c.isPenaltyActive,
+          'penalty_percentage': _safeNum(c.penaltyPercentage),
+          'penalty_interval_months': c.penaltyIntervalMonths,
 
           // 🌟 [الإضافات الجديدة]: رفع بيانات الاستلام
           'is_handed_over': c.isHandedOver,

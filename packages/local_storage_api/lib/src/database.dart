@@ -120,6 +120,11 @@ class Contracts extends Table {
   TextColumn get contractType => text().withDefault(const Constant('لاحق التخصص'))(); 
   RealColumn get totalArea => real()(); 
   RealColumn get baseMeterPriceAtSigning => real()(); 
+
+  // 🌟 [الإضافات الجديدة]: غرامات التأخير ما بعد الاستلام
+  BoolColumn get isPenaltyActive => boolean().withDefault(const Constant(false))();
+  RealColumn get penaltyPercentage => real().withDefault(const Constant(0.0))();
+  IntColumn get penaltyIntervalMonths => integer().withDefault(const Constant(1))();
   
   // 🌟 [الإضافة الجديدة]: الدفعة الأولى (المقدمة) المرفقة مع العقد
   RealColumn get downPayment => real().withDefault(const Constant(0.0))(); 
