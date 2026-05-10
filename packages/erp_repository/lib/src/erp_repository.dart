@@ -684,7 +684,7 @@ class ErpRepository {
   }
 
   // ==========================================
-  // 🌟 تعديل العقد الأساسي
+  // 🌟 تعديل العقد الأساسي (مُحدّث لدعم الغرامات)
   // ==========================================
   Future<void> updateContract({
     required String id,
@@ -693,13 +693,18 @@ class ErpRepository {
     required int installmentsCount,
     required double agreedMonthlyAmount,
     required DateTime contractDate,
+    
+    // 🌟 [الإضافات الجديدة]: استقبال بيانات الغرامة لتحديثها
+    required bool isPenaltyActive,
+    required double penaltyPercentage,
+    required int penaltyIntervalMonths,
   }) async {
     final db = _localApi.database;
     
     final String? safeUserId = currentUserId;
     if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
 
-    // 1. تحديث بيانات العقد الأساسية (مع استبدال المستخدم)
+    // 1. تحديث بيانات العقد الأساسية (مع استبدال المستخدم وحفظ الغرامات)
     await (db.update(db.contracts)..where((t) => t.id.equals(id))).write(
       ContractsCompanion(
         apartmentDetails: drift.Value(apartmentDetails),
@@ -707,13 +712,19 @@ class ErpRepository {
         installmentsCount: drift.Value(installmentsCount),
         agreedMonthlyAmount: drift.Value(agreedMonthlyAmount),
         contractDate: drift.Value(contractDate.toUtc()), 
-        userId: drift.Value(safeUserId), // 🌟 حفظ آي دي الشخص الذي عدّل العقد
+        
+        // 🌟 حقن تعديلات الغرامة في قاعدة البيانات
+        isPenaltyActive: drift.Value(isPenaltyActive),
+        penaltyPercentage: drift.Value(penaltyPercentage),
+        penaltyIntervalMonths: drift.Value(penaltyIntervalMonths),
+
+        userId: drift.Value(safeUserId), 
         updatedAt: drift.Value(DateTime.now().toUtc()),
         isSynced: const drift.Value(false), 
       )
     );
 
-    // 2. السحر المحاسبي (تسوية لوحة المراقبة) - حافظنا عليه بالكامل!
+    // 2. السحر المحاسبي (تسوية لوحة المراقبة) 
     await (db.update(db.installmentsSchedule)
       ..where((t) => t.contractId.equals(id))
       ..where((t) => t.installmentNumber.isBiggerThanValue(installmentsCount)) 
