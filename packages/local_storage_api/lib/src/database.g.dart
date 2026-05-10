@@ -2065,6 +2065,45 @@ class $ContractsTable extends Contracts
         type: DriftSqlType.double,
         requiredDuringInsert: true,
       );
+  static const VerificationMeta _isPenaltyActiveMeta = const VerificationMeta(
+    'isPenaltyActive',
+  );
+  @override
+  late final GeneratedColumn<bool> isPenaltyActive = GeneratedColumn<bool>(
+    'is_penalty_active',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_penalty_active" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _penaltyPercentageMeta = const VerificationMeta(
+    'penaltyPercentage',
+  );
+  @override
+  late final GeneratedColumn<double> penaltyPercentage =
+      GeneratedColumn<double>(
+        'penalty_percentage',
+        aliasedName,
+        false,
+        type: DriftSqlType.double,
+        requiredDuringInsert: false,
+        defaultValue: const Constant(0.0),
+      );
+  static const VerificationMeta _penaltyIntervalMonthsMeta =
+      const VerificationMeta('penaltyIntervalMonths');
+  @override
+  late final GeneratedColumn<int> penaltyIntervalMonths = GeneratedColumn<int>(
+    'penalty_interval_months',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
   static const VerificationMeta _downPaymentMeta = const VerificationMeta(
     'downPayment',
   );
@@ -2316,6 +2355,9 @@ class $ContractsTable extends Contracts
     contractType,
     totalArea,
     baseMeterPriceAtSigning,
+    isPenaltyActive,
+    penaltyPercentage,
+    penaltyIntervalMonths,
     downPayment,
     isHandedOver,
     agreedHandoverDate,
@@ -2405,6 +2447,33 @@ class $ContractsTable extends Contracts
       );
     } else if (isInserting) {
       context.missing(_baseMeterPriceAtSigningMeta);
+    }
+    if (data.containsKey('is_penalty_active')) {
+      context.handle(
+        _isPenaltyActiveMeta,
+        isPenaltyActive.isAcceptableOrUnknown(
+          data['is_penalty_active']!,
+          _isPenaltyActiveMeta,
+        ),
+      );
+    }
+    if (data.containsKey('penalty_percentage')) {
+      context.handle(
+        _penaltyPercentageMeta,
+        penaltyPercentage.isAcceptableOrUnknown(
+          data['penalty_percentage']!,
+          _penaltyPercentageMeta,
+        ),
+      );
+    }
+    if (data.containsKey('penalty_interval_months')) {
+      context.handle(
+        _penaltyIntervalMonthsMeta,
+        penaltyIntervalMonths.isAcceptableOrUnknown(
+          data['penalty_interval_months']!,
+          _penaltyIntervalMonthsMeta,
+        ),
+      );
     }
     if (data.containsKey('down_payment')) {
       context.handle(
@@ -2614,6 +2683,18 @@ class $ContractsTable extends Contracts
         DriftSqlType.double,
         data['${effectivePrefix}base_meter_price_at_signing'],
       )!,
+      isPenaltyActive: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_penalty_active'],
+      )!,
+      penaltyPercentage: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}penalty_percentage'],
+      )!,
+      penaltyIntervalMonths: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}penalty_interval_months'],
+      )!,
       downPayment: attachedDatabase.typeMapping.read(
         DriftSqlType.double,
         data['${effectivePrefix}down_payment'],
@@ -2711,6 +2792,9 @@ class Contract extends DataClass implements Insertable<Contract> {
   final String contractType;
   final double totalArea;
   final double baseMeterPriceAtSigning;
+  final bool isPenaltyActive;
+  final double penaltyPercentage;
+  final int penaltyIntervalMonths;
   final double downPayment;
   final bool isHandedOver;
   final DateTime? agreedHandoverDate;
@@ -2739,6 +2823,9 @@ class Contract extends DataClass implements Insertable<Contract> {
     required this.contractType,
     required this.totalArea,
     required this.baseMeterPriceAtSigning,
+    required this.isPenaltyActive,
+    required this.penaltyPercentage,
+    required this.penaltyIntervalMonths,
     required this.downPayment,
     required this.isHandedOver,
     this.agreedHandoverDate,
@@ -2774,6 +2861,9 @@ class Contract extends DataClass implements Insertable<Contract> {
     map['base_meter_price_at_signing'] = Variable<double>(
       baseMeterPriceAtSigning,
     );
+    map['is_penalty_active'] = Variable<bool>(isPenaltyActive);
+    map['penalty_percentage'] = Variable<double>(penaltyPercentage);
+    map['penalty_interval_months'] = Variable<int>(penaltyIntervalMonths);
     map['down_payment'] = Variable<double>(downPayment);
     map['is_handed_over'] = Variable<bool>(isHandedOver);
     if (!nullToAbsent || agreedHandoverDate != null) {
@@ -2820,6 +2910,9 @@ class Contract extends DataClass implements Insertable<Contract> {
       contractType: Value(contractType),
       totalArea: Value(totalArea),
       baseMeterPriceAtSigning: Value(baseMeterPriceAtSigning),
+      isPenaltyActive: Value(isPenaltyActive),
+      penaltyPercentage: Value(penaltyPercentage),
+      penaltyIntervalMonths: Value(penaltyIntervalMonths),
       downPayment: Value(downPayment),
       isHandedOver: Value(isHandedOver),
       agreedHandoverDate: agreedHandoverDate == null && nullToAbsent
@@ -2870,6 +2963,11 @@ class Contract extends DataClass implements Insertable<Contract> {
       baseMeterPriceAtSigning: serializer.fromJson<double>(
         json['baseMeterPriceAtSigning'],
       ),
+      isPenaltyActive: serializer.fromJson<bool>(json['isPenaltyActive']),
+      penaltyPercentage: serializer.fromJson<double>(json['penaltyPercentage']),
+      penaltyIntervalMonths: serializer.fromJson<int>(
+        json['penaltyIntervalMonths'],
+      ),
       downPayment: serializer.fromJson<double>(json['downPayment']),
       isHandedOver: serializer.fromJson<bool>(json['isHandedOver']),
       agreedHandoverDate: serializer.fromJson<DateTime?>(
@@ -2911,6 +3009,9 @@ class Contract extends DataClass implements Insertable<Contract> {
       'baseMeterPriceAtSigning': serializer.toJson<double>(
         baseMeterPriceAtSigning,
       ),
+      'isPenaltyActive': serializer.toJson<bool>(isPenaltyActive),
+      'penaltyPercentage': serializer.toJson<double>(penaltyPercentage),
+      'penaltyIntervalMonths': serializer.toJson<int>(penaltyIntervalMonths),
       'downPayment': serializer.toJson<double>(downPayment),
       'isHandedOver': serializer.toJson<bool>(isHandedOver),
       'agreedHandoverDate': serializer.toJson<DateTime?>(agreedHandoverDate),
@@ -2942,6 +3043,9 @@ class Contract extends DataClass implements Insertable<Contract> {
     String? contractType,
     double? totalArea,
     double? baseMeterPriceAtSigning,
+    bool? isPenaltyActive,
+    double? penaltyPercentage,
+    int? penaltyIntervalMonths,
     double? downPayment,
     bool? isHandedOver,
     Value<DateTime?> agreedHandoverDate = const Value.absent(),
@@ -2971,6 +3075,9 @@ class Contract extends DataClass implements Insertable<Contract> {
     totalArea: totalArea ?? this.totalArea,
     baseMeterPriceAtSigning:
         baseMeterPriceAtSigning ?? this.baseMeterPriceAtSigning,
+    isPenaltyActive: isPenaltyActive ?? this.isPenaltyActive,
+    penaltyPercentage: penaltyPercentage ?? this.penaltyPercentage,
+    penaltyIntervalMonths: penaltyIntervalMonths ?? this.penaltyIntervalMonths,
     downPayment: downPayment ?? this.downPayment,
     isHandedOver: isHandedOver ?? this.isHandedOver,
     agreedHandoverDate: agreedHandoverDate.present
@@ -3021,6 +3128,15 @@ class Contract extends DataClass implements Insertable<Contract> {
       baseMeterPriceAtSigning: data.baseMeterPriceAtSigning.present
           ? data.baseMeterPriceAtSigning.value
           : this.baseMeterPriceAtSigning,
+      isPenaltyActive: data.isPenaltyActive.present
+          ? data.isPenaltyActive.value
+          : this.isPenaltyActive,
+      penaltyPercentage: data.penaltyPercentage.present
+          ? data.penaltyPercentage.value
+          : this.penaltyPercentage,
+      penaltyIntervalMonths: data.penaltyIntervalMonths.present
+          ? data.penaltyIntervalMonths.value
+          : this.penaltyIntervalMonths,
       downPayment: data.downPayment.present
           ? data.downPayment.value
           : this.downPayment,
@@ -3084,6 +3200,9 @@ class Contract extends DataClass implements Insertable<Contract> {
           ..write('contractType: $contractType, ')
           ..write('totalArea: $totalArea, ')
           ..write('baseMeterPriceAtSigning: $baseMeterPriceAtSigning, ')
+          ..write('isPenaltyActive: $isPenaltyActive, ')
+          ..write('penaltyPercentage: $penaltyPercentage, ')
+          ..write('penaltyIntervalMonths: $penaltyIntervalMonths, ')
           ..write('downPayment: $downPayment, ')
           ..write('isHandedOver: $isHandedOver, ')
           ..write('agreedHandoverDate: $agreedHandoverDate, ')
@@ -3117,6 +3236,9 @@ class Contract extends DataClass implements Insertable<Contract> {
     contractType,
     totalArea,
     baseMeterPriceAtSigning,
+    isPenaltyActive,
+    penaltyPercentage,
+    penaltyIntervalMonths,
     downPayment,
     isHandedOver,
     agreedHandoverDate,
@@ -3149,6 +3271,9 @@ class Contract extends DataClass implements Insertable<Contract> {
           other.contractType == this.contractType &&
           other.totalArea == this.totalArea &&
           other.baseMeterPriceAtSigning == this.baseMeterPriceAtSigning &&
+          other.isPenaltyActive == this.isPenaltyActive &&
+          other.penaltyPercentage == this.penaltyPercentage &&
+          other.penaltyIntervalMonths == this.penaltyIntervalMonths &&
           other.downPayment == this.downPayment &&
           other.isHandedOver == this.isHandedOver &&
           other.agreedHandoverDate == this.agreedHandoverDate &&
@@ -3179,6 +3304,9 @@ class ContractsCompanion extends UpdateCompanion<Contract> {
   final Value<String> contractType;
   final Value<double> totalArea;
   final Value<double> baseMeterPriceAtSigning;
+  final Value<bool> isPenaltyActive;
+  final Value<double> penaltyPercentage;
+  final Value<int> penaltyIntervalMonths;
   final Value<double> downPayment;
   final Value<bool> isHandedOver;
   final Value<DateTime?> agreedHandoverDate;
@@ -3208,6 +3336,9 @@ class ContractsCompanion extends UpdateCompanion<Contract> {
     this.contractType = const Value.absent(),
     this.totalArea = const Value.absent(),
     this.baseMeterPriceAtSigning = const Value.absent(),
+    this.isPenaltyActive = const Value.absent(),
+    this.penaltyPercentage = const Value.absent(),
+    this.penaltyIntervalMonths = const Value.absent(),
     this.downPayment = const Value.absent(),
     this.isHandedOver = const Value.absent(),
     this.agreedHandoverDate = const Value.absent(),
@@ -3238,6 +3369,9 @@ class ContractsCompanion extends UpdateCompanion<Contract> {
     this.contractType = const Value.absent(),
     required double totalArea,
     required double baseMeterPriceAtSigning,
+    this.isPenaltyActive = const Value.absent(),
+    this.penaltyPercentage = const Value.absent(),
+    this.penaltyIntervalMonths = const Value.absent(),
     this.downPayment = const Value.absent(),
     this.isHandedOver = const Value.absent(),
     this.agreedHandoverDate = const Value.absent(),
@@ -3273,6 +3407,9 @@ class ContractsCompanion extends UpdateCompanion<Contract> {
     Expression<String>? contractType,
     Expression<double>? totalArea,
     Expression<double>? baseMeterPriceAtSigning,
+    Expression<bool>? isPenaltyActive,
+    Expression<double>? penaltyPercentage,
+    Expression<int>? penaltyIntervalMonths,
     Expression<double>? downPayment,
     Expression<bool>? isHandedOver,
     Expression<DateTime>? agreedHandoverDate,
@@ -3304,6 +3441,10 @@ class ContractsCompanion extends UpdateCompanion<Contract> {
       if (totalArea != null) 'total_area': totalArea,
       if (baseMeterPriceAtSigning != null)
         'base_meter_price_at_signing': baseMeterPriceAtSigning,
+      if (isPenaltyActive != null) 'is_penalty_active': isPenaltyActive,
+      if (penaltyPercentage != null) 'penalty_percentage': penaltyPercentage,
+      if (penaltyIntervalMonths != null)
+        'penalty_interval_months': penaltyIntervalMonths,
       if (downPayment != null) 'down_payment': downPayment,
       if (isHandedOver != null) 'is_handed_over': isHandedOver,
       if (agreedHandoverDate != null)
@@ -3339,6 +3480,9 @@ class ContractsCompanion extends UpdateCompanion<Contract> {
     Value<String>? contractType,
     Value<double>? totalArea,
     Value<double>? baseMeterPriceAtSigning,
+    Value<bool>? isPenaltyActive,
+    Value<double>? penaltyPercentage,
+    Value<int>? penaltyIntervalMonths,
     Value<double>? downPayment,
     Value<bool>? isHandedOver,
     Value<DateTime?>? agreedHandoverDate,
@@ -3370,6 +3514,10 @@ class ContractsCompanion extends UpdateCompanion<Contract> {
       totalArea: totalArea ?? this.totalArea,
       baseMeterPriceAtSigning:
           baseMeterPriceAtSigning ?? this.baseMeterPriceAtSigning,
+      isPenaltyActive: isPenaltyActive ?? this.isPenaltyActive,
+      penaltyPercentage: penaltyPercentage ?? this.penaltyPercentage,
+      penaltyIntervalMonths:
+          penaltyIntervalMonths ?? this.penaltyIntervalMonths,
       downPayment: downPayment ?? this.downPayment,
       isHandedOver: isHandedOver ?? this.isHandedOver,
       agreedHandoverDate: agreedHandoverDate ?? this.agreedHandoverDate,
@@ -3418,6 +3566,17 @@ class ContractsCompanion extends UpdateCompanion<Contract> {
     if (baseMeterPriceAtSigning.present) {
       map['base_meter_price_at_signing'] = Variable<double>(
         baseMeterPriceAtSigning.value,
+      );
+    }
+    if (isPenaltyActive.present) {
+      map['is_penalty_active'] = Variable<bool>(isPenaltyActive.value);
+    }
+    if (penaltyPercentage.present) {
+      map['penalty_percentage'] = Variable<double>(penaltyPercentage.value);
+    }
+    if (penaltyIntervalMonths.present) {
+      map['penalty_interval_months'] = Variable<int>(
+        penaltyIntervalMonths.value,
       );
     }
     if (downPayment.present) {
@@ -3502,6 +3661,9 @@ class ContractsCompanion extends UpdateCompanion<Contract> {
           ..write('contractType: $contractType, ')
           ..write('totalArea: $totalArea, ')
           ..write('baseMeterPriceAtSigning: $baseMeterPriceAtSigning, ')
+          ..write('isPenaltyActive: $isPenaltyActive, ')
+          ..write('penaltyPercentage: $penaltyPercentage, ')
+          ..write('penaltyIntervalMonths: $penaltyIntervalMonths, ')
           ..write('downPayment: $downPayment, ')
           ..write('isHandedOver: $isHandedOver, ')
           ..write('agreedHandoverDate: $agreedHandoverDate, ')
@@ -8510,6 +8672,9 @@ typedef $$ContractsTableCreateCompanionBuilder =
       Value<String> contractType,
       required double totalArea,
       required double baseMeterPriceAtSigning,
+      Value<bool> isPenaltyActive,
+      Value<double> penaltyPercentage,
+      Value<int> penaltyIntervalMonths,
       Value<double> downPayment,
       Value<bool> isHandedOver,
       Value<DateTime?> agreedHandoverDate,
@@ -8541,6 +8706,9 @@ typedef $$ContractsTableUpdateCompanionBuilder =
       Value<String> contractType,
       Value<double> totalArea,
       Value<double> baseMeterPriceAtSigning,
+      Value<bool> isPenaltyActive,
+      Value<double> penaltyPercentage,
+      Value<int> penaltyIntervalMonths,
       Value<double> downPayment,
       Value<bool> isHandedOver,
       Value<DateTime?> agreedHandoverDate,
@@ -8685,6 +8853,21 @@ class $$ContractsTableFilterComposer
 
   ColumnFilters<double> get baseMeterPriceAtSigning => $composableBuilder(
     column: $table.baseMeterPriceAtSigning,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isPenaltyActive => $composableBuilder(
+    column: $table.isPenaltyActive,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get penaltyPercentage => $composableBuilder(
+    column: $table.penaltyPercentage,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get penaltyIntervalMonths => $composableBuilder(
+    column: $table.penaltyIntervalMonths,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -8919,6 +9102,21 @@ class $$ContractsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<bool> get isPenaltyActive => $composableBuilder(
+    column: $table.isPenaltyActive,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get penaltyPercentage => $composableBuilder(
+    column: $table.penaltyPercentage,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get penaltyIntervalMonths => $composableBuilder(
+    column: $table.penaltyIntervalMonths,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<double> get downPayment => $composableBuilder(
     column: $table.downPayment,
     builder: (column) => ColumnOrderings(column),
@@ -9093,6 +9291,21 @@ class $$ContractsTableAnnotationComposer
 
   GeneratedColumn<double> get baseMeterPriceAtSigning => $composableBuilder(
     column: $table.baseMeterPriceAtSigning,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get isPenaltyActive => $composableBuilder(
+    column: $table.isPenaltyActive,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get penaltyPercentage => $composableBuilder(
+    column: $table.penaltyPercentage,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get penaltyIntervalMonths => $composableBuilder(
+    column: $table.penaltyIntervalMonths,
     builder: (column) => column,
   );
 
@@ -9324,6 +9537,9 @@ class $$ContractsTableTableManager
                 Value<String> contractType = const Value.absent(),
                 Value<double> totalArea = const Value.absent(),
                 Value<double> baseMeterPriceAtSigning = const Value.absent(),
+                Value<bool> isPenaltyActive = const Value.absent(),
+                Value<double> penaltyPercentage = const Value.absent(),
+                Value<int> penaltyIntervalMonths = const Value.absent(),
                 Value<double> downPayment = const Value.absent(),
                 Value<bool> isHandedOver = const Value.absent(),
                 Value<DateTime?> agreedHandoverDate = const Value.absent(),
@@ -9353,6 +9569,9 @@ class $$ContractsTableTableManager
                 contractType: contractType,
                 totalArea: totalArea,
                 baseMeterPriceAtSigning: baseMeterPriceAtSigning,
+                isPenaltyActive: isPenaltyActive,
+                penaltyPercentage: penaltyPercentage,
+                penaltyIntervalMonths: penaltyIntervalMonths,
                 downPayment: downPayment,
                 isHandedOver: isHandedOver,
                 agreedHandoverDate: agreedHandoverDate,
@@ -9384,6 +9603,9 @@ class $$ContractsTableTableManager
                 Value<String> contractType = const Value.absent(),
                 required double totalArea,
                 required double baseMeterPriceAtSigning,
+                Value<bool> isPenaltyActive = const Value.absent(),
+                Value<double> penaltyPercentage = const Value.absent(),
+                Value<int> penaltyIntervalMonths = const Value.absent(),
                 Value<double> downPayment = const Value.absent(),
                 Value<bool> isHandedOver = const Value.absent(),
                 Value<DateTime?> agreedHandoverDate = const Value.absent(),
@@ -9413,6 +9635,9 @@ class $$ContractsTableTableManager
                 contractType: contractType,
                 totalArea: totalArea,
                 baseMeterPriceAtSigning: baseMeterPriceAtSigning,
+                isPenaltyActive: isPenaltyActive,
+                penaltyPercentage: penaltyPercentage,
+                penaltyIntervalMonths: penaltyIntervalMonths,
                 downPayment: downPayment,
                 isHandedOver: isHandedOver,
                 agreedHandoverDate: agreedHandoverDate,

@@ -19,13 +19,18 @@ void showEditContractDialog(BuildContext parentContext, Contract contract) {
   
   DateTime selectedDate = contract.contractDate.toLocal();
 
-  // 🌟 متحكمات قسم الاستلام (Handover)
+  // متحكمات قسم الاستلام (Handover)
   final handoverNotesController = TextEditingController(text: contract.handoverNotes ?? '');
   DateTime? actualHandoverDate = contract.actualHandoverDate?.toLocal();
   bool isHandoverFormVisible = contract.isHandedOver; 
   bool isAllocated = contract.contractType == 'متخصص';
 
-  // 🌟 جلب حالة الصلاحيات للمستخدم الحالي
+  // 🌟[الإضافات الجديدة]: متحكمات الغرامة المرنة لتعديلها
+  bool isPenaltyActive = contract.isPenaltyActive ?? false; // استخدمنا ?? false للحماية من الـ null
+  final penaltyPctCtrl = TextEditingController(text: (contract.penaltyPercentage ?? 0).toString());
+  final penaltyIntervalCtrl = TextEditingController(text: (contract.penaltyIntervalMonths ?? 1).toString());
+
+  // جلب حالة الصلاحيات للمستخدم الحالي
   final authState = parentContext.read<AuthCubit>().state;
   final bool canEdit = authState.hasPermission(AppPermissions.createContracts); 
   final bool isSuperAdmin = authState.isSystemAdmin;
@@ -63,7 +68,7 @@ void showEditContractDialog(BuildContext parentContext, Contract contract) {
                     const SizedBox(height: 16),
 
                     // ==========================================
-                    // 🌟 1. تاريخ التوقيع
+                    // 1. تاريخ التوقيع
                     // ==========================================
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -93,7 +98,7 @@ void showEditContractDialog(BuildContext parentContext, Contract contract) {
                     const SizedBox(height: 16),
                     
                     // ==========================================
-                    // 🌟 2. الحقول النصية
+                    // 2. الحقول النصية
                     // ==========================================
                     TextField(
                       controller: monthlyAmountController, enabled: canEdit, 
@@ -113,7 +118,7 @@ void showEditContractDialog(BuildContext parentContext, Contract contract) {
                     const SizedBox(height: 16),
 
                     // ==========================================
-                    // 🌟 3. قسم إدارة تسليم الشقة (خاص بالمتخصص فقط)
+                    // 3. قسم إدارة تسليم الشقة (خاص بالمتخصص فقط)
                     // ==========================================
                     if (isAllocated) ...[
                       Container(
@@ -197,9 +202,6 @@ void showEditContractDialog(BuildContext parentContext, Contract contract) {
                               ),
                               const SizedBox(height: 12),
                               
-                              // ==========================================
-                              // 🌟 زر تأكيد وحفظ التسليم
-                              // ==========================================
                               SizedBox(
                                 width: double.infinity,
                                 child: ElevatedButton(
@@ -227,9 +229,7 @@ void showEditContractDialog(BuildContext parentContext, Contract contract) {
                                       );
                                       
                                       if(parentContext.mounted) {
-                                        // 🌟 السطر السحري لتحديث جدول المحاضر فوراً!
                                         parentContext.read<BuildingsCubit>().loadData();
-                                        
                                         ScaffoldMessenger.of(parentContext).showSnackBar(const SnackBar(content: Text('تم توثيق الاستلام بنجاح! ✅'), backgroundColor: Colors.green));
                                         Navigator.pop(dialogContext); 
                                       }
@@ -239,9 +239,6 @@ void showEditContractDialog(BuildContext parentContext, Contract contract) {
                                 ),
                               ),
                               
-                              // ==========================================
-                              // 🌟 زر التراجع عن التسليم
-                              // ==========================================
                               if (contract.isHandedOver) ...[
                                 const SizedBox(height: 8),
                                 SizedBox(
@@ -264,9 +261,7 @@ void showEditContractDialog(BuildContext parentContext, Contract contract) {
                                         await parentContext.read<ContractsCubit>().cancelContractHandover(contractId: contract.id);
                                         
                                         if(parentContext.mounted) {
-                                          // 🌟 السطر السحري لتحديث جدول المحاضر فوراً!
                                           parentContext.read<BuildingsCubit>().loadData();
-                                          
                                           ScaffoldMessenger.of(parentContext).showSnackBar(const SnackBar(content: Text('تم إلغاء التسليم بنجاح!'), backgroundColor: Colors.green));
                                           Navigator.pop(dialogContext); 
                                         }
@@ -280,10 +275,59 @@ void showEditContractDialog(BuildContext parentContext, Contract contract) {
                         ),
                       ),
                       const SizedBox(height: 16),
+
+                      // ==========================================
+                      // 🌟[القسم الجديد]: تعديل أو تفعيل غرامة التأخير
+                      // ==========================================
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.deepOrange.shade50,
+                          border: Border.all(color: Colors.deepOrange.shade200, width: 2),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Column(
+                          children:[
+                            SwitchListTile(
+                              title: const Text('تفعيل غرامة التأخير (ما بعد الاستلام)', style: TextStyle(color: Colors.deepOrange, fontWeight: FontWeight.bold)),
+                              subtitle: const Text('لتطبيق نسبة مئوية تتراكم على الذمة المالية بعد استلام الشقة.'),
+                              value: isPenaltyActive,
+                              activeColor: Colors.deepOrange,
+                              onChanged: canEdit ? (val) => setState(() => isPenaltyActive = val) : null,
+                              contentPadding: EdgeInsets.zero,
+                            ),
+                            if (isPenaltyActive) ...[
+                              const SizedBox(height: 12),
+                              Row(
+                                children:[
+                                  Expanded(
+                                    child: TextFormField(
+                                      controller: penaltyPctCtrl, 
+                                      enabled: canEdit,
+                                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                      decoration: const InputDecoration(labelText: 'نسبة الغرامة', suffixText: '%', border: OutlineInputBorder(), filled: true, fillColor: Colors.white, prefixIcon: Icon(Icons.percent, color: Colors.deepOrange)),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: TextFormField(
+                                      controller: penaltyIntervalCtrl, 
+                                      enabled: canEdit,
+                                      keyboardType: TextInputType.number,
+                                      decoration: const InputDecoration(labelText: 'تُطبق كل', suffixText: 'أشهر', border: OutlineInputBorder(), filled: true, fillColor: Colors.white, prefixIcon: Icon(Icons.update, color: Colors.deepOrange)),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ]
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
                     ],
 
                     // ==========================================
-                    // 🌟 4. ملف العقد (الأسفل)
+                    // 4. ملف العقد (الأسفل)
                     // ==========================================
                     Container(
                       padding: const EdgeInsets.all(12),
@@ -365,6 +409,9 @@ void showEditContractDialog(BuildContext parentContext, Contract contract) {
               else
                 const SizedBox.shrink(), 
 
+              // ==========================================
+              // 🌟 زر حفظ التعديلات النصية (مررنا الغرامات هنا)
+              // ==========================================
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children:[
@@ -374,6 +421,13 @@ void showEditContractDialog(BuildContext parentContext, Contract contract) {
                     onPressed: canEdit 
                       ? () async {
                           if (monthsController.text.isNotEmpty && monthlyAmountController.text.isNotEmpty) {
+                            
+                            // 🌟 حماية خفيفة
+                            if (isPenaltyActive && double.tryParse(penaltyPctCtrl.text) == null) {
+                              ScaffoldMessenger.of(dialogContext).showSnackBar(const SnackBar(content: Text('أدخل نسبة غرامة صحيحة!'), backgroundColor: Colors.red));
+                              return;
+                            }
+
                             Navigator.pop(dialogContext); 
                             bool isAuthorized = await showVerifyPinDialog(parentContext);
                             if (isAuthorized && parentContext.mounted) {
@@ -384,6 +438,11 @@ void showEditContractDialog(BuildContext parentContext, Contract contract) {
                                 installmentsCount: int.parse(monthsController.text), 
                                 agreedMonthlyAmount: double.parse(monthlyAmountController.text), 
                                 contractDate: selectedDate,
+
+                                // 🌟 حقن وتمرير بيانات الغرامة
+                                isPenaltyActive: isAllocated ? isPenaltyActive : false,
+                                penaltyPercentage: isAllocated && isPenaltyActive ? (double.tryParse(penaltyPctCtrl.text) ?? 0.0) : 0.0,
+                                penaltyIntervalMonths: isAllocated && isPenaltyActive ? (int.tryParse(penaltyIntervalCtrl.text) ?? 1) : 1,
                               );
                             }
                           }
