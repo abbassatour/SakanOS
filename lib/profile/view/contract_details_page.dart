@@ -3,11 +3,10 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:local_storage_api/local_storage_api.dart' show Contract, Client;
-import 'package:url_launcher/url_launcher.dart'; // تأكد من وجود هذه المكتبة لفتح رابط العقد
+import 'package:url_launcher/url_launcher.dart'; 
 
 import '../../dashboard/cubit/dashboard_cubit.dart';
 import '../cubit/client_profile_cubit.dart';
-// 🌟 استدعاء الكيوبتات للقفز السريع (تأكد من مساراتها في مشروعك)
 import '../../payments/cubit/payments_cubit.dart';
 import '../../schedule/cubit/schedule_cubit.dart';
 
@@ -17,7 +16,7 @@ String formatWithCommas(num number) {
   return number.toInt().toString().replaceAllMapped(reg, (Match match) => '${match[1]},');
 }
 
-// 🌟 دالة مساعدة لتنسيق التواريخ بشكل أنيق وحماية من القيم الفارغة
+// دالة مساعدة لتنسيق التواريخ بشكل أنيق وحماية من القيم الفارغة
 String _formatDateSafely(DateTime? date) {
   if (date == null) return 'غير محدد';
   return '${date.year}/${date.month.toString().padLeft(2, '0')}/${date.day.toString().padLeft(2, '0')}';
@@ -41,7 +40,7 @@ class ContractDetailsPage extends StatelessWidget {
     final Color mainColor = isAllocated ? Colors.amber.shade700 : Colors.blue.shade700;
     final Color bgColor = isAllocated ? Colors.amber.shade50 : Colors.blue.shade50;
 
-    // 🌟 فك تشفير المعاملات بأمان
+    // فك تشفير المعاملات بأمان
     Map<String, dynamic> coefficientsMap = {};
     if (contract.coefficients.isNotEmpty && contract.coefficients != '{}') {
       try {
@@ -49,13 +48,17 @@ class ContractDetailsPage extends StatelessWidget {
       } catch (_) {}
     }
 
+    // 🌟 استخراج بيانات الغرامة بأمان
+    final bool isPenaltyActive = contract.isPenaltyActive ?? false;
+    final double penaltyPct = contract.penaltyPercentage ?? 0.0;
+    final int penaltyInterval = contract.penaltyIntervalMonths ?? 1;
+
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
-      // 🌟 تم إزالة הـ AppBar لتوسيع الشاشة بالكامل
       body: SafeArea(
         child: Center(
           child: SizedBox(
-            width: 700, // 🌟 عرض 700 بكسل للتناسق مع الشاشات العريضة
+            width: 700, 
             child: CustomScrollView(
               slivers:[
                 // ==========================================
@@ -168,11 +171,10 @@ class ContractDetailsPage extends StatelessWidget {
                   ),
                 ),
 
-                // مسافة تعويضية لأن البطاقة السابقة طافية
                 const SliverToBoxAdapter(child: SizedBox(height: 80)),
 
                 // ==========================================
-                // 🚀 2. أزرار الإجراءات السريعة (تم رفعها للأعلى لأهميتها)
+                // 🚀 2. أزرار الإجراءات السريعة
                 // ==========================================
                 SliverToBoxAdapter(
                   child: Padding(
@@ -190,11 +192,8 @@ class ContractDetailsPage extends StatelessWidget {
                                 label: 'صفحة الأقساط',
                                 color: Colors.deepOrange.shade600,
                                 onTap: () {
-                                  // 1. تحديد العقد في صفحة الدفعات
                                   context.read<PaymentsCubit>().selectContract(contract.id);
-                                  // 2. تغيير التبويب الرئيسي إلى 4 (الأقساط/الأقساط)
                                   context.read<DashboardCubit>().changeTab(4);
-                                  // 3. إغلاق الصفحات المنبثقة والعودة للرئيسية
                                   Navigator.of(context).popUntil((route) => route.isFirst);
                                   ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم تحويلك لالأقساط الخاص بهذا العقد!'), backgroundColor: Colors.green));
                                 },
@@ -207,11 +206,8 @@ class ContractDetailsPage extends StatelessWidget {
                                 label: 'جدول المراقبة والمستحقات',
                                 color: Colors.indigo.shade600,
                                 onTap: () {
-                                  // 1. تحديد العقد في صفحة المراقبة
                                   context.read<ScheduleCubit>().selectContract(contract.id);
-                                  // 2. تغيير التبويب الرئيسي إلى 5 (الجدولة والمراقبة)
                                   context.read<DashboardCubit>().changeTab(5);
-                                  // 3. إغلاق الصفحات المنبثقة
                                   Navigator.of(context).popUntil((route) => route.isFirst);
                                   ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم تحويلك لجدول المراقبة الخاص بهذا العقد!'), backgroundColor: Colors.green));
                                 },
@@ -274,7 +270,7 @@ class ContractDetailsPage extends StatelessWidget {
                 const SliverToBoxAdapter(child: SizedBox(height: 24)),
 
                 // ==========================================
-                // 🔑 [القسم الجديد]: حالة تسليم العقار (للمتخصص فقط)
+                // 🔑 4. حالة تسليم العقار + الغرامات (للمتخصص فقط)
                 // ==========================================
                 if (isAllocated) ...[
                   SliverToBoxAdapter(
@@ -283,12 +279,11 @@ class ContractDetailsPage extends StatelessWidget {
                       child: _buildSectionCard(
                         title: 'حالة تسليم العقار (المفتاح)',
                         icon: Icons.vpn_key,
-                        // تغيير اللون ديناميكياً حسب حالة التسليم
                         color: contract.isHandedOver ? Colors.teal.shade700 : Colors.orange.shade700,
                         bgColor: contract.isHandedOver ? Colors.teal.shade50 : Colors.orange.shade50,
                         child: Column(
                           children:[
-                            // حالة التسليم البارزة
+                            // حالة التسليم
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                               decoration: BoxDecoration(
@@ -305,8 +300,7 @@ class ContractDetailsPage extends StatelessWidget {
                                   Text(
                                     contract.isHandedOver ? 'تم تسليم الشقة للعميل' : 'قيد الإنشاء / لم يتم التسليم بعد',
                                     style: TextStyle(
-                                      fontWeight: FontWeight.bold, 
-                                      fontSize: 15, 
+                                      fontWeight: FontWeight.bold, fontSize: 15, 
                                       color: contract.isHandedOver ? Colors.teal.shade900 : Colors.orange.shade900
                                     ),
                                   ),
@@ -318,6 +312,18 @@ class ContractDetailsPage extends StatelessWidget {
                             const Divider(height: 24),
                             _buildInfoRow('فترة السماح (للمطور):', '${contract.gracePeriodMonths} أشهر', Icons.hourglass_empty),
                             
+                            // ==========================================
+                            // 🌟 إعدادات الغرامة المسجلة في العقد
+                            // ==========================================
+                            const Divider(height: 24),
+                            _buildInfoRow(
+                              'نظام غرامة التأخير (بعد التسليم):', 
+                              isPenaltyActive ? 'مُفعّل ($penaltyPct% كل $penaltyInterval أشهر)' : 'غير مُفعّل', 
+                              Icons.local_fire_department,
+                              isBold: isPenaltyActive,
+                              valueColor: isPenaltyActive ? Colors.deepOrange.shade700 : Colors.grey,
+                            ),
+
                             // التفاصيل الفعلية بعد التسليم
                             if (contract.isHandedOver) ...[
                               const Divider(height: 24),
@@ -325,8 +331,7 @@ class ContractDetailsPage extends StatelessWidget {
                                 'تاريخ التسليم الفعلي:', 
                                 _formatDateSafely(contract.actualHandoverDate), 
                                 Icons.event_available, 
-                                isBold: true, 
-                                valueColor: Colors.teal.shade800
+                                isBold: true, valueColor: Colors.teal.shade800
                               ),
                               if (contract.handoverNotes != null && contract.handoverNotes!.isNotEmpty) ...[
                                 const Divider(height: 24),
@@ -335,6 +340,44 @@ class ContractDetailsPage extends StatelessWidget {
                                   contract.handoverNotes!, 
                                   Icons.note_alt, 
                                   valueColor: Colors.red.shade700
+                                ),
+                              ],
+                              
+                              // ==========================================
+                              // 🚨 عرض التنبيه المحاسبي إذا تم احتساب غرامة فعلياً
+                              // ==========================================
+                              if (summary != null && summary!.penaltyAmount > 0) ...[
+                                const SizedBox(height: 16),
+                                Container(
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    color: Colors.red.shade50,
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(color: Colors.red.shade300, width: 2)
+                                  ),
+                                  child: Row(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children:[
+                                      Icon(Icons.warning_amber_rounded, color: Colors.red.shade700, size: 28),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children:[
+                                            Text(
+                                              'تنبيه محاسبي: غرامات متراكمة', 
+                                              style: TextStyle(color: Colors.red.shade900, fontWeight: FontWeight.bold, fontSize: 14)
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              'لقد مر الزمن المحدد بعد الاستلام والعميل لا يزال مديناً. النظام أضاف آلياً غرامة بقيمة ${formatWithCommas(summary!.penaltyAmount)} ل.س إلى ديونه.',
+                                              style: TextStyle(color: Colors.red.shade800, fontSize: 13, height: 1.5),
+                                            ),
+                                          ],
+                                        ),
+                                      )
+                                    ],
+                                  ),
                                 ),
                               ]
                             ]
@@ -347,7 +390,7 @@ class ContractDetailsPage extends StatelessWidget {
                 ],
 
                 // ==========================================
-                // 📊 4. التحليل المالي والمعاملات (فك تشفير JSON)
+                // 📊 5. التحليل المالي والمعاملات (فك تشفير JSON)
                 // ==========================================
                 SliverToBoxAdapter(
                   child: Padding(
@@ -373,7 +416,6 @@ class ContractDetailsPage extends StatelessWidget {
                                 spacing: 10,
                                 runSpacing: 10,
                                 children: coefficientsMap.entries.map((entry) {
-                                  // تحويل القيمة العشرية إلى نسبة مئوية (0.05 -> 5%)
                                   double percentage = (entry.value as num).toDouble() * 100;
                                   return Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -425,7 +467,7 @@ class ContractDetailsPage extends StatelessWidget {
     );
   }
 
-  // 🌟 دالة مساعدة لبطاقة الإحصائيات العلوية
+  // דالة مساعدة لبطاقة الإحصائيات العلوية
   Widget _buildTopStat(String label, String value, String unit, IconData icon, Color color) {
     return Expanded(
       child: Column(
@@ -439,7 +481,6 @@ class ContractDetailsPage extends StatelessWidget {
             children:[
               Flexible(child: Text(value, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: color), maxLines: 1, overflow: TextOverflow.ellipsis)),
               const SizedBox(width: 4),
-              // 🌟 التصحيح هنا: استخدام Padding Widget بدلاً من وضعه داخل TextStyle
               Padding(
                 padding: const EdgeInsets.only(bottom: 2),
                 child: Text(unit, style: TextStyle(fontSize: 11, color: color.withOpacity(0.7), fontWeight: FontWeight.bold)),
@@ -453,7 +494,7 @@ class ContractDetailsPage extends StatelessWidget {
     );
   }
 
-  // 🌟 دالة مساعدة لبناء البطاقات
+  // דالة مساعدة لبناء البطاقات
   Widget _buildSectionCard({required String title, required IconData icon, required Color color, required Color bgColor, required Widget child}) {
     return Container(
       decoration: BoxDecoration(
@@ -486,7 +527,7 @@ class ContractDetailsPage extends StatelessWidget {
     );
   }
 
-  // 🌟 دالة مساعدة لصفوف المعلومات مع أيقونات
+  // דالة مساعدة لصفوف المعلومات مع أيقونات
   Widget _buildInfoRow(String label, String value, IconData icon, {bool isBold = false, Color? valueColor}) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -499,7 +540,6 @@ class ContractDetailsPage extends StatelessWidget {
     );
   }
 
-  // 🌟 دالة مساعدة للأزرار السريعة
   Widget _buildActionButton({required IconData icon, required String label, required Color color, required VoidCallback onTap}) {
     return ElevatedButton.icon(
       style: ElevatedButton.styleFrom(
