@@ -12,10 +12,11 @@ class InventoryPieChart extends StatelessWidget {
     required this.data,
   });
 
+  // 🌟 ألوان ذات دلالة بصرية للإدارة
   Color _getColorForStatus(String status) {
-    if (status == 'متاحة') return Colors.teal.shade400; 
-    if (status == 'مباعة') return Colors.orange.shade500; 
-    if (status == 'مُسلّمة') return Colors.indigo.shade600; 
+    if (status == 'متاحة') return Colors.teal.shade400; // أخضر: جاهز للبيع
+    if (status == 'مباعة') return Colors.orange.shade500; // برتقالي: التزام قيد البناء
+    if (status == 'مُسلّمة') return Colors.indigo.shade600; // أزرق غامق: إنجاز نهائي
     return Colors.grey;
   }
 
@@ -28,10 +29,9 @@ class InventoryPieChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // حساب الإجمالي
     int total = data.values.fold(0, (sum, val) => sum + val);
-
-    // 🌟[الحل السحري]: تصفية الحالات التي قيمتها 0 حتى لا تنهار مكتبة fl_chart
+    
+    // 🌟 حماية مكتبة fl_chart من الانهيار بسبب القيم الصفرية
     final validData = data.entries.where((e) => e.value > 0).toList();
 
     return ChartCard(
@@ -40,7 +40,7 @@ class InventoryPieChart extends StatelessWidget {
       titleIcon: Icons.apartment_rounded,
       iconColor: Colors.teal.shade700,
       chart: total == 0 || validData.isEmpty
-          ? const EmptyChart() // سيظهر إذا لم تضف أي شقق للمحاضر بعد
+          ? const EmptyChart()
           : Column(
               children:[
                 SizedBox(
@@ -48,6 +48,7 @@ class InventoryPieChart extends StatelessWidget {
                   child: Stack(
                     alignment: Alignment.center,
                     children:[
+                      // نص في منتصف الدائرة
                       Column(
                         mainAxisSize: MainAxisSize.min,
                         children:[
@@ -58,9 +59,8 @@ class InventoryPieChart extends StatelessWidget {
                       PieChart(
                         PieChartData(
                           sectionsSpace: 4, 
-                          centerSpaceRadius: 55, 
+                          centerSpaceRadius: 55, // جعلها Doughnut
                           startDegreeOffset: 270,
-                          // 🌟 نمرر فقط البيانات التي قيمتها أكبر من صفر
                           sections: validData.map((e) {
                             final pct = (e.value / total) * 100;
                             return PieChartSectionData(
@@ -84,7 +84,7 @@ class InventoryPieChart extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 24),
-                // مفتاح الخريطة
+                // مفتاح المخطط الأنيق
                 Wrap(
                   spacing: 16,
                   runSpacing: 12,
