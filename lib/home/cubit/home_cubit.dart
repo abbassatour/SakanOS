@@ -136,7 +136,7 @@ class HomeCubit extends Cubit<HomeState> {
       if (!c.isHandedOver) totalUndeliveredMeters += c.totalArea;
 
       // ==========================================
-      // 🌟 الخوارزمية المرنة لحساب الديون المتأخرة المستعجلة
+      // 🌟 الخوارزمية المرنة لحساب الديون المتأخرة المستعجلة + الغرامات
       // ==========================================
       if (!c.isCompleted && c.agreedMonthlyAmount > 0) {
         // أ) كم شهراً مر منذ التوقيع؟ (بحد أقصى مدة العقد)
@@ -152,8 +152,26 @@ class HomeCubit extends Cubit<HomeState> {
           actualPaidForThisContract += p.amountPaid;
         }
 
-        // د) هل هناك عجز؟
+        // د) حساب العجز الأساسي (الديون)
         double overdue = expectedPayment - actualPaidForThisContract;
+
+        // هـ) 🚨 السحر المالي: تطبيق غرامة ما بعد الاستلام
+        if (overdue > 0 && c.isHandedOver && c.isPenaltyActive && c.actualHandoverDate != null) {
+          // كم شهراً مر منذ استلام الشقة؟
+          int handoverMonthsPassed = _monthsBetween(c.actualHandoverDate!, now);
+          
+          if (handoverMonthsPassed > 0 && c.penaltyIntervalMonths > 0) {
+            // كم مرة نطبق الغرامة؟ (مثلاً مر 6 أشهر، وتُطبق كل 2 شهر = 3 مرات)
+            int penaltyApplications = (handoverMonthsPassed / c.penaltyIntervalMonths).floor();
+            
+            if (penaltyApplications > 0) {
+              // حساب قيمة الغرامة وإضافتها للدين المتأخر
+              double penaltyAmount = overdue * (c.penaltyPercentage / 100) * penaltyApplications;
+              overdue += penaltyAmount; 
+            }
+          }
+        }
+
         if (overdue > 0) {
           totalOverdueDebts += overdue;
         }
