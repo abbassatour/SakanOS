@@ -16,6 +16,9 @@ class ContractsCubit extends Cubit<ContractsState> {
 
   final ErpRepository _erpRepository;
 
+  // ==========================================
+  // 1. جلب البيانات الأساسية
+  // ==========================================
   Future<void> fetchData() async {
     if (state.status == ContractsStatus.initial) emit(state.copyWith(status: ContractsStatus.loading));
     try {
@@ -38,6 +41,9 @@ class ContractsCubit extends Cubit<ContractsState> {
     }
   }
 
+  // ==========================================
+  // 2. جلب العقود المحذوفة
+  // ==========================================
   Future<void> fetchDeletedContracts() async {
     try {
       final deleted = await _erpRepository.getDeletedContracts();
@@ -47,6 +53,9 @@ class ContractsCubit extends Cubit<ContractsState> {
     }
   }
 
+  // ==========================================
+  // 3. إضافة عقد جديد (مع كافة الميزات الحديثة)
+  // ==========================================
   Future<void> addContract({
     required String clientId, 
     required String contractType, 
@@ -60,9 +69,17 @@ class ContractsCubit extends Cubit<ContractsState> {
     required double agreedMonthlyAmount,
     Map<String, double> coefficients = const {}, 
     DateTime? customDate, 
-    // 🌟 [التعديل الأول]: أضفنا حقول التسليم المتفق عليها عند توقيع العقد
+    
+    // 🌟 متغيرات التسليم المتفق عليها 
     DateTime? agreedHandoverDate, 
     int? gracePeriodMonths,
+    
+    // 🌟 متغيرات الغرامة المرنة
+    bool isPenaltyActive = false,
+    double penaltyPercentage = 0.0,
+    int penaltyIntervalMonths = 1,
+
+    // متغيرات الأسعار التاريخية
     double? histIron,
     double? histCement,
     double? histBlock,
@@ -77,26 +94,21 @@ class ContractsCubit extends Cubit<ContractsState> {
 
       final contractDateToSave = customDate?.toUtc() ?? DateTime.now().toUtc();
 
-      // 1. تسجيل التسعيرة التاريخية إن وجدت
+      // أ. تسجيل التسعيرة التاريخية إن وجدت
       if (customDate != null && histIron != null) {
         final historicalPrices = MaterialPricesHistoryCompanion.insert(
           effectiveDate: Value(contractDateToSave), 
-          ironPrice: histIron,
-          cementPrice: histCement!,
-          block15Price: histBlock!,
-          formworkAndPouringWages: histFormwork!,
-          aggregateMaterialsPrice: histAggregates!,
-          ordinaryWorkerWage: histWorker!,
-          userId: userId, 
+          ironPrice: histIron, cementPrice: histCement!, block15Price: histBlock!,
+          formworkAndPouringWages: histFormwork!, aggregateMaterialsPrice: histAggregates!,
+          ordinaryWorkerWage: histWorker!, userId: userId, 
         );
-        
         await _erpRepository.savePrices(historicalPrices);
       }
 
-      // 2. توليد ID العقد
+      // ب. توليد ID العقد
       final String newContractId = const Uuid().v7();
 
-      // 3. إنشاء العقد
+      // ج. إنشاء العقد
       final newContract = ContractsCompanion.insert(
         id: Value(newContractId),
         clientId: clientId,
@@ -107,9 +119,13 @@ class ContractsCubit extends Cubit<ContractsState> {
         baseMeterPriceAtSigning: basePrice,
         downPayment: Value(downPayment), 
         
-        // 🌟 [التعديل الثاني]: تمرير الحقول الجديدة لقاعدة البيانات
         agreedHandoverDate: agreedHandoverDate != null ? Value(agreedHandoverDate.toUtc()) : const Value.absent(),
         gracePeriodMonths: Value(gracePeriodMonths ?? 0),
+        
+        // 🌟 حفظ متغيرات الغرامة في قاعدة البيانات
+        isPenaltyActive: Value(isPenaltyActive),
+        penaltyPercentage: Value(penaltyPercentage),
+        penaltyIntervalMonths: Value(penaltyIntervalMonths),
         
         installmentsCount: Value(installmentsCount), 
         agreedMonthlyAmount: Value(agreedMonthlyAmount), 
@@ -121,7 +137,7 @@ class ContractsCubit extends Cubit<ContractsState> {
       
       await _erpRepository.addContract(newContract);
 
-      // 4. السحر المحاسبي: إدخال الدفعة الأولى في الأقساط
+      // د. السحر المحاسبي: إدخال الدفعة الأولى في الأقساط
       if (downPayment > 0) {
         final downPaymentEntry = PaymentsLedgerCompanion.insert(
           contractId: newContractId, 
@@ -135,7 +151,7 @@ class ContractsCubit extends Cubit<ContractsState> {
         await _erpRepository.addLedgerEntry(downPaymentEntry);
       }
       
-      // 5. تحديث حالة الشقة إلى مباعة
+      // هـ. تحديث حالة الشقة إلى مباعة
       if (apartmentId != null && apartmentId.isNotEmpty) {
         await _erpRepository.changeApartmentStatus(apartmentId, 'sold');
       }
@@ -146,6 +162,9 @@ class ContractsCubit extends Cubit<ContractsState> {
     }
   }
 
+  // ==========================================
+  // 4. إرفاق ملف العقد
+  // ==========================================
   Future<void> attachContractFile({required String contractId, required String filePath, required String extension}) async {
     emit(state.copyWith(status: ContractsStatus.loading));
     try {
@@ -157,6 +176,9 @@ class ContractsCubit extends Cubit<ContractsState> {
     }
   }
 
+  // ==========================================
+  // 5. الحذف الوهمي للعقد (ينقله لسلة المحذوفات)
+  // ==========================================
   Future<void> deleteContract(String id) async { 
     emit(state.copyWith(status: ContractsStatus.loading));
     try {
@@ -173,7 +195,7 @@ class ContractsCubit extends Cubit<ContractsState> {
   }
 
   // ==========================================
-  // ♻️ استعادة العقد من سلة المحذوفات
+  // 6. استعادة العقد من سلة المحذوفات
   // ==========================================
   Future<void> restoreContract(Contract contract) async {
     try {
@@ -192,6 +214,9 @@ class ContractsCubit extends Cubit<ContractsState> {
     }
   }
 
+  // ==========================================
+  // 7. الحذف النهائي للعقد (تدمير)
+  // ==========================================
   Future<void> forceHardDelete(String contractId) async {
     try {
       await _erpRepository.forceHardDeleteContract(contractId);
@@ -201,13 +226,20 @@ class ContractsCubit extends Cubit<ContractsState> {
     }
   }
 
+  // ==========================================
+  // 8. تعديل العقد (أضفنا متغيرات الغرامة هنا أيضاً)
+  // ==========================================
   Future<void> updateContract({
     required String id,
     required String details,
     required String guarantorName,
     required int installmentsCount,
     required double agreedMonthlyAmount, 
-    required DateTime contractDate, 
+    required DateTime contractDate,
+    // 🌟 متغيرات الغرامة لتعديلها لاحقاً
+    required bool isPenaltyActive,
+    required double penaltyPercentage,
+    required int penaltyIntervalMonths,
   }) async {
     try {
       await _erpRepository.updateContract(
@@ -217,6 +249,9 @@ class ContractsCubit extends Cubit<ContractsState> {
         installmentsCount: installmentsCount,
         agreedMonthlyAmount: agreedMonthlyAmount, 
         contractDate: contractDate, 
+        isPenaltyActive: isPenaltyActive,
+        penaltyPercentage: penaltyPercentage,
+        penaltyIntervalMonths: penaltyIntervalMonths,
       );
       await fetchData(); 
     } catch (e) {
@@ -224,9 +259,8 @@ class ContractsCubit extends Cubit<ContractsState> {
     }
   }
 
-
   // ==========================================
-  // 🔑 تسجيل تسليم الشقة الفعلي (Handover)
+  // 9. تسجيل تسليم الشقة الفعلي (Handover)
   // ==========================================
   Future<void> markContractAsHandedOver({
     required String contractId,
@@ -252,7 +286,7 @@ class ContractsCubit extends Cubit<ContractsState> {
   }
 
   // ==========================================
-  // ⏪ التراجع عن تسليم الشقة
+  // 10. التراجع عن تسليم الشقة
   // ==========================================
   Future<void> cancelContractHandover({required String contractId}) async {
     emit(state.copyWith(status: ContractsStatus.loading));
@@ -269,5 +303,4 @@ class ContractsCubit extends Cubit<ContractsState> {
       emit(state.copyWith(status: ContractsStatus.failure, errorMessage: 'فشل إلغاء التسليم: $e'));
     }
   }
-
 }
