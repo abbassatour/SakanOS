@@ -22,21 +22,21 @@ class MetersProgressChart extends StatelessWidget {
   Widget build(BuildContext context) {
     final numberFormatter = NumberFormat.decimalPattern('ar_AR');
     
-    // نسب الإنجاز
+    // حساب النسب وحمايتها من قسمة الصفر
     final double paidPct = totalSold == 0 ? 0 : (paid / totalSold).clamp(0.0, 1.0);
     final double unpaidPct = totalSold == 0 ? 0 : (unpaid / totalSold).clamp(0.0, 1.0);
     final double undeliveredPct = totalSold == 0 ? 0 : (undelivered / totalSold).clamp(0.0, 1.0);
 
     return ChartCard(
       title: 'مؤشر أداء الأمتار المربعة',
-      description: 'هذا المؤشر هو العصب الحقيقي للشركة. \n- (الأمتار المحصلة): هي الأمتار التي دخل ثمنها للصندوق.\n- (ذمم الشركة): هي الأمتار المباعة والتي يجب سدادها من قبل العملاء.\n- (الالتزام الإنشائي): الأمتار التي تقع على عاتق الشركة ويجب بناؤها وتسليمها.',
+      description: 'هذا المؤشر هو العصب الحقيقي للشركة.\n- (المحصلة مالياً): الأمتار التي دخل ثمنها للصندوق.\n- (ديون العملاء): الأمتار المباعة والتي يجب سدادها من قبل العملاء.\n- (الالتزام الإنشائي): الأمتار التي تقع على عاتق الشركة ويجب بناؤها وتسليمها.',
       titleIcon: Icons.square_foot_rounded,
       iconColor: Colors.deepOrange.shade600,
       chart: Column(
         children:[
-          // 1. الأمتار المحصلة مالياً
+          // 1. الأمتار المحصلة
           _buildProgressRow(
-            title: 'الأمتار المحصلة مالياً',
+            title: 'الأمتار المحصلة مالياً (في الصندوق)',
             value: '${numberFormatter.format(paid.toInt())} م²',
             percentage: paidPct,
             color: Colors.green.shade500,
@@ -44,7 +44,7 @@ class MetersProgressChart extends StatelessWidget {
           ),
           const SizedBox(height: 20),
           
-          // 2. ذمم الشركة (أمتار لم تدفع)
+          // 2. ذمم الشركة
           _buildProgressRow(
             title: 'الأمتار في ذمة العملاء (ديون)',
             value: '${numberFormatter.format(unpaid.toInt())} م²',
@@ -56,7 +56,7 @@ class MetersProgressChart extends StatelessWidget {
 
           // 3. الأمتار غير المسلمة
           _buildProgressRow(
-            title: 'الالتزام الإنشائي (أمتار غير مُسلّمة)',
+            title: 'الالتزام الإنشائي (أمتار لم تُسلّم)',
             value: '${numberFormatter.format(undelivered.toInt())} م²',
             percentage: undeliveredPct,
             color: Colors.red.shade600,

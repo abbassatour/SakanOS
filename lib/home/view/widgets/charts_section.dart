@@ -103,7 +103,7 @@ class ChartsSection extends StatelessWidget {
         const SizedBox(height: 16),
 
         // ==========================================
-        // 🌟 الصف الثالث الجديد (تشغيل وأمتار)
+        // 🌟 الصف الثالث الجديد (الموقف التشغيلي والأمتار)
         // ==========================================
         ChartRow(children:[
           Expanded(
@@ -114,7 +114,7 @@ class ChartsSection extends StatelessWidget {
           ),
           const SizedBox(width: 16),
           Expanded(
-            flex: 1,
+            flex: 2, // أعطينا الأمتار مساحة أكبر لأنها أشرطة أفقية
             child: MetersProgressChart(
               totalSold: state.totalAreaSold,
               paid: state.totalPaidMeters,
