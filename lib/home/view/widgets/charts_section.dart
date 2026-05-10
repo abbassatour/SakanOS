@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import '../../cubit/home_cubit.dart';
+import '../../materials_trend_page.dart'; // 🌟 الاستيراد الجديد للصفحة التفصيلية
 
 // استيراد المكونات
 import 'charts/chart_colors.dart';
@@ -14,6 +15,7 @@ import 'charts/contracts_pie_chart.dart';
 // 🌟 استيراد المخططات الجديدة
 import 'charts/inventory_pie_chart.dart';
 import 'charts/meters_progress_chart.dart';
+
 
 class ChartsSection extends StatelessWidget {
   final HomeState state;
@@ -96,18 +98,15 @@ class ChartsSection extends StatelessWidget {
               icon: Icons.warning_amber_rounded,
               peakLabel: 'أعلى فترة تكلفةً:',
               isCost: true,
-              // ==========================================
-              // 🌟 [الربط الجديد]: زر الانتقال لصفحة التفاصيل
-              // ==========================================
               actionIcon: Icons.analytics_outlined,
               actionTooltip: 'تحليل تفصيلي لأسعار المواد الستة',
               onActionTap: () {
-                // سنقوم ببرمجة الصفحة التفصيلية في الخطوة القادمة
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('قريباً: فتح صفحة التحليل التفصيلي للمواد...'), 
-                    backgroundColor: Colors.indigo
-                  )
+                // ==========================================
+                // 🌟 تفعيل الانتقال للصفحة التحليلية الجديدة
+                // ==========================================
+                Navigator.push(
+                  context, 
+                  MaterialPageRoute(builder: (_) => const MaterialsTrendPage())
                 );
               },
             ),
