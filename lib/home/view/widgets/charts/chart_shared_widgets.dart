@@ -4,23 +4,30 @@ import 'chart_colors.dart';
 
 class ChartCard extends StatelessWidget {
   final String title;
-  final String description; // 🌟 1. المتغير الجديد للشرح
+  final String description; 
   final IconData titleIcon;
   final Color iconColor;
   final Widget chart;
   final List<Widget> footerRows;
+  
+  // 🌟 [الإضافات الجديدة]: لدعم زر التوسيع أو الانتقال لصفحات تفصيلية
+  final VoidCallback? onActionTap;
+  final IconData? actionIcon;
+  final String? actionTooltip;
 
   const ChartCard({
     super.key,
     required this.title,
-    required this.description, // 🌟 2. أصبح مطلوباً لبناء الكرت
+    required this.description, 
     required this.titleIcon,
     required this.iconColor,
     required this.chart,
     this.footerRows = const[],
+    this.onActionTap, // 🌟
+    this.actionIcon,  // 🌟
+    this.actionTooltip, // 🌟
   });
 
-  // 🌟 3. دالة إظهار النافذة المنبثقة
   void _showInfoDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -30,18 +37,10 @@ class ChartCard extends StatelessWidget {
           children:[
             const Icon(Icons.lightbulb_outline, color: Colors.amber, size: 28),
             const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                'عن المخطط: $title', 
-                style: const TextStyle(color: Colors.blueGrey, fontSize: 16, fontWeight: FontWeight.bold)
-              )
-            ),
+            Expanded(child: Text('عن المخطط: $title', style: const TextStyle(color: Colors.blueGrey, fontSize: 16, fontWeight: FontWeight.bold))),
           ],
         ),
-        content: Text(
-          description, 
-          style: const TextStyle(height: 1.6, fontSize: 14, color: Colors.black87)
-        ),
+        content: Text(description, style: const TextStyle(height: 1.6, fontSize: 14, color: Colors.black87)),
         actions:[
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: Colors.indigo, foregroundColor: Colors.white),
@@ -71,29 +70,33 @@ class ChartCard extends StatelessWidget {
         padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+          children:[
             Row(
               children:[
                 Container(
                   padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: iconColor.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
+                  decoration: BoxDecoration(color: iconColor.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
                   child: Icon(titleIcon, color: iconColor, size: 18),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
-                  child: Text(
-                    title,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 15,
-                      color: ChartColors.titleColor,
-                    ),
-                  ),
+                  child: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: ChartColors.titleColor)),
                 ),
-                // 🌟 4. زر المعلومات الجديد
+                
+                // 🌟 زر الإجراء الإضافي (مثل الانتقال للتفاصيل)
+                if (onActionTap != null && actionIcon != null) ...[
+                  IconButton(
+                    icon: Icon(actionIcon, color: Colors.indigo.shade400, size: 22),
+                    tooltip: actionTooltip ?? 'فتح التفاصيل',
+                    splashRadius: 20,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    onPressed: onActionTap,
+                  ),
+                  const SizedBox(width: 8),
+                ],
+
+                // زر المعلومات الأساسي
                 IconButton(
                   icon: const Icon(Icons.info_outline, color: Colors.grey, size: 22),
                   tooltip: 'شرح المخطط',
@@ -119,6 +122,7 @@ class ChartCard extends StatelessWidget {
     );
   }
 }
+
 
 class FooterRow extends StatelessWidget {
   final IconData icon;
