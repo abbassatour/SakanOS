@@ -39,9 +39,14 @@ class _AddContractPageState extends State<AddContractPage> {
   final monthlyAmountCtrl = TextEditingController(); 
   final downPaymentCtrl = TextEditingController(text: '0'); 
 
-  // 🌟[الإضافة الجديدة]: متغيرات الاستلام
+  // متغيرات الاستلام
   DateTime? agreedHandoverDate; 
   final gracePeriodCtrl = TextEditingController(text: '0');
+
+  // 🌟 [الإضافة الجديدة]: متحكمات غرامة التأخير (المرونة العالية)
+  bool isPenaltyActive = false;
+  final penaltyPctCtrl = TextEditingController(text: '2'); // افتراضياً 2%
+  final penaltyIntervalCtrl = TextEditingController(text: '1'); // افتراضياً كل 1 شهر
 
   // معاملات إضافية للتجهيزات المشتركة
   final blockCoeffCtrl = TextEditingController(text: '0');
@@ -75,8 +80,8 @@ class _AddContractPageState extends State<AddContractPage> {
   void dispose() {
     areaController.dispose(); priceController.dispose(); monthsController.dispose();
     durationCoefficientCtrl.dispose(); guarantorController.dispose(); monthlyAmountCtrl.dispose();
-    downPaymentCtrl.dispose(); 
-    gracePeriodCtrl.dispose(); // 🌟 تنظيف متحكم فترة السماح
+    downPaymentCtrl.dispose(); gracePeriodCtrl.dispose(); 
+    penaltyPctCtrl.dispose(); penaltyIntervalCtrl.dispose(); // 🌟 تنظيف متحكمات الغرامة
     blockCoeffCtrl.dispose(); coloredPlasterCoeffCtrl.dispose(); marbleStairsCoeffCtrl.dispose();
     marbleFinsCoeffCtrl.dispose(); plumbingCoeffCtrl.dispose(); chimneysCoeffCtrl.dispose();
     histIronCtrl.dispose(); histCementCtrl.dispose(); histBlockCtrl.dispose();
@@ -84,9 +89,6 @@ class _AddContractPageState extends State<AddContractPage> {
     super.dispose();
   }
 
-  // ==========================================
-  // 🛡️ دوال الحماية 
-  // ==========================================
   double _safeParseDouble(TextEditingController ctrl) {
     if (ctrl.text.trim().isEmpty) return 0.0;
     return double.tryParse(ctrl.text.replaceAll(',', '')) ?? 0.0;
@@ -97,7 +99,6 @@ class _AddContractPageState extends State<AddContractPage> {
     return int.tryParse(ctrl.text.replaceAll(',', '')) ?? defaultValue;
   }
 
-  // --- دوال المنطق ---
   void _onApartmentSelected(String? aptId, List<dynamic> availableApartments, List<dynamic> buildings) {
     setState(() {
       selectedApartmentId = aptId;
@@ -165,15 +166,10 @@ class _AddContractPageState extends State<AddContractPage> {
          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('الرجاء تعبئة أسعار المواد التاريخية الأساسية بشكل صحيح!'), backgroundColor: Colors.red));
          return;
       }
-      
       targetPrices = MaterialPricesHistoryData(
         id: 'dummy', effectiveDate: selectedHistoricalDate, userId: 'dummy', createdAt: DateTime.now(), updatedAt: DateTime.now(), isDeleted: false, isSynced: false,
-        ironPrice: _safeParseDouble(histIronCtrl), 
-        cementPrice: _safeParseDouble(histCementCtrl),
-        block15Price: _safeParseDouble(histBlockCtrl), 
-        formworkAndPouringWages: _safeParseDouble(histFormworkCtrl),
-        aggregateMaterialsPrice: _safeParseDouble(histAggregatesCtrl), 
-        ordinaryWorkerWage: _safeParseDouble(histWorkerCtrl),
+        ironPrice: _safeParseDouble(histIronCtrl), cementPrice: _safeParseDouble(histCementCtrl), block15Price: _safeParseDouble(histBlockCtrl), 
+        formworkAndPouringWages: _safeParseDouble(histFormworkCtrl), aggregateMaterialsPrice: _safeParseDouble(histAggregatesCtrl), ordinaryWorkerWage: _safeParseDouble(histWorkerCtrl),
       );
     } else {
       if (currentPrices == null) {
@@ -184,14 +180,11 @@ class _AddContractPageState extends State<AddContractPage> {
     }
 
     Map<String, double> finalCoeffs = _buildFinalCoefficients(isAllocated);
-
     double dummyAreaForCalculation = isAllocated ? _safeParseDouble(areaController) : 1.0;
     if (dummyAreaForCalculation == 0.0) dummyAreaForCalculation = 1.0; 
 
     final calculations = CalculatorHelper.calculateContractValues(
-      area: dummyAreaForCalculation,
-      currentPrices: targetPrices,
-      coefficients: finalCoeffs, 
+      area: dummyAreaForCalculation, currentPrices: targetPrices, coefficients: finalCoeffs, 
     );
     priceController.text = NumberFormatters.formatWithCommas(calculations['pricePerSqm']!);
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(isHistoricalContract ? 'تم الحساب بناءً على المواد التاريخية ✅' : 'تم الحساب بناءً على أسعار اليوم ✅'), backgroundColor: Colors.green));
@@ -222,8 +215,7 @@ class _AddContractPageState extends State<AddContractPage> {
                         padding: const EdgeInsets.all(24.0),
                         children:[
                           HistoricalSection(
-                            isHistorical: isHistoricalContract,
-                            selectedDate: selectedHistoricalDate,
+                            isHistorical: isHistoricalContract, selectedDate: selectedHistoricalDate,
                             histIronCtrl: histIronCtrl, histCementCtrl: histCementCtrl, histBlockCtrl: histBlockCtrl,
                             histFormworkCtrl: histFormworkCtrl, histAggregatesCtrl: histAggregatesCtrl, histWorkerCtrl: histWorkerCtrl,
                             onToggle: (val) async {
@@ -244,20 +236,15 @@ class _AddContractPageState extends State<AddContractPage> {
                           const SizedBox(height: 16),
                           
                           BasicInfoSection(
-                            clients: state.clients,
-                            selectedClientId: selectedClientId,
-                            guarantorController: guarantorController,
-                            selectedContractType: selectedContractType,
+                            clients: state.clients, selectedClientId: selectedClientId,
+                            guarantorController: guarantorController, selectedContractType: selectedContractType,
                             onClientChanged: (val) => setState(() => selectedClientId = val),
                             onTypeChanged: (val) {
                               setState(() {
                                 selectedContractType = val ?? 'متخصص';
                                 if (!isAllocated) { 
-                                  autoImportedCoefficients.clear(); 
-                                  selectedBuildingId = null; 
-                                  selectedApartmentId = null; 
-                                  areaController.clear(); 
-                                  agreedHandoverDate = null; // تفريغ التاريخ عند تغيير النوع
+                                  autoImportedCoefficients.clear(); selectedBuildingId = null; selectedApartmentId = null; 
+                                  areaController.clear(); agreedHandoverDate = null; isPenaltyActive = false; // تصفير الغرامات 
                                 }
                               });
                             },
@@ -265,17 +252,14 @@ class _AddContractPageState extends State<AddContractPage> {
                           const SizedBox(height: 16),
 
                           PropertySection(
-                            isAllocated: isAllocated,
-                            buildings: buildingsState.buildings,
-                            availableApartments: availableApartments,
-                            selectedBuildingId: selectedBuildingId,
-                            selectedApartmentId: selectedApartmentId,
+                            isAllocated: isAllocated, buildings: buildingsState.buildings,
+                            availableApartments: availableApartments, selectedBuildingId: selectedBuildingId, selectedApartmentId: selectedApartmentId,
                             onBuildingChanged: (val) => setState(() { selectedBuildingId = val; selectedApartmentId = null; areaController.clear(); autoImportedCoefficients.clear(); }),
                             onApartmentChanged: (val) => _onApartmentSelected(val, availableApartments, buildingsState.buildings),
                           ),
                           
                           // ==========================================
-                          // 🌟[القسم الجديد]: تفاصيل التسليم
+                          // 🌟 قسم تفاصيل التسليم والغرامات
                           // ==========================================
                           if (isAllocated) ...[
                             const SizedBox(height: 16),
@@ -304,31 +288,19 @@ class _AddContractPageState extends State<AddContractPage> {
                                         child: InkWell(
                                           onTap: () async {
                                             final date = await showDatePicker(
-                                              context: context,
-                                              initialDate: DateTime.now().add(const Duration(days: 365)), // افتراضياً بعد سنة
-                                              firstDate: DateTime.now(),
-                                              lastDate: DateTime(2050),
-                                              helpText: 'حدد الموعد المتفق عليه لتسليم الشقة',
+                                              context: context, initialDate: DateTime.now().add(const Duration(days: 365)), 
+                                              firstDate: DateTime.now(), lastDate: DateTime(2050), helpText: 'حدد الموعد المتفق عليه لتسليم الشقة',
                                             );
                                             if (date != null) setState(() => agreedHandoverDate = date);
                                           },
                                           child: InputDecorator(
                                             decoration: InputDecoration(
-                                              labelText: 'الموعد المتفق عليه للتسليم *',
-                                              border: const OutlineInputBorder(),
-                                              filled: true,
-                                              fillColor: Colors.white,
-                                              prefixIcon: const Icon(Icons.edit_calendar, color: Colors.blue),
-                                              errorText: agreedHandoverDate == null ? 'مطلوب للإحصائيات' : null,
+                                              labelText: 'الموعد المتفق عليه للتسليم *', border: const OutlineInputBorder(), filled: true, fillColor: Colors.white,
+                                              prefixIcon: const Icon(Icons.edit_calendar, color: Colors.blue), errorText: agreedHandoverDate == null ? 'مطلوب للإحصائيات' : null,
                                             ),
                                             child: Text(
-                                              agreedHandoverDate != null 
-                                                  ? '${agreedHandoverDate!.year}/${agreedHandoverDate!.month}/${agreedHandoverDate!.day}'
-                                                  : 'اضغط لاختيار التاريخ',
-                                              style: TextStyle(
-                                                color: agreedHandoverDate != null ? Colors.black : Colors.red, 
-                                                fontWeight: FontWeight.bold
-                                              ),
+                                              agreedHandoverDate != null ? '${agreedHandoverDate!.year}/${agreedHandoverDate!.month}/${agreedHandoverDate!.day}' : 'اضغط لاختيار التاريخ',
+                                              style: TextStyle(color: agreedHandoverDate != null ? Colors.black : Colors.red, fontWeight: FontWeight.bold),
                                             ),
                                           ),
                                         ),
@@ -337,20 +309,44 @@ class _AddContractPageState extends State<AddContractPage> {
                                       Expanded(
                                         flex: 1,
                                         child: TextFormField(
-                                          controller: gracePeriodCtrl,
-                                          keyboardType: TextInputType.number,
-                                          decoration: const InputDecoration(
-                                            labelText: 'فترة السماح',
-                                            suffixText: 'أشهر',
-                                            border: OutlineInputBorder(),
-                                            filled: true,
-                                            fillColor: Colors.white,
-                                            prefixIcon: Icon(Icons.hourglass_empty, color: Colors.blue),
-                                          ),
+                                          controller: gracePeriodCtrl, keyboardType: TextInputType.number,
+                                          decoration: const InputDecoration(labelText: 'فترة السماح', suffixText: 'أشهر', border: OutlineInputBorder(), filled: true, fillColor: Colors.white, prefixIcon: Icon(Icons.hourglass_empty, color: Colors.blue)),
                                         ),
                                       ),
                                     ],
                                   ),
+                                  
+                                  // 🌟 القسم الفرعي: غرامات تأخير السداد بعد الاستلام
+                                  const Padding(padding: EdgeInsets.symmetric(vertical: 16), child: Divider(color: Colors.blueGrey)),
+                                  SwitchListTile(
+                                    title: const Text('تفعيل غرامة التأخير (بعد تسليم المفتاح)', style: TextStyle(color: Colors.deepOrange, fontWeight: FontWeight.bold)),
+                                    subtitle: const Text('في حال استلم العميل الشقة وبقي في ذمته مبالغ غير مدفوعة، يتم فرض نسبة مئوية تتراكم مع الزمن.'),
+                                    value: isPenaltyActive,
+                                    activeColor: Colors.deepOrange,
+                                    onChanged: (val) => setState(() => isPenaltyActive = val),
+                                    contentPadding: EdgeInsets.zero,
+                                  ),
+                                  
+                                  if (isPenaltyActive) ...[
+                                    const SizedBox(height: 12),
+                                    Row(
+                                      children:[
+                                        Expanded(
+                                          child: TextFormField(
+                                            controller: penaltyPctCtrl, keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                            decoration: const InputDecoration(labelText: 'نسبة الغرامة', suffixText: '%', border: OutlineInputBorder(), filled: true, fillColor: Colors.white, prefixIcon: Icon(Icons.percent, color: Colors.deepOrange)),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 16),
+                                        Expanded(
+                                          child: TextFormField(
+                                            controller: penaltyIntervalCtrl, keyboardType: TextInputType.number,
+                                            decoration: const InputDecoration(labelText: 'تُطبق كل', suffixText: 'أشهر', border: OutlineInputBorder(), filled: true, fillColor: Colors.white, prefixIcon: Icon(Icons.update, color: Colors.deepOrange)),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ]
                                 ],
                               ),
                             ),
@@ -358,25 +354,18 @@ class _AddContractPageState extends State<AddContractPage> {
 
                           const SizedBox(height: 16),
 
-                          if (isAllocated)
-                            AutoCoefficientsSection(coefficients: autoImportedCoefficients),
-
-                          if (isAllocated)
-                            SharedCoefficientsSection(
+                          if (isAllocated) AutoCoefficientsSection(coefficients: autoImportedCoefficients),
+                          if (isAllocated) SharedCoefficientsSection(
                               blockCoeffCtrl: blockCoeffCtrl, coloredPlasterCoeffCtrl: coloredPlasterCoeffCtrl,
                               marbleStairsCoeffCtrl: marbleStairsCoeffCtrl, marbleFinsCoeffCtrl: marbleFinsCoeffCtrl,
                               plumbingCoeffCtrl: plumbingCoeffCtrl, chimneysCoeffCtrl: chimneysCoeffCtrl,
                             ),
                           
                           FinancialSection(
-                            isAllocated: isAllocated,
-                            isHistoricalContract: isHistoricalContract,
-                            areaController: areaController,
-                            monthsController: monthsController,
-                            durationCoefficientCtrl: durationCoefficientCtrl,
-                            priceController: priceController,
-                            monthlyAmountCtrl: monthlyAmountCtrl,
-                            downPaymentCtrl: downPaymentCtrl, 
+                            isAllocated: isAllocated, isHistoricalContract: isHistoricalContract,
+                            areaController: areaController, monthsController: monthsController,
+                            durationCoefficientCtrl: durationCoefficientCtrl, priceController: priceController,
+                            monthlyAmountCtrl: monthlyAmountCtrl, downPaymentCtrl: downPaymentCtrl, 
                             onCalculate: () => _calculatePrice(settingsState.currentPrices),
                           ),
                           const SizedBox(height: 100), 
@@ -413,18 +402,19 @@ class _AddContractPageState extends State<AddContractPage> {
     );
   }
 
-  // ==========================================
-  // 🚀 دالة الإرسال والحفظ للـ Backend
-  // ==========================================
   Future<void> _saveContract() async {
     bool isAllocated = selectedContractType == 'متخصص'; 
     
     if (isAllocated && selectedApartmentId == null) return _showError('يرجى اختيار شقة من الكتالوج!');
     if (isAllocated && areaController.text.isEmpty) return _showError('يرجى تعبئة المساحة!');
-    
-    // 🌟 حماية إضافية: إجبار المستخدم على اختيار تاريخ التسليم إذا كان العقد متخصصاً
     if (isAllocated && agreedHandoverDate == null) return _showError('يرجى تحديد الموعد المتفق عليه لتسليم الشقة!');
     
+    // 🌟 حماية لمدخلات الغرامة
+    if (isAllocated && isPenaltyActive) {
+      if (_safeParseDouble(penaltyPctCtrl) <= 0) return _showError('نسبة الغرامة يجب أن تكون أكبر من صفر!');
+      if (_safeParseInt(penaltyIntervalCtrl) <= 0) return _showError('مدة تطبيق الغرامة غير صالحة!');
+    }
+
     if (priceController.text.isEmpty) return _showError('يرجى حساب السعر أولاً!');
     if (monthlyAmountCtrl.text.isEmpty) return _showError('يرجى إدخال المبلغ المتفق عليه شهرياً!');
 
@@ -464,9 +454,13 @@ class _AddContractPageState extends State<AddContractPage> {
       coefficients: finalCoeffs, 
       customDate: isHistoricalContract ? selectedHistoricalDate : null, 
       
-      // 🌟 إرسال الحقول الجديدة للـ Cubit
       agreedHandoverDate: isAllocated ? agreedHandoverDate : null,
       gracePeriodMonths: isAllocated ? _safeParseInt(gracePeriodCtrl, defaultValue: 0) : null,
+
+      // 🌟 تمرير مدخلات الغرامة للكيوبت
+      isPenaltyActive: isAllocated ? isPenaltyActive : false,
+      penaltyPercentage: isAllocated && isPenaltyActive ? _safeParseDouble(penaltyPctCtrl) : 0.0,
+      penaltyIntervalMonths: isAllocated && isPenaltyActive ? _safeParseInt(penaltyIntervalCtrl, defaultValue: 1) : 1,
 
       histIron: isHistoricalContract ? _safeParseDouble(histIronCtrl) : null, 
       histCement: isHistoricalContract ? _safeParseDouble(histCementCtrl) : null,
