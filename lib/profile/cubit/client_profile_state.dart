@@ -2,21 +2,21 @@
 part of 'client_profile_cubit.dart';
 
 // ==========================================
-// 🌟 نموذج بيانات مخصص يربط العقد بإحصائياته المالية (مُحدّث للمرونة)
+// 🌟 نموذج بيانات مخصص يربط العقد بإحصائياته المالية الدقيقة (مرن)
 // ==========================================
 class ContractProfileSummary {
   final Contract contract;
   final double totalPaid;
-  final double overdueDebt; // 🌟 أصبحت ديوناً مالية بدلاً من عدد أقساط
-  final double penaltyApplied; // 🌟 قيمة الغرامة التي تم تطبيقها على هذا العقد
-  final int paymentTransactionsCount; // 🌟 عدد حركات الدفع الفعلية
+  final double totalDebt; // 🌟 الديون المتأخرة (تشمل الغرامة إن وجدت)
+  final double penaltyApplied; // 🌟 قيمة الغرامة التي تم إضافتها للدين
+  final int paidSchedulesCount; // أبقيناها كمرجع لواجهة المستخدم
 
   ContractProfileSummary({
     required this.contract,
     required this.totalPaid,
-    required this.overdueDebt,
+    required this.totalDebt,
     required this.penaltyApplied,
-    required this.paymentTransactionsCount,
+    required this.paidSchedulesCount,
   });
 }
 
@@ -30,7 +30,7 @@ class ClientProfileState extends Equatable {
   final Client? client;
   final List<ContractProfileSummary> contractsSummary;
   final double grandTotalPaid;
-  final double totalOverdueAcrossAll; // 🌟 أصبحت ديوناً مالية إجمالية
+  final double totalDebtAcrossAll; // 🌟 إجمالي ديون العميل (ليرة بدلاً من عدد أقساط)
   final String? errorMessage;
 
   const ClientProfileState({
@@ -38,7 +38,7 @@ class ClientProfileState extends Equatable {
     this.client,
     this.contractsSummary = const[],
     this.grandTotalPaid = 0.0,
-    this.totalOverdueAcrossAll = 0.0,
+    this.totalDebtAcrossAll = 0.0, // 🌟
     this.errorMessage,
   });
 
@@ -47,7 +47,7 @@ class ClientProfileState extends Equatable {
     Client? client,
     List<ContractProfileSummary>? contractsSummary,
     double? grandTotalPaid,
-    double? totalOverdueAcrossAll,
+    double? totalDebtAcrossAll, // 🌟
     String? errorMessage,
   }) {
     return ClientProfileState(
@@ -55,11 +55,11 @@ class ClientProfileState extends Equatable {
       client: client ?? this.client,
       contractsSummary: contractsSummary ?? this.contractsSummary,
       grandTotalPaid: grandTotalPaid ?? this.grandTotalPaid,
-      totalOverdueAcrossAll: totalOverdueAcrossAll ?? this.totalOverdueAcrossAll,
+      totalDebtAcrossAll: totalDebtAcrossAll ?? this.totalDebtAcrossAll,
       errorMessage: errorMessage ?? this.errorMessage,
     );
   }
 
   @override
-  List<Object?> get props =>[status, client, contractsSummary, grandTotalPaid, totalOverdueAcrossAll, errorMessage];
+  List<Object?> get props => [status, client, contractsSummary, grandTotalPaid, totalDebtAcrossAll, errorMessage];
 }
