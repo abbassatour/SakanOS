@@ -13,6 +13,11 @@ class TrendLineChart extends StatelessWidget {
   final IconData icon;
   final String peakLabel;
   final bool isCost;
+  
+  // 🌟 أضفناها كمتغيرات اختيارية (Nullable)
+  final VoidCallback? onActionTap;
+  final IconData? actionIcon;
+  final String? actionTooltip;
 
   const TrendLineChart({
     super.key,
@@ -23,6 +28,10 @@ class TrendLineChart extends StatelessWidget {
     required this.icon,
     required this.peakLabel,
     this.isCost = false,
+    // 🌟 أضفناها للمُشيد (Constructor)
+    this.onActionTap,
+    this.actionIcon,
+    this.actionTooltip,
   });
 
   @override
@@ -46,11 +55,9 @@ class TrendLineChart extends StatelessWidget {
     final range = maxY - minY;
     final yInterval = range <= 0 ? 1000.0 : range / 4;
 
-    // 🌟 تحسين 1: حساب فواصل المحور الأفقي (X-axis) ديناميكياً
-    // لمنع تداخل النصوص إذا كانت البيانات كثيرة جداً (أكثر من 15 فترة)
     double xInterval = 1;
     if (data.length > 15) {
-      xInterval = (data.length / 8).ceilToDouble(); // إظهار حوالي 8 تسميات فقط كحد أقصى لتجنب الزحام
+      xInterval = (data.length / 8).ceilToDouble(); 
     }
 
     final spots = data.entries.toList().asMap().entries.map((e) {
@@ -63,6 +70,12 @@ class TrendLineChart extends StatelessWidget {
       description: description,
       titleIcon: icon,
       iconColor: color,
+      
+      // 🌟 تمرير المتغيرات الجديدة للغلاف المشترك لكي يرسم الزر
+      onActionTap: onActionTap,
+      actionIcon: actionIcon,
+      actionTooltip: actionTooltip,
+      
       chart: SizedBox(
         height: 230,
         child: data.isEmpty
@@ -116,11 +129,8 @@ class TrendLineChart extends StatelessWidget {
                       sideTitles: SideTitles(
                         showTitles: true,
                         reservedSize: 32,
-                        // 🌟 التعديل 2: تحديد مسافة القفز للمحور الأفقي
                         interval: xInterval, 
                         getTitlesWidget: (value, _) {
-                          // 🌟 التعديل 3: منع المكتبة من رسم نصوص للقيم العشرية (الفواصل)
-                          // هذا هو السطر السحري الذي يمنع تكرار التواريخ
                           if (value != value.toInt()) {
                             return const SizedBox.shrink();
                           }

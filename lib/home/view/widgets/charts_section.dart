@@ -96,6 +96,18 @@ class ChartsSection extends StatelessWidget {
               icon: Icons.warning_amber_rounded,
               peakLabel: 'أعلى فترة تكلفةً:',
               isCost: true,
+              // ==========================================
+              // 🌟 [الربط الجديد]: زر الانتقال لصفحة التفاصيل
+              // ==========================================
+              actionIcon: Icons.analytics_outlined,
+              actionTooltip: 'تحليل تفصيلي لأسعار المواد الستة',
+              onActionTap: () {
+                // سنقوم ببرمجة الصفحة التفصيلية في الخطوة القادمة
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('قريباً: فتح صفحة التحليل التفصيلي للمواد...'), 
+                    backgroundColor: Colors.indigo
+              },
             ),
           ),
         ]),
