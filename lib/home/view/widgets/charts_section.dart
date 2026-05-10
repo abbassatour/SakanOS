@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import '../../cubit/home_cubit.dart';
-import '../../materials_trend_page.dart'; // 🌟 الاستيراد الجديد للصفحة التفصيلية
+import '../materials_trend_page.dart'; // 🌟 الاستيراد الجديد للصفحة التفصيلية
 
 // استيراد المكونات
 import 'charts/chart_colors.dart';
