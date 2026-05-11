@@ -28,6 +28,10 @@ class AppPermissions {
   static const String restoreItems = 'recycle_bin.restore';
   static const String hardDeleteItems = 'recycle_bin.hard_delete'; 
   
+
+  // 🌟 الصلاحية الجديدة الخاصة بصفحة المحامي والأرشيف
+  static const String manageLegalAffairs = 'manage_legal_affairs';
+  
   static const List<String> all =[
     viewClients, createClients, editClients, deleteClients,
     viewContracts, createContracts, restructureContracts,

@@ -1,3 +1,4 @@
+// lib/dashboard/view/dashboard_page.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:erp_repository/erp_repository.dart';
@@ -15,6 +16,8 @@ import '../../payments/view/payments_page.dart';
 import '../../schedule/view/schedule_page.dart';
 import '../../settings/view/settings_page.dart';
 import '../../admin/view/admin_page.dart';
+// 🌟 استدعاء شاشة الشؤون القانونية والأرشيف
+import '../../legal/view/legal_affairs_page.dart';
 
 // استدعاء المتحكمات
 import '../../clients/cubit/clients_cubit.dart';
@@ -25,6 +28,8 @@ import '../../schedule/cubit/schedule_cubit.dart';
 import '../../settings/cubit/settings_cubit.dart';
 import '../../home/cubit/home_cubit.dart';
 import '../cubit/dashboard_cubit.dart';
+// 🌟 استدعاء كيوبت الشؤون القانونية
+import '../../legal/cubit/legal_affairs_cubit.dart';
 
 // ==========================================
 // 🧩 كلاس مساعد لتعريف التبويبات بمرونة
@@ -62,6 +67,8 @@ class DashboardPage extends StatelessWidget {
         BlocProvider(create: (_) => PaymentsCubit(repo)..fetchInitialData()),
         BlocProvider(create: (_) => ScheduleCubit(repo)..fetchInitialData()),
         BlocProvider(create: (_) => SettingsCubit(repo)..fetchPrices()),
+        // 🌟 حقن الـ Cubit الخاص بالشؤون القانونية والأرشيف
+        BlocProvider(create: (_) => LegalAffairsCubit(repo)..fetchData()),
       ],
       child: const DashboardView(),
     );
@@ -123,7 +130,20 @@ class DashboardView extends StatelessWidget {
       ));
     }
 
-    // 5. الأقساط والدفعات
+    // ==========================================
+    // 🌟 5. [التبويب الجديد]: الشؤون القانونية والأرشيف
+    // ==========================================
+    if (authState.hasPermission(AppPermissions.manageLegalAffairs)) {
+      availableTabs.add(NavTab(
+        label: 'قانوني/أرشيف',
+        icon: Icons.gavel_outlined,
+        selectedIcon: Icons.gavel,
+        page: const LegalAffairsPage(),
+        onSelected: (ctx) => ctx.read<LegalAffairsCubit>().fetchData(),
+      ));
+    }
+
+    // 6. الأقساط والدفعات
     if (authState.hasPermission(AppPermissions.viewPayments)) {
       availableTabs.add(NavTab(
         label: 'الأقساط',
@@ -134,8 +154,7 @@ class DashboardView extends StatelessWidget {
       ));
     }
 
-    // 6. المراقبة
-    // إذا أردت صلاحية منفصلة للمراقبة، يمكنك إضافتها، حالياً سنربطها برؤية الأقساط
+    // 7. المراقبة
     if (authState.hasPermission(AppPermissions.viewPayments)) {
       availableTabs.add(NavTab(
         label: 'المراقبة',
@@ -146,7 +165,7 @@ class DashboardView extends StatelessWidget {
       ));
     }
 
-    // 7. الإعدادات
+    // 8. الإعدادات
     if (authState.hasPermission(AppPermissions.viewPrices)) {
       availableTabs.add(NavTab(
         label: 'الإعدادات',
@@ -157,7 +176,7 @@ class DashboardView extends StatelessWidget {
       ));
     }
 
-    // 8. لوحة تحكم الإدارة (خاصة بالـ Super Admin فقط)
+    // 9. لوحة تحكم الإدارة (خاصة بالـ Super Admin فقط)
     if (authState.isSystemAdmin) {
       availableTabs.add(NavTab(
         label: 'الإدارة',
@@ -170,10 +189,10 @@ class DashboardView extends StatelessWidget {
       ));
     }
 
-    // حماية إضافية: إذا كان الـ index المحفوظ أكبر من عدد التبويبات المتاحة (بسبب مزامنة حذفت صلاحية)
+    // حماية إضافية: إذا كان الـ index المحفوظ أكبر من عدد التبويبات المتاحة
     int safeIndex = selectedIndex;
     if (safeIndex >= availableTabs.length) {
-      safeIndex = 0; // إرجاعه للرئيسية لحمايته من الانهيار
+      safeIndex = 0; 
     }
 
     return Scaffold(
@@ -183,7 +202,6 @@ class DashboardView extends StatelessWidget {
             selectedIndex: safeIndex,
             onDestinationSelected: (index) {
               context.read<DashboardCubit>().changeTab(index);
-              // تنفيذ دالة التحديث الخاصة بالتبويب المختار ديناميكياً
               availableTabs[index].onSelected(context);
             },
             labelType: NavigationRailLabelType.all,
@@ -193,7 +211,6 @@ class DashboardView extends StatelessWidget {
             selectedIconTheme: const IconThemeData(color: Colors.white, size: 30),
             selectedLabelTextStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
             
-            // توليد الأزرار ديناميكياً
             destinations: availableTabs.map((tab) => NavigationRailDestination(
               icon: Icon(tab.icon),
               selectedIcon: Icon(tab.selectedIcon),
@@ -208,7 +225,6 @@ class DashboardView extends StatelessWidget {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children:[
-                      // إظهار اسم أو دور المستخدم (لمسة جمالية للمحاسبين)
                       Text(
                         authState.roleName ?? '',
                         style: const TextStyle(color: Colors.amber, fontWeight: FontWeight.bold, fontSize: 12),
@@ -232,11 +248,7 @@ class DashboardView extends StatelessWidget {
                                 backgroundColor: resultMessage.contains('بنجاح') ? Colors.green : Colors.red,
                               ),
                             );
-                            
-                            // تحديث صلاحيات هذا المستخدم من الداتابيز المحلية التي تم تحديثها للتو
                             context.read<AuthCubit>().checkSession();
-                            
-                            // تحديث التبويب الحالي
                             availableTabs[safeIndex].onSelected(context);
                           }
                         },
@@ -258,7 +270,6 @@ class DashboardView extends StatelessWidget {
                                   style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
                                   onPressed: () async {
                                     Navigator.pop(ctx);
-                                    // تسجيل الخروج عبر AuthCubit وهو من سيطردك للشاشة الأولى
                                     await context.read<AuthCubit>().logout();
                                   },
                                   child: const Text('تأكيد الخروج'),
@@ -280,7 +291,6 @@ class DashboardView extends StatelessWidget {
           Expanded(
             child: IndexedStack(
               index: safeIndex,
-              // توليد الشاشات ديناميكياً
               children: availableTabs.map((tab) => tab.page).toList(),
             ),
           ),
