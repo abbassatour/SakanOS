@@ -49,6 +49,8 @@ class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMix
     AppPermissions.viewRecycleBin: 'رؤية سلة المحذوفات',
     AppPermissions.restoreItems: 'استعادة المحذوفات',
     AppPermissions.hardDeleteItems: 'الحذف النهائي المدمر',
+    
+    AppPermissions.manageLegalAffairs: 'إدارة الشؤون القانونية والأرشيف',
   };
 
   @override
