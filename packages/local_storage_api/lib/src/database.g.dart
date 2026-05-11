@@ -2116,6 +2116,70 @@ class $ContractsTable extends Contracts
     requiredDuringInsert: false,
     defaultValue: const Constant(0.0),
   );
+  static const VerificationMeta _isInitialClearanceSignedMeta =
+      const VerificationMeta('isInitialClearanceSigned');
+  @override
+  late final GeneratedColumn<bool> isInitialClearanceSigned =
+      GeneratedColumn<bool>(
+        'is_initial_clearance_signed',
+        aliasedName,
+        false,
+        type: DriftSqlType.bool,
+        requiredDuringInsert: false,
+        defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("is_initial_clearance_signed" IN (0, 1))',
+        ),
+        defaultValue: const Constant(false),
+      );
+  static const VerificationMeta _clearanceNotesMeta = const VerificationMeta(
+    'clearanceNotes',
+  );
+  @override
+  late final GeneratedColumn<String> clearanceNotes = GeneratedColumn<String>(
+    'clearance_notes',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _isTitleDeedTransferredMeta =
+      const VerificationMeta('isTitleDeedTransferred');
+  @override
+  late final GeneratedColumn<bool> isTitleDeedTransferred =
+      GeneratedColumn<bool>(
+        'is_title_deed_transferred',
+        aliasedName,
+        false,
+        type: DriftSqlType.bool,
+        requiredDuringInsert: false,
+        defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("is_title_deed_transferred" IN (0, 1))',
+        ),
+        defaultValue: const Constant(false),
+      );
+  static const VerificationMeta _titleDeedDateMeta = const VerificationMeta(
+    'titleDeedDate',
+  );
+  @override
+  late final GeneratedColumn<DateTime> titleDeedDate =
+      GeneratedColumn<DateTime>(
+        'title_deed_date',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _titleDeedNotesMeta = const VerificationMeta(
+    'titleDeedNotes',
+  );
+  @override
+  late final GeneratedColumn<String> titleDeedNotes = GeneratedColumn<String>(
+    'title_deed_notes',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _isHandedOverMeta = const VerificationMeta(
     'isHandedOver',
   );
@@ -2359,6 +2423,11 @@ class $ContractsTable extends Contracts
     penaltyPercentage,
     penaltyIntervalMonths,
     downPayment,
+    isInitialClearanceSigned,
+    clearanceNotes,
+    isTitleDeedTransferred,
+    titleDeedDate,
+    titleDeedNotes,
     isHandedOver,
     agreedHandoverDate,
     actualHandoverDate,
@@ -2481,6 +2550,51 @@ class $ContractsTable extends Contracts
         downPayment.isAcceptableOrUnknown(
           data['down_payment']!,
           _downPaymentMeta,
+        ),
+      );
+    }
+    if (data.containsKey('is_initial_clearance_signed')) {
+      context.handle(
+        _isInitialClearanceSignedMeta,
+        isInitialClearanceSigned.isAcceptableOrUnknown(
+          data['is_initial_clearance_signed']!,
+          _isInitialClearanceSignedMeta,
+        ),
+      );
+    }
+    if (data.containsKey('clearance_notes')) {
+      context.handle(
+        _clearanceNotesMeta,
+        clearanceNotes.isAcceptableOrUnknown(
+          data['clearance_notes']!,
+          _clearanceNotesMeta,
+        ),
+      );
+    }
+    if (data.containsKey('is_title_deed_transferred')) {
+      context.handle(
+        _isTitleDeedTransferredMeta,
+        isTitleDeedTransferred.isAcceptableOrUnknown(
+          data['is_title_deed_transferred']!,
+          _isTitleDeedTransferredMeta,
+        ),
+      );
+    }
+    if (data.containsKey('title_deed_date')) {
+      context.handle(
+        _titleDeedDateMeta,
+        titleDeedDate.isAcceptableOrUnknown(
+          data['title_deed_date']!,
+          _titleDeedDateMeta,
+        ),
+      );
+    }
+    if (data.containsKey('title_deed_notes')) {
+      context.handle(
+        _titleDeedNotesMeta,
+        titleDeedNotes.isAcceptableOrUnknown(
+          data['title_deed_notes']!,
+          _titleDeedNotesMeta,
         ),
       );
     }
@@ -2699,6 +2813,26 @@ class $ContractsTable extends Contracts
         DriftSqlType.double,
         data['${effectivePrefix}down_payment'],
       )!,
+      isInitialClearanceSigned: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_initial_clearance_signed'],
+      )!,
+      clearanceNotes: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}clearance_notes'],
+      ),
+      isTitleDeedTransferred: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_title_deed_transferred'],
+      )!,
+      titleDeedDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}title_deed_date'],
+      ),
+      titleDeedNotes: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}title_deed_notes'],
+      ),
       isHandedOver: attachedDatabase.typeMapping.read(
         DriftSqlType.bool,
         data['${effectivePrefix}is_handed_over'],
@@ -2796,6 +2930,11 @@ class Contract extends DataClass implements Insertable<Contract> {
   final double penaltyPercentage;
   final int penaltyIntervalMonths;
   final double downPayment;
+  final bool isInitialClearanceSigned;
+  final String? clearanceNotes;
+  final bool isTitleDeedTransferred;
+  final DateTime? titleDeedDate;
+  final String? titleDeedNotes;
   final bool isHandedOver;
   final DateTime? agreedHandoverDate;
   final DateTime? actualHandoverDate;
@@ -2827,6 +2966,11 @@ class Contract extends DataClass implements Insertable<Contract> {
     required this.penaltyPercentage,
     required this.penaltyIntervalMonths,
     required this.downPayment,
+    required this.isInitialClearanceSigned,
+    this.clearanceNotes,
+    required this.isTitleDeedTransferred,
+    this.titleDeedDate,
+    this.titleDeedNotes,
     required this.isHandedOver,
     this.agreedHandoverDate,
     this.actualHandoverDate,
@@ -2865,6 +3009,19 @@ class Contract extends DataClass implements Insertable<Contract> {
     map['penalty_percentage'] = Variable<double>(penaltyPercentage);
     map['penalty_interval_months'] = Variable<int>(penaltyIntervalMonths);
     map['down_payment'] = Variable<double>(downPayment);
+    map['is_initial_clearance_signed'] = Variable<bool>(
+      isInitialClearanceSigned,
+    );
+    if (!nullToAbsent || clearanceNotes != null) {
+      map['clearance_notes'] = Variable<String>(clearanceNotes);
+    }
+    map['is_title_deed_transferred'] = Variable<bool>(isTitleDeedTransferred);
+    if (!nullToAbsent || titleDeedDate != null) {
+      map['title_deed_date'] = Variable<DateTime>(titleDeedDate);
+    }
+    if (!nullToAbsent || titleDeedNotes != null) {
+      map['title_deed_notes'] = Variable<String>(titleDeedNotes);
+    }
     map['is_handed_over'] = Variable<bool>(isHandedOver);
     if (!nullToAbsent || agreedHandoverDate != null) {
       map['agreed_handover_date'] = Variable<DateTime>(agreedHandoverDate);
@@ -2914,6 +3071,17 @@ class Contract extends DataClass implements Insertable<Contract> {
       penaltyPercentage: Value(penaltyPercentage),
       penaltyIntervalMonths: Value(penaltyIntervalMonths),
       downPayment: Value(downPayment),
+      isInitialClearanceSigned: Value(isInitialClearanceSigned),
+      clearanceNotes: clearanceNotes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(clearanceNotes),
+      isTitleDeedTransferred: Value(isTitleDeedTransferred),
+      titleDeedDate: titleDeedDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(titleDeedDate),
+      titleDeedNotes: titleDeedNotes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(titleDeedNotes),
       isHandedOver: Value(isHandedOver),
       agreedHandoverDate: agreedHandoverDate == null && nullToAbsent
           ? const Value.absent()
@@ -2969,6 +3137,15 @@ class Contract extends DataClass implements Insertable<Contract> {
         json['penaltyIntervalMonths'],
       ),
       downPayment: serializer.fromJson<double>(json['downPayment']),
+      isInitialClearanceSigned: serializer.fromJson<bool>(
+        json['isInitialClearanceSigned'],
+      ),
+      clearanceNotes: serializer.fromJson<String?>(json['clearanceNotes']),
+      isTitleDeedTransferred: serializer.fromJson<bool>(
+        json['isTitleDeedTransferred'],
+      ),
+      titleDeedDate: serializer.fromJson<DateTime?>(json['titleDeedDate']),
+      titleDeedNotes: serializer.fromJson<String?>(json['titleDeedNotes']),
       isHandedOver: serializer.fromJson<bool>(json['isHandedOver']),
       agreedHandoverDate: serializer.fromJson<DateTime?>(
         json['agreedHandoverDate'],
@@ -3013,6 +3190,13 @@ class Contract extends DataClass implements Insertable<Contract> {
       'penaltyPercentage': serializer.toJson<double>(penaltyPercentage),
       'penaltyIntervalMonths': serializer.toJson<int>(penaltyIntervalMonths),
       'downPayment': serializer.toJson<double>(downPayment),
+      'isInitialClearanceSigned': serializer.toJson<bool>(
+        isInitialClearanceSigned,
+      ),
+      'clearanceNotes': serializer.toJson<String?>(clearanceNotes),
+      'isTitleDeedTransferred': serializer.toJson<bool>(isTitleDeedTransferred),
+      'titleDeedDate': serializer.toJson<DateTime?>(titleDeedDate),
+      'titleDeedNotes': serializer.toJson<String?>(titleDeedNotes),
       'isHandedOver': serializer.toJson<bool>(isHandedOver),
       'agreedHandoverDate': serializer.toJson<DateTime?>(agreedHandoverDate),
       'actualHandoverDate': serializer.toJson<DateTime?>(actualHandoverDate),
@@ -3047,6 +3231,11 @@ class Contract extends DataClass implements Insertable<Contract> {
     double? penaltyPercentage,
     int? penaltyIntervalMonths,
     double? downPayment,
+    bool? isInitialClearanceSigned,
+    Value<String?> clearanceNotes = const Value.absent(),
+    bool? isTitleDeedTransferred,
+    Value<DateTime?> titleDeedDate = const Value.absent(),
+    Value<String?> titleDeedNotes = const Value.absent(),
     bool? isHandedOver,
     Value<DateTime?> agreedHandoverDate = const Value.absent(),
     Value<DateTime?> actualHandoverDate = const Value.absent(),
@@ -3079,6 +3268,19 @@ class Contract extends DataClass implements Insertable<Contract> {
     penaltyPercentage: penaltyPercentage ?? this.penaltyPercentage,
     penaltyIntervalMonths: penaltyIntervalMonths ?? this.penaltyIntervalMonths,
     downPayment: downPayment ?? this.downPayment,
+    isInitialClearanceSigned:
+        isInitialClearanceSigned ?? this.isInitialClearanceSigned,
+    clearanceNotes: clearanceNotes.present
+        ? clearanceNotes.value
+        : this.clearanceNotes,
+    isTitleDeedTransferred:
+        isTitleDeedTransferred ?? this.isTitleDeedTransferred,
+    titleDeedDate: titleDeedDate.present
+        ? titleDeedDate.value
+        : this.titleDeedDate,
+    titleDeedNotes: titleDeedNotes.present
+        ? titleDeedNotes.value
+        : this.titleDeedNotes,
     isHandedOver: isHandedOver ?? this.isHandedOver,
     agreedHandoverDate: agreedHandoverDate.present
         ? agreedHandoverDate.value
@@ -3140,6 +3342,21 @@ class Contract extends DataClass implements Insertable<Contract> {
       downPayment: data.downPayment.present
           ? data.downPayment.value
           : this.downPayment,
+      isInitialClearanceSigned: data.isInitialClearanceSigned.present
+          ? data.isInitialClearanceSigned.value
+          : this.isInitialClearanceSigned,
+      clearanceNotes: data.clearanceNotes.present
+          ? data.clearanceNotes.value
+          : this.clearanceNotes,
+      isTitleDeedTransferred: data.isTitleDeedTransferred.present
+          ? data.isTitleDeedTransferred.value
+          : this.isTitleDeedTransferred,
+      titleDeedDate: data.titleDeedDate.present
+          ? data.titleDeedDate.value
+          : this.titleDeedDate,
+      titleDeedNotes: data.titleDeedNotes.present
+          ? data.titleDeedNotes.value
+          : this.titleDeedNotes,
       isHandedOver: data.isHandedOver.present
           ? data.isHandedOver.value
           : this.isHandedOver,
@@ -3204,6 +3421,11 @@ class Contract extends DataClass implements Insertable<Contract> {
           ..write('penaltyPercentage: $penaltyPercentage, ')
           ..write('penaltyIntervalMonths: $penaltyIntervalMonths, ')
           ..write('downPayment: $downPayment, ')
+          ..write('isInitialClearanceSigned: $isInitialClearanceSigned, ')
+          ..write('clearanceNotes: $clearanceNotes, ')
+          ..write('isTitleDeedTransferred: $isTitleDeedTransferred, ')
+          ..write('titleDeedDate: $titleDeedDate, ')
+          ..write('titleDeedNotes: $titleDeedNotes, ')
           ..write('isHandedOver: $isHandedOver, ')
           ..write('agreedHandoverDate: $agreedHandoverDate, ')
           ..write('actualHandoverDate: $actualHandoverDate, ')
@@ -3240,6 +3462,11 @@ class Contract extends DataClass implements Insertable<Contract> {
     penaltyPercentage,
     penaltyIntervalMonths,
     downPayment,
+    isInitialClearanceSigned,
+    clearanceNotes,
+    isTitleDeedTransferred,
+    titleDeedDate,
+    titleDeedNotes,
     isHandedOver,
     agreedHandoverDate,
     actualHandoverDate,
@@ -3275,6 +3502,11 @@ class Contract extends DataClass implements Insertable<Contract> {
           other.penaltyPercentage == this.penaltyPercentage &&
           other.penaltyIntervalMonths == this.penaltyIntervalMonths &&
           other.downPayment == this.downPayment &&
+          other.isInitialClearanceSigned == this.isInitialClearanceSigned &&
+          other.clearanceNotes == this.clearanceNotes &&
+          other.isTitleDeedTransferred == this.isTitleDeedTransferred &&
+          other.titleDeedDate == this.titleDeedDate &&
+          other.titleDeedNotes == this.titleDeedNotes &&
           other.isHandedOver == this.isHandedOver &&
           other.agreedHandoverDate == this.agreedHandoverDate &&
           other.actualHandoverDate == this.actualHandoverDate &&
@@ -3308,6 +3540,11 @@ class ContractsCompanion extends UpdateCompanion<Contract> {
   final Value<double> penaltyPercentage;
   final Value<int> penaltyIntervalMonths;
   final Value<double> downPayment;
+  final Value<bool> isInitialClearanceSigned;
+  final Value<String?> clearanceNotes;
+  final Value<bool> isTitleDeedTransferred;
+  final Value<DateTime?> titleDeedDate;
+  final Value<String?> titleDeedNotes;
   final Value<bool> isHandedOver;
   final Value<DateTime?> agreedHandoverDate;
   final Value<DateTime?> actualHandoverDate;
@@ -3340,6 +3577,11 @@ class ContractsCompanion extends UpdateCompanion<Contract> {
     this.penaltyPercentage = const Value.absent(),
     this.penaltyIntervalMonths = const Value.absent(),
     this.downPayment = const Value.absent(),
+    this.isInitialClearanceSigned = const Value.absent(),
+    this.clearanceNotes = const Value.absent(),
+    this.isTitleDeedTransferred = const Value.absent(),
+    this.titleDeedDate = const Value.absent(),
+    this.titleDeedNotes = const Value.absent(),
     this.isHandedOver = const Value.absent(),
     this.agreedHandoverDate = const Value.absent(),
     this.actualHandoverDate = const Value.absent(),
@@ -3373,6 +3615,11 @@ class ContractsCompanion extends UpdateCompanion<Contract> {
     this.penaltyPercentage = const Value.absent(),
     this.penaltyIntervalMonths = const Value.absent(),
     this.downPayment = const Value.absent(),
+    this.isInitialClearanceSigned = const Value.absent(),
+    this.clearanceNotes = const Value.absent(),
+    this.isTitleDeedTransferred = const Value.absent(),
+    this.titleDeedDate = const Value.absent(),
+    this.titleDeedNotes = const Value.absent(),
     this.isHandedOver = const Value.absent(),
     this.agreedHandoverDate = const Value.absent(),
     this.actualHandoverDate = const Value.absent(),
@@ -3411,6 +3658,11 @@ class ContractsCompanion extends UpdateCompanion<Contract> {
     Expression<double>? penaltyPercentage,
     Expression<int>? penaltyIntervalMonths,
     Expression<double>? downPayment,
+    Expression<bool>? isInitialClearanceSigned,
+    Expression<String>? clearanceNotes,
+    Expression<bool>? isTitleDeedTransferred,
+    Expression<DateTime>? titleDeedDate,
+    Expression<String>? titleDeedNotes,
     Expression<bool>? isHandedOver,
     Expression<DateTime>? agreedHandoverDate,
     Expression<DateTime>? actualHandoverDate,
@@ -3446,6 +3698,13 @@ class ContractsCompanion extends UpdateCompanion<Contract> {
       if (penaltyIntervalMonths != null)
         'penalty_interval_months': penaltyIntervalMonths,
       if (downPayment != null) 'down_payment': downPayment,
+      if (isInitialClearanceSigned != null)
+        'is_initial_clearance_signed': isInitialClearanceSigned,
+      if (clearanceNotes != null) 'clearance_notes': clearanceNotes,
+      if (isTitleDeedTransferred != null)
+        'is_title_deed_transferred': isTitleDeedTransferred,
+      if (titleDeedDate != null) 'title_deed_date': titleDeedDate,
+      if (titleDeedNotes != null) 'title_deed_notes': titleDeedNotes,
       if (isHandedOver != null) 'is_handed_over': isHandedOver,
       if (agreedHandoverDate != null)
         'agreed_handover_date': agreedHandoverDate,
@@ -3484,6 +3743,11 @@ class ContractsCompanion extends UpdateCompanion<Contract> {
     Value<double>? penaltyPercentage,
     Value<int>? penaltyIntervalMonths,
     Value<double>? downPayment,
+    Value<bool>? isInitialClearanceSigned,
+    Value<String?>? clearanceNotes,
+    Value<bool>? isTitleDeedTransferred,
+    Value<DateTime?>? titleDeedDate,
+    Value<String?>? titleDeedNotes,
     Value<bool>? isHandedOver,
     Value<DateTime?>? agreedHandoverDate,
     Value<DateTime?>? actualHandoverDate,
@@ -3519,6 +3783,13 @@ class ContractsCompanion extends UpdateCompanion<Contract> {
       penaltyIntervalMonths:
           penaltyIntervalMonths ?? this.penaltyIntervalMonths,
       downPayment: downPayment ?? this.downPayment,
+      isInitialClearanceSigned:
+          isInitialClearanceSigned ?? this.isInitialClearanceSigned,
+      clearanceNotes: clearanceNotes ?? this.clearanceNotes,
+      isTitleDeedTransferred:
+          isTitleDeedTransferred ?? this.isTitleDeedTransferred,
+      titleDeedDate: titleDeedDate ?? this.titleDeedDate,
+      titleDeedNotes: titleDeedNotes ?? this.titleDeedNotes,
       isHandedOver: isHandedOver ?? this.isHandedOver,
       agreedHandoverDate: agreedHandoverDate ?? this.agreedHandoverDate,
       actualHandoverDate: actualHandoverDate ?? this.actualHandoverDate,
@@ -3581,6 +3852,25 @@ class ContractsCompanion extends UpdateCompanion<Contract> {
     }
     if (downPayment.present) {
       map['down_payment'] = Variable<double>(downPayment.value);
+    }
+    if (isInitialClearanceSigned.present) {
+      map['is_initial_clearance_signed'] = Variable<bool>(
+        isInitialClearanceSigned.value,
+      );
+    }
+    if (clearanceNotes.present) {
+      map['clearance_notes'] = Variable<String>(clearanceNotes.value);
+    }
+    if (isTitleDeedTransferred.present) {
+      map['is_title_deed_transferred'] = Variable<bool>(
+        isTitleDeedTransferred.value,
+      );
+    }
+    if (titleDeedDate.present) {
+      map['title_deed_date'] = Variable<DateTime>(titleDeedDate.value);
+    }
+    if (titleDeedNotes.present) {
+      map['title_deed_notes'] = Variable<String>(titleDeedNotes.value);
     }
     if (isHandedOver.present) {
       map['is_handed_over'] = Variable<bool>(isHandedOver.value);
@@ -3665,6 +3955,11 @@ class ContractsCompanion extends UpdateCompanion<Contract> {
           ..write('penaltyPercentage: $penaltyPercentage, ')
           ..write('penaltyIntervalMonths: $penaltyIntervalMonths, ')
           ..write('downPayment: $downPayment, ')
+          ..write('isInitialClearanceSigned: $isInitialClearanceSigned, ')
+          ..write('clearanceNotes: $clearanceNotes, ')
+          ..write('isTitleDeedTransferred: $isTitleDeedTransferred, ')
+          ..write('titleDeedDate: $titleDeedDate, ')
+          ..write('titleDeedNotes: $titleDeedNotes, ')
           ..write('isHandedOver: $isHandedOver, ')
           ..write('agreedHandoverDate: $agreedHandoverDate, ')
           ..write('actualHandoverDate: $actualHandoverDate, ')
@@ -8676,6 +8971,11 @@ typedef $$ContractsTableCreateCompanionBuilder =
       Value<double> penaltyPercentage,
       Value<int> penaltyIntervalMonths,
       Value<double> downPayment,
+      Value<bool> isInitialClearanceSigned,
+      Value<String?> clearanceNotes,
+      Value<bool> isTitleDeedTransferred,
+      Value<DateTime?> titleDeedDate,
+      Value<String?> titleDeedNotes,
       Value<bool> isHandedOver,
       Value<DateTime?> agreedHandoverDate,
       Value<DateTime?> actualHandoverDate,
@@ -8710,6 +9010,11 @@ typedef $$ContractsTableUpdateCompanionBuilder =
       Value<double> penaltyPercentage,
       Value<int> penaltyIntervalMonths,
       Value<double> downPayment,
+      Value<bool> isInitialClearanceSigned,
+      Value<String?> clearanceNotes,
+      Value<bool> isTitleDeedTransferred,
+      Value<DateTime?> titleDeedDate,
+      Value<String?> titleDeedNotes,
       Value<bool> isHandedOver,
       Value<DateTime?> agreedHandoverDate,
       Value<DateTime?> actualHandoverDate,
@@ -8873,6 +9178,31 @@ class $$ContractsTableFilterComposer
 
   ColumnFilters<double> get downPayment => $composableBuilder(
     column: $table.downPayment,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isInitialClearanceSigned => $composableBuilder(
+    column: $table.isInitialClearanceSigned,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get clearanceNotes => $composableBuilder(
+    column: $table.clearanceNotes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isTitleDeedTransferred => $composableBuilder(
+    column: $table.isTitleDeedTransferred,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get titleDeedDate => $composableBuilder(
+    column: $table.titleDeedDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get titleDeedNotes => $composableBuilder(
+    column: $table.titleDeedNotes,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -9122,6 +9452,31 @@ class $$ContractsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<bool> get isInitialClearanceSigned => $composableBuilder(
+    column: $table.isInitialClearanceSigned,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get clearanceNotes => $composableBuilder(
+    column: $table.clearanceNotes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isTitleDeedTransferred => $composableBuilder(
+    column: $table.isTitleDeedTransferred,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get titleDeedDate => $composableBuilder(
+    column: $table.titleDeedDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get titleDeedNotes => $composableBuilder(
+    column: $table.titleDeedNotes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<bool> get isHandedOver => $composableBuilder(
     column: $table.isHandedOver,
     builder: (column) => ColumnOrderings(column),
@@ -9311,6 +9666,31 @@ class $$ContractsTableAnnotationComposer
 
   GeneratedColumn<double> get downPayment => $composableBuilder(
     column: $table.downPayment,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get isInitialClearanceSigned => $composableBuilder(
+    column: $table.isInitialClearanceSigned,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get clearanceNotes => $composableBuilder(
+    column: $table.clearanceNotes,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get isTitleDeedTransferred => $composableBuilder(
+    column: $table.isTitleDeedTransferred,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get titleDeedDate => $composableBuilder(
+    column: $table.titleDeedDate,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get titleDeedNotes => $composableBuilder(
+    column: $table.titleDeedNotes,
     builder: (column) => column,
   );
 
@@ -9541,6 +9921,11 @@ class $$ContractsTableTableManager
                 Value<double> penaltyPercentage = const Value.absent(),
                 Value<int> penaltyIntervalMonths = const Value.absent(),
                 Value<double> downPayment = const Value.absent(),
+                Value<bool> isInitialClearanceSigned = const Value.absent(),
+                Value<String?> clearanceNotes = const Value.absent(),
+                Value<bool> isTitleDeedTransferred = const Value.absent(),
+                Value<DateTime?> titleDeedDate = const Value.absent(),
+                Value<String?> titleDeedNotes = const Value.absent(),
                 Value<bool> isHandedOver = const Value.absent(),
                 Value<DateTime?> agreedHandoverDate = const Value.absent(),
                 Value<DateTime?> actualHandoverDate = const Value.absent(),
@@ -9573,6 +9958,11 @@ class $$ContractsTableTableManager
                 penaltyPercentage: penaltyPercentage,
                 penaltyIntervalMonths: penaltyIntervalMonths,
                 downPayment: downPayment,
+                isInitialClearanceSigned: isInitialClearanceSigned,
+                clearanceNotes: clearanceNotes,
+                isTitleDeedTransferred: isTitleDeedTransferred,
+                titleDeedDate: titleDeedDate,
+                titleDeedNotes: titleDeedNotes,
                 isHandedOver: isHandedOver,
                 agreedHandoverDate: agreedHandoverDate,
                 actualHandoverDate: actualHandoverDate,
@@ -9607,6 +9997,11 @@ class $$ContractsTableTableManager
                 Value<double> penaltyPercentage = const Value.absent(),
                 Value<int> penaltyIntervalMonths = const Value.absent(),
                 Value<double> downPayment = const Value.absent(),
+                Value<bool> isInitialClearanceSigned = const Value.absent(),
+                Value<String?> clearanceNotes = const Value.absent(),
+                Value<bool> isTitleDeedTransferred = const Value.absent(),
+                Value<DateTime?> titleDeedDate = const Value.absent(),
+                Value<String?> titleDeedNotes = const Value.absent(),
                 Value<bool> isHandedOver = const Value.absent(),
                 Value<DateTime?> agreedHandoverDate = const Value.absent(),
                 Value<DateTime?> actualHandoverDate = const Value.absent(),
@@ -9639,6 +10034,11 @@ class $$ContractsTableTableManager
                 penaltyPercentage: penaltyPercentage,
                 penaltyIntervalMonths: penaltyIntervalMonths,
                 downPayment: downPayment,
+                isInitialClearanceSigned: isInitialClearanceSigned,
+                clearanceNotes: clearanceNotes,
+                isTitleDeedTransferred: isTitleDeedTransferred,
+                titleDeedDate: titleDeedDate,
+                titleDeedNotes: titleDeedNotes,
                 isHandedOver: isHandedOver,
                 agreedHandoverDate: agreedHandoverDate,
                 actualHandoverDate: actualHandoverDate,
