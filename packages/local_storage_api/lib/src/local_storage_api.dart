@@ -52,6 +52,11 @@ class LocalStorageApi {
   Future<void> cancelContractHandover(String contractId, String? apartmentId, String userId) => 
       _db.cancelContractHandover(contractId, apartmentId, userId);
       
+
+      // 🌟 دالة إغلاق العقد
+  Future<int> toggleContractCompletion(String contractId, bool isCompleted, String userId) => 
+      _db.toggleContractCompletion(contractId, isCompleted, userId);
+      
   // ==========================================
   // 💰 الأقساط
   // ==========================================
