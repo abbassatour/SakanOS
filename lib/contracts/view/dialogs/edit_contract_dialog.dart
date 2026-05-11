@@ -25,15 +25,19 @@ void showEditContractDialog(BuildContext parentContext, Contract contract) {
   bool isHandoverFormVisible = contract.isHandedOver; 
   bool isAllocated = contract.contractType == 'متخصص';
 
-  // 🌟[الإضافات الجديدة]: متحكمات الغرامة المرنة لتعديلها
-  bool isPenaltyActive = contract.isPenaltyActive ?? false; // استخدمنا ?? false للحماية من الـ null
+  // متحكمات الغرامة المرنة
+  bool isPenaltyActive = contract.isPenaltyActive ?? false; 
   final penaltyPctCtrl = TextEditingController(text: (contract.penaltyPercentage ?? 0).toString());
   final penaltyIntervalCtrl = TextEditingController(text: (contract.penaltyIntervalMonths ?? 1).toString());
 
+  // 🌟 [حالة العقد: هل هو مغلق/مكتمل؟]
+  final bool isCompleted = contract.isCompleted;
+
   // جلب حالة الصلاحيات للمستخدم الحالي
   final authState = parentContext.read<AuthCubit>().state;
-  final bool canEdit = authState.hasPermission(AppPermissions.createContracts); 
   final bool isSuperAdmin = authState.isSystemAdmin;
+  // 🌟 لا يُسمح بالتعديل أبداً إذا كان العقد مكتملاً (إلا للمدير لفتحه)
+  final bool canEdit = authState.hasPermission(AppPermissions.createContracts) && !isCompleted; 
 
   showDialog(
     context: parentContext,
@@ -41,7 +45,29 @@ void showEditContractDialog(BuildContext parentContext, Contract contract) {
       return StatefulBuilder(
         builder: (context, setState) {
           return AlertDialog(
-            title: const Text('إدارة وتعديل تفاصيل العقد', style: TextStyle(color: Colors.blue)),
+            title: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children:[
+                const Text('إدارة وتعديل تفاصيل العقد', style: TextStyle(color: Colors.blue)),
+                // 🌟 إظهار شارة للمدير إذا كان العقد مغلقاً
+                if (isCompleted)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.green.shade100,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.green.shade400)
+                    ),
+                    child: Row(
+                      children:[
+                        Icon(Icons.lock, size: 16, color: Colors.green.shade800),
+                        const SizedBox(width: 4),
+                        Text('مكتمل ومغلق', style: TextStyle(color: Colors.green.shade800, fontWeight: FontWeight.bold, fontSize: 12)),
+                      ],
+                    ),
+                  )
+              ],
+            ),
             content: SizedBox(
               width: 500, 
               child: SingleChildScrollView(
@@ -49,22 +75,38 @@ void showEditContractDialog(BuildContext parentContext, Contract contract) {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children:[
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      color: Colors.amber.shade50,
-                      child: const Row(
-                        children:[
-                          Icon(Icons.info_outline, color: Colors.brown, size: 20),
-                          SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              'لا يمكن تغيير العميل، العقار، أو سعر المتر بعد التوقيع. يمكنك فقط تحديث التفاصيل الإدارية أو ملف العقد.',
-                              style: TextStyle(color: Colors.brown, fontSize: 13),
+                    // 🌟 رسالة تنبيه إذا كان العقد مغلقاً
+                    if (isCompleted)
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        margin: const EdgeInsets.only(bottom: 16),
+                        decoration: BoxDecoration(color: Colors.green.shade50, borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.green.shade200)),
+                        child: Row(
+                          children:[
+                            Icon(Icons.verified_user, color: Colors.green.shade700),
+                            const SizedBox(width: 12),
+                            Expanded(child: Text('هذا العقد مكتمل وتم أرشفته. جميع البيانات أصبحت للقراءة فقط لحماية السجلات المالية.', style: TextStyle(color: Colors.green.shade800, fontWeight: FontWeight.w600))),
+                          ],
+                        ),
+                      )
+                    else
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        color: Colors.amber.shade50,
+                        child: const Row(
+                          children:[
+                            Icon(Icons.info_outline, color: Colors.brown, size: 20),
+                            SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                'لا يمكن تغيير العميل، العقار، أو سعر المتر بعد التوقيع. يمكنك فقط تحديث التفاصيل الإدارية أو ملف العقد.',
+                                style: TextStyle(color: Colors.brown, fontSize: 13),
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
+                    
                     const SizedBox(height: 16),
 
                     // ==========================================
@@ -182,13 +224,13 @@ void showEditContractDialog(BuildContext parentContext, Contract contract) {
                                       child: InputDecorator(
                                         decoration: InputDecoration(
                                           labelText: 'تاريخ التسليم الفعلي *',
-                                          border: const OutlineInputBorder(), filled: true, fillColor: Colors.white,
-                                          prefixIcon: const Icon(Icons.calendar_today, color: Colors.teal),
+                                          border: const OutlineInputBorder(), filled: true, fillColor: canEdit ? Colors.white : Colors.grey.shade100,
+                                          prefixIcon: Icon(Icons.calendar_today, color: canEdit ? Colors.teal : Colors.grey),
                                           errorText: actualHandoverDate == null ? 'مطلوب' : null,
                                         ),
                                         child: Text(
                                           actualHandoverDate != null ? '${actualHandoverDate!.year}/${actualHandoverDate!.month}/${actualHandoverDate!.day}' : 'حدد التاريخ',
-                                          style: TextStyle(color: actualHandoverDate != null ? Colors.black : Colors.red, fontWeight: FontWeight.bold),
+                                          style: TextStyle(color: actualHandoverDate != null ? (canEdit ? Colors.black : Colors.grey) : Colors.red, fontWeight: FontWeight.bold),
                                         ),
                                       ),
                                     ),
@@ -202,44 +244,45 @@ void showEditContractDialog(BuildContext parentContext, Contract contract) {
                               ),
                               const SizedBox(height: 12),
                               
-                              SizedBox(
-                                width: double.infinity,
-                                child: ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: contract.isHandedOver ? Colors.orange : Colors.teal, 
-                                    foregroundColor: Colors.white,
-                                    padding: const EdgeInsets.symmetric(vertical: 12)
-                                  ),
-                                  onPressed: canEdit ? () async {
-                                    if (actualHandoverDate == null) {
-                                      ScaffoldMessenger.of(parentContext).showSnackBar(const SnackBar(content: Text('يجب تحديد تاريخ التسليم الفعلي!'), backgroundColor: Colors.red));
-                                      return;
-                                    }
-                                    
-                                    bool isAuthorized = await showVerifyPinDialog(parentContext);
-                                    if (!isAuthorized) return;
-
-                                    if(parentContext.mounted) {
-                                      ScaffoldMessenger.of(parentContext).showSnackBar(const SnackBar(content: Text('جاري توثيق التسليم... ⏳'), backgroundColor: Colors.teal));
-                                      
-                                      await parentContext.read<ContractsCubit>().markContractAsHandedOver(
-                                        contractId: contract.id,
-                                        actualHandoverDate: actualHandoverDate!,
-                                        notes: handoverNotesController.text,
-                                      );
-                                      
-                                      if(parentContext.mounted) {
-                                        parentContext.read<BuildingsCubit>().loadData();
-                                        ScaffoldMessenger.of(parentContext).showSnackBar(const SnackBar(content: Text('تم توثيق الاستلام بنجاح! ✅'), backgroundColor: Colors.green));
-                                        Navigator.pop(dialogContext); 
+                              if (canEdit) // إخفاء زر التأكيد إذا كان العقد مغلقاً
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: contract.isHandedOver ? Colors.orange : Colors.teal, 
+                                      foregroundColor: Colors.white,
+                                      padding: const EdgeInsets.symmetric(vertical: 12)
+                                    ),
+                                    onPressed: () async {
+                                      if (actualHandoverDate == null) {
+                                        ScaffoldMessenger.of(parentContext).showSnackBar(const SnackBar(content: Text('يجب تحديد تاريخ التسليم الفعلي!'), backgroundColor: Colors.red));
+                                        return;
                                       }
-                                    }
-                                  } : null,
-                                  child: Text(contract.isHandedOver ? 'تحديث بيانات الاستلام' : 'تأكيد وحفظ الاستلام'),
+                                      
+                                      bool isAuthorized = await showVerifyPinDialog(parentContext);
+                                      if (!isAuthorized) return;
+
+                                      if(parentContext.mounted) {
+                                        ScaffoldMessenger.of(parentContext).showSnackBar(const SnackBar(content: Text('جاري توثيق التسليم... ⏳'), backgroundColor: Colors.teal));
+                                        
+                                        await parentContext.read<ContractsCubit>().markContractAsHandedOver(
+                                          contractId: contract.id,
+                                          actualHandoverDate: actualHandoverDate!,
+                                          notes: handoverNotesController.text,
+                                        );
+                                        
+                                        if(parentContext.mounted) {
+                                          parentContext.read<BuildingsCubit>().loadData();
+                                          ScaffoldMessenger.of(parentContext).showSnackBar(const SnackBar(content: Text('تم توثيق الاستلام بنجاح! ✅'), backgroundColor: Colors.green));
+                                          Navigator.pop(dialogContext); 
+                                        }
+                                      }
+                                    },
+                                    child: Text(contract.isHandedOver ? 'تحديث بيانات الاستلام' : 'تأكيد وحفظ الاستلام'),
+                                  ),
                                 ),
-                              ),
                               
-                              if (contract.isHandedOver) ...[
+                              if (contract.isHandedOver && canEdit) ...[
                                 const SizedBox(height: 8),
                                 SizedBox(
                                   width: double.infinity,
@@ -251,7 +294,7 @@ void showEditContractDialog(BuildContext parentContext, Contract contract) {
                                     ),
                                     icon: const Icon(Icons.cancel_presentation),
                                     label: const Text('إلغاء التسليم (تراجع عن الإجراء)'),
-                                    onPressed: canEdit ? () async {
+                                    onPressed: () async {
                                       bool isAuthorized = await showVerifyPinDialog(parentContext);
                                       if (!isAuthorized) return;
 
@@ -266,7 +309,7 @@ void showEditContractDialog(BuildContext parentContext, Contract contract) {
                                           Navigator.pop(dialogContext); 
                                         }
                                       }
-                                    } : null,
+                                    },
                                   ),
                                 ),
                               ]
@@ -305,7 +348,7 @@ void showEditContractDialog(BuildContext parentContext, Contract contract) {
                                       controller: penaltyPctCtrl, 
                                       enabled: canEdit,
                                       keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                                      decoration: const InputDecoration(labelText: 'نسبة الغرامة', suffixText: '%', border: OutlineInputBorder(), filled: true, fillColor: Colors.white, prefixIcon: Icon(Icons.percent, color: Colors.deepOrange)),
+                                      decoration: InputDecoration(labelText: 'نسبة الغرامة', suffixText: '%', border: const OutlineInputBorder(), filled: true, fillColor: canEdit ? Colors.white : Colors.grey.shade100, prefixIcon: const Icon(Icons.percent, color: Colors.deepOrange)),
                                     ),
                                   ),
                                   const SizedBox(width: 16),
@@ -314,7 +357,7 @@ void showEditContractDialog(BuildContext parentContext, Contract contract) {
                                       controller: penaltyIntervalCtrl, 
                                       enabled: canEdit,
                                       keyboardType: TextInputType.number,
-                                      decoration: const InputDecoration(labelText: 'تُطبق كل', suffixText: 'أشهر', border: OutlineInputBorder(), filled: true, fillColor: Colors.white, prefixIcon: Icon(Icons.update, color: Colors.deepOrange)),
+                                      decoration: InputDecoration(labelText: 'تُطبق كل', suffixText: 'أشهر', border: const OutlineInputBorder(), filled: true, fillColor: canEdit ? Colors.white : Colors.grey.shade100, prefixIcon: const Icon(Icons.update, color: Colors.deepOrange)),
                                     ),
                                   ),
                                 ],
@@ -380,13 +423,49 @@ void showEditContractDialog(BuildContext parentContext, Contract contract) {
                         ],
                       ),
                     ),
+
+                    // ==========================================
+                    // 🌟 5. زر إغلاق / أرشفة العقد (للمدير فقط)
+                    // ==========================================
+                    if (isSuperAdmin) ...[
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: isCompleted ? Colors.grey.shade700 : Colors.green.shade700,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 14)
+                          ),
+                          icon: Icon(isCompleted ? Icons.lock_open : Icons.lock),
+                          label: Text(isCompleted ? 'إعادة فتح العقد (إلغاء الأرشفة)' : 'أرشفة وإغلاق العقد (براءة ذمة)'),
+                          onPressed: () async {
+                            bool isAuthorized = await showVerifyPinDialog(parentContext);
+                            if (!isAuthorized) return;
+
+                            if (parentContext.mounted) {
+                              ScaffoldMessenger.of(parentContext).showSnackBar(SnackBar(content: Text(isCompleted ? 'جاري فتح العقد...' : 'جاري إغلاق وأرشفة العقد...')));
+                              await parentContext.read<ContractsCubit>().toggleContractCompletion(
+                                contractId: contract.id, 
+                                isCompleted: !isCompleted // نعكس الحالة
+                              );
+                              if (parentContext.mounted) {
+                                ScaffoldMessenger.of(parentContext).showSnackBar(SnackBar(content: Text('تم تغيير حالة العقد بنجاح!'), backgroundColor: Colors.green));
+                                Navigator.pop(dialogContext);
+                              }
+                            }
+                          },
+                        ),
+                      ),
+                    ],
+
                   ],
                 ),
               ),
             ),
             actionsAlignment: MainAxisAlignment.spaceBetween, 
             actions:[
-              if (isSuperAdmin)
+              if (isSuperAdmin && !isCompleted) // الحذف النهائي غير متاح للعقود المغلقة
                 TextButton.icon(
                   icon: const Icon(Icons.delete_forever, color: Colors.red),
                   label: const Text('إلغاء العقد نهائياً', style: TextStyle(color: Colors.red)),
@@ -409,49 +488,46 @@ void showEditContractDialog(BuildContext parentContext, Contract contract) {
               else
                 const SizedBox.shrink(), 
 
-              // ==========================================
-              // 🌟 زر حفظ التعديلات النصية (مررنا الغرامات هنا)
-              // ==========================================
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children:[
-                  TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('إلغاء')),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(backgroundColor: canEdit ? Colors.blue : Colors.grey.shade300, foregroundColor: canEdit ? Colors.white : Colors.grey.shade600),
-                    onPressed: canEdit 
-                      ? () async {
-                          if (monthsController.text.isNotEmpty && monthlyAmountController.text.isNotEmpty) {
-                            
-                            // 🌟 حماية خفيفة
-                            if (isPenaltyActive && double.tryParse(penaltyPctCtrl.text) == null) {
-                              ScaffoldMessenger.of(dialogContext).showSnackBar(const SnackBar(content: Text('أدخل نسبة غرامة صحيحة!'), backgroundColor: Colors.red));
-                              return;
-                            }
+              // زر حفظ التعديلات النصية (متاح فقط إذا كان يمكنه التعديل)
+              if (canEdit)
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children:[
+                    TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('إلغاء')),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(backgroundColor: Colors.blue, foregroundColor: Colors.white),
+                      onPressed: () async {
+                        if (monthsController.text.isNotEmpty && monthlyAmountController.text.isNotEmpty) {
+                          
+                          if (isPenaltyActive && double.tryParse(penaltyPctCtrl.text) == null) {
+                            ScaffoldMessenger.of(dialogContext).showSnackBar(const SnackBar(content: Text('أدخل نسبة غرامة صحيحة!'), backgroundColor: Colors.red));
+                            return;
+                          }
 
-                            Navigator.pop(dialogContext); 
-                            bool isAuthorized = await showVerifyPinDialog(parentContext);
-                            if (isAuthorized && parentContext.mounted) {
-                              parentContext.read<ContractsCubit>().updateContract(
-                                id: contract.id,
-                                details: detailsController.text,
-                                guarantorName: guarantorController.text.isEmpty ? 'بدون كفيل' : guarantorController.text,
-                                installmentsCount: int.parse(monthsController.text), 
-                                agreedMonthlyAmount: double.parse(monthlyAmountController.text), 
-                                contractDate: selectedDate,
+                          Navigator.pop(dialogContext); 
+                          bool isAuthorized = await showVerifyPinDialog(parentContext);
+                          if (isAuthorized && parentContext.mounted) {
+                            parentContext.read<ContractsCubit>().updateContract(
+                              id: contract.id,
+                              details: detailsController.text,
+                              guarantorName: guarantorController.text.isEmpty ? 'بدون كفيل' : guarantorController.text,
+                              installmentsCount: int.parse(monthsController.text), 
+                              agreedMonthlyAmount: double.parse(monthlyAmountController.text), 
+                              contractDate: selectedDate,
 
-                                // 🌟 حقن وتمرير بيانات الغرامة
-                                isPenaltyActive: isAllocated ? isPenaltyActive : false,
-                                penaltyPercentage: isAllocated && isPenaltyActive ? (double.tryParse(penaltyPctCtrl.text) ?? 0.0) : 0.0,
-                                penaltyIntervalMonths: isAllocated && isPenaltyActive ? (int.tryParse(penaltyIntervalCtrl.text) ?? 1) : 1,
-                              );
-                            }
+                              isPenaltyActive: isAllocated ? isPenaltyActive : false,
+                              penaltyPercentage: isAllocated && isPenaltyActive ? (double.tryParse(penaltyPctCtrl.text) ?? 0.0) : 0.0,
+                              penaltyIntervalMonths: isAllocated && isPenaltyActive ? (int.tryParse(penaltyIntervalCtrl.text) ?? 1) : 1,
+                            );
                           }
                         }
-                      : null,
-                    child: const Text('حفظ التعديلات النصية'),
-                  ),
-                ],
-              )
+                      },
+                      child: const Text('حفظ التعديلات النصية'),
+                    ),
+                  ],
+                )
+              else
+                TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('إغلاق')),
             ],
           );
         }
