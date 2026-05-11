@@ -675,6 +675,32 @@ class ErpRepository {
     await syncPendingData(); // الرفع فوراً للسحابة
   }
 
+  // ==========================================
+  // 🌟 الصق الدالتين الجديدتين هنا بالضبط 🌟
+  // ==========================================
+
+  // ==========================================
+  // ✍️ توثيق براءة الذمة الأولية
+  // ==========================================
+  Future<void> signInitialClearance({required String contractId, required bool isSigned, String? notes}) async {
+    final String? safeUserId = currentUserId;
+    if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
+
+    await _localApi.signInitialClearance(contractId, isSigned, notes, safeUserId);
+    await syncPendingData(); 
+  }
+
+  // ==========================================
+  // 🏛️ توثيق نقل الملكية (الفراغ)
+  // ==========================================
+  Future<void> transferTitleDeed({required String contractId, required bool isTransferred, DateTime? transferDate, String? notes}) async {
+    final String? safeUserId = currentUserId;
+    if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
+
+    await _localApi.transferTitleDeed(contractId, isTransferred, transferDate, notes, safeUserId);
+    await syncPendingData(); 
+  }
+
 
   // ==========================================
   // 🌟 تسجيل إجراء الرادار
