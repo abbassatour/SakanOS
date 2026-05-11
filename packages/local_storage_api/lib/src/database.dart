@@ -130,6 +130,15 @@ class Contracts extends Table {
   RealColumn get downPayment => real().withDefault(const Constant(0.0))(); 
 
 
+// 🌟 [الإضافات الجديدة]: براءة الذمة الأولية والتجهيزات المشتركة
+  BoolColumn get isInitialClearanceSigned => boolean().withDefault(const Constant(false))();
+  TextColumn get clearanceNotes => text().nullable()();
+
+  // 🌟 [الإضافات الجديدة]: الشؤون القانونية (صفحة المحامي)
+  BoolColumn get isTitleDeedTransferred => boolean().withDefault(const Constant(false))();
+  DateTimeColumn get titleDeedDate => dateTime().nullable()();
+  TextColumn get titleDeedNotes => text().nullable()();
+
   
   // 🌟 [الإضافات الجديدة]: إدارة تسليم الشقة (Handover Management)
   BoolColumn get isHandedOver => boolean().withDefault(const Constant(false))(); 
@@ -1259,7 +1268,7 @@ LazyDatabase _openConnection() {
   return LazyDatabase(() async {
     final dbFolder = await getApplicationSupportDirectory(); 
     // 🌟 تغيير الاسم لإنشاء قاعدة جديدة نظيفة تماماً للعمل مع UUID v7 الجديد
-    final file = File(p.join(dbFolder.path, 'our_home_erp_v11_permissions.sqlite')); 
+    final file = File(p.join(dbFolder.path, 'our_home_erp_v13_legal.sqlite')); 
     return NativeDatabase.createInBackground(file);
   });
 }
