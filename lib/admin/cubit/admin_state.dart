@@ -1,3 +1,4 @@
+//lib\admin\cubit\admin_state.dart
 part of 'admin_cubit.dart';
 
 enum AdminStatus { initial, loading, success, failure }
