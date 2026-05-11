@@ -157,6 +157,15 @@ class ErpRepository {
           penaltyPercentage: drift.Value(double.tryParse(c['penalty_percentage']?.toString() ?? '0') ?? 0.0),
           penaltyIntervalMonths: drift.Value(int.tryParse(c['penalty_interval_months']?.toString() ?? '1') ?? 1),
 
+          // 🌟 سحب بيانات الاستلام المبدئي
+          isInitialClearanceSigned: drift.Value(c['is_initial_clearance_signed'] == true),
+          clearanceNotes: drift.Value(c['clearance_notes']?.toString()),
+
+          // 🌟 سحب بيانات الشؤون القانونية
+          isTitleDeedTransferred: drift.Value(c['is_title_deed_transferred'] == true),
+          titleDeedDate: drift.Value(c['title_deed_date'] != null ? DateTime.tryParse(c['title_deed_date'].toString())?.toUtc() : null),
+          titleDeedNotes: drift.Value(c['title_deed_notes']?.toString()),
+
           // 🌟 [الإضافات الجديدة]: سحب بيانات الاستلام
           isHandedOver: drift.Value(c['is_handed_over'] == true),
           agreedHandoverDate: drift.Value(c['agreed_handover_date'] != null ? DateTime.tryParse(c['agreed_handover_date'].toString())?.toUtc() : null),
@@ -376,6 +385,15 @@ class ErpRepository {
           'is_penalty_active': c.isPenaltyActive,
           'penalty_percentage': _safeNum(c.penaltyPercentage),
           'penalty_interval_months': c.penaltyIntervalMonths,
+
+          // 🌟 رفع بيانات الاستلام المبدئي
+          'is_initial_clearance_signed': c.isInitialClearanceSigned,
+          'clearance_notes': c.clearanceNotes,
+
+          // 🌟 رفع بيانات الشؤون القانونية
+          'is_title_deed_transferred': c.isTitleDeedTransferred,
+          'title_deed_date': c.titleDeedDate?.toUtc().toIso8601String(),
+          'title_deed_notes': c.titleDeedNotes,
 
           // 🌟 [الإضافات الجديدة]: رفع بيانات الاستلام
           'is_handed_over': c.isHandedOver,
