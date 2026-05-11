@@ -321,4 +321,79 @@ class ContractsCubit extends Cubit<ContractsState> {
     }
   }
   
+
+
+
+  // ==========================================
+  // 12. ✍️ توثيق توقيع براءة الذمة الأولية والتجهيزات المشتركة
+  // ==========================================
+  Future<void> signInitialClearance({
+    required String contractId,
+    required bool isSigned,
+    String? notes,
+  }) async {
+    emit(state.copyWith(status: ContractsStatus.loading));
+    try {
+      final String? safeUserId = _erpRepository.currentUserId;
+      if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
+
+      // تحديث القاعدة المحلية (باستخدام transaction لضمان الأمان)
+      await _erpRepository.database.transaction(() async {
+        final nowUtc = DateTime.now().toUtc();
+        await (_erpRepository.database.update(_erpRepository.database.contracts)
+              ..where((t) => t.id.equals(contractId)))
+            .write(
+          ContractsCompanion(
+            isInitialClearanceSigned: Value(isSigned),
+            clearanceNotes: Value(notes),
+            userId: Value(safeUserId),
+            updatedAt: Value(nowUtc),
+            isSynced: const Value(false),
+          ),
+        );
+      });
+
+      await _erpRepository.syncPendingData(); // رفع التعديل للسحابة
+      await fetchData(); // تحديث الواجهة
+    } catch (e) {
+      emit(state.copyWith(status: ContractsStatus.failure, errorMessage: 'فشل توثيق براءة الذمة: $e'));
+    }
+  }
+
+  // ==========================================
+  // 13. 🏛️ توثيق نقل الملكية (الفراغ والطابو)
+  // ==========================================
+  Future<void> transferTitleDeed({
+    required String contractId,
+    required bool isTransferred,
+    DateTime? transferDate,
+    String? notes,
+  }) async {
+    emit(state.copyWith(status: ContractsStatus.loading));
+    try {
+      final String? safeUserId = _erpRepository.currentUserId;
+      if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
+
+      await _erpRepository.database.transaction(() async {
+        final nowUtc = DateTime.now().toUtc();
+        await (_erpRepository.database.update(_erpRepository.database.contracts)
+              ..where((t) => t.id.equals(contractId)))
+            .write(
+          ContractsCompanion(
+            isTitleDeedTransferred: Value(isTransferred),
+            titleDeedDate: Value(isTransferred && transferDate != null ? transferDate.toUtc() : null),
+            titleDeedNotes: Value(notes),
+            userId: Value(safeUserId),
+            updatedAt: Value(nowUtc),
+            isSynced: const Value(false),
+          ),
+        );
+      });
+
+      await _erpRepository.syncPendingData(); 
+      await fetchData(); 
+    } catch (e) {
+      emit(state.copyWith(status: ContractsStatus.failure, errorMessage: 'فشل توثيق نقل الملكية: $e'));
+    }
+  }
 }
