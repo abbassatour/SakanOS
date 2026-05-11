@@ -646,6 +646,17 @@ class ErpRepository {
     return allContracts.where((c) => c.clientId == clientId && c.isDeleted != true).toList();
   }
 
+  // ==========================================
+  // 🔒 إغلاق أو إعادة فتح العقد (أرشفة)
+  // ==========================================
+  Future<void> toggleContractCompletion({required String contractId, required bool isCompleted}) async {
+    final String? safeUserId = currentUserId;
+    if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
+
+    await _localApi.toggleContractCompletion(contractId, isCompleted, safeUserId);
+    await syncPendingData(); // الرفع فوراً للسحابة
+  }
+
 
   // ==========================================
   // 🌟 تسجيل إجراء الرادار
