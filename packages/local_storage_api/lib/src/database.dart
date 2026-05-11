@@ -1236,6 +1236,23 @@ class AppDatabase extends _$AppDatabase {
         ..orderBy([(t) => OrderingTerm.desc(t.updatedAt)])
         ..limit(limitCount)
       ).get();
+
+
+  // ==========================================
+  // 🔒 إغلاق أو إعادة فتح العقد (Archive / Reopen)
+  // ==========================================
+  Future<int> toggleContractCompletion(String contractId, bool isCompleted, String userId) {
+    final nowUtc = DateTime.now().toUtc();
+    return (update(contracts)..where((t) => t.id.equals(contractId))).write(
+      ContractsCompanion(
+        isCompleted: Value(isCompleted),
+        userId: Value(userId), // توثيق من قام بالإغلاق/الفتح
+        updatedAt: Value(nowUtc),
+        isSynced: const Value(false),
+      )
+    );
+  }
+      
 }
 
 LazyDatabase _openConnection() {
