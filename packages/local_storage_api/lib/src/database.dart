@@ -350,6 +350,7 @@ class LocalUsers extends Table {
   AppRoles,       // 🌟 تمت الإضافة
   LocalUsers      // 🌟 تمت الإضافة
 ])
+
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
@@ -1262,6 +1263,39 @@ class AppDatabase extends _$AppDatabase {
     );
   }
       
+      
+      // ==========================================
+  // ✍️ توثيق براءة الذمة الأولية
+  // ==========================================
+  Future<int> signInitialClearance(String contractId, bool isSigned, String? notes, String userId) {
+    final nowUtc = DateTime.now().toUtc();
+    return (update(contracts)..where((t) => t.id.equals(contractId))).write(
+      ContractsCompanion(
+        isInitialClearanceSigned: Value(isSigned),
+        clearanceNotes: Value(notes),
+        userId: Value(userId),
+        updatedAt: Value(nowUtc),
+        isSynced: const Value(false)
+      )
+    );
+  }
+
+  // ==========================================
+  // 🏛️ توثيق نقل الملكية (الفراغ)
+  // ==========================================
+  Future<int> transferTitleDeed(String contractId, bool isTransferred, DateTime? date, String? notes, String userId) {
+    final nowUtc = DateTime.now().toUtc();
+    return (update(contracts)..where((t) => t.id.equals(contractId))).write(
+      ContractsCompanion(
+        isTitleDeedTransferred: Value(isTransferred),
+        titleDeedDate: Value(isTransferred && date != null ? date.toUtc() : null),
+        titleDeedNotes: Value(notes),
+        userId: Value(userId),
+        updatedAt: Value(nowUtc),
+        isSynced: const Value(false)
+      )
+    );
+  }
 }
 
 LazyDatabase _openConnection() {

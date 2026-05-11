@@ -56,6 +56,14 @@ class LocalStorageApi {
       // 🌟 دالة إغلاق العقد
   Future<int> toggleContractCompletion(String contractId, bool isCompleted, String userId) => 
       _db.toggleContractCompletion(contractId, isCompleted, userId);
+
+
+  
+  Future<int> signInitialClearance(String contractId, bool isSigned, String? notes, String userId) => 
+      _db.signInitialClearance(contractId, isSigned, notes, userId);
+      
+  Future<int> transferTitleDeed(String contractId, bool isTransferred, DateTime? date, String? notes, String userId) => 
+      _db.transferTitleDeed(contractId, isTransferred, date, notes, userId);
       
   // ==========================================
   // 💰 الأقساط
