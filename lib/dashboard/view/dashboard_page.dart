@@ -135,7 +135,7 @@ class DashboardView extends StatelessWidget {
     // ==========================================
     if (authState.hasPermission(AppPermissions.manageLegalAffairs)) {
       availableTabs.add(NavTab(
-        label: 'قانوني/أرشيف',
+        label: 'الأرشيف',
         icon: Icons.gavel_outlined,
         selectedIcon: Icons.gavel,
         page: const LegalAffairsPage(),
