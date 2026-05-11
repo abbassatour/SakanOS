@@ -303,4 +303,22 @@ class ContractsCubit extends Cubit<ContractsState> {
       emit(state.copyWith(status: ContractsStatus.failure, errorMessage: 'فشل إلغاء التسليم: $e'));
     }
   }
+
+  // ==========================================
+  // 11. 🔒 إغلاق/أرشفة العقد أو إعادة فتحه
+  // ==========================================
+  Future<void> toggleContractCompletion({required String contractId, required bool isCompleted}) async {
+    emit(state.copyWith(status: ContractsStatus.loading));
+    try {
+      await _erpRepository.toggleContractCompletion(
+        contractId: contractId,
+        isCompleted: isCompleted,
+      );
+      
+      await fetchData(); // تحديث الواجهة فوراً
+    } catch (e) {
+      emit(state.copyWith(status: ContractsStatus.failure, errorMessage: 'فشل تغيير حالة العقد: $e'));
+    }
+  }
+  
 }
