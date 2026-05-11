@@ -6,7 +6,9 @@ import 'package:local_storage_api/local_storage_api.dart' show Contract;
 import '../../../buildings/cubit/buildings_cubit.dart';
 import '../../cubit/contracts_cubit.dart';
 import 'verify_pin_dialog.dart';
-
+// أضف هذه الاستيرادات في الأعلى
+import '../../../core/utils/handover_pledge_pdf_helper.dart';
+import '../../../core/utils/pdf_preview_page.dart';
 // 🌟 استدعاء الحارس الشخصي والصلاحيات
 import '../../../auth/cubit/auth_cubit.dart';
 import '../../../core/constants/app_permissions.dart';
@@ -297,8 +299,34 @@ void showEditContractDialog(BuildContext parentContext, Contract contract) {
                                     style: OutlinedButton.styleFrom(foregroundColor: Colors.teal.shade700, side: BorderSide(color: Colors.teal.shade300), padding: const EdgeInsets.symmetric(vertical: 12)),
                                     icon: const Icon(Icons.print),
                                     label: const Text('طباعة محضر الاستلام والتعهد (PDF)'),
-                                    onPressed: () {
-                                      ScaffoldMessenger.of(parentContext).showSnackBar(const SnackBar(content: Text('قريباً: يتم تصميم المولد الآلي...')));
+                                    onPressed: () async {
+                                      ScaffoldMessenger.of(parentContext).showSnackBar(const SnackBar(content: Text('جاري إنشاء المستند... ⏳'), backgroundColor: Colors.teal));
+                                      
+                                      // 1. جلب العميل من الـ Cubit
+                                      final client = parentContext.read<ContractsCubit>().state.clients.firstWhere((c) => c.id == contract.clientId);
+                                      
+                                      // 2. جلب الشقة والمحضر من الـ BuildingsCubit
+                                      final buildingsState = parentContext.read<BuildingsCubit>().state;
+                                      final apartment = buildingsState.apartments.firstWhere((a) => a.id == contract.apartmentId);
+                                      final building = buildingsState.buildings.firstWhere((b) => b.id == apartment.buildingId);
+
+                                      // 3. توليد الـ PDF
+                                      final pdfBytes = await HandoverPledgePdfHelper.generatePdf(
+                                        contract: contract,
+                                        client: client,
+                                        apartment: apartment,
+                                        building: building,
+                                      );
+
+                                      // 4. فتح صفحة المعاينة
+                                      if (parentContext.mounted) {
+                                        Navigator.push(parentContext, MaterialPageRoute(
+                                          builder: (_) => PdfPreviewPage(
+                                            pdfBytes: pdfBytes, 
+                                            title: 'محضر_استلام_${client.name}'
+                                          )
+                                        ));
+                                      }
                                     },
                                   ),
                                 ),
