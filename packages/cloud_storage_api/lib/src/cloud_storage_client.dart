@@ -273,4 +273,65 @@ class CloudStorageClient {
       throw Exception('فشل الرفع من السيرفر: ${response.statusCode} - ${response.body}');
     }
   }
+
+
+  // ==========================================
+  // 📎 دوال مرفقات الإجراءات القانونية (تمت الإضافة)
+  // ==========================================
+
+  // 1. 📥 جلب سجلات المرفقات من السحابة (تزايدي)
+  Future<List<Map<String, dynamic>>> getLegalActionAttachments({DateTime? lastSync}) async {
+    var query = _supabase.from('legal_action_attachments').select();
+    if (lastSync != null) {
+      query = query.gte('updated_at', lastSync.toUtc().toIso8601String());
+    }
+    return await query;
+  }
+
+  // 2. 📤 رفع سجل المرفق إلى السحابة
+  Future<void> upsertLegalActionAttachment(Map<String, dynamic> data) async => 
+      await _supabase.from('legal_action_attachments').upsert(data);
+
+  // 3. 📂 رفع الملف الفعلي (PDF/صورة) إلى سلة المرفقات
+  Future<String> uploadLegalAttachmentFile({
+    required String attachmentId, 
+    required File file, 
+    required String extension
+  }) async {
+    // ⚠️ يجب إنشاء سلة (Bucket) في Supabase باسم 'legal_attachments'
+    const bucketName = 'legal_attachments'; 
+    final fileName = 'attach_$attachmentId.$extension';
+
+    final session = _supabase.auth.currentSession;
+    if (session == null) throw Exception('يجب تسجيل الدخول لرفع الملفات.');
+    final jwtToken = session.accessToken;
+
+    final bytes = file.readAsBytesSync();
+
+    String contentType = 'application/octet-stream';
+    if (extension == 'pdf') contentType = 'application/pdf';
+    if (extension == 'png') contentType = 'image/png';
+    if (extension == 'jpg' || extension == 'jpeg') contentType = 'image/jpeg';
+    if (extension == 'doc' || extension == 'docx') contentType = 'application/msword';
+
+    const projectId = 'krdfrdzyfdcqjmnuzads'; // نفس البروجيكت آي دي الخاص بك
+    final uploadUrl = Uri.parse('https://$projectId.supabase.co/storage/v1/object/$bucketName/$fileName');
+
+    final response = await http.post(
+      uploadUrl,
+      headers: {
+        'Authorization': 'Bearer $jwtToken',
+        'Content-Type': contentType,
+        'x-upsert': 'true', 
+      },
+      body: bytes,
+    );
+
+    if (response.statusCode == 200) {
+      return 'https://$projectId.supabase.co/storage/v1/object/public/$bucketName/$fileName';
+    } else {
+      throw Exception('فشل رفع المرفق: ${response.statusCode} - ${response.body}');
+    }
+  }
+  
 }

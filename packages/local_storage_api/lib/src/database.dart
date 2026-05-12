@@ -344,7 +344,6 @@ class LegalActions extends Table {
   DateTimeColumn get actionDate => dateTime()(); 
   
   TextColumn get notes => text().nullable()(); 
-  TextColumn get attachmentUrl => text().nullable()(); // ملف مرفق (PDF/صورة)
   
   TextColumn get userId => text()();
   
@@ -388,7 +387,7 @@ class LegalActionAttachments extends Table {
 // ==========================================
 // ==========================================
 // التكوين الرئيسي لقاعدة البيانات
-// ==========================================
+// ==========================================لدينا هذين الجدولين هل انت مستعد لرحلة فهم التطبيق 
 // ==========================================
 
 @DriftDatabase(tables:[
@@ -1376,6 +1375,32 @@ class AppDatabase extends _$AppDatabase {
       )
     );
   }
+
+  // ==========================================
+  // 📎 استعلامات مرفقات الإجراءات القانونية (تمت الإضافة)
+  // ==========================================
+  Future<List<LegalActionAttachment>> getAttachmentsForAction(String actionId) => 
+      (select(legalActionAttachments)
+        ..where((t) => t.legalActionId.equals(actionId) & t.isDeleted.equals(false))
+        ..orderBy([(t) => OrderingTerm.desc(t.createdAt)])
+      ).get();
+
+  Future<String> insertLegalActionAttachment(LegalActionAttachmentsCompanion attachment) async {
+    final row = await into(legalActionAttachments).insertReturning(attachment);
+    return row.id;
+  }
+
+  Future<int> softDeleteLegalActionAttachment(String attachmentId, String userId) {
+    return (update(legalActionAttachments)..where((t) => t.id.equals(attachmentId))).write(
+      LegalActionAttachmentsCompanion(
+        isDeleted: const Value(true),
+        userId: Value(userId),
+        updatedAt: Value(DateTime.now().toUtc()),
+        isSynced: const Value(false)
+      )
+    );
+  }
+  
 }
 
 LazyDatabase _openConnection() {

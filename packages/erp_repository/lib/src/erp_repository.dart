@@ -335,6 +335,28 @@ class ErpRepository {
     } catch (e) {
       print('❌ Cloud Pull Failed: $e'); 
     }
+
+
+    // ==========================================
+      // 11. 📎 سحب المرفقات القانونية (الجدول الجديد)
+      // ==========================================
+      final cloudAttachments = await _cloudApi.getLegalActionAttachments(lastSync: lastSyncTime);
+      for (var att in cloudAttachments) {
+        final attachment = LegalActionAttachmentsCompanion.insert(
+          id: drift.Value(att['id'].toString()),
+          legalActionId: att['legal_action_id'].toString(),
+          fileUrl: att['file_url'].toString(),
+          fileName: drift.Value(att['file_name']?.toString()),
+          fileType: drift.Value(att['file_type']?.toString()),
+          userId: att['user_id']?.toString() ?? '',
+          isDeleted: drift.Value(att['is_deleted'] == true),
+          updatedAt: drift.Value(DateTime.tryParse(att['updated_at']?.toString() ?? '')?.toUtc() ?? DateTime.now().toUtc()),
+          isSynced: const drift.Value(true),
+        );
+        await _localApi.database.into(_localApi.database.legalActionAttachments).insert(attachment, mode: drift.InsertMode.insertOrReplace);
+      }
+    
+    
   }
 
   // ==========================================
@@ -584,6 +606,28 @@ class ErpRepository {
         await (db.update(db.legalActions)..where((t) => t.id.equals(a.id))).write(const LegalActionsCompanion(isSynced: drift.Value(true)));
       }
     } catch (e) { print('Sync Legal Actions Failed: $e'); }
+
+
+    // ==========================================
+    // 11. 📎 مزامنة المرفقات القانونية (رفع البيانات)
+    // ==========================================
+    try {
+      final pendingAttachments = await (db.select(db.legalActionAttachments)..where((t) => t.isSynced.equals(false))).get();
+      for (var att in pendingAttachments) {
+        await _cloudApi.upsertLegalActionAttachment({
+          'id': att.id,
+          'legal_action_id': att.legalActionId,
+          'file_url': att.fileUrl,
+          'file_name': att.fileName,
+          'file_type': att.fileType,
+          'user_id': att.userId,
+          'is_deleted': att.isDeleted,
+          'updated_at': att.updatedAt.toUtc().toIso8601String()
+        });
+        await (db.update(db.legalActionAttachments)..where((t) => t.id.equals(att.id))).write(const LegalActionAttachmentsCompanion(isSynced: drift.Value(true)));
+      }
+    } catch (e) { print('Sync Legal Attachments Failed: $e'); }
+    
 
     _isSyncing = false; 
   }
@@ -1383,6 +1427,50 @@ class ErpRepository {
     await _localApi.deleteLegalAction(actionId, safeUserId);
     await syncPendingData(); 
   }
+
+  // 📎 إرفاق ملف لإجراء قانوني
+  Future<void> attachFileToLegalAction({
+    required String actionId, 
+    required File file, 
+    required String extension,
+    required String originalFileName,
+  }) async {
+    final String? safeUserId = currentUserId;
+    if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
+
+    try {
+      // 1. توليد آي دي جديد للمرفق
+      final String attachmentId = const Uuid().v7();
+
+      // 2. رفع الملف الفعلي للسحابة وجلب الرابط
+      final fileUrl = await _cloudApi.uploadLegalAttachmentFile(
+        attachmentId: attachmentId, 
+        file: file, 
+        extension: extension
+      );
+
+      // 3. حفظ بيانات المرفق في قاعدة البيانات المحلية
+      final newAttachment = LegalActionAttachmentsCompanion.insert(
+        id: drift.Value(attachmentId),
+        legalActionId: actionId,
+        fileUrl: fileUrl,
+        fileName: drift.Value(originalFileName),
+        fileType: drift.Value(extension),
+        userId: safeUserId,
+        isSynced: const drift.Value(false), // ستتم مزامنتها تلقائياً بالخطوة التالية
+      );
+
+      await _localApi.database.insertLegalActionAttachment(newAttachment);
+      
+      // 4. دفع البيانات للسحابة
+      await syncPendingData();
+
+    } catch (e) {
+      print('❌ خطأ أثناء إرفاق الملف القانوني: $e');
+      throw Exception('فشل الإرفاق: $e'); 
+    }
+  }
+  
 }
 
 // نموذج يمثل حركة أو نشاط واحد في النظام

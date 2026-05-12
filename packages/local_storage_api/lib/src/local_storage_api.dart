@@ -206,4 +206,18 @@ Future<void> handleRollingCheckpoint(String contractId, String scheduleId, Strin
   Future<List<PaymentsLedgerData>> getRecentPayments(int limit) => _db.getRecentPayments(limit);
   Future<List<Contract>> getRecentContracts(int limit) => _db.getRecentContracts(limit);
   Future<List<Client>> getRecentClients(int limit) => _db.getRecentClients(limit);
+
+  // ==========================================
+  // 📎 المرفقات القانونية (تمت الإضافة)
+  // ==========================================
+  Future<List<LegalActionAttachment>> getAttachmentsForAction(String actionId) => 
+      _db.getAttachmentsForAction(actionId);
+      
+  Future<String> addLegalActionAttachment(LegalActionAttachmentsCompanion attachment) => 
+      _db.insertLegalActionAttachment(attachment);
+      
+  Future<int> deleteLegalActionAttachment(String id, String userId) => 
+      _db.softDeleteLegalActionAttachment(id, userId);
+  
+  
 }
