@@ -81,12 +81,16 @@ class CloudStorageClient {
         });
   }
 
+
+
   // ==========================================
   // 📥 دوال سحب البيانات (PULL from Cloud)
   // ==========================================
   // ملاحظة مهمة جداً (UTC): في جميع الاستعلامات التي تعتمد على `lastSync`، 
   // نقوم قسرياً باستخدام `.toUtc()` قبل `.toIso8601String()` لضمان أننا نسأل السحابة 
   // بناءً على التوقيت العالمي، لأن السحابة تخزن التواريخ بصيغة UTC.
+  
+  
   
   // 📥 جلب العملاء (تزايدي - Incremental Sync)
   Future<List<Map<String, dynamic>>> getClients({DateTime? lastSync}) async {
@@ -159,6 +163,15 @@ class CloudStorageClient {
       await _supabase.from('apartments').select();
 
 
+  // 📥 جلب الإجراءات القانونية
+  Future<List<Map<String, dynamic>>> getLegalActions({DateTime? lastSync}) async {
+    var query = _supabase.from('legal_actions').select();
+    if (lastSync != null) {
+      query = query.gte('updated_at', lastSync.toUtc().toIso8601String());
+    }
+    return await query;
+  }
+
   // ==========================================
   // 📤 دوال رفع البيانات (PUSH to Cloud) - (UPSERT)
   // ==========================================
@@ -206,6 +219,9 @@ class CloudStorageClient {
   Future<void> upsertApartment(Map<String, dynamic> apartmentData) async => 
       await _supabase.from('apartments').upsert(apartmentData);
 
+  // 📤 رفع الإجراءات القانونية
+  Future<void> upsertLegalAction(Map<String, dynamic> data) async => 
+      await _supabase.from('legal_actions').upsert(data);
 
   // ==========================================
   // 📂 رفع الملفات إلى Supabase Storage (طريقة التجاوز المباشر HTTP)

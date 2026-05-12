@@ -37,7 +37,6 @@ class ErpRepository {
     }
   }
 
-
   // 🌟 فصلنا كود تشغيل المستمع في دالة خاصة لترتيب الكود
   void _startCloudListener() {
     _cloudApi.startListeningToCloudChanges(
@@ -50,8 +49,6 @@ class ErpRepository {
 
   RealtimeChannel? _pricesChannel;
 
-  
-  
   final LocalStorageApi _localApi;
   final CloudStorageClient _cloudApi;
 
@@ -64,7 +61,7 @@ class ErpRepository {
 
   Future<void> signIn({required String email, required String password}) async {
     await _cloudApi.signIn(email: email, password: password);
-     // 1. سحب كل بيانات الشركة فور تسجيل الدخول بنجاح!
+    // 1. سحب كل بيانات الشركة فور تسجيل الدخول بنجاح!
     await pullDataFromCloud();
     
     // تشغيل المستمع بعد تسجيل الدخول لأول مرة
@@ -121,7 +118,6 @@ class ErpRepository {
         lastSyncTime = null; 
       }
 
-
       // 1. سحب العملاء
       final cloudClients = await _cloudApi.getClients(lastSync: lastSyncTime);
       for (var c in cloudClients) {
@@ -150,29 +146,20 @@ class ErpRepository {
           totalArea: double.tryParse(c['total_area']?.toString() ?? '0') ?? 0.0,
           baseMeterPriceAtSigning: double.tryParse(c['base_meter_price_at_signing']?.toString() ?? '0') ?? 0.0,
           
-          // 🌟 [الإضافة الجديدة]: سحب الدفعة الأولى من السحابة
           downPayment: drift.Value(double.tryParse(c['down_payment']?.toString() ?? '0') ?? 0.0),
-
           isPenaltyActive: drift.Value(c['is_penalty_active'] == true),
           penaltyPercentage: drift.Value(double.tryParse(c['penalty_percentage']?.toString() ?? '0') ?? 0.0),
           penaltyIntervalMonths: drift.Value(int.tryParse(c['penalty_interval_months']?.toString() ?? '1') ?? 1),
 
-          // 🌟 سحب بيانات الاستلام المبدئي
+          // سحب بيانات الاستلام المبدئي والتعهد
           isInitialClearanceSigned: drift.Value(c['is_initial_clearance_signed'] == true),
           clearanceNotes: drift.Value(c['clearance_notes']?.toString()),
 
-          // 🌟 سحب بيانات الشؤون القانونية
-          isTitleDeedTransferred: drift.Value(c['is_title_deed_transferred'] == true),
-          titleDeedDate: drift.Value(c['title_deed_date'] != null ? DateTime.tryParse(c['title_deed_date'].toString())?.toUtc() : null),
-          titleDeedNotes: drift.Value(c['title_deed_notes']?.toString()),
-
-          // 🌟 [الإضافات الجديدة]: سحب بيانات الاستلام
           isHandedOver: drift.Value(c['is_handed_over'] == true),
           agreedHandoverDate: drift.Value(c['agreed_handover_date'] != null ? DateTime.tryParse(c['agreed_handover_date'].toString())?.toUtc() : null),
           actualHandoverDate: drift.Value(c['actual_handover_date'] != null ? DateTime.tryParse(c['actual_handover_date'].toString())?.toUtc() : null),
           gracePeriodMonths: drift.Value(int.tryParse(c['grace_period_months']?.toString() ?? '0') ?? 0),
           handoverNotes: drift.Value(c['handover_notes']?.toString()),
-
           
           installmentsCount: drift.Value(int.tryParse(c['installments_count']?.toString() ?? '48') ?? 48),
           agreedMonthlyAmount: drift.Value(double.tryParse(c['agreed_monthly_amount']?.toString() ?? '0') ?? 0.0),
@@ -210,7 +197,7 @@ class ErpRepository {
         await _localApi.syncPrice(price); 
       }
 
-      // 4. سحب جدول الاستحقاقات (مع دعم حقل الملاحظات notes الجديد)
+      // 4. سحب جدول الاستحقاقات
       final cloudSchedules = await _cloudApi.getSchedules(lastSync: lastSyncTime);
       for (var s in cloudSchedules) {
         final schedule = InstallmentsScheduleCompanion.insert(
@@ -219,7 +206,7 @@ class ErpRepository {
           installmentNumber: int.tryParse(s['installment_number']?.toString() ?? '1') ?? 1, 
           dueDate: DateTime.tryParse(s['due_date']?.toString() ?? '')?.toUtc() ?? DateTime.now().toUtc(), 
           status: drift.Value(s['status']?.toString() ?? 'pending'),
-          notes: drift.Value(s['notes']?.toString()), // 🌟 قراءة الملاحظات من السحابة
+          notes: drift.Value(s['notes']?.toString()),
           userId: s['user_id']?.toString() ?? '', 
           isDeleted: drift.Value(s['is_deleted'] == true), 
           updatedAt: drift.Value(DateTime.tryParse(s['updated_at']?.toString() ?? '')?.toUtc() ?? DateTime.now().toUtc()), 
@@ -273,7 +260,7 @@ class ErpRepository {
         final apartment = ApartmentsCompanion.insert(
           id: drift.Value(a['id'].toString()),
           buildingId: a['building_id'].toString(),
-          unitType: drift.Value(a['unit_type']?.toString() ?? 'apartment'), // 🌟 السطر الجديد
+          unitType: drift.Value(a['unit_type']?.toString() ?? 'apartment'),
           apartmentNumber: a['apartment_number'].toString(),
           area: double.tryParse(a['area']?.toString() ?? '0') ?? 0.0,
           floorName: a['floor_name'].toString(),
@@ -287,7 +274,6 @@ class ErpRepository {
         );
         await _localApi.syncApartment(apartment);
       }
-
 
       // 8. 🛡️ سحب قوالب الأدوار (Roles)
       final cloudRoles = await _cloudApi.getAppRoles(lastSync: lastSyncTime);
@@ -308,17 +294,38 @@ class ErpRepository {
       final cloudUsers = await _cloudApi.getAppUsers(lastSync: lastSyncTime);
       for (var u in cloudUsers) {
         final user = LocalUsersCompanion.insert(
-          id: u['id'].toString(), // ID هنا إجباري لأنه قادم من السحابة ولا يولد محلياً
+          id: u['id'].toString(), 
           email: u['email']?.toString() ?? '',
           fullName: drift.Value(u['full_name']?.toString()),
           roleId: drift.Value(u['role_id']?.toString()),
           extraPermissionsJson: drift.Value(u['extra_permissions']?.toString() ?? '[]'),
           revokedPermissionsJson: drift.Value(u['revoked_permissions']?.toString() ?? '[]'),
-          isActive: drift.Value(u['is_active'] != false), // الافتراضي true
+          isActive: drift.Value(u['is_active'] != false), 
           updatedAt: drift.Value(DateTime.tryParse(u['updated_at']?.toString() ?? '')?.toUtc() ?? DateTime.now().toUtc()),
           isSynced: const drift.Value(true),
         );
         await _localApi.syncLocalUser(user);
+      }
+
+      // ==========================================
+      // 10. ⚖️ سحب الإجراءات القانونية (الجدول الجديد)
+      // ==========================================
+      final cloudLegalActions = await _cloudApi.getLegalActions(lastSync: lastSyncTime);
+      for (var a in cloudLegalActions) {
+        final action = LegalActionsCompanion.insert(
+          id: drift.Value(a['id'].toString()),
+          contractId: a['contract_id'].toString(),
+          actionType: a['action_type'].toString(),
+          actionDate: DateTime.parse(a['action_date'].toString()).toUtc(),
+          notes: drift.Value(a['notes']?.toString()),
+          attachmentUrl: drift.Value(a['attachment_url']?.toString()),
+          userId: a['user_id']?.toString() ?? '',
+          isDeleted: drift.Value(a['is_deleted'] == true),
+          updatedAt: drift.Value(DateTime.tryParse(a['updated_at']?.toString() ?? '')?.toUtc() ?? DateTime.now().toUtc()),
+          isSynced: const drift.Value(true),
+        );
+        // نستخدم الإدخال المباشر للجدول
+        await _localApi.database.into(_localApi.database.legalActions).insert(action, mode: drift.InsertMode.insertOrReplace);
       }
 
       // 🌍 حفظ الوقت الحالي للعمليات القادمة
@@ -339,7 +346,6 @@ class ErpRepository {
     
     final db = _localApi.database;
 
-    // 🛡️ دالة مساعدة لمنع خطأ الـ Infinity في تحويل الـ JSON
     double _safeNum(double? val) {
       if (val == null) return 0.0;
       if (val.isInfinite || val.isNaN) return 0.0;
@@ -354,12 +360,11 @@ class ErpRepository {
           'id': c.id, 
           'name': c.name, 
           'phone': c.phone, 
-          'national_id': c.nationalId, // تم التوحيد
-          'user_id': c.userId, // تم التوحيد
-          'is_deleted': c.isDeleted, // تم التوحيد
-          'updated_at': c.updatedAt.toUtc().toIso8601String() // تم التوحيد
+          'national_id': c.nationalId,
+          'user_id': c.userId,
+          'is_deleted': c.isDeleted,
+          'updated_at': c.updatedAt.toUtc().toIso8601String()
         });
-        // تحديث الحالة محلياً
         await (db.update(db.clients)..where((t) => t.id.equals(c.id))).write(
           const ClientsCompanion(isSynced: drift.Value(true))
         );
@@ -379,9 +384,7 @@ class ErpRepository {
           'total_area': _safeNum(c.totalArea), 
           'base_meter_price_at_signing': _safeNum(c.baseMeterPriceAtSigning), 
           
-          // 🌟 [الإضافة الجديدة]: رفع الدفعة الأولى للسحابة
           'down_payment': _safeNum(c.downPayment),
-
           'is_penalty_active': c.isPenaltyActive,
           'penalty_percentage': _safeNum(c.penaltyPercentage),
           'penalty_interval_months': c.penaltyIntervalMonths,
@@ -390,18 +393,11 @@ class ErpRepository {
           'is_initial_clearance_signed': c.isInitialClearanceSigned,
           'clearance_notes': c.clearanceNotes,
 
-          // 🌟 رفع بيانات الشؤون القانونية
-          'is_title_deed_transferred': c.isTitleDeedTransferred,
-          'title_deed_date': c.titleDeedDate?.toUtc().toIso8601String(),
-          'title_deed_notes': c.titleDeedNotes,
-
-          // 🌟 [الإضافات الجديدة]: رفع بيانات الاستلام
           'is_handed_over': c.isHandedOver,
           'agreed_handover_date': c.agreedHandoverDate?.toUtc().toIso8601String(),
           'actual_handover_date': c.actualHandoverDate?.toUtc().toIso8601String(),
           'grace_period_months': c.gracePeriodMonths,
           'handover_notes': c.handoverNotes,
-
 
           'installments_count': c.installmentsCount, 
           'agreed_monthly_amount': _safeNum(c.agreedMonthlyAmount),
@@ -426,12 +422,10 @@ class ErpRepository {
     try {
       final pendingSchedules = await (db.select(db.installmentsSchedule)..where((t) => t.isSynced.equals(false))).get();
       if (pendingSchedules.isNotEmpty) {
-        // تجهيز البيانات بصيغة snake_case للرفع للسحابة
         final cloudSchedules = pendingSchedules.map((s) => {
           'id': s.id, 
           'contract_id': s.contractId, 
           'installment_number': s.installmentNumber, 
-          // 🌍 التعديل الضروري: UTC
           'due_date': s.dueDate.toUtc().toIso8601String(), 
           'status': s.status, 
           'notes': s.notes,
@@ -442,7 +436,6 @@ class ErpRepository {
         
         await _cloudApi.upsertSchedule(cloudSchedules); 
         
-        // تحديث الحالة محلياً
         for (var s in pendingSchedules) {
           await (db.update(db.installmentsSchedule)..where((t) => t.id.equals(s.id))).write(
             const InstallmentsScheduleCompanion(isSynced: drift.Value(true))
@@ -451,15 +444,14 @@ class ErpRepository {
       }
     } catch (e) { print('Sync Schedules Failed: $e'); }
 
-    // 4. مزامنة الدفعات (هنا كان يحدث خطأ الـ Infinity) 🚨
+    // 4. مزامنة الدفعات
     try {
       final pendingPayments = await (db.select(db.paymentsLedger)..where((t) => t.isSynced.equals(false))).get();
       for (var p in pendingPayments) {
         await _cloudApi.upsertPayment({
           'id': p.id, 
-          'contract_id': p.contractId, // استخدام snake_case للرفع
+          'contract_id': p.contractId, 
           'schedule_id': p.scheduleId, 
-          // 🌍 التعديل الضروري: UTC
           'payment_date': p.paymentDate.toUtc().toIso8601String(), 
           'amount_paid': _safeNum(p.amountPaid), 
           'meter_price_at_payment': _safeNum(p.meterPriceAtPayment), 
@@ -471,14 +463,13 @@ class ErpRepository {
           'is_deleted': p.isDeleted, 
           'updated_at': p.updatedAt.toUtc().toIso8601String()
         });
-        // تحديث الحالة محلياً بأنها زومنت بنجاح
         await (db.update(db.paymentsLedger)..where((t) => t.id.equals(p.id))).write(
           const PaymentsLedgerCompanion(isSynced: drift.Value(true))
         );
       }
     } catch (e) { print('Sync Payments Failed: $e'); }
     
-    // 5. مزامنة أسعار المواد (المعدل ليتوافق مع SQL)
+    // 5. مزامنة أسعار المواد
     try {
       final pendingPrices = await (db.select(db.materialPricesHistory)..where((t) => t.isSynced.equals(false))).get();
       for (var p in pendingPrices) {
@@ -493,7 +484,7 @@ class ErpRepository {
           'ordinary_worker_wage': _safeNum(p.ordinaryWorkerWage), 
           'user_id': p.userId, 
           'is_deleted': p.isDeleted,
-          'updated_at': DateTime.now().toUtc().toIso8601String(),  // حقل الوقت الضروري بـ UTC
+          'updated_at': DateTime.now().toUtc().toIso8601String(),  
         });
         await (db.update(db.materialPricesHistory)..where((t) => t.id.equals(p.id))).write(const MaterialPricesHistoryCompanion(isSynced: drift.Value(true)));
       }
@@ -511,7 +502,6 @@ class ErpRepository {
           'direction_coefficients': b.directionCoefficients,
           'user_id': b.userId,
           'is_deleted': b.isDeleted,
-          // 🌍 التعديل الضروري: UTC
           'updated_at': b.updatedAt.toUtc().toIso8601String()
         });
         await (db.update(db.buildings)..where((t) => t.id.equals(b.id))).write(const BuildingsCompanion(isSynced: drift.Value(true)));
@@ -534,31 +524,29 @@ class ErpRepository {
           'status': a.status,
           'user_id': a.userId,
           'is_deleted': a.isDeleted,
-          // 🌍 التعديل الضروري: UTC
           'updated_at': a.updatedAt.toUtc().toIso8601String()
         });
         await (db.update(db.apartments)..where((t) => t.id.equals(a.id))).write(const ApartmentsCompanion(isSynced: drift.Value(true)));
       }
     } catch (e) { print('Sync Apartments Failed: $e'); }
 
-
-    // 8. 🛡️ مزامنة قوالب الأدوار
+    // 8. مزامنة قوالب الأدوار
     try {
       final pendingRoles = await (db.select(db.appRoles)..where((t) => t.isSynced.equals(false))).get();
       for (var r in pendingRoles) {
         await _cloudApi.upsertAppRole({
           'id': r.id,
           'name': r.name,
-          'permissions': r.permissionsJson, // يتوافق مع اسم العمود في Supabase
+          'permissions': r.permissionsJson, 
           'is_system_role': r.isSystemRole,
           'is_deleted': r.isDeleted,
-          'updated_at': r.updatedAt.toUtc().toIso8601String() // 🌍 حماية الـ UTC
+          'updated_at': r.updatedAt.toUtc().toIso8601String() 
         });
         await (db.update(db.appRoles)..where((t) => t.id.equals(r.id))).write(const AppRolesCompanion(isSynced: drift.Value(true)));
       }
     } catch (e) { print('Sync Roles Failed: $e'); }
 
-    // 9. 🧑‍💼 مزامنة تعديلات المستخدمين (كإعطاء دور أو إيقاف حساب)
+    // 9. مزامنة المستخدمين
     try {
       final pendingUsers = await (db.select(db.localUsers)..where((t) => t.isSynced.equals(false))).get();
       for (var u in pendingUsers) {
@@ -570,12 +558,32 @@ class ErpRepository {
           'extra_permissions': u.extraPermissionsJson,
           'revoked_permissions': u.revokedPermissionsJson,
           'is_active': u.isActive,
-          'updated_at': u.updatedAt.toUtc().toIso8601String() // 🌍 حماية الـ UTC
+          'updated_at': u.updatedAt.toUtc().toIso8601String() 
         });
         await (db.update(db.localUsers)..where((t) => t.id.equals(u.id))).write(const LocalUsersCompanion(isSynced: drift.Value(true)));
       }
     } catch (e) { print('Sync Users Failed: $e'); }
 
+    // ==========================================
+    // 10. ⚖️ مزامنة الإجراءات القانونية
+    // ==========================================
+    try {
+      final pendingActions = await (db.select(db.legalActions)..where((t) => t.isSynced.equals(false))).get();
+      for (var a in pendingActions) {
+        await _cloudApi.upsertLegalAction({
+          'id': a.id,
+          'contract_id': a.contractId,
+          'action_type': a.actionType,
+          'action_date': a.actionDate.toUtc().toIso8601String(),
+          'notes': a.notes,
+          'attachment_url': a.attachmentUrl,
+          'user_id': a.userId,
+          'is_deleted': a.isDeleted,
+          'updated_at': a.updatedAt.toUtc().toIso8601String()
+        });
+        await (db.update(db.legalActions)..where((t) => t.id.equals(a.id))).write(const LegalActionsCompanion(isSynced: drift.Value(true)));
+      }
+    } catch (e) { print('Sync Legal Actions Failed: $e'); }
 
     _isSyncing = false; 
   }
@@ -600,7 +608,6 @@ class ErpRepository {
     syncPendingData();
   }
 
-  // 🌟 الصق الدالة الجديدة هنا 🌟
   Future<void> updateClient({
     required String id,
     required String name,
@@ -608,30 +615,21 @@ class ErpRepository {
     String? nationalId,
   }) async {
     final db = _localApi.database;
-    
-    // 🌟 1. جلب آي دي المستخدم الحالي الذي يقوم بعملية التعديل الآن
     final String? safeUserId = currentUserId;
     if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
 
-    // 2. تحديث بيانات العميل + استبدال المستخدم
     await (db.update(db.clients)..where((t) => t.id.equals(id))).write(
       ClientsCompanion(
         name: drift.Value(name),
         phone: drift.Value(phone),
         nationalId: drift.Value(nationalId),
-        
-        // 🌟 3. هنا السحر: استبدال المستخدم القديم بالمستخدم الذي قام بالتعديل
         userId: drift.Value(safeUserId), 
-        
-        // 🌍 تحديث الوقت
         updatedAt: drift.Value(DateTime.now().toUtc()),
         isSynced: const drift.Value(false), 
       )
     );
-
     await syncPendingData();
   }
-
 
   // ==========================================
   // 🗑️ إدارة سلة المحذوفات للعملاء
@@ -648,63 +646,18 @@ class ErpRepository {
 
   Future<void> forceHardDeleteClient(String clientId) async {
     await _localApi.hardDeleteClientLocal(clientId);
-    // ملاحظة: لا نرفع هذا للسحابة، لأن السحابة ستقوم بحذفه تلقائياً
-    // عبر الـ Cron Job بعد 7 أيام للحفاظ على الأداء.
   }
-
 
   // ==========================================
   // 📄 العقود والتوليد الآلي للاستحقاقات
   // ==========================================
   Future<List<Contract>> getAllContracts() => _localApi.getAllContracts();
-  // 🌟 الدالة الجديدة المضافة لجلب عقود عميل محدد للتحقق قبل الحذف
+
   Future<List<Contract>> getContractsForClient(String clientId) async {
     final allContracts = await getAllContracts();
-    // جلب العقود الفعالة (غير المحذوفة) المرتبطة بهذا العميل
     return allContracts.where((c) => c.clientId == clientId && c.isDeleted != true).toList();
   }
 
-  // ==========================================
-  // 🔒 إغلاق أو إعادة فتح العقد (أرشفة)
-  // ==========================================
-  Future<void> toggleContractCompletion({required String contractId, required bool isCompleted}) async {
-    final String? safeUserId = currentUserId;
-    if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
-
-    await _localApi.toggleContractCompletion(contractId, isCompleted, safeUserId);
-    await syncPendingData(); // الرفع فوراً للسحابة
-  }
-
-  // ==========================================
-  // 🌟 الصق الدالتين الجديدتين هنا بالضبط 🌟
-  // ==========================================
-
-  // ==========================================
-  // ✍️ توثيق براءة الذمة الأولية
-  // ==========================================
-  Future<void> signInitialClearance({required String contractId, required bool isSigned, String? notes}) async {
-    final String? safeUserId = currentUserId;
-    if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
-
-    await _localApi.signInitialClearance(contractId, isSigned, notes, safeUserId);
-    await syncPendingData(); 
-  }
-
-  // ==========================================
-  // 🏛️ توثيق نقل الملكية (الفراغ)
-  // ==========================================
-  Future<void> transferTitleDeed({required String contractId, required bool isTransferred, DateTime? transferDate, String? notes}) async {
-    final String? safeUserId = currentUserId;
-    if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
-
-    await _localApi.transferTitleDeed(contractId, isTransferred, transferDate, notes, safeUserId);
-    await syncPendingData(); 
-  }
-
-
-  // ==========================================
-  // 🌟 تسجيل إجراء الرادار
-  // ==========================================
   Future<void> markContractActionTaken({required String contractId, required String note}) async {
     final String? safeUserId = currentUserId;
     if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
@@ -720,15 +673,11 @@ class ErpRepository {
     final int months = contractCompanion.installmentsCount.present ? contractCompanion.installmentsCount.value : 48;
     final DateTime startDate = contractCompanion.contractDate.present ? contractCompanion.contractDate.value : DateTime.now().toUtc();
     
-    // 🌟 استخراج نوع العقد
     final String type = contractCompanion.contractType.present ? contractCompanion.contractType.value : 'متخصص';
     
-    // 🌟 تمرير النوع لآلة التوليد
     await _localApi.addContractWithSchedules(companionWithUser, months, startDate, currentUserId!, type);
-    
     await syncPendingData();
   }
-
 
   Future<void> deleteContract(String contractId) async {
     final String? safeUserId = currentUserId;
@@ -739,7 +688,7 @@ class ErpRepository {
   }
 
   // ==========================================
-  // 🌟 تعديل العقد الأساسي (مُحدّث لدعم الغرامات)
+  // 🌟 تعديل العقد الأساسي
   // ==========================================
   Future<void> updateContract({
     required String id,
@@ -748,18 +697,14 @@ class ErpRepository {
     required int installmentsCount,
     required double agreedMonthlyAmount,
     required DateTime contractDate,
-    
-    // 🌟 [الإضافات الجديدة]: استقبال بيانات الغرامة لتحديثها
     required bool isPenaltyActive,
     required double penaltyPercentage,
     required int penaltyIntervalMonths,
   }) async {
     final db = _localApi.database;
-    
     final String? safeUserId = currentUserId;
     if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
 
-    // 1. تحديث بيانات العقد الأساسية (مع استبدال المستخدم وحفظ الغرامات)
     await (db.update(db.contracts)..where((t) => t.id.equals(id))).write(
       ContractsCompanion(
         apartmentDetails: drift.Value(apartmentDetails),
@@ -767,34 +712,26 @@ class ErpRepository {
         installmentsCount: drift.Value(installmentsCount),
         agreedMonthlyAmount: drift.Value(agreedMonthlyAmount),
         contractDate: drift.Value(contractDate.toUtc()), 
-        
-        // 🌟 حقن تعديلات الغرامة في قاعدة البيانات
         isPenaltyActive: drift.Value(isPenaltyActive),
         penaltyPercentage: drift.Value(penaltyPercentage),
         penaltyIntervalMonths: drift.Value(penaltyIntervalMonths),
-
         userId: drift.Value(safeUserId), 
         updatedAt: drift.Value(DateTime.now().toUtc()),
         isSynced: const drift.Value(false), 
       )
     );
 
-    // 2. السحر المحاسبي (تسوية لوحة المراقبة) 
     await (db.update(db.installmentsSchedule)
       ..where((t) => t.contractId.equals(id))
       ..where((t) => t.installmentNumber.isBiggerThanValue(installmentsCount)) 
       ..where((t) => t.status.equals('pending')) 
     ).write(
-      const InstallmentsScheduleCompanion(
-        isDeleted: drift.Value(true), 
-        isSynced: drift.Value(false), 
-      )
+      const InstallmentsScheduleCompanion(isDeleted: drift.Value(true), isSynced: drift.Value(false))
     );
 
     await syncPendingData();
   }
 
-  // 🌟 دالة إعادة الجدولة الذكية (تنفذ محلياً وترفع للسحابة فوراً)
   Future<void> restructureContractSchedule({
     required String contractId,
     required int newRemainingMonths,
@@ -803,25 +740,21 @@ class ErpRepository {
     final String? safeUserId = currentUserId;
     if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً لإجراء التعديلات المالية.');
 
-    // 1. تنفيذ العملية الجراحية في القاعدة المحلية
     await _localApi.restructureContractSchedule(
       contractId: contractId,
       newRemainingMonths: newRemainingMonths,
-      newStartDate: newStartDate.toUtc(), // ضمان تحويل البداية لـ UTC
+      newStartDate: newStartDate.toUtc(), 
       userId: safeUserId,
     );
-
-    // 2. تفعيل المزامنة الشبحية لرفع (الأقساط الملغاة + الأقساط الجديدة + تعديل مدة العقد)
     await syncPendingData();
   }
-
 
   // ==========================================
   // 🔑 تسليم الشقة (خاص بالعقود المتخصصة)
   // ==========================================
   Future<void> markContractAsHandedOver({
     required String contractId, 
-    required String? apartmentId, // 🌟 الإضافة هنا
+    required String? apartmentId, 
     required DateTime actualHandoverDate, 
     String? notes
   }) async {
@@ -829,7 +762,7 @@ class ErpRepository {
     if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
 
     await _localApi.markContractAsHandedOver(contractId, apartmentId, actualHandoverDate, notes, safeUserId);
-    await syncPendingData(); // 🌟 ستُرفع الشقة والعقد معاً في نفس الوقت
+    await syncPendingData(); 
   }
 
   // ==========================================
@@ -865,7 +798,6 @@ class ErpRepository {
   // ==========================================
   Future<List<InstallmentsScheduleData>> getContractSchedule(String contractId) => _localApi.getContractSchedule(contractId);
 
-
   Future<void> handleRollingCheckpoint({
     required String contractId,
     required String scheduleId,
@@ -876,16 +808,11 @@ class ErpRepository {
     if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
 
     await _localApi.handleRollingCheckpoint(contractId, scheduleId, actionType, nextDueDate, safeUserId);
-    await syncPendingData(); // رفع التعديل للسحابة
+    await syncPendingData(); 
   }
   
-  // 🌟 أضف هذا السطر في قسم (جدول الاستحقاقات)
   Future<List<InstallmentsScheduleData>> getAllOverdueSchedules() => _localApi.getAllOverdueSchedules();
 
-  
-  // ==========================================
-  // 🌟 تعديل قسط فردي
-  // ==========================================
   Future<void> updateIndividualSchedule({
     required String scheduleId,
     required DateTime newDueDate,
@@ -898,11 +825,6 @@ class ErpRepository {
     await syncPendingData(); 
   }
 
-    
-  
-  // ==========================================
-  // 🌟 تعديل تاريخ العقد فقط
-  // ==========================================
   Future<void> updateContractDateOnly({required String id, required DateTime contractDate}) async {
     final String? safeUserId = currentUserId;
     if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
@@ -911,7 +833,7 @@ class ErpRepository {
     await (db.update(db.contracts)..where((t) => t.id.equals(id))).write(
       ContractsCompanion(
         contractDate: drift.Value(contractDate.toUtc()),
-        userId: drift.Value(safeUserId), // 🌟 توثيق التعديل
+        userId: drift.Value(safeUserId), 
         updatedAt: drift.Value(DateTime.now().toUtc()),
         isSynced: const drift.Value(false), 
       )
@@ -919,33 +841,25 @@ class ErpRepository {
     await syncPendingData();
   }
   
-  
-
   // ==========================================
   // 💰 الأقساط (Payments Ledger)
   // ==========================================
   Future<List<PaymentsLedgerData>> getContractLedger(String contractId) => _localApi.getContractLedger(contractId);
-  // 🌟 جلب كل الدفعات لغرفة العمليات (الداشبورد)
   Future<List<PaymentsLedgerData>> getAllPayments() => _localApi.getAllPayments();
-  // داخل ErpRepository
+
   Future<void> addLedgerEntry(PaymentsLedgerCompanion entryCompanion) async {
-    final String? safeUserId = currentUserId; // 🌟 1. جلبنا المستخدم الحالي بأمان
+    final String? safeUserId = currentUserId; 
     if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
 
     final companionWithUser = entryCompanion.copyWith(userId: drift.Value(safeUserId));
     await _localApi.addLedgerEntry(companionWithUser);
     
     if (entryCompanion.scheduleId.present && entryCompanion.scheduleId.value != null) {
-      // 🌟 2. أضفنا safeUserId هنا كمعامل ثالث لإصلاح الخطأ
       await _localApi.updateScheduleStatus(entryCompanion.scheduleId.value!, 'paid', safeUserId);
     }
-    
     await syncPendingData(); 
   }
 
-  // ==========================================
-  // 🌟 تحديث حالة القسط (من الداشبورد أو الإيصالات)
-  // ==========================================
   Future<void> updateScheduleStatus(String scheduleId, String status) async {
     final String? safeUserId = currentUserId;
     if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
@@ -954,9 +868,6 @@ class ErpRepository {
     await syncPendingData(); 
   }
 
-  // ==========================================
-  // 🌟 توثيق إرسال الواتساب
-  // ==========================================
   Future<void> markWhatsAppAsSent(String entryId) async { 
     final String? safeUserId = currentUserId;
     if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
@@ -965,9 +876,6 @@ class ErpRepository {
     await syncPendingData();
   }
 
-  // ==========================================
-  // 🌟 تعديل دفعة مالية
-  // ==========================================
   Future<void> updateLedgerEntryAmount({
     required String entryId,
     required double newAmount,
@@ -982,14 +890,11 @@ class ErpRepository {
       newAmount: newAmount, 
       newDiscount: newDiscount, 
       newConvertedMeters: newConvertedMeters,
-      userId: safeUserId, // 🌟 تمرير المستخدم
+      userId: safeUserId, 
     );
-    await syncPendingData(); // رفع للسحابة
+    await syncPendingData(); 
   }
 
-  // ==========================================
-  // 🌟 حذف دفعة لسلة المحذوفات
-  // ==========================================
   Future<void> softDeleteLedgerEntry(String entryId) async {
     final String? safeUserId = currentUserId;
     if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
@@ -1022,7 +927,6 @@ class ErpRepository {
     final String? safeUserId = currentUserId;
     if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً');
 
-    // 🌟 الإضافة هنا: تم التغيير من v4 إلى v7 لتتناسق مع النظام الجديد وتزيد السرعة
     final String newId = const Uuid().v7();
 
     final companionReadyToSave = pricesCompanion.copyWith(
@@ -1031,15 +935,12 @@ class ErpRepository {
       isSynced: const drift.Value(false),
     );
 
-    // 1. الحفظ المحلي
     await _localApi.savePrices(companionReadyToSave);
-    
-    // 2. المزامنة والانتظار 🚨
     await syncPendingData(); 
   }
   
   Future<List<MaterialPricesHistoryData>> getAllMaterialPricesHistory() => _localApi.getAllMaterialPricesHistory();
-  // أضف هذه الدالة في قسم الإعدادات داخل ErpRepository
+  
   Future<void> softDeleteMaterialPrice(String priceId) async {
     final db = _localApi.database;
     final String? safeUserId = currentUserId;
@@ -1048,7 +949,7 @@ class ErpRepository {
     await (db.update(db.materialPricesHistory)..where((t) => t.id.equals(priceId))).write(
       MaterialPricesHistoryCompanion(
         isDeleted: const drift.Value(true),
-        userId: drift.Value(safeUserId), // 🌟 توثيق من حذف التسعيرة
+        userId: drift.Value(safeUserId), 
         updatedAt: drift.Value(DateTime.now().toUtc()),
         isSynced: const drift.Value(false), 
       )
@@ -1074,21 +975,16 @@ class ErpRepository {
     if (currentUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
     final companionWithUser = building.copyWith(userId: drift.Value(currentUserId!));
     await _localApi.addBuilding(companionWithUser);
-    await syncPendingData(); // 🌟 تفعيل الرفع السحابي الفوري
+    await syncPendingData(); 
   }
 
   Future<void> addApartment(ApartmentsCompanion apartment) async {
     if (currentUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
     final companionWithUser = apartment.copyWith(userId: drift.Value(currentUserId!));
     await _localApi.addApartment(companionWithUser);
-    await syncPendingData(); // 🌟 تفعيل الرفع السحابي الفوري
+    await syncPendingData(); 
   }
 
-  // ==========================================
-  // 🏢 تعديل المحاضر والشقق
-  // ==========================================
-  
-  // 1. تعديل المحضر (الاسم والموقع فقط)
   Future<void> updateBuilding({
     required String id,
     required String name,
@@ -1102,7 +998,7 @@ class ErpRepository {
       BuildingsCompanion(
         name: drift.Value(name),
         location: drift.Value(location),
-        userId: drift.Value(safeUserId), // 🌟 توثيق التعديل
+        userId: drift.Value(safeUserId), 
         updatedAt: drift.Value(DateTime.now().toUtc()),
         isSynced: const drift.Value(false), 
       )
@@ -1110,7 +1006,6 @@ class ErpRepository {
     await syncPendingData();
   }
 
-  // 2. تعديل الشقة (الرقم، المساحة، والاتجاه)
   Future<void> updateApartment({
     required String id,
     required String apartmentNumber,
@@ -1126,7 +1021,7 @@ class ErpRepository {
         apartmentNumber: drift.Value(apartmentNumber),
         area: drift.Value(area),
         directionName: drift.Value(directionName),
-        userId: drift.Value(safeUserId), // 🌟 توثيق التعديل
+        userId: drift.Value(safeUserId), 
         updatedAt: drift.Value(DateTime.now().toUtc()),
         isSynced: const drift.Value(false), 
       )
@@ -1162,29 +1057,22 @@ class ErpRepository {
     if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
 
     try {
-      print('🚀 [1] بدأ رفع الملف للعقد: $contractId');
-      
       final fileUrl = await _cloudApi.uploadContractFile(
         contractId: contractId, 
         file: file, 
         extension: extension
       );
-      print('✅ [2] تم رفع الملف بنجاح! الرابط: $fileUrl');
 
       final db = _localApi.database;
       await (db.update(db.contracts)..where((t) => t.id.equals(contractId))).write(
         ContractsCompanion(
           contractFileUrl: drift.Value(fileUrl),
-          userId: drift.Value(safeUserId), // 🌟 حفظ آي دي الشخص الذي رفع الملف
+          userId: drift.Value(safeUserId), 
           updatedAt: drift.Value(DateTime.now().toUtc()),
           isSynced: const drift.Value(false),
         )
       );
-      print('✅ [3] تم حفظ الرابط في قاعدة البيانات المحلية (Drift).');
-
-      print('⏳[4] جاري مزامنة التعديل مع جدول Supabase...');
       await syncPendingData();
-      print('✅ [5] تمت المزامنة بنجاح وانتهت العملية.');
 
     } catch (e, stacktrace) {
       print('❌❌ خطأ فادح أثناء إرفاق الملف: $e');
@@ -1197,20 +1085,15 @@ class ErpRepository {
   // ==========================================
   // 🛡️ قسم النسخ الاحتياطي والاستعادة (Backup & Restore)
   // ==========================================
-  
-  // 🌟 تحديث اسم ملف قاعدة البيانات المعتمد في نظامنا
   final String _dbFileName = 'our_home_erp_v10_uuidv7.sqlite';
 
-  /// 1. النسخ الاحتياطي التلقائي (الصامت) - يعمل مرة واحدة كل يوم
   Future<void> autoBackupSilent() async {
     try {
-      // 1. تحديد مسار قاعدة البيانات الحالية المخبأة
       final supportDir = await getApplicationSupportDirectory();
       final dbFile = File(p.join(supportDir.path, _dbFileName));
 
-      if (!await dbFile.exists()) return; // إذا لم تكن موجودة، فلا نفعل شيئاً
+      if (!await dbFile.exists()) return; 
 
-      // 2. إنشاء مجلد النسخ التلقائي في "المستندات" (Documents) ليكون آمناً
       final docsDir = await getApplicationDocumentsDirectory();
       final backupFolder = Directory(p.join(docsDir.path, 'OurHomeERP_AutoBackups'));
       
@@ -1218,12 +1101,9 @@ class ErpRepository {
         await backupFolder.create(recursive: true);
       }
 
-      // 3. توليد اسم الملف بناءً على اليوم فقط (مثال: AutoBackup_2023-11-05.sqlite)
-      // اقتطاع الوقت، والاحتفاظ بالتاريخ فقط
       final String dateOnly = DateTime.now().toIso8601String().split('T')[0];
       final String backupPath = p.join(backupFolder.path, 'AutoBackup_$dateOnly.sqlite');
 
-      // 4. النسخ (إذا كان الملف موجوداً من قبل في نفس اليوم، سيتم استبداله تلقائياً)
       await dbFile.copy(backupPath);
       print('🛡️[Auto-Backup]: تم أخذ نسخة احتياطية بنجاح ليوم $dateOnly');
       
@@ -1232,7 +1112,6 @@ class ErpRepository {
     }
   }
 
-  /// 2. النسخ الاحتياطي اليدوي (يختاره المستخدم)
   Future<String> backupDatabaseManually() async {
     try {
       final supportDir = await getApplicationSupportDirectory();
@@ -1242,7 +1121,6 @@ class ErpRepository {
         return '❌ لا توجد قاعدة بيانات لنسخها بعد.';
       }
 
-      // فتح نافذة منبثقة للمستخدم لاختيار مكان الحفظ (مثل فلاش USB)
       String? selectedDirectory = await FilePicker.platform.getDirectoryPath(
         dialogTitle: 'اختر مجلداً لحفظ النسخة الاحتياطية',
       );
@@ -1251,7 +1129,6 @@ class ErpRepository {
         return '⚠️ تم إلغاء العملية.';
       }
 
-      // توليد اسم يشمل التاريخ والوقت لتجنب استبدال النسخ اليدوية
       final timestamp = DateTime.now().toIso8601String().replaceAll(':', '-').split('.')[0];
       final backupPath = p.join(selectedDirectory, 'ERP_ManualBackup_$timestamp.sqlite');
 
@@ -1262,10 +1139,8 @@ class ErpRepository {
     }
   }
 
-  /// 3. استعادة البيانات (عملية جراحية دقيقة)
   Future<String> restoreDatabase() async {
     try {
-      // 1. اختيار ملف النسخة الاحتياطية
       FilePickerResult? result = await FilePicker.platform.pickFiles(
         dialogTitle: 'اختر ملف النسخة الاحتياطية (sqlite)',
         type: FileType.custom,
@@ -1277,66 +1152,52 @@ class ErpRepository {
       }
 
       File backupFile = File(result.files.single.path!);
-
-      // 2. مسار قاعدة البيانات الأصلية
       final supportDir = await getApplicationSupportDirectory();
       final targetDbPath = p.join(supportDir.path, _dbFileName);
 
-      // 3. 🚨 الأمان أولاً: إغلاق قاعدة البيانات لمنع قفل الملف (File Lock)
       await _localApi.database.close();
-
-      // 4. استبدال القاعدة القديمة بالقاعدة المستعادة
       await backupFile.copy(targetDbPath);
 
       return '✅ تمت استعادة البيانات بنجاح!\n\n🚨 يرجى إغلاق البرنامج بالكامل وإعادة فتحه لتطبيق التغييرات.';
-      
     } catch (e) {
       return '❌ فشلت الاستعادة: $e';
     }
   }
 
-
-
   // ==========================================
   // 🗑️ إدارة حذف المحاضر والشقق (مع طبقة الحماية)
   // ==========================================
 
-  // 1. حذف شقة/محل (مع التحقق من الحالة)
   Future<void> softDeleteApartment(String apartmentId) async {
     final db = _localApi.database;
     final String? safeUserId = currentUserId;
     if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
     
-    // التحقق المزدوج للأمان
     final apt = await (db.select(db.apartments)..where((t) => t.id.equals(apartmentId))).getSingle();
     if (apt.status != 'available') {
       throw Exception('⚠️ لا يمكن حذف هذه الوحدة لأن حالتها حالياً: ${apt.status}');
     }
 
-    await db.softDeleteApartment(apartmentId, safeUserId); // 🌟 تمرير المستخدم
+    await db.softDeleteApartment(apartmentId, safeUserId); 
     await syncPendingData(); 
   }
 
-  // 2. حذف محضر بالكامل (مع التحقق من الشقق التابعة له)
   Future<void> softDeleteBuilding(String buildingId) async {
     final db = _localApi.database;
     final String? safeUserId = currentUserId;
     if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
 
-    // جلب جميع الشقق والمحلات التابعة لهذا المحضر الفعالة
     final buildingApartments = await (db.select(db.apartments)..where((t) => t.buildingId.equals(buildingId) & t.isDeleted.equals(false))).get();
     
-    // التحقق
     final hasSoldApartments = buildingApartments.any((apt) => apt.status != 'available');
     if (hasSoldApartments) {
       throw Exception('⛔ لا يمكن حذف هذا المحضر لاحتوائه على وحدات مباعة. يرجى حذف الوحدات المتاحة يدوياً إن أردت.');
     }
 
-    await db.softDeleteBuilding(buildingId, safeUserId); // 🌟 تمرير المستخدم
+    await db.softDeleteBuilding(buildingId, safeUserId); 
     await syncPendingData(); 
   }
 
-  // 3. استعادة شقة/محل
   Future<void> restoreApartment(String apartmentId) async {
     final String? safeUserId = currentUserId;
     if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
@@ -1345,7 +1206,6 @@ class ErpRepository {
     await syncPendingData();
   }
 
-  // 4. استعادة محضر (سيستعيد معه شققه آلياً بفضل الدالة المحلية)
   Future<void> restoreBuilding(String buildingId) async {
     final String? safeUserId = currentUserId;
     if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
@@ -1354,7 +1214,6 @@ class ErpRepository {
     await syncPendingData();
   }
 
-  // 5. الحذف النهائي (Hard Delete)
   Future<void> forceHardDeleteApartment(String apartmentId) async {
     await _localApi.database.hardDeleteApartment(apartmentId);
   }
@@ -1363,40 +1222,30 @@ class ErpRepository {
     await _localApi.database.hardDeleteBuilding(buildingId);
   }
 
-  // 6. جلب سلة المحذوفات
   Future<List<Building>> getDeletedBuildings() => _localApi.database.getDeletedBuildings();
   Future<List<Apartment>> getDeletedApartments() => _localApi.database.getDeletedApartments();
-
-
 
   // ==========================================
   // 🛡️ إدارة الصلاحيات والمستخدمين (لوحة تحكم الأدمن)
   // ==========================================
-  
-  /// جلب كل القوالب (الأدوار) لملء القوائم المنسدلة
   Future<List<AppRole>> getAllRoles() => _localApi.getAllRoles();
-  
-  /// جلب كل المستخدمين المسجلين في النظام
-  Future<List<LocalUser>> getAllUsers() => _localApi.getAllLocalUsers();
+  Future<List<LocalUser>> getAllLocalUsers() => _localApi.getAllLocalUsers();
 
-  /// إنشاء دور جديد (مثلاً: محاسب متدرب)
   Future<void> createRole({required String name, required String permissionsJson}) async {
     final companion = AppRolesCompanion.insert(
       name: name,
       permissionsJson: drift.Value(permissionsJson),
-      isSynced: const drift.Value(false), // ليتم رفعه للسحابة فوراً
+      isSynced: const drift.Value(false), 
     );
     await _localApi.addRole(companion);
     await syncPendingData(); 
   }
 
-  /// تحديث الصلاحيات لدور معين (مثال: إعطاء صلاحية الحذف لكل المدراء)
   Future<void> updateRolePermissions({required String roleId, required String permissionsJson}) async {
     await _localApi.updateRolePermissions(roleId, permissionsJson);
     await syncPendingData();
   }
 
-  /// تعيين دور لمستخدم، أو إعطائه استثناءات، أو تجميد حسابه
   Future<void> updateUserRoleAndPermissions({
     required String userId,
     required String roleId,
@@ -1414,7 +1263,6 @@ class ErpRepository {
     await syncPendingData();
   }
 
-
   Future<LocalUser?> getLocalUserById(String id) => _localApi.getLocalUserById(id);
   Future<AppRole?> getRoleById(String id) => _localApi.getRoleById(id);
 
@@ -1424,27 +1272,23 @@ class ErpRepository {
   Future<List<ActivityItem>> getRecentActivities({int limitPerType = 20, int finalLimit = 30}) async {
     final List<ActivityItem> allActivities =[];
 
-    // 1. جلب البيانات الخام من قاعدة البيانات المخبأة
     final recentPayments = await _localApi.getRecentPayments(limitPerType);
     final recentContracts = await _localApi.getRecentContracts(limitPerType);
     final recentClients = await _localApi.getRecentClients(limitPerType);
 
-    // 2. تحويل الدفعات إلى نشاطات
     for (var p in recentPayments) {
       allActivities.add(ActivityItem(
         entityId: p.id,
         type: ActivityType.payment,
         title: 'حركة مالية (دفعة/تعديل)',
-        description: 'دفعة بقيمة ${p.amountPaid} للعقد ${p.contractId.substring(0, 5)}...', // أخذنا جزء من الآي دي للتوضيح
+        description: 'دفعة بقيمة ${p.amountPaid} للعقد ${p.contractId.substring(0, 5)}...', 
         timestamp: p.updatedAt,
         userId: p.userId,
       ));
     }
 
-    // 3. تحويل العقود إلى نشاطات (وسنأخذ بعين الاعتبار إذا كان هناك إجراء رادار)
     for (var c in recentContracts) {
       if (c.lastActionDate != null && c.lastActionDate!.difference(c.updatedAt).inMinutes.abs() < 5) {
-        // إذا كان وقت الإجراء قريباً جداً من وقت التحديث، نعتبره "إجراء إداري"
         allActivities.add(ActivityItem(
           entityId: c.id,
           type: ActivityType.adminAction,
@@ -1454,7 +1298,6 @@ class ErpRepository {
           userId: c.userId,
         ));
       } else {
-        // تحديث أو إضافة عقد عادي
         allActivities.add(ActivityItem(
           entityId: c.id,
           type: ActivityType.contract,
@@ -1466,7 +1309,6 @@ class ErpRepository {
       }
     }
 
-    // 4. تحويل العملاء إلى نشاطات
     for (var c in recentClients) {
       allActivities.add(ActivityItem(
         entityId: c.id,
@@ -1478,21 +1320,17 @@ class ErpRepository {
       ));
     }
 
-    // 5. 🌟 ترتيب جميع النشاطات تنازلياً حسب الوقت (من الأحدث للأقدم)
     allActivities.sort((a, b) => b.timestamp.compareTo(a.timestamp));
 
-    // 6. قص القائمة لتكون بالعدد المطلوب فقط (مثلاً أحدث 30 حدث في كل النظام)
     final trimmedActivities = allActivities.length > finalLimit 
         ? allActivities.sublist(0, finalLimit) 
         : allActivities;
 
-    // 7. 🕵️‍♂️ جلب أسماء المستخدمين بخطوة واحدة ذكية (لتجنب إرهاق القاعدة بالاستعلامات المتكررة)
     final allUsers = await _localApi.getAllLocalUsers();
     final Map<String, String> userNamesMap = {
       for (var user in allUsers) user.id: user.fullName ?? 'مدير النظام'
     };
 
-    // تعبئة الأسماء
     for (var activity in trimmedActivities) {
       if (userNamesMap.containsKey(activity.userId)) {
         activity.userName = userNamesMap[activity.userId]!;
@@ -1502,20 +1340,62 @@ class ErpRepository {
     return trimmedActivities;
   }
   
-}
+  // ==========================================
+  // 🔒 إغلاق أو إعادة فتح العقد (أرشفة)
+  // ==========================================
+  Future<void> toggleContractCompletion({required String contractId, required bool isCompleted}) async {
+    final String? safeUserId = currentUserId;
+    if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
 
+    await _localApi.toggleContractCompletion(contractId, isCompleted, safeUserId);
+    await syncPendingData(); 
+  }
+
+  // ==========================================
+  // ✍️ توثيق براءة الذمة الأولية
+  // ==========================================
+  Future<void> signInitialClearance({required String contractId, required bool isSigned, String? notes}) async {
+    final String? safeUserId = currentUserId;
+    if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
+
+    await _localApi.signInitialClearance(contractId, isSigned, notes, safeUserId);
+    await syncPendingData(); 
+  }
+
+  // ==========================================
+  // ⚖️ إدارة الإجراءات القانونية (صفحة المحامي)
+  // ==========================================
+  Future<List<LegalAction>> getLegalActionsForContract(String contractId) => _localApi.getLegalActionsForContract(contractId);
+
+  Future<void> addLegalAction(LegalActionsCompanion action) async {
+    final String? safeUserId = currentUserId;
+    if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
+
+    final companionWithUser = action.copyWith(userId: drift.Value(safeUserId));
+    await _localApi.addLegalAction(companionWithUser);
+    await syncPendingData(); 
+  }
+
+  Future<void> deleteLegalAction(String actionId) async {
+    final String? safeUserId = currentUserId;
+    if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
+
+    await _localApi.deleteLegalAction(actionId, safeUserId);
+    await syncPendingData(); 
+  }
+}
 
 // نموذج يمثل حركة أو نشاط واحد في النظام
 enum ActivityType { payment, contract, client, adminAction }
 
 class ActivityItem {
-  final String entityId; // آي دي العنصر (للانتقال لصفحته عند الضغط)
-  final ActivityType type; // نوع النشاط (دفعة، عقد، عميل...)
-  final String title; // العنوان (مثال: دفعة جديدة، تعديل عقد)
-  final String description; // التفاصيل (مثال: مبلغ 500$ للعقد كذا)
-  final DateTime timestamp; // وقت حدوث التعديل
-  final String userId; // آي دي المستخدم (لجلب اسمه لاحقاً)
-  String userName; // اسم المستخدم (سيتم تعبئته لاحقاً)
+  final String entityId; 
+  final ActivityType type; 
+  final String title; 
+  final String description; 
+  final DateTime timestamp; 
+  final String userId; 
+  String userName; 
 
   ActivityItem({
     required this.entityId,
