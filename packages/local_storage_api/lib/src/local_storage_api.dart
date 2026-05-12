@@ -62,8 +62,7 @@ class LocalStorageApi {
   Future<int> signInitialClearance(String contractId, bool isSigned, String? notes, String userId) => 
       _db.signInitialClearance(contractId, isSigned, notes, userId);
       
-  Future<int> transferTitleDeed(String contractId, bool isTransferred, DateTime? date, String? notes, String userId) => 
-      _db.transferTitleDeed(contractId, isTransferred, date, notes, userId);
+  
       
   // ==========================================
   // 💰 الأقساط
