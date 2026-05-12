@@ -358,6 +358,33 @@ class LegalActions extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+
+// ==========================================
+// 📎 11. جدول مرفقات الإجراءات القانونية (Legal Action Attachments)
+// ==========================================
+@TableIndex(name: 'idx_attachments_sync', columns: {#isDeleted, #updatedAt, #legalActionId})
+class LegalActionAttachments extends Table {
+  // 🌟 تم التحويل إلى v7
+  TextColumn get id => text().clientDefault(() => _uuid.v7())();
+  
+  // 🌟 مفتاح الربط: كل مرفق يتبع لإجراء قانوني واحد
+  TextColumn get legalActionId => text().references(LegalActions, #id)(); 
+  
+  // بيانات الملف
+  TextColumn get fileUrl => text()(); // الرابط العام للملف من Supabase Storage
+  TextColumn get fileName => text().nullable()(); // اسم الملف الأصلي (للعرض في الواجهة)
+  TextColumn get fileType => text().nullable()(); // نوع الملف (pdf, png, docx)
+  
+  // حقول النظام والمزامنة
+  TextColumn get userId => text()();
+  DateTimeColumn get createdAt => dateTime().clientDefault(() => DateTime.now().toUtc())();
+  DateTimeColumn get updatedAt => dateTime().clientDefault(() => DateTime.now().toUtc())();
+  BoolColumn get isDeleted => boolean().withDefault(const Constant(false))();
+  BoolColumn get isSynced => boolean().withDefault(const Constant(false))();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
 // ==========================================
 // ==========================================
 // التكوين الرئيسي لقاعدة البيانات
@@ -374,7 +401,8 @@ class LegalActions extends Table {
   PaymentsLedger,
   AppRoles,       // 🌟 تمت الإضافة
   LocalUsers,      // 🌟 تمت الإضافة
-  LegalActions 
+  LegalActions,
+  LegalActionAttachments 
 ])
 
 class AppDatabase extends _$AppDatabase {

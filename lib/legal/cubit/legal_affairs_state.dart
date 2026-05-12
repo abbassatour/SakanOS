@@ -1,4 +1,5 @@
 // lib/legal/cubit/legal_affairs_state.dart
+
 part of 'legal_affairs_cubit.dart';
 
 enum LegalAffairsStatus { initial, loading, success, failure }
@@ -6,60 +7,46 @@ enum LegalAffairsStatus { initial, loading, success, failure }
 class LegalAffairsState extends Equatable {
   const LegalAffairsState({
     this.status = LegalAffairsStatus.initial,
-    this.pendingLegalTransfer = const [],
-    this.financialArchive = const [],
-    this.ultimateArchive = const[],
-    this.clients = const [],
-    this.apartments = const [],
-    this.buildings = const[],
+    this.contract,
+    this.client,
+    this.legalActions = const [],
+    // 💡 الخريطة الذكية: نستخدمها لربط كل إجراء بقائمة مرفقاته بكفاءة عالية
+    this.attachments = const {},
     this.errorMessage,
   });
 
   final LegalAffairsStatus status;
-  
-  // 🌟 القوائم الثلاثة المفصلة
-  final List<Contract> pendingLegalTransfer;
-  final List<Contract> financialArchive;
-  final List<Contract> ultimateArchive;
-  
-  // 🌟 الجداول المساعدة لجلب الأسماء
-  final List<Client> clients;
-  final List<Apartment> apartments;
-  final List<Building> buildings;
-  
+  final Contract? contract;
+  final Client? client;
+  final List<LegalAction> legalActions;
+  final Map<String, List<LegalActionAttachment>> attachments;
   final String? errorMessage;
 
   LegalAffairsState copyWith({
     LegalAffairsStatus? status,
-    List<Contract>? pendingLegalTransfer,
-    List<Contract>? financialArchive,
-    List<Contract>? ultimateArchive,
-    List<Client>? clients,
-    List<Apartment>? apartments,
-    List<Building>? buildings,
+    Contract? contract,
+    Client? client,
+    List<LegalAction>? legalActions,
+    Map<String, List<LegalActionAttachment>>? attachments,
     String? errorMessage,
   }) {
     return LegalAffairsState(
       status: status ?? this.status,
-      pendingLegalTransfer: pendingLegalTransfer ?? this.pendingLegalTransfer,
-      financialArchive: financialArchive ?? this.financialArchive,
-      ultimateArchive: ultimateArchive ?? this.ultimateArchive,
-      clients: clients ?? this.clients,
-      apartments: apartments ?? this.apartments,
-      buildings: buildings ?? this.buildings,
+      contract: contract ?? this.contract,
+      client: client ?? this.client,
+      legalActions: legalActions ?? this.legalActions,
+      attachments: attachments ?? this.attachments,
       errorMessage: errorMessage ?? this.errorMessage,
     );
   }
 
   @override
-  List<Object?> get props =>[
+  List<Object?> get props => [
         status,
-        pendingLegalTransfer,
-        financialArchive,
-        ultimateArchive,
-        clients,
-        apartments,
-        buildings,
+        contract,
+        client,
+        legalActions,
+        attachments,
         errorMessage,
       ];
 }
