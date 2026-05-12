@@ -479,6 +479,14 @@ class AppDatabase extends _$AppDatabase {
     );
   }
 
+  // جلب كل الإجراءات غير المحذوفة
+  Future<List<LegalAction>> getAllLegalActions() => 
+      (select(legalActions)..where((t) => t.isDeleted.equals(false))).get();
+
+  // جلب كل المرفقات غير المحذوفة
+  Future<List<LegalActionAttachment>> getAllLegalActionAttachments() => 
+      (select(legalActionAttachments)..where((t) => t.isDeleted.equals(false))).get();
+
 
 
 

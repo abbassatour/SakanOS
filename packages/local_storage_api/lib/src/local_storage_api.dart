@@ -218,6 +218,7 @@ Future<void> handleRollingCheckpoint(String contractId, String scheduleId, Strin
       
   Future<int> deleteLegalActionAttachment(String id, String userId) => 
       _db.softDeleteLegalActionAttachment(id, userId);
-  
+  Future<List<LegalAction>> getAllLegalActions() => _db.getAllLegalActions();
+  Future<List<LegalActionAttachment>> getAllLegalActionAttachments() => _db.getAllLegalActionAttachments();
   
 }
