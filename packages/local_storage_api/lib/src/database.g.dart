@@ -7412,12 +7412,613 @@ class $LegalActionsTable extends LegalActions
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
-  static const VerificationMeta _attachmentUrlMeta = const VerificationMeta(
-    'attachmentUrl',
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
+    'user_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
   );
   @override
-  late final GeneratedColumn<String> attachmentUrl = GeneratedColumn<String>(
-    'attachment_url',
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    clientDefault: () => DateTime.now().toUtc(),
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    clientDefault: () => DateTime.now().toUtc(),
+  );
+  static const VerificationMeta _isDeletedMeta = const VerificationMeta(
+    'isDeleted',
+  );
+  @override
+  late final GeneratedColumn<bool> isDeleted = GeneratedColumn<bool>(
+    'is_deleted',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_deleted" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _isSyncedMeta = const VerificationMeta(
+    'isSynced',
+  );
+  @override
+  late final GeneratedColumn<bool> isSynced = GeneratedColumn<bool>(
+    'is_synced',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_synced" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    contractId,
+    actionType,
+    actionDate,
+    notes,
+    userId,
+    createdAt,
+    updatedAt,
+    isDeleted,
+    isSynced,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'legal_actions';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<LegalAction> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('contract_id')) {
+      context.handle(
+        _contractIdMeta,
+        contractId.isAcceptableOrUnknown(data['contract_id']!, _contractIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_contractIdMeta);
+    }
+    if (data.containsKey('action_type')) {
+      context.handle(
+        _actionTypeMeta,
+        actionType.isAcceptableOrUnknown(data['action_type']!, _actionTypeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_actionTypeMeta);
+    }
+    if (data.containsKey('action_date')) {
+      context.handle(
+        _actionDateMeta,
+        actionDate.isAcceptableOrUnknown(data['action_date']!, _actionDateMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_actionDateMeta);
+    }
+    if (data.containsKey('notes')) {
+      context.handle(
+        _notesMeta,
+        notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
+      );
+    }
+    if (data.containsKey('user_id')) {
+      context.handle(
+        _userIdMeta,
+        userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_userIdMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    if (data.containsKey('is_deleted')) {
+      context.handle(
+        _isDeletedMeta,
+        isDeleted.isAcceptableOrUnknown(data['is_deleted']!, _isDeletedMeta),
+      );
+    }
+    if (data.containsKey('is_synced')) {
+      context.handle(
+        _isSyncedMeta,
+        isSynced.isAcceptableOrUnknown(data['is_synced']!, _isSyncedMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  LegalAction map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return LegalAction(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      contractId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}contract_id'],
+      )!,
+      actionType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}action_type'],
+      )!,
+      actionDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}action_date'],
+      )!,
+      notes: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}notes'],
+      ),
+      userId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}user_id'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      isDeleted: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_deleted'],
+      )!,
+      isSynced: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_synced'],
+      )!,
+    );
+  }
+
+  @override
+  $LegalActionsTable createAlias(String alias) {
+    return $LegalActionsTable(attachedDatabase, alias);
+  }
+}
+
+class LegalAction extends DataClass implements Insertable<LegalAction> {
+  final String id;
+  final String contractId;
+  final String actionType;
+  final DateTime actionDate;
+  final String? notes;
+  final String userId;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final bool isDeleted;
+  final bool isSynced;
+  const LegalAction({
+    required this.id,
+    required this.contractId,
+    required this.actionType,
+    required this.actionDate,
+    this.notes,
+    required this.userId,
+    required this.createdAt,
+    required this.updatedAt,
+    required this.isDeleted,
+    required this.isSynced,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['contract_id'] = Variable<String>(contractId);
+    map['action_type'] = Variable<String>(actionType);
+    map['action_date'] = Variable<DateTime>(actionDate);
+    if (!nullToAbsent || notes != null) {
+      map['notes'] = Variable<String>(notes);
+    }
+    map['user_id'] = Variable<String>(userId);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    map['is_deleted'] = Variable<bool>(isDeleted);
+    map['is_synced'] = Variable<bool>(isSynced);
+    return map;
+  }
+
+  LegalActionsCompanion toCompanion(bool nullToAbsent) {
+    return LegalActionsCompanion(
+      id: Value(id),
+      contractId: Value(contractId),
+      actionType: Value(actionType),
+      actionDate: Value(actionDate),
+      notes: notes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(notes),
+      userId: Value(userId),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      isDeleted: Value(isDeleted),
+      isSynced: Value(isSynced),
+    );
+  }
+
+  factory LegalAction.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return LegalAction(
+      id: serializer.fromJson<String>(json['id']),
+      contractId: serializer.fromJson<String>(json['contractId']),
+      actionType: serializer.fromJson<String>(json['actionType']),
+      actionDate: serializer.fromJson<DateTime>(json['actionDate']),
+      notes: serializer.fromJson<String?>(json['notes']),
+      userId: serializer.fromJson<String>(json['userId']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      isDeleted: serializer.fromJson<bool>(json['isDeleted']),
+      isSynced: serializer.fromJson<bool>(json['isSynced']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'contractId': serializer.toJson<String>(contractId),
+      'actionType': serializer.toJson<String>(actionType),
+      'actionDate': serializer.toJson<DateTime>(actionDate),
+      'notes': serializer.toJson<String?>(notes),
+      'userId': serializer.toJson<String>(userId),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'isDeleted': serializer.toJson<bool>(isDeleted),
+      'isSynced': serializer.toJson<bool>(isSynced),
+    };
+  }
+
+  LegalAction copyWith({
+    String? id,
+    String? contractId,
+    String? actionType,
+    DateTime? actionDate,
+    Value<String?> notes = const Value.absent(),
+    String? userId,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    bool? isDeleted,
+    bool? isSynced,
+  }) => LegalAction(
+    id: id ?? this.id,
+    contractId: contractId ?? this.contractId,
+    actionType: actionType ?? this.actionType,
+    actionDate: actionDate ?? this.actionDate,
+    notes: notes.present ? notes.value : this.notes,
+    userId: userId ?? this.userId,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+    isDeleted: isDeleted ?? this.isDeleted,
+    isSynced: isSynced ?? this.isSynced,
+  );
+  LegalAction copyWithCompanion(LegalActionsCompanion data) {
+    return LegalAction(
+      id: data.id.present ? data.id.value : this.id,
+      contractId: data.contractId.present
+          ? data.contractId.value
+          : this.contractId,
+      actionType: data.actionType.present
+          ? data.actionType.value
+          : this.actionType,
+      actionDate: data.actionDate.present
+          ? data.actionDate.value
+          : this.actionDate,
+      notes: data.notes.present ? data.notes.value : this.notes,
+      userId: data.userId.present ? data.userId.value : this.userId,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      isDeleted: data.isDeleted.present ? data.isDeleted.value : this.isDeleted,
+      isSynced: data.isSynced.present ? data.isSynced.value : this.isSynced,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LegalAction(')
+          ..write('id: $id, ')
+          ..write('contractId: $contractId, ')
+          ..write('actionType: $actionType, ')
+          ..write('actionDate: $actionDate, ')
+          ..write('notes: $notes, ')
+          ..write('userId: $userId, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('isDeleted: $isDeleted, ')
+          ..write('isSynced: $isSynced')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    contractId,
+    actionType,
+    actionDate,
+    notes,
+    userId,
+    createdAt,
+    updatedAt,
+    isDeleted,
+    isSynced,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is LegalAction &&
+          other.id == this.id &&
+          other.contractId == this.contractId &&
+          other.actionType == this.actionType &&
+          other.actionDate == this.actionDate &&
+          other.notes == this.notes &&
+          other.userId == this.userId &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.isDeleted == this.isDeleted &&
+          other.isSynced == this.isSynced);
+}
+
+class LegalActionsCompanion extends UpdateCompanion<LegalAction> {
+  final Value<String> id;
+  final Value<String> contractId;
+  final Value<String> actionType;
+  final Value<DateTime> actionDate;
+  final Value<String?> notes;
+  final Value<String> userId;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<bool> isDeleted;
+  final Value<bool> isSynced;
+  final Value<int> rowid;
+  const LegalActionsCompanion({
+    this.id = const Value.absent(),
+    this.contractId = const Value.absent(),
+    this.actionType = const Value.absent(),
+    this.actionDate = const Value.absent(),
+    this.notes = const Value.absent(),
+    this.userId = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.isDeleted = const Value.absent(),
+    this.isSynced = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  LegalActionsCompanion.insert({
+    this.id = const Value.absent(),
+    required String contractId,
+    required String actionType,
+    required DateTime actionDate,
+    this.notes = const Value.absent(),
+    required String userId,
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.isDeleted = const Value.absent(),
+    this.isSynced = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : contractId = Value(contractId),
+       actionType = Value(actionType),
+       actionDate = Value(actionDate),
+       userId = Value(userId);
+  static Insertable<LegalAction> custom({
+    Expression<String>? id,
+    Expression<String>? contractId,
+    Expression<String>? actionType,
+    Expression<DateTime>? actionDate,
+    Expression<String>? notes,
+    Expression<String>? userId,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<bool>? isDeleted,
+    Expression<bool>? isSynced,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (contractId != null) 'contract_id': contractId,
+      if (actionType != null) 'action_type': actionType,
+      if (actionDate != null) 'action_date': actionDate,
+      if (notes != null) 'notes': notes,
+      if (userId != null) 'user_id': userId,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (isDeleted != null) 'is_deleted': isDeleted,
+      if (isSynced != null) 'is_synced': isSynced,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  LegalActionsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? contractId,
+    Value<String>? actionType,
+    Value<DateTime>? actionDate,
+    Value<String?>? notes,
+    Value<String>? userId,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<bool>? isDeleted,
+    Value<bool>? isSynced,
+    Value<int>? rowid,
+  }) {
+    return LegalActionsCompanion(
+      id: id ?? this.id,
+      contractId: contractId ?? this.contractId,
+      actionType: actionType ?? this.actionType,
+      actionDate: actionDate ?? this.actionDate,
+      notes: notes ?? this.notes,
+      userId: userId ?? this.userId,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      isDeleted: isDeleted ?? this.isDeleted,
+      isSynced: isSynced ?? this.isSynced,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (contractId.present) {
+      map['contract_id'] = Variable<String>(contractId.value);
+    }
+    if (actionType.present) {
+      map['action_type'] = Variable<String>(actionType.value);
+    }
+    if (actionDate.present) {
+      map['action_date'] = Variable<DateTime>(actionDate.value);
+    }
+    if (notes.present) {
+      map['notes'] = Variable<String>(notes.value);
+    }
+    if (userId.present) {
+      map['user_id'] = Variable<String>(userId.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (isDeleted.present) {
+      map['is_deleted'] = Variable<bool>(isDeleted.value);
+    }
+    if (isSynced.present) {
+      map['is_synced'] = Variable<bool>(isSynced.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LegalActionsCompanion(')
+          ..write('id: $id, ')
+          ..write('contractId: $contractId, ')
+          ..write('actionType: $actionType, ')
+          ..write('actionDate: $actionDate, ')
+          ..write('notes: $notes, ')
+          ..write('userId: $userId, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('isDeleted: $isDeleted, ')
+          ..write('isSynced: $isSynced, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $LegalActionAttachmentsTable extends LegalActionAttachments
+    with TableInfo<$LegalActionAttachmentsTable, LegalActionAttachment> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $LegalActionAttachmentsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    clientDefault: () => _uuid.v7(),
+  );
+  static const VerificationMeta _legalActionIdMeta = const VerificationMeta(
+    'legalActionId',
+  );
+  @override
+  late final GeneratedColumn<String> legalActionId = GeneratedColumn<String>(
+    'legal_action_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES legal_actions (id)',
+    ),
+  );
+  static const VerificationMeta _fileUrlMeta = const VerificationMeta(
+    'fileUrl',
+  );
+  @override
+  late final GeneratedColumn<String> fileUrl = GeneratedColumn<String>(
+    'file_url',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _fileNameMeta = const VerificationMeta(
+    'fileName',
+  );
+  @override
+  late final GeneratedColumn<String> fileName = GeneratedColumn<String>(
+    'file_name',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _fileTypeMeta = const VerificationMeta(
+    'fileType',
+  );
+  @override
+  late final GeneratedColumn<String> fileType = GeneratedColumn<String>(
+    'file_type',
     aliasedName,
     true,
     type: DriftSqlType.string,
@@ -7489,11 +8090,10 @@ class $LegalActionsTable extends LegalActions
   @override
   List<GeneratedColumn> get $columns => [
     id,
-    contractId,
-    actionType,
-    actionDate,
-    notes,
-    attachmentUrl,
+    legalActionId,
+    fileUrl,
+    fileName,
+    fileType,
     userId,
     createdAt,
     updatedAt,
@@ -7504,10 +8104,10 @@ class $LegalActionsTable extends LegalActions
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
-  static const String $name = 'legal_actions';
+  static const String $name = 'legal_action_attachments';
   @override
   VerificationContext validateIntegrity(
-    Insertable<LegalAction> instance, {
+    Insertable<LegalActionAttachment> instance, {
     bool isInserting = false,
   }) {
     final context = VerificationContext();
@@ -7515,43 +8115,35 @@ class $LegalActionsTable extends LegalActions
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
     }
-    if (data.containsKey('contract_id')) {
+    if (data.containsKey('legal_action_id')) {
       context.handle(
-        _contractIdMeta,
-        contractId.isAcceptableOrUnknown(data['contract_id']!, _contractIdMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_contractIdMeta);
-    }
-    if (data.containsKey('action_type')) {
-      context.handle(
-        _actionTypeMeta,
-        actionType.isAcceptableOrUnknown(data['action_type']!, _actionTypeMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_actionTypeMeta);
-    }
-    if (data.containsKey('action_date')) {
-      context.handle(
-        _actionDateMeta,
-        actionDate.isAcceptableOrUnknown(data['action_date']!, _actionDateMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_actionDateMeta);
-    }
-    if (data.containsKey('notes')) {
-      context.handle(
-        _notesMeta,
-        notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
-      );
-    }
-    if (data.containsKey('attachment_url')) {
-      context.handle(
-        _attachmentUrlMeta,
-        attachmentUrl.isAcceptableOrUnknown(
-          data['attachment_url']!,
-          _attachmentUrlMeta,
+        _legalActionIdMeta,
+        legalActionId.isAcceptableOrUnknown(
+          data['legal_action_id']!,
+          _legalActionIdMeta,
         ),
+      );
+    } else if (isInserting) {
+      context.missing(_legalActionIdMeta);
+    }
+    if (data.containsKey('file_url')) {
+      context.handle(
+        _fileUrlMeta,
+        fileUrl.isAcceptableOrUnknown(data['file_url']!, _fileUrlMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_fileUrlMeta);
+    }
+    if (data.containsKey('file_name')) {
+      context.handle(
+        _fileNameMeta,
+        fileName.isAcceptableOrUnknown(data['file_name']!, _fileNameMeta),
+      );
+    }
+    if (data.containsKey('file_type')) {
+      context.handle(
+        _fileTypeMeta,
+        fileType.isAcceptableOrUnknown(data['file_type']!, _fileTypeMeta),
       );
     }
     if (data.containsKey('user_id')) {
@@ -7592,32 +8184,28 @@ class $LegalActionsTable extends LegalActions
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  LegalAction map(Map<String, dynamic> data, {String? tablePrefix}) {
+  LegalActionAttachment map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return LegalAction(
+    return LegalActionAttachment(
       id: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}id'],
       )!,
-      contractId: attachedDatabase.typeMapping.read(
+      legalActionId: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
-        data['${effectivePrefix}contract_id'],
+        data['${effectivePrefix}legal_action_id'],
       )!,
-      actionType: attachedDatabase.typeMapping.read(
+      fileUrl: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
-        data['${effectivePrefix}action_type'],
+        data['${effectivePrefix}file_url'],
       )!,
-      actionDate: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}action_date'],
-      )!,
-      notes: attachedDatabase.typeMapping.read(
+      fileName: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
-        data['${effectivePrefix}notes'],
+        data['${effectivePrefix}file_name'],
       ),
-      attachmentUrl: attachedDatabase.typeMapping.read(
+      fileType: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
-        data['${effectivePrefix}attachment_url'],
+        data['${effectivePrefix}file_type'],
       ),
       userId: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
@@ -7643,30 +8231,29 @@ class $LegalActionsTable extends LegalActions
   }
 
   @override
-  $LegalActionsTable createAlias(String alias) {
-    return $LegalActionsTable(attachedDatabase, alias);
+  $LegalActionAttachmentsTable createAlias(String alias) {
+    return $LegalActionAttachmentsTable(attachedDatabase, alias);
   }
 }
 
-class LegalAction extends DataClass implements Insertable<LegalAction> {
+class LegalActionAttachment extends DataClass
+    implements Insertable<LegalActionAttachment> {
   final String id;
-  final String contractId;
-  final String actionType;
-  final DateTime actionDate;
-  final String? notes;
-  final String? attachmentUrl;
+  final String legalActionId;
+  final String fileUrl;
+  final String? fileName;
+  final String? fileType;
   final String userId;
   final DateTime createdAt;
   final DateTime updatedAt;
   final bool isDeleted;
   final bool isSynced;
-  const LegalAction({
+  const LegalActionAttachment({
     required this.id,
-    required this.contractId,
-    required this.actionType,
-    required this.actionDate,
-    this.notes,
-    this.attachmentUrl,
+    required this.legalActionId,
+    required this.fileUrl,
+    this.fileName,
+    this.fileType,
     required this.userId,
     required this.createdAt,
     required this.updatedAt,
@@ -7677,14 +8264,13 @@ class LegalAction extends DataClass implements Insertable<LegalAction> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
-    map['contract_id'] = Variable<String>(contractId);
-    map['action_type'] = Variable<String>(actionType);
-    map['action_date'] = Variable<DateTime>(actionDate);
-    if (!nullToAbsent || notes != null) {
-      map['notes'] = Variable<String>(notes);
+    map['legal_action_id'] = Variable<String>(legalActionId);
+    map['file_url'] = Variable<String>(fileUrl);
+    if (!nullToAbsent || fileName != null) {
+      map['file_name'] = Variable<String>(fileName);
     }
-    if (!nullToAbsent || attachmentUrl != null) {
-      map['attachment_url'] = Variable<String>(attachmentUrl);
+    if (!nullToAbsent || fileType != null) {
+      map['file_type'] = Variable<String>(fileType);
     }
     map['user_id'] = Variable<String>(userId);
     map['created_at'] = Variable<DateTime>(createdAt);
@@ -7694,18 +8280,17 @@ class LegalAction extends DataClass implements Insertable<LegalAction> {
     return map;
   }
 
-  LegalActionsCompanion toCompanion(bool nullToAbsent) {
-    return LegalActionsCompanion(
+  LegalActionAttachmentsCompanion toCompanion(bool nullToAbsent) {
+    return LegalActionAttachmentsCompanion(
       id: Value(id),
-      contractId: Value(contractId),
-      actionType: Value(actionType),
-      actionDate: Value(actionDate),
-      notes: notes == null && nullToAbsent
+      legalActionId: Value(legalActionId),
+      fileUrl: Value(fileUrl),
+      fileName: fileName == null && nullToAbsent
           ? const Value.absent()
-          : Value(notes),
-      attachmentUrl: attachmentUrl == null && nullToAbsent
+          : Value(fileName),
+      fileType: fileType == null && nullToAbsent
           ? const Value.absent()
-          : Value(attachmentUrl),
+          : Value(fileType),
       userId: Value(userId),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
@@ -7714,18 +8299,17 @@ class LegalAction extends DataClass implements Insertable<LegalAction> {
     );
   }
 
-  factory LegalAction.fromJson(
+  factory LegalActionAttachment.fromJson(
     Map<String, dynamic> json, {
     ValueSerializer? serializer,
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return LegalAction(
+    return LegalActionAttachment(
       id: serializer.fromJson<String>(json['id']),
-      contractId: serializer.fromJson<String>(json['contractId']),
-      actionType: serializer.fromJson<String>(json['actionType']),
-      actionDate: serializer.fromJson<DateTime>(json['actionDate']),
-      notes: serializer.fromJson<String?>(json['notes']),
-      attachmentUrl: serializer.fromJson<String?>(json['attachmentUrl']),
+      legalActionId: serializer.fromJson<String>(json['legalActionId']),
+      fileUrl: serializer.fromJson<String>(json['fileUrl']),
+      fileName: serializer.fromJson<String?>(json['fileName']),
+      fileType: serializer.fromJson<String?>(json['fileType']),
       userId: serializer.fromJson<String>(json['userId']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
@@ -7738,11 +8322,10 @@ class LegalAction extends DataClass implements Insertable<LegalAction> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
-      'contractId': serializer.toJson<String>(contractId),
-      'actionType': serializer.toJson<String>(actionType),
-      'actionDate': serializer.toJson<DateTime>(actionDate),
-      'notes': serializer.toJson<String?>(notes),
-      'attachmentUrl': serializer.toJson<String?>(attachmentUrl),
+      'legalActionId': serializer.toJson<String>(legalActionId),
+      'fileUrl': serializer.toJson<String>(fileUrl),
+      'fileName': serializer.toJson<String?>(fileName),
+      'fileType': serializer.toJson<String?>(fileType),
       'userId': serializer.toJson<String>(userId),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
@@ -7751,49 +8334,40 @@ class LegalAction extends DataClass implements Insertable<LegalAction> {
     };
   }
 
-  LegalAction copyWith({
+  LegalActionAttachment copyWith({
     String? id,
-    String? contractId,
-    String? actionType,
-    DateTime? actionDate,
-    Value<String?> notes = const Value.absent(),
-    Value<String?> attachmentUrl = const Value.absent(),
+    String? legalActionId,
+    String? fileUrl,
+    Value<String?> fileName = const Value.absent(),
+    Value<String?> fileType = const Value.absent(),
     String? userId,
     DateTime? createdAt,
     DateTime? updatedAt,
     bool? isDeleted,
     bool? isSynced,
-  }) => LegalAction(
+  }) => LegalActionAttachment(
     id: id ?? this.id,
-    contractId: contractId ?? this.contractId,
-    actionType: actionType ?? this.actionType,
-    actionDate: actionDate ?? this.actionDate,
-    notes: notes.present ? notes.value : this.notes,
-    attachmentUrl: attachmentUrl.present
-        ? attachmentUrl.value
-        : this.attachmentUrl,
+    legalActionId: legalActionId ?? this.legalActionId,
+    fileUrl: fileUrl ?? this.fileUrl,
+    fileName: fileName.present ? fileName.value : this.fileName,
+    fileType: fileType.present ? fileType.value : this.fileType,
     userId: userId ?? this.userId,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
     isDeleted: isDeleted ?? this.isDeleted,
     isSynced: isSynced ?? this.isSynced,
   );
-  LegalAction copyWithCompanion(LegalActionsCompanion data) {
-    return LegalAction(
+  LegalActionAttachment copyWithCompanion(
+    LegalActionAttachmentsCompanion data,
+  ) {
+    return LegalActionAttachment(
       id: data.id.present ? data.id.value : this.id,
-      contractId: data.contractId.present
-          ? data.contractId.value
-          : this.contractId,
-      actionType: data.actionType.present
-          ? data.actionType.value
-          : this.actionType,
-      actionDate: data.actionDate.present
-          ? data.actionDate.value
-          : this.actionDate,
-      notes: data.notes.present ? data.notes.value : this.notes,
-      attachmentUrl: data.attachmentUrl.present
-          ? data.attachmentUrl.value
-          : this.attachmentUrl,
+      legalActionId: data.legalActionId.present
+          ? data.legalActionId.value
+          : this.legalActionId,
+      fileUrl: data.fileUrl.present ? data.fileUrl.value : this.fileUrl,
+      fileName: data.fileName.present ? data.fileName.value : this.fileName,
+      fileType: data.fileType.present ? data.fileType.value : this.fileType,
       userId: data.userId.present ? data.userId.value : this.userId,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
@@ -7804,13 +8378,12 @@ class LegalAction extends DataClass implements Insertable<LegalAction> {
 
   @override
   String toString() {
-    return (StringBuffer('LegalAction(')
+    return (StringBuffer('LegalActionAttachment(')
           ..write('id: $id, ')
-          ..write('contractId: $contractId, ')
-          ..write('actionType: $actionType, ')
-          ..write('actionDate: $actionDate, ')
-          ..write('notes: $notes, ')
-          ..write('attachmentUrl: $attachmentUrl, ')
+          ..write('legalActionId: $legalActionId, ')
+          ..write('fileUrl: $fileUrl, ')
+          ..write('fileName: $fileName, ')
+          ..write('fileType: $fileType, ')
           ..write('userId: $userId, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
@@ -7823,11 +8396,10 @@ class LegalAction extends DataClass implements Insertable<LegalAction> {
   @override
   int get hashCode => Object.hash(
     id,
-    contractId,
-    actionType,
-    actionDate,
-    notes,
-    attachmentUrl,
+    legalActionId,
+    fileUrl,
+    fileName,
+    fileType,
     userId,
     createdAt,
     updatedAt,
@@ -7837,13 +8409,12 @@ class LegalAction extends DataClass implements Insertable<LegalAction> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is LegalAction &&
+      (other is LegalActionAttachment &&
           other.id == this.id &&
-          other.contractId == this.contractId &&
-          other.actionType == this.actionType &&
-          other.actionDate == this.actionDate &&
-          other.notes == this.notes &&
-          other.attachmentUrl == this.attachmentUrl &&
+          other.legalActionId == this.legalActionId &&
+          other.fileUrl == this.fileUrl &&
+          other.fileName == this.fileName &&
+          other.fileType == this.fileType &&
           other.userId == this.userId &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
@@ -7851,26 +8422,25 @@ class LegalAction extends DataClass implements Insertable<LegalAction> {
           other.isSynced == this.isSynced);
 }
 
-class LegalActionsCompanion extends UpdateCompanion<LegalAction> {
+class LegalActionAttachmentsCompanion
+    extends UpdateCompanion<LegalActionAttachment> {
   final Value<String> id;
-  final Value<String> contractId;
-  final Value<String> actionType;
-  final Value<DateTime> actionDate;
-  final Value<String?> notes;
-  final Value<String?> attachmentUrl;
+  final Value<String> legalActionId;
+  final Value<String> fileUrl;
+  final Value<String?> fileName;
+  final Value<String?> fileType;
   final Value<String> userId;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<bool> isDeleted;
   final Value<bool> isSynced;
   final Value<int> rowid;
-  const LegalActionsCompanion({
+  const LegalActionAttachmentsCompanion({
     this.id = const Value.absent(),
-    this.contractId = const Value.absent(),
-    this.actionType = const Value.absent(),
-    this.actionDate = const Value.absent(),
-    this.notes = const Value.absent(),
-    this.attachmentUrl = const Value.absent(),
+    this.legalActionId = const Value.absent(),
+    this.fileUrl = const Value.absent(),
+    this.fileName = const Value.absent(),
+    this.fileType = const Value.absent(),
     this.userId = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
@@ -7878,30 +8448,27 @@ class LegalActionsCompanion extends UpdateCompanion<LegalAction> {
     this.isSynced = const Value.absent(),
     this.rowid = const Value.absent(),
   });
-  LegalActionsCompanion.insert({
+  LegalActionAttachmentsCompanion.insert({
     this.id = const Value.absent(),
-    required String contractId,
-    required String actionType,
-    required DateTime actionDate,
-    this.notes = const Value.absent(),
-    this.attachmentUrl = const Value.absent(),
+    required String legalActionId,
+    required String fileUrl,
+    this.fileName = const Value.absent(),
+    this.fileType = const Value.absent(),
     required String userId,
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.isDeleted = const Value.absent(),
     this.isSynced = const Value.absent(),
     this.rowid = const Value.absent(),
-  }) : contractId = Value(contractId),
-       actionType = Value(actionType),
-       actionDate = Value(actionDate),
+  }) : legalActionId = Value(legalActionId),
+       fileUrl = Value(fileUrl),
        userId = Value(userId);
-  static Insertable<LegalAction> custom({
+  static Insertable<LegalActionAttachment> custom({
     Expression<String>? id,
-    Expression<String>? contractId,
-    Expression<String>? actionType,
-    Expression<DateTime>? actionDate,
-    Expression<String>? notes,
-    Expression<String>? attachmentUrl,
+    Expression<String>? legalActionId,
+    Expression<String>? fileUrl,
+    Expression<String>? fileName,
+    Expression<String>? fileType,
     Expression<String>? userId,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
@@ -7911,11 +8478,10 @@ class LegalActionsCompanion extends UpdateCompanion<LegalAction> {
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
-      if (contractId != null) 'contract_id': contractId,
-      if (actionType != null) 'action_type': actionType,
-      if (actionDate != null) 'action_date': actionDate,
-      if (notes != null) 'notes': notes,
-      if (attachmentUrl != null) 'attachment_url': attachmentUrl,
+      if (legalActionId != null) 'legal_action_id': legalActionId,
+      if (fileUrl != null) 'file_url': fileUrl,
+      if (fileName != null) 'file_name': fileName,
+      if (fileType != null) 'file_type': fileType,
       if (userId != null) 'user_id': userId,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
@@ -7925,13 +8491,12 @@ class LegalActionsCompanion extends UpdateCompanion<LegalAction> {
     });
   }
 
-  LegalActionsCompanion copyWith({
+  LegalActionAttachmentsCompanion copyWith({
     Value<String>? id,
-    Value<String>? contractId,
-    Value<String>? actionType,
-    Value<DateTime>? actionDate,
-    Value<String?>? notes,
-    Value<String?>? attachmentUrl,
+    Value<String>? legalActionId,
+    Value<String>? fileUrl,
+    Value<String?>? fileName,
+    Value<String?>? fileType,
     Value<String>? userId,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
@@ -7939,13 +8504,12 @@ class LegalActionsCompanion extends UpdateCompanion<LegalAction> {
     Value<bool>? isSynced,
     Value<int>? rowid,
   }) {
-    return LegalActionsCompanion(
+    return LegalActionAttachmentsCompanion(
       id: id ?? this.id,
-      contractId: contractId ?? this.contractId,
-      actionType: actionType ?? this.actionType,
-      actionDate: actionDate ?? this.actionDate,
-      notes: notes ?? this.notes,
-      attachmentUrl: attachmentUrl ?? this.attachmentUrl,
+      legalActionId: legalActionId ?? this.legalActionId,
+      fileUrl: fileUrl ?? this.fileUrl,
+      fileName: fileName ?? this.fileName,
+      fileType: fileType ?? this.fileType,
       userId: userId ?? this.userId,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -7961,20 +8525,17 @@ class LegalActionsCompanion extends UpdateCompanion<LegalAction> {
     if (id.present) {
       map['id'] = Variable<String>(id.value);
     }
-    if (contractId.present) {
-      map['contract_id'] = Variable<String>(contractId.value);
+    if (legalActionId.present) {
+      map['legal_action_id'] = Variable<String>(legalActionId.value);
     }
-    if (actionType.present) {
-      map['action_type'] = Variable<String>(actionType.value);
+    if (fileUrl.present) {
+      map['file_url'] = Variable<String>(fileUrl.value);
     }
-    if (actionDate.present) {
-      map['action_date'] = Variable<DateTime>(actionDate.value);
+    if (fileName.present) {
+      map['file_name'] = Variable<String>(fileName.value);
     }
-    if (notes.present) {
-      map['notes'] = Variable<String>(notes.value);
-    }
-    if (attachmentUrl.present) {
-      map['attachment_url'] = Variable<String>(attachmentUrl.value);
+    if (fileType.present) {
+      map['file_type'] = Variable<String>(fileType.value);
     }
     if (userId.present) {
       map['user_id'] = Variable<String>(userId.value);
@@ -7999,13 +8560,12 @@ class LegalActionsCompanion extends UpdateCompanion<LegalAction> {
 
   @override
   String toString() {
-    return (StringBuffer('LegalActionsCompanion(')
+    return (StringBuffer('LegalActionAttachmentsCompanion(')
           ..write('id: $id, ')
-          ..write('contractId: $contractId, ')
-          ..write('actionType: $actionType, ')
-          ..write('actionDate: $actionDate, ')
-          ..write('notes: $notes, ')
-          ..write('attachmentUrl: $attachmentUrl, ')
+          ..write('legalActionId: $legalActionId, ')
+          ..write('fileUrl: $fileUrl, ')
+          ..write('fileName: $fileName, ')
+          ..write('fileType: $fileType, ')
           ..write('userId: $userId, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
@@ -8032,6 +8592,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $AppRolesTable appRoles = $AppRolesTable(this);
   late final $LocalUsersTable localUsers = $LocalUsersTable(this);
   late final $LegalActionsTable legalActions = $LegalActionsTable(this);
+  late final $LegalActionAttachmentsTable legalActionAttachments =
+      $LegalActionAttachmentsTable(this);
   late final Index idxClientsSync = Index(
     'idx_clients_sync',
     'CREATE INDEX idx_clients_sync ON clients (is_deleted, updated_at)',
@@ -8072,6 +8634,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     'idx_legal_actions_sync',
     'CREATE INDEX idx_legal_actions_sync ON legal_actions (is_deleted, updated_at, contract_id)',
   );
+  late final Index idxAttachmentsSync = Index(
+    'idx_attachments_sync',
+    'CREATE INDEX idx_attachments_sync ON legal_action_attachments (is_deleted, updated_at, legal_action_id)',
+  );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -8087,6 +8653,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     appRoles,
     localUsers,
     legalActions,
+    legalActionAttachments,
     idxClientsSync,
     idxContractsSync,
     idxBuildingsSync,
@@ -8097,6 +8664,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     idxRolesSync,
     idxUsersSync,
     idxLegalActionsSync,
+    idxAttachmentsSync,
   ];
 }
 
@@ -13095,7 +13663,6 @@ typedef $$LegalActionsTableCreateCompanionBuilder =
       required String actionType,
       required DateTime actionDate,
       Value<String?> notes,
-      Value<String?> attachmentUrl,
       required String userId,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
@@ -13110,7 +13677,6 @@ typedef $$LegalActionsTableUpdateCompanionBuilder =
       Value<String> actionType,
       Value<DateTime> actionDate,
       Value<String?> notes,
-      Value<String?> attachmentUrl,
       Value<String> userId,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
@@ -13141,6 +13707,34 @@ final class $$LegalActionsTableReferences
       manager.$state.copyWith(prefetchedData: [item]),
     );
   }
+
+  static MultiTypedResultKey<
+    $LegalActionAttachmentsTable,
+    List<LegalActionAttachment>
+  >
+  _legalActionAttachmentsRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.legalActionAttachments,
+        aliasName: $_aliasNameGenerator(
+          db.legalActions.id,
+          db.legalActionAttachments.legalActionId,
+        ),
+      );
+
+  $$LegalActionAttachmentsTableProcessedTableManager
+  get legalActionAttachmentsRefs {
+    final manager = $$LegalActionAttachmentsTableTableManager(
+      $_db,
+      $_db.legalActionAttachments,
+    ).filter((f) => f.legalActionId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _legalActionAttachmentsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
 }
 
 class $$LegalActionsTableFilterComposer
@@ -13169,11 +13763,6 @@ class $$LegalActionsTableFilterComposer
 
   ColumnFilters<String> get notes => $composableBuilder(
     column: $table.notes,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get attachmentUrl => $composableBuilder(
-    column: $table.attachmentUrl,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -13224,6 +13813,32 @@ class $$LegalActionsTableFilterComposer
     );
     return composer;
   }
+
+  Expression<bool> legalActionAttachmentsRefs(
+    Expression<bool> Function($$LegalActionAttachmentsTableFilterComposer f) f,
+  ) {
+    final $$LegalActionAttachmentsTableFilterComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.legalActionAttachments,
+          getReferencedColumn: (t) => t.legalActionId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$LegalActionAttachmentsTableFilterComposer(
+                $db: $db,
+                $table: $db.legalActionAttachments,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
 }
 
 class $$LegalActionsTableOrderingComposer
@@ -13252,11 +13867,6 @@ class $$LegalActionsTableOrderingComposer
 
   ColumnOrderings<String> get notes => $composableBuilder(
     column: $table.notes,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get attachmentUrl => $composableBuilder(
-    column: $table.attachmentUrl,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -13334,11 +13944,6 @@ class $$LegalActionsTableAnnotationComposer
   GeneratedColumn<String> get notes =>
       $composableBuilder(column: $table.notes, builder: (column) => column);
 
-  GeneratedColumn<String> get attachmentUrl => $composableBuilder(
-    column: $table.attachmentUrl,
-    builder: (column) => column,
-  );
-
   GeneratedColumn<String> get userId =>
       $composableBuilder(column: $table.userId, builder: (column) => column);
 
@@ -13376,6 +13981,32 @@ class $$LegalActionsTableAnnotationComposer
     );
     return composer;
   }
+
+  Expression<T> legalActionAttachmentsRefs<T extends Object>(
+    Expression<T> Function($$LegalActionAttachmentsTableAnnotationComposer a) f,
+  ) {
+    final $$LegalActionAttachmentsTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.legalActionAttachments,
+          getReferencedColumn: (t) => t.legalActionId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$LegalActionAttachmentsTableAnnotationComposer(
+                $db: $db,
+                $table: $db.legalActionAttachments,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
 }
 
 class $$LegalActionsTableTableManager
@@ -13391,7 +14022,10 @@ class $$LegalActionsTableTableManager
           $$LegalActionsTableUpdateCompanionBuilder,
           (LegalAction, $$LegalActionsTableReferences),
           LegalAction,
-          PrefetchHooks Function({bool contractId})
+          PrefetchHooks Function({
+            bool contractId,
+            bool legalActionAttachmentsRefs,
+          })
         > {
   $$LegalActionsTableTableManager(_$AppDatabase db, $LegalActionsTable table)
     : super(
@@ -13411,7 +14045,6 @@ class $$LegalActionsTableTableManager
                 Value<String> actionType = const Value.absent(),
                 Value<DateTime> actionDate = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
-                Value<String?> attachmentUrl = const Value.absent(),
                 Value<String> userId = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
@@ -13424,7 +14057,6 @@ class $$LegalActionsTableTableManager
                 actionType: actionType,
                 actionDate: actionDate,
                 notes: notes,
-                attachmentUrl: attachmentUrl,
                 userId: userId,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
@@ -13439,7 +14071,6 @@ class $$LegalActionsTableTableManager
                 required String actionType,
                 required DateTime actionDate,
                 Value<String?> notes = const Value.absent(),
-                Value<String?> attachmentUrl = const Value.absent(),
                 required String userId,
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
@@ -13452,7 +14083,6 @@ class $$LegalActionsTableTableManager
                 actionType: actionType,
                 actionDate: actionDate,
                 notes: notes,
-                attachmentUrl: attachmentUrl,
                 userId: userId,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
@@ -13468,7 +14098,471 @@ class $$LegalActionsTableTableManager
                 ),
               )
               .toList(),
-          prefetchHooksCallback: ({contractId = false}) {
+          prefetchHooksCallback:
+              ({contractId = false, legalActionAttachmentsRefs = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (legalActionAttachmentsRefs) db.legalActionAttachments,
+                  ],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (contractId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.contractId,
+                                    referencedTable:
+                                        $$LegalActionsTableReferences
+                                            ._contractIdTable(db),
+                                    referencedColumn:
+                                        $$LegalActionsTableReferences
+                                            ._contractIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
+
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (legalActionAttachmentsRefs)
+                        await $_getPrefetchedData<
+                          LegalAction,
+                          $LegalActionsTable,
+                          LegalActionAttachment
+                        >(
+                          currentTable: table,
+                          referencedTable: $$LegalActionsTableReferences
+                              ._legalActionAttachmentsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$LegalActionsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).legalActionAttachmentsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.legalActionId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
+              },
+        ),
+      );
+}
+
+typedef $$LegalActionsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $LegalActionsTable,
+      LegalAction,
+      $$LegalActionsTableFilterComposer,
+      $$LegalActionsTableOrderingComposer,
+      $$LegalActionsTableAnnotationComposer,
+      $$LegalActionsTableCreateCompanionBuilder,
+      $$LegalActionsTableUpdateCompanionBuilder,
+      (LegalAction, $$LegalActionsTableReferences),
+      LegalAction,
+      PrefetchHooks Function({bool contractId, bool legalActionAttachmentsRefs})
+    >;
+typedef $$LegalActionAttachmentsTableCreateCompanionBuilder =
+    LegalActionAttachmentsCompanion Function({
+      Value<String> id,
+      required String legalActionId,
+      required String fileUrl,
+      Value<String?> fileName,
+      Value<String?> fileType,
+      required String userId,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<bool> isDeleted,
+      Value<bool> isSynced,
+      Value<int> rowid,
+    });
+typedef $$LegalActionAttachmentsTableUpdateCompanionBuilder =
+    LegalActionAttachmentsCompanion Function({
+      Value<String> id,
+      Value<String> legalActionId,
+      Value<String> fileUrl,
+      Value<String?> fileName,
+      Value<String?> fileType,
+      Value<String> userId,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<bool> isDeleted,
+      Value<bool> isSynced,
+      Value<int> rowid,
+    });
+
+final class $$LegalActionAttachmentsTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $LegalActionAttachmentsTable,
+          LegalActionAttachment
+        > {
+  $$LegalActionAttachmentsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $LegalActionsTable _legalActionIdTable(_$AppDatabase db) =>
+      db.legalActions.createAlias(
+        $_aliasNameGenerator(
+          db.legalActionAttachments.legalActionId,
+          db.legalActions.id,
+        ),
+      );
+
+  $$LegalActionsTableProcessedTableManager get legalActionId {
+    final $_column = $_itemColumn<String>('legal_action_id')!;
+
+    final manager = $$LegalActionsTableTableManager(
+      $_db,
+      $_db.legalActions,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_legalActionIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$LegalActionAttachmentsTableFilterComposer
+    extends Composer<_$AppDatabase, $LegalActionAttachmentsTable> {
+  $$LegalActionAttachmentsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get fileUrl => $composableBuilder(
+    column: $table.fileUrl,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get fileName => $composableBuilder(
+    column: $table.fileName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get fileType => $composableBuilder(
+    column: $table.fileType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get userId => $composableBuilder(
+    column: $table.userId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isDeleted => $composableBuilder(
+    column: $table.isDeleted,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isSynced => $composableBuilder(
+    column: $table.isSynced,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$LegalActionsTableFilterComposer get legalActionId {
+    final $$LegalActionsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.legalActionId,
+      referencedTable: $db.legalActions,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LegalActionsTableFilterComposer(
+            $db: $db,
+            $table: $db.legalActions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$LegalActionAttachmentsTableOrderingComposer
+    extends Composer<_$AppDatabase, $LegalActionAttachmentsTable> {
+  $$LegalActionAttachmentsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get fileUrl => $composableBuilder(
+    column: $table.fileUrl,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get fileName => $composableBuilder(
+    column: $table.fileName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get fileType => $composableBuilder(
+    column: $table.fileType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get userId => $composableBuilder(
+    column: $table.userId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isDeleted => $composableBuilder(
+    column: $table.isDeleted,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isSynced => $composableBuilder(
+    column: $table.isSynced,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$LegalActionsTableOrderingComposer get legalActionId {
+    final $$LegalActionsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.legalActionId,
+      referencedTable: $db.legalActions,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LegalActionsTableOrderingComposer(
+            $db: $db,
+            $table: $db.legalActions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$LegalActionAttachmentsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $LegalActionAttachmentsTable> {
+  $$LegalActionAttachmentsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get fileUrl =>
+      $composableBuilder(column: $table.fileUrl, builder: (column) => column);
+
+  GeneratedColumn<String> get fileName =>
+      $composableBuilder(column: $table.fileName, builder: (column) => column);
+
+  GeneratedColumn<String> get fileType =>
+      $composableBuilder(column: $table.fileType, builder: (column) => column);
+
+  GeneratedColumn<String> get userId =>
+      $composableBuilder(column: $table.userId, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<bool> get isDeleted =>
+      $composableBuilder(column: $table.isDeleted, builder: (column) => column);
+
+  GeneratedColumn<bool> get isSynced =>
+      $composableBuilder(column: $table.isSynced, builder: (column) => column);
+
+  $$LegalActionsTableAnnotationComposer get legalActionId {
+    final $$LegalActionsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.legalActionId,
+      referencedTable: $db.legalActions,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LegalActionsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.legalActions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$LegalActionAttachmentsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $LegalActionAttachmentsTable,
+          LegalActionAttachment,
+          $$LegalActionAttachmentsTableFilterComposer,
+          $$LegalActionAttachmentsTableOrderingComposer,
+          $$LegalActionAttachmentsTableAnnotationComposer,
+          $$LegalActionAttachmentsTableCreateCompanionBuilder,
+          $$LegalActionAttachmentsTableUpdateCompanionBuilder,
+          (LegalActionAttachment, $$LegalActionAttachmentsTableReferences),
+          LegalActionAttachment,
+          PrefetchHooks Function({bool legalActionId})
+        > {
+  $$LegalActionAttachmentsTableTableManager(
+    _$AppDatabase db,
+    $LegalActionAttachmentsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$LegalActionAttachmentsTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer: () =>
+              $$LegalActionAttachmentsTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$LegalActionAttachmentsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> legalActionId = const Value.absent(),
+                Value<String> fileUrl = const Value.absent(),
+                Value<String?> fileName = const Value.absent(),
+                Value<String?> fileType = const Value.absent(),
+                Value<String> userId = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<bool> isDeleted = const Value.absent(),
+                Value<bool> isSynced = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => LegalActionAttachmentsCompanion(
+                id: id,
+                legalActionId: legalActionId,
+                fileUrl: fileUrl,
+                fileName: fileName,
+                fileType: fileType,
+                userId: userId,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                isDeleted: isDeleted,
+                isSynced: isSynced,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                required String legalActionId,
+                required String fileUrl,
+                Value<String?> fileName = const Value.absent(),
+                Value<String?> fileType = const Value.absent(),
+                required String userId,
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<bool> isDeleted = const Value.absent(),
+                Value<bool> isSynced = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => LegalActionAttachmentsCompanion.insert(
+                id: id,
+                legalActionId: legalActionId,
+                fileUrl: fileUrl,
+                fileName: fileName,
+                fileType: fileType,
+                userId: userId,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                isDeleted: isDeleted,
+                isSynced: isSynced,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$LegalActionAttachmentsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({legalActionId = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [],
@@ -13488,16 +14582,18 @@ class $$LegalActionsTableTableManager
                       dynamic
                     >
                   >(state) {
-                    if (contractId) {
+                    if (legalActionId) {
                       state =
                           state.withJoin(
                                 currentTable: table,
-                                currentColumn: table.contractId,
-                                referencedTable: $$LegalActionsTableReferences
-                                    ._contractIdTable(db),
-                                referencedColumn: $$LegalActionsTableReferences
-                                    ._contractIdTable(db)
-                                    .id,
+                                currentColumn: table.legalActionId,
+                                referencedTable:
+                                    $$LegalActionAttachmentsTableReferences
+                                        ._legalActionIdTable(db),
+                                referencedColumn:
+                                    $$LegalActionAttachmentsTableReferences
+                                        ._legalActionIdTable(db)
+                                        .id,
                               )
                               as T;
                     }
@@ -13513,19 +14609,19 @@ class $$LegalActionsTableTableManager
       );
 }
 
-typedef $$LegalActionsTableProcessedTableManager =
+typedef $$LegalActionAttachmentsTableProcessedTableManager =
     ProcessedTableManager<
       _$AppDatabase,
-      $LegalActionsTable,
-      LegalAction,
-      $$LegalActionsTableFilterComposer,
-      $$LegalActionsTableOrderingComposer,
-      $$LegalActionsTableAnnotationComposer,
-      $$LegalActionsTableCreateCompanionBuilder,
-      $$LegalActionsTableUpdateCompanionBuilder,
-      (LegalAction, $$LegalActionsTableReferences),
-      LegalAction,
-      PrefetchHooks Function({bool contractId})
+      $LegalActionAttachmentsTable,
+      LegalActionAttachment,
+      $$LegalActionAttachmentsTableFilterComposer,
+      $$LegalActionAttachmentsTableOrderingComposer,
+      $$LegalActionAttachmentsTableAnnotationComposer,
+      $$LegalActionAttachmentsTableCreateCompanionBuilder,
+      $$LegalActionAttachmentsTableUpdateCompanionBuilder,
+      (LegalActionAttachment, $$LegalActionAttachmentsTableReferences),
+      LegalActionAttachment,
+      PrefetchHooks Function({bool legalActionId})
     >;
 
 class $AppDatabaseManager {
@@ -13551,4 +14647,9 @@ class $AppDatabaseManager {
       $$LocalUsersTableTableManager(_db, _db.localUsers);
   $$LegalActionsTableTableManager get legalActions =>
       $$LegalActionsTableTableManager(_db, _db.legalActions);
+  $$LegalActionAttachmentsTableTableManager get legalActionAttachments =>
+      $$LegalActionAttachmentsTableTableManager(
+        _db,
+        _db.legalActionAttachments,
+      );
 }
