@@ -1428,6 +1428,18 @@ class ErpRepository {
     await syncPendingData(); 
   }
 
+  Future<List<LegalAction>> getAllLegalActions() => _localApi.getAllLegalActions();
+  Future<List<LegalActionAttachment>> getAllLegalActionAttachments() => _localApi.getAllLegalActionAttachments();
+
+  // 🌟 (هذه الدالة لحذف المرفق التي استدعيناها في الـ Cubit)
+  Future<void> deleteLegalActionAttachment(String attachmentId) async {
+    final String? safeUserId = currentUserId;
+    if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
+
+    await _localApi.deleteLegalActionAttachment(attachmentId, safeUserId);
+    await syncPendingData(); 
+  }
+  
   // 📎 إرفاق ملف لإجراء قانوني
   Future<void> attachFileToLegalAction({
     required String actionId, 
