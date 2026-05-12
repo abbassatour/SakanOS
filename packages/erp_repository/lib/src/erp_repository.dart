@@ -328,16 +328,7 @@ class ErpRepository {
         await _localApi.database.into(_localApi.database.legalActions).insert(action, mode: drift.InsertMode.insertOrReplace);
       }
 
-      // 🌍 حفظ الوقت الحالي للعمليات القادمة
-      await prefs.setString('last_pull_timestamp', DateTime.now().toUtc().toIso8601String());
-
-      print('✅ تم تحديث كافة البيانات المحلية من السحابة بنجاح');
-    } catch (e) {
-      print('❌ Cloud Pull Failed: $e'); 
-    }
-
-
-    // ==========================================
+      // ==========================================
       // 11. 📎 سحب المرفقات القانونية (الجدول الجديد)
       // ==========================================
       final cloudAttachments = await _cloudApi.getLegalActionAttachments(lastSync: lastSyncTime);
@@ -355,6 +346,17 @@ class ErpRepository {
         );
         await _localApi.database.into(_localApi.database.legalActionAttachments).insert(attachment, mode: drift.InsertMode.insertOrReplace);
       }
+
+      // 🌍 حفظ الوقت الحالي للعمليات القادمة
+      await prefs.setString('last_pull_timestamp', DateTime.now().toUtc().toIso8601String());
+
+      print('✅ تم تحديث كافة البيانات المحلية من السحابة بنجاح');
+    } catch (e) {
+      print('❌ Cloud Pull Failed: $e'); 
+    }
+
+
+    
     
     
   }
