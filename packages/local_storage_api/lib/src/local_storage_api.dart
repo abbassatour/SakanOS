@@ -194,6 +194,13 @@ Future<void> handleRollingCheckpoint(String contractId, String scheduleId, Strin
 
 
   // ==========================================
+  // ⚖️ الإجراءات القانونية
+  // ==========================================
+  Future<List<LegalAction>> getLegalActionsForContract(String contractId) => _db.getLegalActionsForContract(contractId);
+  Future<String> addLegalAction(LegalActionsCompanion action) => _db.insertLegalAction(action);
+  Future<int> deleteLegalAction(String id, String userId) => _db.softDeleteLegalAction(id, userId);
+
+  // ==========================================
   // 🕒 دوال تتبع النشاطات (Activity Log)
   // ==========================================
   Future<List<PaymentsLedgerData>> getRecentPayments(int limit) => _db.getRecentPayments(limit);

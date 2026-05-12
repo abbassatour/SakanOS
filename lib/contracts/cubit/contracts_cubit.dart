@@ -346,26 +346,5 @@ class ContractsCubit extends Cubit<ContractsState> {
     }
   }
 
-  // ==========================================
-  // 13. 🏛️ توثيق نقل الملكية (الفراغ والطابو)
-  // ==========================================
-  Future<void> transferTitleDeed({
-    required String contractId,
-    required bool isTransferred,
-    DateTime? transferDate,
-    String? notes,
-  }) async {
-    emit(state.copyWith(status: ContractsStatus.loading));
-    try {
-      await _erpRepository.transferTitleDeed(
-        contractId: contractId,
-        isTransferred: isTransferred,
-        transferDate: transferDate,
-        notes: notes,
-      );
-      await fetchData(); 
-    } catch (e) {
-      emit(state.copyWith(status: ContractsStatus.failure, errorMessage: 'فشل توثيق نقل الملكية: $e'));
-    }
-  }
+  
 }

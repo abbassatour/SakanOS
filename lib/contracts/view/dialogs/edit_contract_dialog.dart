@@ -6,12 +6,12 @@ import 'package:local_storage_api/local_storage_api.dart' show Contract;
 import '../../../buildings/cubit/buildings_cubit.dart';
 import '../../cubit/contracts_cubit.dart';
 import 'verify_pin_dialog.dart';
-// أضف هذه الاستيرادات في الأعلى
-import '../../../core/utils/handover_pledge_pdf_helper.dart';
-import '../../../core/utils/pdf_preview_page.dart';
-// 🌟 استدعاء الحارس الشخصي والصلاحيات
+
 import '../../../auth/cubit/auth_cubit.dart';
 import '../../../core/constants/app_permissions.dart';
+
+import '../../../core/utils/handover_pledge_pdf_helper.dart';
+import '../../../core/utils/pdf_preview_page.dart';
 
 void showEditContractDialog(BuildContext parentContext, Contract contract) {
   final detailsController = TextEditingController(text: contract.apartmentDetails);
@@ -27,14 +27,8 @@ void showEditContractDialog(BuildContext parentContext, Contract contract) {
   bool isHandoverFormVisible = contract.isHandedOver; 
   bool isAllocated = contract.contractType == 'متخصص';
 
-  // 🌟 [الجديد]: متحكمات براءة الذمة الأولية
+  // متحكمات براءة الذمة الأولية
   bool isInitialClearanceSigned = contract.isInitialClearanceSigned;
-  final clearanceNotesController = TextEditingController(text: contract.clearanceNotes ?? '');
-
-  // 🌟[الجديد]: متحكمات الشؤون القانونية
-  bool isTitleDeedFormVisible = contract.isTitleDeedTransferred;
-  DateTime? titleDeedDate = contract.titleDeedDate?.toLocal();
-  final titleDeedNotesController = TextEditingController(text: contract.titleDeedNotes ?? '');
 
   // متحكمات الغرامة المرنة
   bool isPenaltyActive = contract.isPenaltyActive ?? false; 
@@ -100,9 +94,6 @@ void showEditContractDialog(BuildContext parentContext, Contract contract) {
                     
                     const SizedBox(height: 16),
 
-                    // ==========================================
-                    // 1. تاريخ التوقيع والحقول النصية
-                    // ==========================================
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                       decoration: BoxDecoration(border: Border.all(color: Colors.grey.shade400), borderRadius: BorderRadius.circular(8)),
@@ -135,9 +126,6 @@ void showEditContractDialog(BuildContext parentContext, Contract contract) {
                     ),
                     const SizedBox(height: 16),
 
-                    // ==========================================
-                    // 2. قسم إدارة تسليم الشقة (خاص بالمتخصص فقط)
-                    // ==========================================
                     if (isAllocated) ...[
                       Container(
                         padding: const EdgeInsets.all(12),
@@ -203,7 +191,7 @@ void showEditContractDialog(BuildContext parentContext, Contract contract) {
                               ),
                               const SizedBox(height: 12),
                               
-                              // 🌟 [الجديد]: براءة الذمة الأولية
+                              // 🌟 براءة الذمة الأولية
                               Container(
                                 padding: const EdgeInsets.symmetric(vertical: 8),
                                 decoration: BoxDecoration(color: Colors.amber.shade50, borderRadius: BorderRadius.circular(8)),
@@ -242,11 +230,9 @@ void showEditContractDialog(BuildContext parentContext, Contract contract) {
                                       if(parentContext.mounted) {
                                         ScaffoldMessenger.of(parentContext).showSnackBar(const SnackBar(content: Text('جاري توثيق التسليم وبراءة الذمة... ⏳'), backgroundColor: Colors.teal));
                                         
-                                        // 1. تسليم العقد
                                         await parentContext.read<ContractsCubit>().markContractAsHandedOver(
                                           contractId: contract.id, actualHandoverDate: actualHandoverDate!, notes: handoverNotesController.text,
                                         );
-                                        // 2. توثيق براءة الذمة
                                         if (parentContext.mounted) {
                                           await parentContext.read<ContractsCubit>().signInitialClearance(
                                             contractId: contract.id, isSigned: isInitialClearanceSigned, notes: handoverNotesController.text,
@@ -278,7 +264,6 @@ void showEditContractDialog(BuildContext parentContext, Contract contract) {
                                       if(parentContext.mounted) {
                                         ScaffoldMessenger.of(parentContext).showSnackBar(const SnackBar(content: Text('جاري إلغاء التسليم... ⏳'), backgroundColor: Colors.orange));
                                         await parentContext.read<ContractsCubit>().cancelContractHandover(contractId: contract.id);
-                                        // إلغاء براءة الذمة
                                         if (parentContext.mounted) {
                                           await parentContext.read<ContractsCubit>().signInitialClearance(contractId: contract.id, isSigned: false, notes: null);
                                         }
@@ -292,7 +277,6 @@ void showEditContractDialog(BuildContext parentContext, Contract contract) {
                                   ),
                                 ),
                                 const SizedBox(height: 8),
-                                // زر توليد الـ PDF 
                                 SizedBox(
                                   width: double.infinity,
                                   child: OutlinedButton.icon(
@@ -301,30 +285,18 @@ void showEditContractDialog(BuildContext parentContext, Contract contract) {
                                     label: const Text('طباعة محضر الاستلام والتعهد (PDF)'),
                                     onPressed: () async {
                                       ScaffoldMessenger.of(parentContext).showSnackBar(const SnackBar(content: Text('جاري إنشاء المستند... ⏳'), backgroundColor: Colors.teal));
-                                      
-                                      // 1. جلب العميل من الـ Cubit
                                       final client = parentContext.read<ContractsCubit>().state.clients.firstWhere((c) => c.id == contract.clientId);
-                                      
-                                      // 2. جلب الشقة والمحضر من الـ BuildingsCubit
                                       final buildingsState = parentContext.read<BuildingsCubit>().state;
                                       final apartment = buildingsState.apartments.firstWhere((a) => a.id == contract.apartmentId);
                                       final building = buildingsState.buildings.firstWhere((b) => b.id == apartment.buildingId);
 
-                                      // 3. توليد الـ PDF
                                       final pdfBytes = await HandoverPledgePdfHelper.generatePdf(
-                                        contract: contract,
-                                        client: client,
-                                        apartment: apartment,
-                                        building: building,
+                                        contract: contract, client: client, apartment: apartment, building: building,
                                       );
 
-                                      // 4. فتح صفحة المعاينة
                                       if (parentContext.mounted) {
                                         Navigator.push(parentContext, MaterialPageRoute(
-                                          builder: (_) => PdfPreviewPage(
-                                            pdfBytes: pdfBytes, 
-                                            title: 'محضر_استلام_${client.name}'
-                                          )
+                                          builder: (_) => PdfPreviewPage(pdfBytes: pdfBytes, title: 'محضر_استلام_${client.name}')
                                         ));
                                       }
                                     },
@@ -337,129 +309,7 @@ void showEditContractDialog(BuildContext parentContext, Contract contract) {
                       ),
                       const SizedBox(height: 16),
 
-                      // ==========================================
-                      // ⚖️ 3. قسم الشؤون القانونية والطابو (للمحامي)
-                      // ==========================================
-                      if (contract.isHandedOver) ...[
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: contract.isTitleDeedTransferred ? Colors.purple.shade50 : Colors.blueGrey.shade50,
-                            border: Border.all(color: contract.isTitleDeedTransferred ? Colors.purple.shade300 : Colors.blueGrey.shade200, width: 2),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children:[
-                              Row(
-                                children:[
-                                  Icon(Icons.gavel, color: contract.isTitleDeedTransferred ? Colors.purple : Colors.blueGrey.shade700),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    contract.isTitleDeedTransferred ? '✅ تم نقل الملكية (الفراغ)' : 'الشؤون القانونية (الفراغ والطابو)',
-                                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: contract.isTitleDeedTransferred ? Colors.purple.shade800 : Colors.blueGrey.shade800),
-                                  ),
-                                ],
-                              ),
-                              if (!isTitleDeedFormVisible) ...[
-                                const SizedBox(height: 12),
-                                Center(
-                                  child: ElevatedButton.icon(
-                                    style: ElevatedButton.styleFrom(backgroundColor: Colors.purple, foregroundColor: Colors.white),
-                                    icon: const Icon(Icons.account_balance),
-                                    label: const Text('توثيق نقل الملكية الآن'),
-                                    onPressed: canEdit ? () => setState(() => isTitleDeedFormVisible = true) : null,
-                                  ),
-                                ),
-                              ] else ...[
-                                const Divider(height: 24),
-                                Row(
-                                  children:[
-                                    Expanded(
-                                      child: InkWell(
-                                        onTap: canEdit ? () async {
-                                          final date = await showDatePicker(context: dialogContext, initialDate: titleDeedDate ?? DateTime.now(), firstDate: DateTime(2000), lastDate: DateTime.now().add(const Duration(days: 30)));
-                                          if (date != null) setState(() => titleDeedDate = date);
-                                        } : null,
-                                        child: InputDecorator(
-                                          decoration: InputDecoration(
-                                            labelText: 'تاريخ الفراغ / نقل الملكية *', border: const OutlineInputBorder(), filled: true, fillColor: canEdit ? Colors.white : Colors.grey.shade100,
-                                            prefixIcon: Icon(Icons.calendar_today, color: canEdit ? Colors.purple : Colors.grey), errorText: titleDeedDate == null ? 'مطلوب' : null,
-                                          ),
-                                          child: Text(titleDeedDate != null ? '${titleDeedDate!.year}/${titleDeedDate!.month}/${titleDeedDate!.day}' : 'حدد التاريخ', style: TextStyle(color: titleDeedDate != null ? (canEdit ? Colors.black : Colors.grey) : Colors.red, fontWeight: FontWeight.bold)),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 12),
-                                TextField(controller: titleDeedNotesController, enabled: canEdit, maxLines: 2, decoration: const InputDecoration(labelText: 'ملاحظات المحامي (رقم السجل، الإشارات...)', border: OutlineInputBorder(), filled: true, fillColor: Colors.white)),
-                                const SizedBox(height: 12),
-                                
-                                if (canEdit)
-                                  SizedBox(
-                                    width: double.infinity,
-                                    child: ElevatedButton(
-                                      style: ElevatedButton.styleFrom(backgroundColor: contract.isTitleDeedTransferred ? Colors.orange : Colors.purple, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 12)),
-                                      onPressed: () async {
-                                        if (titleDeedDate == null) {
-                                          ScaffoldMessenger.of(parentContext).showSnackBar(const SnackBar(content: Text('يجب تحديد تاريخ نقل الملكية!'), backgroundColor: Colors.red));
-                                          return;
-                                        }
-                                        bool isAuth = await showVerifyPinDialog(parentContext);
-                                        if (!isAuth) return;
-                                        
-                                        if (parentContext.mounted) {
-                                          ScaffoldMessenger.of(parentContext).showSnackBar(const SnackBar(content: Text('جاري توثيق الفراغ... ⏳'), backgroundColor: Colors.purple));
-                                          await parentContext.read<ContractsCubit>().transferTitleDeed(
-                                            contractId: contract.id, isTransferred: true, transferDate: titleDeedDate, notes: titleDeedNotesController.text,
-                                          );
-                                          if (parentContext.mounted) {
-                                            ScaffoldMessenger.of(parentContext).showSnackBar(const SnackBar(content: Text('تم نقل الملكية بنجاح! ✅'), backgroundColor: Colors.green));
-                                            Navigator.pop(dialogContext);
-                                          }
-                                        }
-                                      },
-                                      child: Text(contract.isTitleDeedTransferred ? 'تحديث بيانات الطابو' : 'تأكيد وحفظ نقل الملكية'),
-                                    ),
-                                  ),
-                                
-                                if (contract.isTitleDeedTransferred && canEdit) ...[
-                                  const SizedBox(height: 8),
-                                  SizedBox(
-                                    width: double.infinity,
-                                    child: OutlinedButton.icon(
-                                      style: OutlinedButton.styleFrom(foregroundColor: Colors.red.shade700, side: BorderSide(color: Colors.red.shade300), padding: const EdgeInsets.symmetric(vertical: 12)),
-                                      icon: const Icon(Icons.cancel_presentation),
-                                      label: const Text('إلغاء نقل الملكية (تراجع)'),
-                                      onPressed: () async {
-                                        bool isAuth = await showVerifyPinDialog(parentContext);
-                                        if (!isAuth) return;
-
-                                        if (parentContext.mounted) {
-                                          ScaffoldMessenger.of(parentContext).showSnackBar(const SnackBar(content: Text('جاري الإلغاء... ⏳'), backgroundColor: Colors.orange));
-                                          await parentContext.read<ContractsCubit>().transferTitleDeed(
-                                            contractId: contract.id, isTransferred: false, transferDate: null, notes: null,
-                                          );
-                                          if (parentContext.mounted) {
-                                            ScaffoldMessenger.of(parentContext).showSnackBar(const SnackBar(content: Text('تم الإلغاء بنجاح!'), backgroundColor: Colors.green));
-                                            Navigator.pop(dialogContext);
-                                          }
-                                        }
-                                      },
-                                    ),
-                                  ),
-                                ]
-                              ]
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                      ],
-
-                    // ==========================================
-                    // 4. تعديل أو تفعيل غرامة التأخير
-                    // ==========================================
+                      // تعديل أو تفعيل غرامة التأخير
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(color: Colors.deepOrange.shade50, border: Border.all(color: Colors.deepOrange.shade200, width: 2), borderRadius: BorderRadius.circular(8)),
@@ -475,9 +325,9 @@ void showEditContractDialog(BuildContext parentContext, Contract contract) {
                               const SizedBox(height: 12),
                               Row(
                                 children:[
-                                  Expanded(child: TextFormField(controller: penaltyPctCtrl, enabled: canEdit, keyboardType: const TextInputType.numberWithOptions(decimal: true), decoration: const InputDecoration(labelText: 'نسبة الغرامة', suffixText: '%', border: OutlineInputBorder(), filled: true, fillColor: Colors.white, prefixIcon: Icon(Icons.percent, color: Colors.deepOrange)))),
+                                  Expanded(child: TextFormField(controller: penaltyPctCtrl, enabled: canEdit, keyboardType: const TextInputType.numberWithOptions(decimal: true), decoration: InputDecoration(labelText: 'نسبة الغرامة', suffixText: '%', border: const OutlineInputBorder(), filled: true, fillColor: canEdit ? Colors.white : Colors.grey.shade100, prefixIcon: const Icon(Icons.percent, color: Colors.deepOrange)))),
                                   const SizedBox(width: 16),
-                                  Expanded(child: TextFormField(controller: penaltyIntervalCtrl, enabled: canEdit, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'تُطبق كل', suffixText: 'أشهر', border: OutlineInputBorder(), filled: true, fillColor: Colors.white, prefixIcon: Icon(Icons.update, color: Colors.deepOrange)))),
+                                  Expanded(child: TextFormField(controller: penaltyIntervalCtrl, enabled: canEdit, keyboardType: TextInputType.number, decoration: InputDecoration(labelText: 'تُطبق كل', suffixText: 'أشهر', border: const OutlineInputBorder(), filled: true, fillColor: canEdit ? Colors.white : Colors.grey.shade100, prefixIcon: const Icon(Icons.update, color: Colors.deepOrange)))),
                                 ],
                               ),
                             ]
@@ -487,9 +337,7 @@ void showEditContractDialog(BuildContext parentContext, Contract contract) {
                       const SizedBox(height: 16),
                     ],
 
-                    // ==========================================
-                    // 5. ملف العقد والإغلاق النهائي
-                    // ==========================================
+                    // ملف العقد والإغلاق النهائي
                     Container(
                       padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: Colors.grey.shade50, border: Border.all(color: Colors.grey.shade300), borderRadius: BorderRadius.circular(8)),
                       child: Row(

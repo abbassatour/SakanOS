@@ -2142,44 +2142,6 @@ class $ContractsTable extends Contracts
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
-  static const VerificationMeta _isTitleDeedTransferredMeta =
-      const VerificationMeta('isTitleDeedTransferred');
-  @override
-  late final GeneratedColumn<bool> isTitleDeedTransferred =
-      GeneratedColumn<bool>(
-        'is_title_deed_transferred',
-        aliasedName,
-        false,
-        type: DriftSqlType.bool,
-        requiredDuringInsert: false,
-        defaultConstraints: GeneratedColumn.constraintIsAlways(
-          'CHECK ("is_title_deed_transferred" IN (0, 1))',
-        ),
-        defaultValue: const Constant(false),
-      );
-  static const VerificationMeta _titleDeedDateMeta = const VerificationMeta(
-    'titleDeedDate',
-  );
-  @override
-  late final GeneratedColumn<DateTime> titleDeedDate =
-      GeneratedColumn<DateTime>(
-        'title_deed_date',
-        aliasedName,
-        true,
-        type: DriftSqlType.dateTime,
-        requiredDuringInsert: false,
-      );
-  static const VerificationMeta _titleDeedNotesMeta = const VerificationMeta(
-    'titleDeedNotes',
-  );
-  @override
-  late final GeneratedColumn<String> titleDeedNotes = GeneratedColumn<String>(
-    'title_deed_notes',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
   static const VerificationMeta _isHandedOverMeta = const VerificationMeta(
     'isHandedOver',
   );
@@ -2425,9 +2387,6 @@ class $ContractsTable extends Contracts
     downPayment,
     isInitialClearanceSigned,
     clearanceNotes,
-    isTitleDeedTransferred,
-    titleDeedDate,
-    titleDeedNotes,
     isHandedOver,
     agreedHandoverDate,
     actualHandoverDate,
@@ -2568,33 +2527,6 @@ class $ContractsTable extends Contracts
         clearanceNotes.isAcceptableOrUnknown(
           data['clearance_notes']!,
           _clearanceNotesMeta,
-        ),
-      );
-    }
-    if (data.containsKey('is_title_deed_transferred')) {
-      context.handle(
-        _isTitleDeedTransferredMeta,
-        isTitleDeedTransferred.isAcceptableOrUnknown(
-          data['is_title_deed_transferred']!,
-          _isTitleDeedTransferredMeta,
-        ),
-      );
-    }
-    if (data.containsKey('title_deed_date')) {
-      context.handle(
-        _titleDeedDateMeta,
-        titleDeedDate.isAcceptableOrUnknown(
-          data['title_deed_date']!,
-          _titleDeedDateMeta,
-        ),
-      );
-    }
-    if (data.containsKey('title_deed_notes')) {
-      context.handle(
-        _titleDeedNotesMeta,
-        titleDeedNotes.isAcceptableOrUnknown(
-          data['title_deed_notes']!,
-          _titleDeedNotesMeta,
         ),
       );
     }
@@ -2821,18 +2753,6 @@ class $ContractsTable extends Contracts
         DriftSqlType.string,
         data['${effectivePrefix}clearance_notes'],
       ),
-      isTitleDeedTransferred: attachedDatabase.typeMapping.read(
-        DriftSqlType.bool,
-        data['${effectivePrefix}is_title_deed_transferred'],
-      )!,
-      titleDeedDate: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}title_deed_date'],
-      ),
-      titleDeedNotes: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}title_deed_notes'],
-      ),
       isHandedOver: attachedDatabase.typeMapping.read(
         DriftSqlType.bool,
         data['${effectivePrefix}is_handed_over'],
@@ -2932,9 +2852,6 @@ class Contract extends DataClass implements Insertable<Contract> {
   final double downPayment;
   final bool isInitialClearanceSigned;
   final String? clearanceNotes;
-  final bool isTitleDeedTransferred;
-  final DateTime? titleDeedDate;
-  final String? titleDeedNotes;
   final bool isHandedOver;
   final DateTime? agreedHandoverDate;
   final DateTime? actualHandoverDate;
@@ -2968,9 +2885,6 @@ class Contract extends DataClass implements Insertable<Contract> {
     required this.downPayment,
     required this.isInitialClearanceSigned,
     this.clearanceNotes,
-    required this.isTitleDeedTransferred,
-    this.titleDeedDate,
-    this.titleDeedNotes,
     required this.isHandedOver,
     this.agreedHandoverDate,
     this.actualHandoverDate,
@@ -3014,13 +2928,6 @@ class Contract extends DataClass implements Insertable<Contract> {
     );
     if (!nullToAbsent || clearanceNotes != null) {
       map['clearance_notes'] = Variable<String>(clearanceNotes);
-    }
-    map['is_title_deed_transferred'] = Variable<bool>(isTitleDeedTransferred);
-    if (!nullToAbsent || titleDeedDate != null) {
-      map['title_deed_date'] = Variable<DateTime>(titleDeedDate);
-    }
-    if (!nullToAbsent || titleDeedNotes != null) {
-      map['title_deed_notes'] = Variable<String>(titleDeedNotes);
     }
     map['is_handed_over'] = Variable<bool>(isHandedOver);
     if (!nullToAbsent || agreedHandoverDate != null) {
@@ -3075,13 +2982,6 @@ class Contract extends DataClass implements Insertable<Contract> {
       clearanceNotes: clearanceNotes == null && nullToAbsent
           ? const Value.absent()
           : Value(clearanceNotes),
-      isTitleDeedTransferred: Value(isTitleDeedTransferred),
-      titleDeedDate: titleDeedDate == null && nullToAbsent
-          ? const Value.absent()
-          : Value(titleDeedDate),
-      titleDeedNotes: titleDeedNotes == null && nullToAbsent
-          ? const Value.absent()
-          : Value(titleDeedNotes),
       isHandedOver: Value(isHandedOver),
       agreedHandoverDate: agreedHandoverDate == null && nullToAbsent
           ? const Value.absent()
@@ -3141,11 +3041,6 @@ class Contract extends DataClass implements Insertable<Contract> {
         json['isInitialClearanceSigned'],
       ),
       clearanceNotes: serializer.fromJson<String?>(json['clearanceNotes']),
-      isTitleDeedTransferred: serializer.fromJson<bool>(
-        json['isTitleDeedTransferred'],
-      ),
-      titleDeedDate: serializer.fromJson<DateTime?>(json['titleDeedDate']),
-      titleDeedNotes: serializer.fromJson<String?>(json['titleDeedNotes']),
       isHandedOver: serializer.fromJson<bool>(json['isHandedOver']),
       agreedHandoverDate: serializer.fromJson<DateTime?>(
         json['agreedHandoverDate'],
@@ -3194,9 +3089,6 @@ class Contract extends DataClass implements Insertable<Contract> {
         isInitialClearanceSigned,
       ),
       'clearanceNotes': serializer.toJson<String?>(clearanceNotes),
-      'isTitleDeedTransferred': serializer.toJson<bool>(isTitleDeedTransferred),
-      'titleDeedDate': serializer.toJson<DateTime?>(titleDeedDate),
-      'titleDeedNotes': serializer.toJson<String?>(titleDeedNotes),
       'isHandedOver': serializer.toJson<bool>(isHandedOver),
       'agreedHandoverDate': serializer.toJson<DateTime?>(agreedHandoverDate),
       'actualHandoverDate': serializer.toJson<DateTime?>(actualHandoverDate),
@@ -3233,9 +3125,6 @@ class Contract extends DataClass implements Insertable<Contract> {
     double? downPayment,
     bool? isInitialClearanceSigned,
     Value<String?> clearanceNotes = const Value.absent(),
-    bool? isTitleDeedTransferred,
-    Value<DateTime?> titleDeedDate = const Value.absent(),
-    Value<String?> titleDeedNotes = const Value.absent(),
     bool? isHandedOver,
     Value<DateTime?> agreedHandoverDate = const Value.absent(),
     Value<DateTime?> actualHandoverDate = const Value.absent(),
@@ -3273,14 +3162,6 @@ class Contract extends DataClass implements Insertable<Contract> {
     clearanceNotes: clearanceNotes.present
         ? clearanceNotes.value
         : this.clearanceNotes,
-    isTitleDeedTransferred:
-        isTitleDeedTransferred ?? this.isTitleDeedTransferred,
-    titleDeedDate: titleDeedDate.present
-        ? titleDeedDate.value
-        : this.titleDeedDate,
-    titleDeedNotes: titleDeedNotes.present
-        ? titleDeedNotes.value
-        : this.titleDeedNotes,
     isHandedOver: isHandedOver ?? this.isHandedOver,
     agreedHandoverDate: agreedHandoverDate.present
         ? agreedHandoverDate.value
@@ -3348,15 +3229,6 @@ class Contract extends DataClass implements Insertable<Contract> {
       clearanceNotes: data.clearanceNotes.present
           ? data.clearanceNotes.value
           : this.clearanceNotes,
-      isTitleDeedTransferred: data.isTitleDeedTransferred.present
-          ? data.isTitleDeedTransferred.value
-          : this.isTitleDeedTransferred,
-      titleDeedDate: data.titleDeedDate.present
-          ? data.titleDeedDate.value
-          : this.titleDeedDate,
-      titleDeedNotes: data.titleDeedNotes.present
-          ? data.titleDeedNotes.value
-          : this.titleDeedNotes,
       isHandedOver: data.isHandedOver.present
           ? data.isHandedOver.value
           : this.isHandedOver,
@@ -3423,9 +3295,6 @@ class Contract extends DataClass implements Insertable<Contract> {
           ..write('downPayment: $downPayment, ')
           ..write('isInitialClearanceSigned: $isInitialClearanceSigned, ')
           ..write('clearanceNotes: $clearanceNotes, ')
-          ..write('isTitleDeedTransferred: $isTitleDeedTransferred, ')
-          ..write('titleDeedDate: $titleDeedDate, ')
-          ..write('titleDeedNotes: $titleDeedNotes, ')
           ..write('isHandedOver: $isHandedOver, ')
           ..write('agreedHandoverDate: $agreedHandoverDate, ')
           ..write('actualHandoverDate: $actualHandoverDate, ')
@@ -3464,9 +3333,6 @@ class Contract extends DataClass implements Insertable<Contract> {
     downPayment,
     isInitialClearanceSigned,
     clearanceNotes,
-    isTitleDeedTransferred,
-    titleDeedDate,
-    titleDeedNotes,
     isHandedOver,
     agreedHandoverDate,
     actualHandoverDate,
@@ -3504,9 +3370,6 @@ class Contract extends DataClass implements Insertable<Contract> {
           other.downPayment == this.downPayment &&
           other.isInitialClearanceSigned == this.isInitialClearanceSigned &&
           other.clearanceNotes == this.clearanceNotes &&
-          other.isTitleDeedTransferred == this.isTitleDeedTransferred &&
-          other.titleDeedDate == this.titleDeedDate &&
-          other.titleDeedNotes == this.titleDeedNotes &&
           other.isHandedOver == this.isHandedOver &&
           other.agreedHandoverDate == this.agreedHandoverDate &&
           other.actualHandoverDate == this.actualHandoverDate &&
@@ -3542,9 +3405,6 @@ class ContractsCompanion extends UpdateCompanion<Contract> {
   final Value<double> downPayment;
   final Value<bool> isInitialClearanceSigned;
   final Value<String?> clearanceNotes;
-  final Value<bool> isTitleDeedTransferred;
-  final Value<DateTime?> titleDeedDate;
-  final Value<String?> titleDeedNotes;
   final Value<bool> isHandedOver;
   final Value<DateTime?> agreedHandoverDate;
   final Value<DateTime?> actualHandoverDate;
@@ -3579,9 +3439,6 @@ class ContractsCompanion extends UpdateCompanion<Contract> {
     this.downPayment = const Value.absent(),
     this.isInitialClearanceSigned = const Value.absent(),
     this.clearanceNotes = const Value.absent(),
-    this.isTitleDeedTransferred = const Value.absent(),
-    this.titleDeedDate = const Value.absent(),
-    this.titleDeedNotes = const Value.absent(),
     this.isHandedOver = const Value.absent(),
     this.agreedHandoverDate = const Value.absent(),
     this.actualHandoverDate = const Value.absent(),
@@ -3617,9 +3474,6 @@ class ContractsCompanion extends UpdateCompanion<Contract> {
     this.downPayment = const Value.absent(),
     this.isInitialClearanceSigned = const Value.absent(),
     this.clearanceNotes = const Value.absent(),
-    this.isTitleDeedTransferred = const Value.absent(),
-    this.titleDeedDate = const Value.absent(),
-    this.titleDeedNotes = const Value.absent(),
     this.isHandedOver = const Value.absent(),
     this.agreedHandoverDate = const Value.absent(),
     this.actualHandoverDate = const Value.absent(),
@@ -3660,9 +3514,6 @@ class ContractsCompanion extends UpdateCompanion<Contract> {
     Expression<double>? downPayment,
     Expression<bool>? isInitialClearanceSigned,
     Expression<String>? clearanceNotes,
-    Expression<bool>? isTitleDeedTransferred,
-    Expression<DateTime>? titleDeedDate,
-    Expression<String>? titleDeedNotes,
     Expression<bool>? isHandedOver,
     Expression<DateTime>? agreedHandoverDate,
     Expression<DateTime>? actualHandoverDate,
@@ -3701,10 +3552,6 @@ class ContractsCompanion extends UpdateCompanion<Contract> {
       if (isInitialClearanceSigned != null)
         'is_initial_clearance_signed': isInitialClearanceSigned,
       if (clearanceNotes != null) 'clearance_notes': clearanceNotes,
-      if (isTitleDeedTransferred != null)
-        'is_title_deed_transferred': isTitleDeedTransferred,
-      if (titleDeedDate != null) 'title_deed_date': titleDeedDate,
-      if (titleDeedNotes != null) 'title_deed_notes': titleDeedNotes,
       if (isHandedOver != null) 'is_handed_over': isHandedOver,
       if (agreedHandoverDate != null)
         'agreed_handover_date': agreedHandoverDate,
@@ -3745,9 +3592,6 @@ class ContractsCompanion extends UpdateCompanion<Contract> {
     Value<double>? downPayment,
     Value<bool>? isInitialClearanceSigned,
     Value<String?>? clearanceNotes,
-    Value<bool>? isTitleDeedTransferred,
-    Value<DateTime?>? titleDeedDate,
-    Value<String?>? titleDeedNotes,
     Value<bool>? isHandedOver,
     Value<DateTime?>? agreedHandoverDate,
     Value<DateTime?>? actualHandoverDate,
@@ -3786,10 +3630,6 @@ class ContractsCompanion extends UpdateCompanion<Contract> {
       isInitialClearanceSigned:
           isInitialClearanceSigned ?? this.isInitialClearanceSigned,
       clearanceNotes: clearanceNotes ?? this.clearanceNotes,
-      isTitleDeedTransferred:
-          isTitleDeedTransferred ?? this.isTitleDeedTransferred,
-      titleDeedDate: titleDeedDate ?? this.titleDeedDate,
-      titleDeedNotes: titleDeedNotes ?? this.titleDeedNotes,
       isHandedOver: isHandedOver ?? this.isHandedOver,
       agreedHandoverDate: agreedHandoverDate ?? this.agreedHandoverDate,
       actualHandoverDate: actualHandoverDate ?? this.actualHandoverDate,
@@ -3860,17 +3700,6 @@ class ContractsCompanion extends UpdateCompanion<Contract> {
     }
     if (clearanceNotes.present) {
       map['clearance_notes'] = Variable<String>(clearanceNotes.value);
-    }
-    if (isTitleDeedTransferred.present) {
-      map['is_title_deed_transferred'] = Variable<bool>(
-        isTitleDeedTransferred.value,
-      );
-    }
-    if (titleDeedDate.present) {
-      map['title_deed_date'] = Variable<DateTime>(titleDeedDate.value);
-    }
-    if (titleDeedNotes.present) {
-      map['title_deed_notes'] = Variable<String>(titleDeedNotes.value);
     }
     if (isHandedOver.present) {
       map['is_handed_over'] = Variable<bool>(isHandedOver.value);
@@ -3957,9 +3786,6 @@ class ContractsCompanion extends UpdateCompanion<Contract> {
           ..write('downPayment: $downPayment, ')
           ..write('isInitialClearanceSigned: $isInitialClearanceSigned, ')
           ..write('clearanceNotes: $clearanceNotes, ')
-          ..write('isTitleDeedTransferred: $isTitleDeedTransferred, ')
-          ..write('titleDeedDate: $titleDeedDate, ')
-          ..write('titleDeedNotes: $titleDeedNotes, ')
           ..write('isHandedOver: $isHandedOver, ')
           ..write('agreedHandoverDate: $agreedHandoverDate, ')
           ..write('actualHandoverDate: $actualHandoverDate, ')
@@ -7525,6 +7351,672 @@ class LocalUsersCompanion extends UpdateCompanion<LocalUser> {
   }
 }
 
+class $LegalActionsTable extends LegalActions
+    with TableInfo<$LegalActionsTable, LegalAction> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $LegalActionsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    clientDefault: () => _uuid.v7(),
+  );
+  static const VerificationMeta _contractIdMeta = const VerificationMeta(
+    'contractId',
+  );
+  @override
+  late final GeneratedColumn<String> contractId = GeneratedColumn<String>(
+    'contract_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES contracts (id)',
+    ),
+  );
+  static const VerificationMeta _actionTypeMeta = const VerificationMeta(
+    'actionType',
+  );
+  @override
+  late final GeneratedColumn<String> actionType = GeneratedColumn<String>(
+    'action_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _actionDateMeta = const VerificationMeta(
+    'actionDate',
+  );
+  @override
+  late final GeneratedColumn<DateTime> actionDate = GeneratedColumn<DateTime>(
+    'action_date',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _notesMeta = const VerificationMeta('notes');
+  @override
+  late final GeneratedColumn<String> notes = GeneratedColumn<String>(
+    'notes',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _attachmentUrlMeta = const VerificationMeta(
+    'attachmentUrl',
+  );
+  @override
+  late final GeneratedColumn<String> attachmentUrl = GeneratedColumn<String>(
+    'attachment_url',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
+    'user_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    clientDefault: () => DateTime.now().toUtc(),
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    clientDefault: () => DateTime.now().toUtc(),
+  );
+  static const VerificationMeta _isDeletedMeta = const VerificationMeta(
+    'isDeleted',
+  );
+  @override
+  late final GeneratedColumn<bool> isDeleted = GeneratedColumn<bool>(
+    'is_deleted',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_deleted" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _isSyncedMeta = const VerificationMeta(
+    'isSynced',
+  );
+  @override
+  late final GeneratedColumn<bool> isSynced = GeneratedColumn<bool>(
+    'is_synced',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_synced" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    contractId,
+    actionType,
+    actionDate,
+    notes,
+    attachmentUrl,
+    userId,
+    createdAt,
+    updatedAt,
+    isDeleted,
+    isSynced,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'legal_actions';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<LegalAction> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('contract_id')) {
+      context.handle(
+        _contractIdMeta,
+        contractId.isAcceptableOrUnknown(data['contract_id']!, _contractIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_contractIdMeta);
+    }
+    if (data.containsKey('action_type')) {
+      context.handle(
+        _actionTypeMeta,
+        actionType.isAcceptableOrUnknown(data['action_type']!, _actionTypeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_actionTypeMeta);
+    }
+    if (data.containsKey('action_date')) {
+      context.handle(
+        _actionDateMeta,
+        actionDate.isAcceptableOrUnknown(data['action_date']!, _actionDateMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_actionDateMeta);
+    }
+    if (data.containsKey('notes')) {
+      context.handle(
+        _notesMeta,
+        notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
+      );
+    }
+    if (data.containsKey('attachment_url')) {
+      context.handle(
+        _attachmentUrlMeta,
+        attachmentUrl.isAcceptableOrUnknown(
+          data['attachment_url']!,
+          _attachmentUrlMeta,
+        ),
+      );
+    }
+    if (data.containsKey('user_id')) {
+      context.handle(
+        _userIdMeta,
+        userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_userIdMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    if (data.containsKey('is_deleted')) {
+      context.handle(
+        _isDeletedMeta,
+        isDeleted.isAcceptableOrUnknown(data['is_deleted']!, _isDeletedMeta),
+      );
+    }
+    if (data.containsKey('is_synced')) {
+      context.handle(
+        _isSyncedMeta,
+        isSynced.isAcceptableOrUnknown(data['is_synced']!, _isSyncedMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  LegalAction map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return LegalAction(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      contractId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}contract_id'],
+      )!,
+      actionType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}action_type'],
+      )!,
+      actionDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}action_date'],
+      )!,
+      notes: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}notes'],
+      ),
+      attachmentUrl: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}attachment_url'],
+      ),
+      userId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}user_id'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      isDeleted: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_deleted'],
+      )!,
+      isSynced: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_synced'],
+      )!,
+    );
+  }
+
+  @override
+  $LegalActionsTable createAlias(String alias) {
+    return $LegalActionsTable(attachedDatabase, alias);
+  }
+}
+
+class LegalAction extends DataClass implements Insertable<LegalAction> {
+  final String id;
+  final String contractId;
+  final String actionType;
+  final DateTime actionDate;
+  final String? notes;
+  final String? attachmentUrl;
+  final String userId;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final bool isDeleted;
+  final bool isSynced;
+  const LegalAction({
+    required this.id,
+    required this.contractId,
+    required this.actionType,
+    required this.actionDate,
+    this.notes,
+    this.attachmentUrl,
+    required this.userId,
+    required this.createdAt,
+    required this.updatedAt,
+    required this.isDeleted,
+    required this.isSynced,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['contract_id'] = Variable<String>(contractId);
+    map['action_type'] = Variable<String>(actionType);
+    map['action_date'] = Variable<DateTime>(actionDate);
+    if (!nullToAbsent || notes != null) {
+      map['notes'] = Variable<String>(notes);
+    }
+    if (!nullToAbsent || attachmentUrl != null) {
+      map['attachment_url'] = Variable<String>(attachmentUrl);
+    }
+    map['user_id'] = Variable<String>(userId);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    map['is_deleted'] = Variable<bool>(isDeleted);
+    map['is_synced'] = Variable<bool>(isSynced);
+    return map;
+  }
+
+  LegalActionsCompanion toCompanion(bool nullToAbsent) {
+    return LegalActionsCompanion(
+      id: Value(id),
+      contractId: Value(contractId),
+      actionType: Value(actionType),
+      actionDate: Value(actionDate),
+      notes: notes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(notes),
+      attachmentUrl: attachmentUrl == null && nullToAbsent
+          ? const Value.absent()
+          : Value(attachmentUrl),
+      userId: Value(userId),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      isDeleted: Value(isDeleted),
+      isSynced: Value(isSynced),
+    );
+  }
+
+  factory LegalAction.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return LegalAction(
+      id: serializer.fromJson<String>(json['id']),
+      contractId: serializer.fromJson<String>(json['contractId']),
+      actionType: serializer.fromJson<String>(json['actionType']),
+      actionDate: serializer.fromJson<DateTime>(json['actionDate']),
+      notes: serializer.fromJson<String?>(json['notes']),
+      attachmentUrl: serializer.fromJson<String?>(json['attachmentUrl']),
+      userId: serializer.fromJson<String>(json['userId']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      isDeleted: serializer.fromJson<bool>(json['isDeleted']),
+      isSynced: serializer.fromJson<bool>(json['isSynced']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'contractId': serializer.toJson<String>(contractId),
+      'actionType': serializer.toJson<String>(actionType),
+      'actionDate': serializer.toJson<DateTime>(actionDate),
+      'notes': serializer.toJson<String?>(notes),
+      'attachmentUrl': serializer.toJson<String?>(attachmentUrl),
+      'userId': serializer.toJson<String>(userId),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'isDeleted': serializer.toJson<bool>(isDeleted),
+      'isSynced': serializer.toJson<bool>(isSynced),
+    };
+  }
+
+  LegalAction copyWith({
+    String? id,
+    String? contractId,
+    String? actionType,
+    DateTime? actionDate,
+    Value<String?> notes = const Value.absent(),
+    Value<String?> attachmentUrl = const Value.absent(),
+    String? userId,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    bool? isDeleted,
+    bool? isSynced,
+  }) => LegalAction(
+    id: id ?? this.id,
+    contractId: contractId ?? this.contractId,
+    actionType: actionType ?? this.actionType,
+    actionDate: actionDate ?? this.actionDate,
+    notes: notes.present ? notes.value : this.notes,
+    attachmentUrl: attachmentUrl.present
+        ? attachmentUrl.value
+        : this.attachmentUrl,
+    userId: userId ?? this.userId,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+    isDeleted: isDeleted ?? this.isDeleted,
+    isSynced: isSynced ?? this.isSynced,
+  );
+  LegalAction copyWithCompanion(LegalActionsCompanion data) {
+    return LegalAction(
+      id: data.id.present ? data.id.value : this.id,
+      contractId: data.contractId.present
+          ? data.contractId.value
+          : this.contractId,
+      actionType: data.actionType.present
+          ? data.actionType.value
+          : this.actionType,
+      actionDate: data.actionDate.present
+          ? data.actionDate.value
+          : this.actionDate,
+      notes: data.notes.present ? data.notes.value : this.notes,
+      attachmentUrl: data.attachmentUrl.present
+          ? data.attachmentUrl.value
+          : this.attachmentUrl,
+      userId: data.userId.present ? data.userId.value : this.userId,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      isDeleted: data.isDeleted.present ? data.isDeleted.value : this.isDeleted,
+      isSynced: data.isSynced.present ? data.isSynced.value : this.isSynced,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LegalAction(')
+          ..write('id: $id, ')
+          ..write('contractId: $contractId, ')
+          ..write('actionType: $actionType, ')
+          ..write('actionDate: $actionDate, ')
+          ..write('notes: $notes, ')
+          ..write('attachmentUrl: $attachmentUrl, ')
+          ..write('userId: $userId, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('isDeleted: $isDeleted, ')
+          ..write('isSynced: $isSynced')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    contractId,
+    actionType,
+    actionDate,
+    notes,
+    attachmentUrl,
+    userId,
+    createdAt,
+    updatedAt,
+    isDeleted,
+    isSynced,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is LegalAction &&
+          other.id == this.id &&
+          other.contractId == this.contractId &&
+          other.actionType == this.actionType &&
+          other.actionDate == this.actionDate &&
+          other.notes == this.notes &&
+          other.attachmentUrl == this.attachmentUrl &&
+          other.userId == this.userId &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.isDeleted == this.isDeleted &&
+          other.isSynced == this.isSynced);
+}
+
+class LegalActionsCompanion extends UpdateCompanion<LegalAction> {
+  final Value<String> id;
+  final Value<String> contractId;
+  final Value<String> actionType;
+  final Value<DateTime> actionDate;
+  final Value<String?> notes;
+  final Value<String?> attachmentUrl;
+  final Value<String> userId;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<bool> isDeleted;
+  final Value<bool> isSynced;
+  final Value<int> rowid;
+  const LegalActionsCompanion({
+    this.id = const Value.absent(),
+    this.contractId = const Value.absent(),
+    this.actionType = const Value.absent(),
+    this.actionDate = const Value.absent(),
+    this.notes = const Value.absent(),
+    this.attachmentUrl = const Value.absent(),
+    this.userId = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.isDeleted = const Value.absent(),
+    this.isSynced = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  LegalActionsCompanion.insert({
+    this.id = const Value.absent(),
+    required String contractId,
+    required String actionType,
+    required DateTime actionDate,
+    this.notes = const Value.absent(),
+    this.attachmentUrl = const Value.absent(),
+    required String userId,
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.isDeleted = const Value.absent(),
+    this.isSynced = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : contractId = Value(contractId),
+       actionType = Value(actionType),
+       actionDate = Value(actionDate),
+       userId = Value(userId);
+  static Insertable<LegalAction> custom({
+    Expression<String>? id,
+    Expression<String>? contractId,
+    Expression<String>? actionType,
+    Expression<DateTime>? actionDate,
+    Expression<String>? notes,
+    Expression<String>? attachmentUrl,
+    Expression<String>? userId,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<bool>? isDeleted,
+    Expression<bool>? isSynced,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (contractId != null) 'contract_id': contractId,
+      if (actionType != null) 'action_type': actionType,
+      if (actionDate != null) 'action_date': actionDate,
+      if (notes != null) 'notes': notes,
+      if (attachmentUrl != null) 'attachment_url': attachmentUrl,
+      if (userId != null) 'user_id': userId,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (isDeleted != null) 'is_deleted': isDeleted,
+      if (isSynced != null) 'is_synced': isSynced,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  LegalActionsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? contractId,
+    Value<String>? actionType,
+    Value<DateTime>? actionDate,
+    Value<String?>? notes,
+    Value<String?>? attachmentUrl,
+    Value<String>? userId,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<bool>? isDeleted,
+    Value<bool>? isSynced,
+    Value<int>? rowid,
+  }) {
+    return LegalActionsCompanion(
+      id: id ?? this.id,
+      contractId: contractId ?? this.contractId,
+      actionType: actionType ?? this.actionType,
+      actionDate: actionDate ?? this.actionDate,
+      notes: notes ?? this.notes,
+      attachmentUrl: attachmentUrl ?? this.attachmentUrl,
+      userId: userId ?? this.userId,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      isDeleted: isDeleted ?? this.isDeleted,
+      isSynced: isSynced ?? this.isSynced,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (contractId.present) {
+      map['contract_id'] = Variable<String>(contractId.value);
+    }
+    if (actionType.present) {
+      map['action_type'] = Variable<String>(actionType.value);
+    }
+    if (actionDate.present) {
+      map['action_date'] = Variable<DateTime>(actionDate.value);
+    }
+    if (notes.present) {
+      map['notes'] = Variable<String>(notes.value);
+    }
+    if (attachmentUrl.present) {
+      map['attachment_url'] = Variable<String>(attachmentUrl.value);
+    }
+    if (userId.present) {
+      map['user_id'] = Variable<String>(userId.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (isDeleted.present) {
+      map['is_deleted'] = Variable<bool>(isDeleted.value);
+    }
+    if (isSynced.present) {
+      map['is_synced'] = Variable<bool>(isSynced.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LegalActionsCompanion(')
+          ..write('id: $id, ')
+          ..write('contractId: $contractId, ')
+          ..write('actionType: $actionType, ')
+          ..write('actionDate: $actionDate, ')
+          ..write('notes: $notes, ')
+          ..write('attachmentUrl: $attachmentUrl, ')
+          ..write('userId: $userId, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('isDeleted: $isDeleted, ')
+          ..write('isSynced: $isSynced, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -7539,6 +8031,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $PaymentsLedgerTable paymentsLedger = $PaymentsLedgerTable(this);
   late final $AppRolesTable appRoles = $AppRolesTable(this);
   late final $LocalUsersTable localUsers = $LocalUsersTable(this);
+  late final $LegalActionsTable legalActions = $LegalActionsTable(this);
   late final Index idxClientsSync = Index(
     'idx_clients_sync',
     'CREATE INDEX idx_clients_sync ON clients (is_deleted, updated_at)',
@@ -7575,6 +8068,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     'idx_users_sync',
     'CREATE INDEX idx_users_sync ON local_users (is_deleted, updated_at)',
   );
+  late final Index idxLegalActionsSync = Index(
+    'idx_legal_actions_sync',
+    'CREATE INDEX idx_legal_actions_sync ON legal_actions (is_deleted, updated_at, contract_id)',
+  );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -7589,6 +8086,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     paymentsLedger,
     appRoles,
     localUsers,
+    legalActions,
     idxClientsSync,
     idxContractsSync,
     idxBuildingsSync,
@@ -7598,6 +8096,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     idxPaymentsSync,
     idxRolesSync,
     idxUsersSync,
+    idxLegalActionsSync,
   ];
 }
 
@@ -8973,9 +9472,6 @@ typedef $$ContractsTableCreateCompanionBuilder =
       Value<double> downPayment,
       Value<bool> isInitialClearanceSigned,
       Value<String?> clearanceNotes,
-      Value<bool> isTitleDeedTransferred,
-      Value<DateTime?> titleDeedDate,
-      Value<String?> titleDeedNotes,
       Value<bool> isHandedOver,
       Value<DateTime?> agreedHandoverDate,
       Value<DateTime?> actualHandoverDate,
@@ -9012,9 +9508,6 @@ typedef $$ContractsTableUpdateCompanionBuilder =
       Value<double> downPayment,
       Value<bool> isInitialClearanceSigned,
       Value<String?> clearanceNotes,
-      Value<bool> isTitleDeedTransferred,
-      Value<DateTime?> titleDeedDate,
-      Value<String?> titleDeedNotes,
       Value<bool> isHandedOver,
       Value<DateTime?> agreedHandoverDate,
       Value<DateTime?> actualHandoverDate,
@@ -9125,6 +9618,27 @@ final class $$ContractsTableReferences
       manager.$state.copyWith(prefetchedData: cache),
     );
   }
+
+  static MultiTypedResultKey<$LegalActionsTable, List<LegalAction>>
+  _legalActionsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.legalActions,
+    aliasName: $_aliasNameGenerator(
+      db.contracts.id,
+      db.legalActions.contractId,
+    ),
+  );
+
+  $$LegalActionsTableProcessedTableManager get legalActionsRefs {
+    final manager = $$LegalActionsTableTableManager(
+      $_db,
+      $_db.legalActions,
+    ).filter((f) => f.contractId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_legalActionsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
 }
 
 class $$ContractsTableFilterComposer
@@ -9188,21 +9702,6 @@ class $$ContractsTableFilterComposer
 
   ColumnFilters<String> get clearanceNotes => $composableBuilder(
     column: $table.clearanceNotes,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<bool> get isTitleDeedTransferred => $composableBuilder(
-    column: $table.isTitleDeedTransferred,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<DateTime> get titleDeedDate => $composableBuilder(
-    column: $table.titleDeedDate,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get titleDeedNotes => $composableBuilder(
-    column: $table.titleDeedNotes,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -9396,6 +9895,31 @@ class $$ContractsTableFilterComposer
     );
     return f(composer);
   }
+
+  Expression<bool> legalActionsRefs(
+    Expression<bool> Function($$LegalActionsTableFilterComposer f) f,
+  ) {
+    final $$LegalActionsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.legalActions,
+      getReferencedColumn: (t) => t.contractId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LegalActionsTableFilterComposer(
+            $db: $db,
+            $table: $db.legalActions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$ContractsTableOrderingComposer
@@ -9459,21 +9983,6 @@ class $$ContractsTableOrderingComposer
 
   ColumnOrderings<String> get clearanceNotes => $composableBuilder(
     column: $table.clearanceNotes,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<bool> get isTitleDeedTransferred => $composableBuilder(
-    column: $table.isTitleDeedTransferred,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<DateTime> get titleDeedDate => $composableBuilder(
-    column: $table.titleDeedDate,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get titleDeedNotes => $composableBuilder(
-    column: $table.titleDeedNotes,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -9679,21 +10188,6 @@ class $$ContractsTableAnnotationComposer
     builder: (column) => column,
   );
 
-  GeneratedColumn<bool> get isTitleDeedTransferred => $composableBuilder(
-    column: $table.isTitleDeedTransferred,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<DateTime> get titleDeedDate => $composableBuilder(
-    column: $table.titleDeedDate,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<String> get titleDeedNotes => $composableBuilder(
-    column: $table.titleDeedNotes,
-    builder: (column) => column,
-  );
-
   GeneratedColumn<bool> get isHandedOver => $composableBuilder(
     column: $table.isHandedOver,
     builder: (column) => column,
@@ -9875,6 +10369,31 @@ class $$ContractsTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> legalActionsRefs<T extends Object>(
+    Expression<T> Function($$LegalActionsTableAnnotationComposer a) f,
+  ) {
+    final $$LegalActionsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.legalActions,
+      getReferencedColumn: (t) => t.contractId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LegalActionsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.legalActions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$ContractsTableTableManager
@@ -9895,6 +10414,7 @@ class $$ContractsTableTableManager
             bool apartmentId,
             bool installmentsScheduleRefs,
             bool paymentsLedgerRefs,
+            bool legalActionsRefs,
           })
         > {
   $$ContractsTableTableManager(_$AppDatabase db, $ContractsTable table)
@@ -9923,9 +10443,6 @@ class $$ContractsTableTableManager
                 Value<double> downPayment = const Value.absent(),
                 Value<bool> isInitialClearanceSigned = const Value.absent(),
                 Value<String?> clearanceNotes = const Value.absent(),
-                Value<bool> isTitleDeedTransferred = const Value.absent(),
-                Value<DateTime?> titleDeedDate = const Value.absent(),
-                Value<String?> titleDeedNotes = const Value.absent(),
                 Value<bool> isHandedOver = const Value.absent(),
                 Value<DateTime?> agreedHandoverDate = const Value.absent(),
                 Value<DateTime?> actualHandoverDate = const Value.absent(),
@@ -9960,9 +10477,6 @@ class $$ContractsTableTableManager
                 downPayment: downPayment,
                 isInitialClearanceSigned: isInitialClearanceSigned,
                 clearanceNotes: clearanceNotes,
-                isTitleDeedTransferred: isTitleDeedTransferred,
-                titleDeedDate: titleDeedDate,
-                titleDeedNotes: titleDeedNotes,
                 isHandedOver: isHandedOver,
                 agreedHandoverDate: agreedHandoverDate,
                 actualHandoverDate: actualHandoverDate,
@@ -9999,9 +10513,6 @@ class $$ContractsTableTableManager
                 Value<double> downPayment = const Value.absent(),
                 Value<bool> isInitialClearanceSigned = const Value.absent(),
                 Value<String?> clearanceNotes = const Value.absent(),
-                Value<bool> isTitleDeedTransferred = const Value.absent(),
-                Value<DateTime?> titleDeedDate = const Value.absent(),
-                Value<String?> titleDeedNotes = const Value.absent(),
                 Value<bool> isHandedOver = const Value.absent(),
                 Value<DateTime?> agreedHandoverDate = const Value.absent(),
                 Value<DateTime?> actualHandoverDate = const Value.absent(),
@@ -10036,9 +10547,6 @@ class $$ContractsTableTableManager
                 downPayment: downPayment,
                 isInitialClearanceSigned: isInitialClearanceSigned,
                 clearanceNotes: clearanceNotes,
-                isTitleDeedTransferred: isTitleDeedTransferred,
-                titleDeedDate: titleDeedDate,
-                titleDeedNotes: titleDeedNotes,
                 isHandedOver: isHandedOver,
                 agreedHandoverDate: agreedHandoverDate,
                 actualHandoverDate: actualHandoverDate,
@@ -10074,12 +10582,14 @@ class $$ContractsTableTableManager
                 apartmentId = false,
                 installmentsScheduleRefs = false,
                 paymentsLedgerRefs = false,
+                legalActionsRefs = false,
               }) {
                 return PrefetchHooks(
                   db: db,
                   explicitlyWatchedTables: [
                     if (installmentsScheduleRefs) db.installmentsSchedule,
                     if (paymentsLedgerRefs) db.paymentsLedger,
+                    if (legalActionsRefs) db.legalActions,
                   ],
                   addJoins:
                       <
@@ -10170,6 +10680,27 @@ class $$ContractsTableTableManager
                               ),
                           typedResults: items,
                         ),
+                      if (legalActionsRefs)
+                        await $_getPrefetchedData<
+                          Contract,
+                          $ContractsTable,
+                          LegalAction
+                        >(
+                          currentTable: table,
+                          referencedTable: $$ContractsTableReferences
+                              ._legalActionsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$ContractsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).legalActionsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.contractId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                     ];
                   },
                 );
@@ -10195,6 +10726,7 @@ typedef $$ContractsTableProcessedTableManager =
         bool apartmentId,
         bool installmentsScheduleRefs,
         bool paymentsLedgerRefs,
+        bool legalActionsRefs,
       })
     >;
 typedef $$MaterialPricesHistoryTableCreateCompanionBuilder =
@@ -12556,6 +13088,445 @@ typedef $$LocalUsersTableProcessedTableManager =
       LocalUser,
       PrefetchHooks Function({bool roleId})
     >;
+typedef $$LegalActionsTableCreateCompanionBuilder =
+    LegalActionsCompanion Function({
+      Value<String> id,
+      required String contractId,
+      required String actionType,
+      required DateTime actionDate,
+      Value<String?> notes,
+      Value<String?> attachmentUrl,
+      required String userId,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<bool> isDeleted,
+      Value<bool> isSynced,
+      Value<int> rowid,
+    });
+typedef $$LegalActionsTableUpdateCompanionBuilder =
+    LegalActionsCompanion Function({
+      Value<String> id,
+      Value<String> contractId,
+      Value<String> actionType,
+      Value<DateTime> actionDate,
+      Value<String?> notes,
+      Value<String?> attachmentUrl,
+      Value<String> userId,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<bool> isDeleted,
+      Value<bool> isSynced,
+      Value<int> rowid,
+    });
+
+final class $$LegalActionsTableReferences
+    extends BaseReferences<_$AppDatabase, $LegalActionsTable, LegalAction> {
+  $$LegalActionsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $ContractsTable _contractIdTable(_$AppDatabase db) =>
+      db.contracts.createAlias(
+        $_aliasNameGenerator(db.legalActions.contractId, db.contracts.id),
+      );
+
+  $$ContractsTableProcessedTableManager get contractId {
+    final $_column = $_itemColumn<String>('contract_id')!;
+
+    final manager = $$ContractsTableTableManager(
+      $_db,
+      $_db.contracts,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_contractIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$LegalActionsTableFilterComposer
+    extends Composer<_$AppDatabase, $LegalActionsTable> {
+  $$LegalActionsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get actionType => $composableBuilder(
+    column: $table.actionType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get actionDate => $composableBuilder(
+    column: $table.actionDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get attachmentUrl => $composableBuilder(
+    column: $table.attachmentUrl,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get userId => $composableBuilder(
+    column: $table.userId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isDeleted => $composableBuilder(
+    column: $table.isDeleted,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isSynced => $composableBuilder(
+    column: $table.isSynced,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$ContractsTableFilterComposer get contractId {
+    final $$ContractsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.contractId,
+      referencedTable: $db.contracts,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ContractsTableFilterComposer(
+            $db: $db,
+            $table: $db.contracts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$LegalActionsTableOrderingComposer
+    extends Composer<_$AppDatabase, $LegalActionsTable> {
+  $$LegalActionsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get actionType => $composableBuilder(
+    column: $table.actionType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get actionDate => $composableBuilder(
+    column: $table.actionDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get attachmentUrl => $composableBuilder(
+    column: $table.attachmentUrl,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get userId => $composableBuilder(
+    column: $table.userId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isDeleted => $composableBuilder(
+    column: $table.isDeleted,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isSynced => $composableBuilder(
+    column: $table.isSynced,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$ContractsTableOrderingComposer get contractId {
+    final $$ContractsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.contractId,
+      referencedTable: $db.contracts,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ContractsTableOrderingComposer(
+            $db: $db,
+            $table: $db.contracts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$LegalActionsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $LegalActionsTable> {
+  $$LegalActionsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get actionType => $composableBuilder(
+    column: $table.actionType,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get actionDate => $composableBuilder(
+    column: $table.actionDate,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get notes =>
+      $composableBuilder(column: $table.notes, builder: (column) => column);
+
+  GeneratedColumn<String> get attachmentUrl => $composableBuilder(
+    column: $table.attachmentUrl,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get userId =>
+      $composableBuilder(column: $table.userId, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<bool> get isDeleted =>
+      $composableBuilder(column: $table.isDeleted, builder: (column) => column);
+
+  GeneratedColumn<bool> get isSynced =>
+      $composableBuilder(column: $table.isSynced, builder: (column) => column);
+
+  $$ContractsTableAnnotationComposer get contractId {
+    final $$ContractsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.contractId,
+      referencedTable: $db.contracts,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ContractsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.contracts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$LegalActionsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $LegalActionsTable,
+          LegalAction,
+          $$LegalActionsTableFilterComposer,
+          $$LegalActionsTableOrderingComposer,
+          $$LegalActionsTableAnnotationComposer,
+          $$LegalActionsTableCreateCompanionBuilder,
+          $$LegalActionsTableUpdateCompanionBuilder,
+          (LegalAction, $$LegalActionsTableReferences),
+          LegalAction,
+          PrefetchHooks Function({bool contractId})
+        > {
+  $$LegalActionsTableTableManager(_$AppDatabase db, $LegalActionsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$LegalActionsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$LegalActionsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$LegalActionsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> contractId = const Value.absent(),
+                Value<String> actionType = const Value.absent(),
+                Value<DateTime> actionDate = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
+                Value<String?> attachmentUrl = const Value.absent(),
+                Value<String> userId = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<bool> isDeleted = const Value.absent(),
+                Value<bool> isSynced = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => LegalActionsCompanion(
+                id: id,
+                contractId: contractId,
+                actionType: actionType,
+                actionDate: actionDate,
+                notes: notes,
+                attachmentUrl: attachmentUrl,
+                userId: userId,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                isDeleted: isDeleted,
+                isSynced: isSynced,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                required String contractId,
+                required String actionType,
+                required DateTime actionDate,
+                Value<String?> notes = const Value.absent(),
+                Value<String?> attachmentUrl = const Value.absent(),
+                required String userId,
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<bool> isDeleted = const Value.absent(),
+                Value<bool> isSynced = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => LegalActionsCompanion.insert(
+                id: id,
+                contractId: contractId,
+                actionType: actionType,
+                actionDate: actionDate,
+                notes: notes,
+                attachmentUrl: attachmentUrl,
+                userId: userId,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                isDeleted: isDeleted,
+                isSynced: isSynced,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$LegalActionsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({contractId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (contractId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.contractId,
+                                referencedTable: $$LegalActionsTableReferences
+                                    ._contractIdTable(db),
+                                referencedColumn: $$LegalActionsTableReferences
+                                    ._contractIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$LegalActionsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $LegalActionsTable,
+      LegalAction,
+      $$LegalActionsTableFilterComposer,
+      $$LegalActionsTableOrderingComposer,
+      $$LegalActionsTableAnnotationComposer,
+      $$LegalActionsTableCreateCompanionBuilder,
+      $$LegalActionsTableUpdateCompanionBuilder,
+      (LegalAction, $$LegalActionsTableReferences),
+      LegalAction,
+      PrefetchHooks Function({bool contractId})
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -12578,4 +13549,6 @@ class $AppDatabaseManager {
       $$AppRolesTableTableManager(_db, _db.appRoles);
   $$LocalUsersTableTableManager get localUsers =>
       $$LocalUsersTableTableManager(_db, _db.localUsers);
+  $$LegalActionsTableTableManager get legalActions =>
+      $$LegalActionsTableTableManager(_db, _db.legalActions);
 }

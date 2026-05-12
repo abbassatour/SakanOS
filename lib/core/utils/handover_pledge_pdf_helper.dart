@@ -132,7 +132,8 @@ class HandoverPledgePdfHelper {
                     children:[
                       pw.Text('توقيع العميل (المُستلم)', style: pw.TextStyle(font: arabicBoldFont, fontSize: 12)),
                       pw.SizedBox(height: 40),
-                      pw.Container(width: 120, border: const pw.Border(bottom: pw.BorderSide(color: PdfColors.grey500, width: 1))),
+                      // 🌟 التصحيح: وضعنا border داخل BoxDecoration
+                      pw.Container(width: 120, decoration: const pw.BoxDecoration(border: pw.Border(bottom: pw.BorderSide(color: PdfColors.grey500, width: 1)))),
                       pw.SizedBox(height: 8),
                       pw.Text('البصمة:', style: pw.TextStyle(font: arabicFont, fontSize: 10, color: PdfColors.grey700)),
                     ]
@@ -142,7 +143,7 @@ class HandoverPledgePdfHelper {
                     children:[
                       pw.Text('مندوب التسليم (المهندس)', style: pw.TextStyle(font: arabicBoldFont, fontSize: 12)),
                       pw.SizedBox(height: 40),
-                      pw.Container(width: 120, border: const pw.Border(bottom: pw.BorderSide(color: PdfColors.grey500, width: 1))),
+                      pw.Container(width: 120, decoration: const pw.BoxDecoration(border: pw.Border(bottom: pw.BorderSide(color: PdfColors.grey500, width: 1)))),
                     ]
                   ),
                   pw.Column(
@@ -150,7 +151,7 @@ class HandoverPledgePdfHelper {
                     children:[
                       pw.Text('ختم الشركة (الفريق الأول)', style: pw.TextStyle(font: arabicBoldFont, fontSize: 12)),
                       pw.SizedBox(height: 40),
-                      pw.Container(width: 120, border: const pw.Border(bottom: pw.BorderSide(color: PdfColors.grey500, width: 1))),
+                      pw.Container(width: 120, decoration: const pw.BoxDecoration(border: pw.Border(bottom: pw.BorderSide(color: PdfColors.grey500, width: 1)))),
                     ]
                   ),
                 ]
@@ -168,7 +169,7 @@ class HandoverPledgePdfHelper {
     return pw.Padding(
       padding: const pw.EdgeInsets.symmetric(vertical: 4),
       child: pw.Row(
-        crossAxisAlignmenth: pw.CrossAxisAlignment.start,
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
         children:[
           pw.SizedBox(width: 120, child: pw.Text(label, style: pw.TextStyle(font: arabicFont, fontSize: 11, color: PdfColors.grey700))),
           pw.Expanded(child: pw.Text(value, style: pw.TextStyle(font: arabicBoldFont, fontSize: 11, color: PdfColors.black))),

@@ -134,10 +134,6 @@ class Contracts extends Table {
   BoolColumn get isInitialClearanceSigned => boolean().withDefault(const Constant(false))();
   TextColumn get clearanceNotes => text().nullable()();
 
-  // 🌟 [الإضافات الجديدة]: الشؤون القانونية (صفحة المحامي)
-  BoolColumn get isTitleDeedTransferred => boolean().withDefault(const Constant(false))();
-  DateTimeColumn get titleDeedDate => dateTime().nullable()();
-  TextColumn get titleDeedNotes => text().nullable()();
 
   
   // 🌟 [الإضافات الجديدة]: إدارة تسليم الشقة (Handover Management)
@@ -334,6 +330,35 @@ class LocalUsers extends Table {
 }
 
 // ==========================================
+// ⚖️ 10. جدول الإجراءات القانونية (Legal Actions)
+// ==========================================
+@TableIndex(name: 'idx_legal_actions_sync', columns: {#isDeleted, #updatedAt, #contractId})
+class LegalActions extends Table {
+  TextColumn get id => text().clientDefault(() => _uuid.v7())();
+  TextColumn get contractId => text().references(Contracts, #id)(); 
+  
+  // نوع الإجراء (إنذار، فراغ عقاري، رهن، تسوية)
+  TextColumn get actionType => text()(); 
+  
+  // تاريخ الإجراء الفعلي
+  DateTimeColumn get actionDate => dateTime()(); 
+  
+  TextColumn get notes => text().nullable()(); 
+  TextColumn get attachmentUrl => text().nullable()(); // ملف مرفق (PDF/صورة)
+  
+  TextColumn get userId => text()();
+  
+  DateTimeColumn get createdAt => dateTime().clientDefault(() => DateTime.now().toUtc())();
+  DateTimeColumn get updatedAt => dateTime().clientDefault(() => DateTime.now().toUtc())();
+  
+  BoolColumn get isDeleted => boolean().withDefault(const Constant(false))();
+  BoolColumn get isSynced => boolean().withDefault(const Constant(false))();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+// ==========================================
 // ==========================================
 // التكوين الرئيسي لقاعدة البيانات
 // ==========================================
@@ -348,7 +373,8 @@ class LocalUsers extends Table {
   InstallmentsSchedule, 
   PaymentsLedger,
   AppRoles,       // 🌟 تمت الإضافة
-  LocalUsers      // 🌟 تمت الإضافة
+  LocalUsers,      // 🌟 تمت الإضافة
+  LegalActions 
 ])
 
 class AppDatabase extends _$AppDatabase {
@@ -398,6 +424,32 @@ class AppDatabase extends _$AppDatabase {
         );
       }
     });
+  }
+
+
+  // ==========================================
+  // ⚖️ --- استعلامات الإجراءات القانونية ---
+  // ==========================================
+  Future<List<LegalAction>> getLegalActionsForContract(String contractId) => 
+      (select(legalActions)
+        ..where((t) => t.contractId.equals(contractId) & t.isDeleted.equals(false))
+        ..orderBy([(t) => OrderingTerm.desc(t.actionDate)])
+      ).get();
+
+  Future<String> insertLegalAction(LegalActionsCompanion action) async {
+    final row = await into(legalActions).insertReturning(action);
+    return row.id;
+  }
+
+  Future<int> softDeleteLegalAction(String actionId, String userId) {
+    return (update(legalActions)..where((t) => t.id.equals(actionId))).write(
+      LegalActionsCompanion(
+        isDeleted: const Value(true),
+        userId: Value(userId),
+        updatedAt: Value(DateTime.now().toUtc()),
+        isSynced: const Value(false)
+      )
+    );
   }
 
 
@@ -1302,7 +1354,7 @@ LazyDatabase _openConnection() {
   return LazyDatabase(() async {
     final dbFolder = await getApplicationSupportDirectory(); 
     // 🌟 تغيير الاسم لإنشاء قاعدة جديدة نظيفة تماماً للعمل مع UUID v7 الجديد
-    final file = File(p.join(dbFolder.path, 'our_home_erp_v13_legal.sqlite')); 
+    final file = File(p.join(dbFolder.path, 'our_home_erp_v14_legal_system.sqlite')); 
     return NativeDatabase.createInBackground(file);
   });
 }
