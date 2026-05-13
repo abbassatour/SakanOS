@@ -1,9 +1,9 @@
-//bootstrap.dart
+// lib/bootstrap.dart
 import 'dart:async';
 import 'dart:developer';
-
-import 'package:bloc/bloc.dart';
+import 'package:flutter/foundation.dart'; // 🌟 مكتبة ضرورية لـ PlatformDispatcher
 import 'package:flutter/widgets.dart';
+import 'package:bloc/bloc.dart';
 
 // استدعاء الحزم التي بنيناها
 import 'package:cloud_storage_api/cloud_storage_api.dart';
@@ -29,43 +29,49 @@ class AppBlocObserver extends BlocObserver {
 }
 
 /// دالة التشغيل الأساسية (Bootstrap)
-/// تستقبل التطبيق (Widget) وتمرر له (ErpRepository) ليكون متاحاً في كل الشاشات
 Future<void> bootstrap(FutureOr<Widget> Function(ErpRepository) builder) async {
-  // التقاط أخطاء الفلاتر (UI)
+  // 1. 🌟 التهيئة الأساسية لمُحرك فلاتر (يجب أن تكون في الجذر لتجنب Zone mismatch)
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // 2. 🌟 التقاط أخطاء واجهة المستخدم (UI / Synchronous Errors)
   FlutterError.onError = (details) {
-    log(details.exceptionAsString(), stackTrace: details.stack);
+    log('Flutter UI Error: ${details.exceptionAsString()}', stackTrace: details.stack);
   };
 
+  // 3. 🌟 التقاط الأخطاء الخفية (Asynchronous Errors) - الطريقة الحديثة البديلة لـ runZonedGuarded
+  PlatformDispatcher.instance.onError = (error, stack) {
+    log('Async Error: ${error.toString()}', stackTrace: stack);
+    return true; // إرجاع true يعني أننا قمنا بمعالجة الخطأ ولن ينهار التطبيق
+  };
+
+  // 4. تهيئة مراقب الـ BLoC
   Bloc.observer = const AppBlocObserver();
 
-  // تشغيل التطبيق في بيئة آمنة لالتقاط أي انهيار (Crash)
-  await runZonedGuarded(
-    () async {
-      WidgetsFlutterBinding.ensureInitialized();
+  try {
+    // ==========================================
+    // 5. تهيئة قاعدة البيانات السحابية (Supabase)
+    // ==========================================
+    await Supabase.initialize(
+      url: 'https://krdfrdzyfdcqjmnuzads.supabase.co',
+      anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtyZGZyZHp5ZmRjcWptbnV6YWRzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1NTQzOTksImV4cCI6MjA5MDEzMDM5OX0.IzREUxh7vyCE3mBlVj79U6ED8ACOfORGND6YS4yPxgg',
+    );
 
-      // ==========================================
-      // 1. تهيئة قاعدة البيانات السحابية (Supabase)
-      // ==========================================
-      // TODO: ضع الروابط الخاصة بمشروعك في Supabase هنا
-      await Supabase.initialize(
-        url: 'https://krdfrdzyfdcqjmnuzads.supabase.co',
-        anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtyZGZyZHp5ZmRjcWptbnV6YWRzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1NTQzOTksImV4cCI6MjA5MDEzMDM5OX0.IzREUxh7vyCE3mBlVj79U6ED8ACOfORGND6YS4yPxgg',
-      );
+    // ==========================================
+    // 6. تهيئة الحزم المحلية والسحابية والمستودع
+    // ==========================================
+    final cloudStorageClient = CloudStorageClient();
+    final localStorageApi = LocalStorageApi();
+    
+    final erpRepository = ErpRepository(
+      localStorageApi: localStorageApi,
+      cloudStorageClient: cloudStorageClient,
+    );
 
-      // ==========================================
-      // 2. تهيئة الحزم المحلية والسحابية والمستودع
-      // ==========================================
-      final cloudStorageClient = CloudStorageClient();
-      final localStorageApi = LocalStorageApi();
-      
-      final erpRepository = ErpRepository(
-        localStorageApi: localStorageApi,
-        cloudStorageClient: cloudStorageClient,
-      );
-
-      // تشغيل واجهة المستخدم وتمرير المستودع لها
-      runApp(await builder(erpRepository));
-    },
-    (error, stackTrace) => log(error.toString(), stackTrace: stackTrace),
-  );
+    // 7. تشغيل واجهة المستخدم وتمرير المستودع لها
+    runApp(await builder(erpRepository));
+    
+  } catch (e, stackTrace) {
+    // التقاط أي خطأ قد يحدث أثناء التهيئة (Initialization)
+    log('Critical Initialization Error: $e', stackTrace: stackTrace);
+  }
 }
