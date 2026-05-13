@@ -133,7 +133,7 @@ class DashboardView extends StatelessWidget {
     // ==========================================
     // 🌟 5. [التبويب الجديد]: الشؤون القانونية والأرشيف
     // ==========================================
-    if (authState.hasPermission(AppPermissions.manageLegalAffairs)) {
+    if (authState.hasPermission(AppPermissions.viewLegalAffairs)) {
       availableTabs.add(NavTab(
         label: 'القانونية',
         icon: Icons.gavel_outlined,
