@@ -28,15 +28,21 @@ class AppPermissions {
   static const String restoreItems = 'recycle_bin.restore';
   static const String hardDeleteItems = 'recycle_bin.hard_delete'; 
   
-
-  // 🌟 الصلاحية الجديدة الخاصة بصفحة المحامي والأرشيف
-  static const String manageLegalAffairs = 'manage_legal_affairs';
+  // ==========================================
+  // 🌟 الصلاحيات القانونية المفصلة الجديدة
+  // ==========================================
+  static const String viewLegalAffairs = 'legal.view';              // رؤية الأرشيف
+  static const String addLegalAction = 'legal.add';                 // إضافة إجراء
+  static const String deleteLegalAction = 'legal.delete';           // حذف إجراء
+  static const String manageLegalAttachments = 'legal.attachments'; // إدارة المرفقات (إضافة/حذف)
   
   static const List<String> all =[
     viewClients, createClients, editClients, deleteClients,
     viewContracts, createContracts, restructureContracts,
     viewPayments, addPayments, editPayments, deletePayments,
     viewPrices, updatePrices, manageBuildings,
-    viewRecycleBin, restoreItems, hardDeleteItems
+    viewRecycleBin, restoreItems, hardDeleteItems,
+    // تمت الإضافة هنا 👇
+    viewLegalAffairs, addLegalAction, deleteLegalAction, manageLegalAttachments
   ];
 }
