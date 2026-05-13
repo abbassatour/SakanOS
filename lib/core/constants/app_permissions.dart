@@ -31,10 +31,11 @@ class AppPermissions {
   // ==========================================
   // 🌟 الصلاحيات القانونية المفصلة الجديدة
   // ==========================================
-  static const String viewLegalAffairs = 'legal.view';              // رؤية الأرشيف
-  static const String addLegalAction = 'legal.add';                 // إضافة إجراء
-  static const String deleteLegalAction = 'legal.delete';           // حذف إجراء
-  static const String manageLegalAttachments = 'legal.attachments'; // إدارة المرفقات (إضافة/حذف)
+  static const String viewLegalAffairs = 'legal.view';              
+  static const String addLegalAction = 'legal.add';                 
+  static const String editLegalAction = 'legal.edit'; // 🌟 أضف هذا السطر
+  static const String deleteLegalAction = 'legal.delete';           
+  static const String manageLegalAttachments = 'legal.attachments'; 
   
   static const List<String> all =[
     viewClients, createClients, editClients, deleteClients,
@@ -43,6 +44,6 @@ class AppPermissions {
     viewPrices, updatePrices, manageBuildings,
     viewRecycleBin, restoreItems, hardDeleteItems,
     // تمت الإضافة هنا 👇
-    viewLegalAffairs, addLegalAction, deleteLegalAction, manageLegalAttachments
+    viewLegalAffairs, addLegalAction, editLegalAction, deleteLegalAction, manageLegalAttachments
   ];
 }
