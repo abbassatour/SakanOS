@@ -1422,6 +1422,14 @@ class ErpRepository {
     await syncPendingData(); 
   }
 
+  // ==========================================
+  // تعديل إجراء قانوني
+  // ==========================================
+  Future<void> updateLegalAction(LegalActionsCompanion action) async {
+    // 🌟 تم تصحيح الاسم من _localStorageApi إلى _localApi
+    await _localApi.updateLegalAction(action);
+    await syncPendingData(); // 🌟 أضفنا هذا السطر أيضاً ليقوم برفع التعديل للسحابة مباشرة
+  }
   Future<void> deleteLegalAction(String actionId) async {
     final String? safeUserId = currentUserId;
     if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');

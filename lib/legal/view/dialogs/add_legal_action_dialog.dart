@@ -7,9 +7,15 @@ import 'package:local_storage_api/local_storage_api.dart' show LegalAction;
 import '../../cubit/legal_affairs_cubit.dart';
 
 void showAddOrEditLegalActionDialog(BuildContext context, {LegalAction? actionToEdit}) {
+  // 🌟 الحل: نلتقط الـ Cubit من سياق الصفحة قبل فتح النافذة المنبثقة
+  final legalCubit = context.read<LegalAffairsCubit>();
+
   showDialog(
     context: context,
-    builder: (ctx) => AddOrEditLegalActionDialog(actionToEdit: actionToEdit),
+    builder: (ctx) => BlocProvider.value(
+      value: legalCubit, // 🌟 نمرر الـ Cubit للنافذة لكي لا تفقد الاتصال
+      child: AddOrEditLegalActionDialog(actionToEdit: actionToEdit),
+    ),
   );
 }
 

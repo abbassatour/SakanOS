@@ -479,6 +479,18 @@ class AppDatabase extends _$AppDatabase {
     );
   }
 
+  // ==========================================
+  // تعديل إجراء قانوني
+  // ==========================================
+  Future<void> updateLegalAction(LegalActionsCompanion action) async {
+    await (update(legalActions)..where((t) => t.id.equals(action.id.value))).write(
+      action.copyWith(
+        updatedAt: Value(DateTime.now().toUtc()), // تحديث وقت التعديل
+        isSynced: const Value(false), // 🌟 هام جداً: نجعله false لكي يقوم النظام برفعه للسحابة في المزامنة القادمة
+      ),
+    );
+  }
+
   // جلب كل الإجراءات غير المحذوفة
   Future<List<LegalAction>> getAllLegalActions() => 
       (select(legalActions)..where((t) => t.isDeleted.equals(false))).get();

@@ -37,6 +37,7 @@ class _LegalAffairsViewState extends State<LegalAffairsView> {
     
     
     final canAddAction = authState.hasPermission(AppPermissions.addLegalAction);
+    final canEditAction = authState.hasPermission(AppPermissions.editLegalAction); 
     final canDeleteAction = authState.hasPermission(AppPermissions.deleteLegalAction);
     final canManageAttachments = authState.hasPermission(AppPermissions.manageLegalAttachments);
 
@@ -46,7 +47,7 @@ class _LegalAffairsViewState extends State<LegalAffairsView> {
       // 🌟 تطبيق صلاحية "الإضافة"
       floatingActionButton: FloatingActionButton.extended(
         heroTag: 'add_legal_action_fab',
-        onPressed: canAddAction ? () => showAddLegalActionDialog(context) : null,
+        onPressed: canAddAction ? () => showAddOrEditLegalActionDialog(context) : null,
         icon: const Icon(Icons.gavel),
         label: const Text('إضافة إجراء قانوني', style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: canAddAction ? Colors.brown.shade600 : Colors.grey.shade300,
@@ -191,13 +192,25 @@ class _LegalAffairsViewState extends State<LegalAffairsView> {
                                           )
                                         ),
 
-                                        // 🌟 تطبيق صلاحية "الحذف"
+                                        // 🌟 تطبيق صلاحية التعديل والحذف
                                         DataCell(
-                                          IconButton(
-                                            icon: Icon(Icons.delete_outline, color: canDeleteAction ? Colors.red : Colors.grey.shade300), // لون باهت إذا لم يكن لديه صلاحية
-                                            tooltip: canDeleteAction ? 'حذف الإجراء' : 'لا تملك صلاحية الحذف',
-                                            onPressed: canDeleteAction ? () => _confirmDeleteAction(context, action) : null,
-                                          ),
+                                          Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children:[
+                                              // زر التعديل
+                                              IconButton(
+                                                icon: Icon(Icons.edit, color: canEditAction ? Colors.blue : Colors.grey.shade300),
+                                                tooltip: canEditAction ? 'تعديل الإجراء' : 'لا تملك صلاحية التعديل',
+                                                onPressed: canEditAction ? () => showAddOrEditLegalActionDialog(context, actionToEdit: action) : null,
+                                              ),
+                                              // زر الحذف
+                                              IconButton(
+                                                icon: Icon(Icons.delete_outline, color: canDeleteAction ? Colors.red : Colors.grey.shade300),
+                                                tooltip: canDeleteAction ? 'حذف الإجراء' : 'لا تملك صلاحية الحذف',
+                                                onPressed: canDeleteAction ? () => _confirmDeleteAction(context, action) : null,
+                                              ),
+                                            ],
+                                          )
                                         ),
                                       ]
                                     );
