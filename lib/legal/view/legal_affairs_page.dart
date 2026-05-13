@@ -142,32 +142,32 @@ class _LegalAffairsViewState extends State<LegalAffairsView> {
                                         DataCell(Text(DateFormat('yyyy/MM/dd').format(action.actionDate.toLocal()), style: const TextStyle(fontWeight: FontWeight.bold))),
                                         
                                         // 🌟 استدعاء صفحة المرفقات (Page) كشاشة كاملة
-DataCell(
-  InkWell(
-    onTap: () {
-      Navigator.push(
-        context,
-        LegalAttachmentsPage.route(
-          action,
-          canManage,
-          context.read<LegalAffairsCubit>(), // تمرير الـ Cubit بذكاء
-        ),
-      );
-    },
-    child: Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(color: attachments.isNotEmpty ? Colors.blue.shade50 : Colors.grey.shade100, borderRadius: BorderRadius.circular(20), border: Border.all(color: attachments.isNotEmpty ? Colors.blue.shade200 : Colors.grey.shade300)),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children:[
-          Icon(Icons.attach_file, size: 16, color: attachments.isNotEmpty ? Colors.blue.shade700 : Colors.grey),
-          const SizedBox(width: 4),
-          Text('${attachments.length}', style: TextStyle(fontWeight: FontWeight.bold, color: attachments.isNotEmpty ? Colors.blue.shade700 : Colors.grey)),
-        ],
-      ),
-    ),
-  )
-),
+                                        DataCell(
+                                          InkWell(
+                                            onTap: () {
+                                              Navigator.push(
+                                                context,
+                                                LegalAttachmentsPage.route(
+                                                  action,
+                                                  canManage,
+                                                  context.read<LegalAffairsCubit>(), // تمرير الـ Cubit بذكاء
+                                                ),
+                                              );
+                                            },
+                                            child: Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                              decoration: BoxDecoration(color: attachments.isNotEmpty ? Colors.blue.shade50 : Colors.grey.shade100, borderRadius: BorderRadius.circular(20), border: Border.all(color: attachments.isNotEmpty ? Colors.blue.shade200 : Colors.grey.shade300)),
+                                              child: Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children:[
+                                                  Icon(Icons.attach_file, size: 16, color: attachments.isNotEmpty ? Colors.blue.shade700 : Colors.grey),
+                                                  const SizedBox(width: 4),
+                                                  Text('${attachments.length}', style: TextStyle(fontWeight: FontWeight.bold, color: attachments.isNotEmpty ? Colors.blue.shade700 : Colors.grey)),
+                                                ],
+                                              ),
+                                            ),
+                                          )
+                                        ),
                                         
                                         DataCell(
                                           Column(
