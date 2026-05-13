@@ -313,6 +313,10 @@ class CloudStorageClient {
     if (extension == 'png') contentType = 'image/png';
     if (extension == 'jpg' || extension == 'jpeg') contentType = 'image/jpeg';
     if (extension == 'doc' || extension == 'docx') contentType = 'application/msword';
+    // 🌟 السطرين الجديدين لدعم الإكسل 🌟
+    if (extension == 'xls') contentType = 'application/vnd.ms-excel';
+    if (extension == 'xlsx') contentType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+    
 
     const projectId = 'krdfrdzyfdcqjmnuzads'; // نفس البروجيكت آي دي الخاص بك
     final uploadUrl = Uri.parse('https://$projectId.supabase.co/storage/v1/object/$bucketName/$fileName');
