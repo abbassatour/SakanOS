@@ -34,20 +34,25 @@ class _LegalAffairsViewState extends State<LegalAffairsView> {
   @override
   Widget build(BuildContext context) {
     final authState = context.watch<AuthCubit>().state;
-    final canManage = authState.hasPermission(AppPermissions.manageLegalAffairs);
+    
+    // 🌟 استدعاء الصلاحيات الدقيقة
+    final canAddAction = authState.hasPermission(AppPermissions.addLegalAction);
+    final canDeleteAction = authState.hasPermission(AppPermissions.deleteLegalAction);
+    final canManageAttachments = authState.hasPermission(AppPermissions.manageLegalAttachments);
 
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
       
+      // 🌟 تطبيق صلاحية "الإضافة"
       floatingActionButton: FloatingActionButton.extended(
         heroTag: 'add_legal_action_fab',
-        onPressed: canManage ? () => showAddLegalActionDialog(context) : null,
+        onPressed: canAddAction ? () => showAddLegalActionDialog(context) : null,
         icon: const Icon(Icons.gavel),
         label: const Text('إضافة إجراء قانوني', style: TextStyle(fontWeight: FontWeight.bold)),
-        backgroundColor: canManage ? Colors.brown.shade600 : Colors.grey.shade300,
-        foregroundColor: canManage ? Colors.white : Colors.grey.shade600,
-        elevation: canManage ? 6 : 0, 
-        tooltip: canManage ? 'تسجيل إجراء قانوني جديد' : 'لا تملك صلاحية الإدارة القانونية',
+        backgroundColor: canAddAction ? Colors.brown.shade600 : Colors.grey.shade300,
+        foregroundColor: canAddAction ? Colors.white : Colors.grey.shade600,
+        elevation: canAddAction ? 6 : 0, 
+        tooltip: canAddAction ? 'تسجيل إجراء قانوني جديد' : 'لا تملك صلاحية الإضافة',
       ),
       
       body: SafeArea(
@@ -141,7 +146,7 @@ class _LegalAffairsViewState extends State<LegalAffairsView> {
                                         ),
                                         DataCell(Text(DateFormat('yyyy/MM/dd').format(action.actionDate.toLocal()), style: const TextStyle(fontWeight: FontWeight.bold))),
                                         
-                                        // 🌟 استدعاء صفحة المرفقات (Page) كشاشة كاملة
+                                        // 🌟 استدعاء صفحة المرفقات وتمرير صلاحية "إدارة المرفقات"
                                         DataCell(
                                           InkWell(
                                             onTap: () {
@@ -149,8 +154,8 @@ class _LegalAffairsViewState extends State<LegalAffairsView> {
                                                 context,
                                                 LegalAttachmentsPage.route(
                                                   action,
-                                                  canManage,
-                                                  context.read<LegalAffairsCubit>(), // تمرير الـ Cubit بذكاء
+                                                  canManageAttachments, // 👈 التعديل هنا: تمرير الصلاحية المخصصة
+                                                  context.read<LegalAffairsCubit>(), 
                                                 ),
                                               );
                                             },
@@ -185,10 +190,13 @@ class _LegalAffairsViewState extends State<LegalAffairsView> {
                                             ],
                                           )
                                         ),
+
+                                        // 🌟 تطبيق صلاحية "الحذف"
                                         DataCell(
                                           IconButton(
-                                            icon: Icon(Icons.delete_outline, color: canManage ? Colors.red : Colors.grey.shade400),
-                                            onPressed: canManage ? () => _confirmDeleteAction(context, action) : null,
+                                            icon: Icon(Icons.delete_outline, color: canDeleteAction ? Colors.red : Colors.grey.shade300), // لون باهت إذا لم يكن لديه صلاحية
+                                            tooltip: canDeleteAction ? 'حذف الإجراء' : 'لا تملك صلاحية الحذف',
+                                            onPressed: canDeleteAction ? () => _confirmDeleteAction(context, action) : null,
                                           ),
                                         ),
                                       ]
