@@ -23,7 +23,6 @@ void showLegalAttachmentsDialog(BuildContext context, LegalAction action, List<L
       }
     }
   }
-
   showDialog(
     context: context,
     barrierDismissible: false, // 🌟 منع إغلاق النافذة بالخطأ أثناء الرفع
@@ -33,7 +32,6 @@ void showLegalAttachmentsDialog(BuildContext context, LegalAction action, List<L
         bool isUploading = false;
         int totalFilesToUpload = 0;
         int currentUploadIndex = 0;
-
         return AlertDialog(
           title: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -51,7 +49,6 @@ void showLegalAttachmentsDialog(BuildContext context, LegalAction action, List<L
                       // 🌟 إضافة صيغ الإكسل
                       allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png', 'doc', 'docx', 'xls', 'xlsx'], 
                     );
-
                     if (result != null && result.files.isNotEmpty) {
                       // 1. تفعيل واجهة التحميل
                       setStateDialog(() {
@@ -59,11 +56,9 @@ void showLegalAttachmentsDialog(BuildContext context, LegalAction action, List<L
                         totalFilesToUpload = result.files.length;
                         currentUploadIndex = 0;
                       });
-
                       // 2. رفع الملفات واحداً تلو الآخر لتجنب الضغط على الشبكة
                       for (int i = 0; i < result.files.length; i++) {
                         setStateDialog(() => currentUploadIndex = i + 1);
-                        
                         final file = result.files[i];
                         if (file.path != null) {
                           await cubit.attachFileToAction(
@@ -74,10 +69,8 @@ void showLegalAttachmentsDialog(BuildContext context, LegalAction action, List<L
                           );
                         }
                       }
-
                       // 3. إنهاء حالة التحميل بعد اكتمال الرفع
                       setStateDialog(() => isUploading = false);
-                      
                       if (ctx.mounted) {
                         ScaffoldMessenger.of(ctx).showSnackBar(
                           SnackBar(content: Text('تم رفع $totalFilesToUpload ملفات بنجاح! ✅'), backgroundColor: Colors.green),
@@ -129,7 +122,6 @@ void showLegalAttachmentsDialog(BuildContext context, LegalAction action, List<L
                           final isPdf = ext == 'pdf';
                           final isImage = ['jpg', 'jpeg', 'png'].contains(ext);
                           final isExcel = ['xls', 'xlsx'].contains(ext); // 🌟 تمييز الإكسل
-                          
                           // تحديد الأيقونة واللون
                           IconData leadingIcon = Icons.insert_drive_file;
                           Color leadingColor = Colors.grey;
@@ -137,16 +129,13 @@ void showLegalAttachmentsDialog(BuildContext context, LegalAction action, List<L
                           else if (isImage) { leadingIcon = Icons.image; leadingColor = Colors.blue; }
                           else if (isExcel) { leadingIcon = Icons.table_chart; leadingColor = Colors.green; } // 🌟 لون أخضر للإكسل
                           else { leadingIcon = Icons.description; leadingColor = Colors.blue.shade900; }
-
                           return ListTile(
                             onTap: () => _launchFileUrl(att.fileUrl),
                             hoverColor: Colors.indigo.shade50,
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                            
                             leading: Icon(leadingIcon, color: leadingColor, size: 32),
                             title: Text(att.fileName ?? 'ملف بدون اسم', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.bold)),
                             subtitle: Text(DateFormat('yyyy/MM/dd').format(att.createdAt.toLocal()), style: const TextStyle(fontSize: 10)),
-                            
                             trailing: Row(
                               mainAxisSize: MainAxisSize.min,
                               children:[
