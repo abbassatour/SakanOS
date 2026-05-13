@@ -31,6 +31,8 @@ class AdminView extends StatefulWidget {
 class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
+  // داخل كلاس _AdminViewState في ملف lib/admin/view/admin_page.dart
+
   final Map<String, String> permissionNames = {
     AppPermissions.viewClients: 'عرض العملاء',
     AppPermissions.createClients: 'إضافة عميل',
@@ -50,7 +52,11 @@ class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMix
     AppPermissions.restoreItems: 'استعادة المحذوفات',
     AppPermissions.hardDeleteItems: 'الحذف النهائي المدمر',
     
-    AppPermissions.manageLegalAffairs: 'إدارة الشؤون القانونية والأرشيف',
+    // 🌟 الصلاحيات القانونية الجديدة
+    AppPermissions.viewLegalAffairs: 'عرض الأرشيف القانوني',
+    AppPermissions.addLegalAction: 'إضافة إجراء قانوني جديد',
+    AppPermissions.deleteLegalAction: 'حذف إجراء قانوني',
+    AppPermissions.manageLegalAttachments: 'إدارة المرفقات القانونية (رفع/حذف)',
   };
 
   @override
