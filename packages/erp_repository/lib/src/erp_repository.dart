@@ -318,7 +318,6 @@ class ErpRepository {
           actionType: a['action_type'].toString(),
           actionDate: DateTime.parse(a['action_date'].toString()).toUtc(),
           notes: drift.Value(a['notes']?.toString()),
-          attachmentUrl: drift.Value(a['attachment_url']?.toString()),
           userId: a['user_id']?.toString() ?? '',
           isDeleted: drift.Value(a['is_deleted'] == true),
           updatedAt: drift.Value(DateTime.tryParse(a['updated_at']?.toString() ?? '')?.toUtc() ?? DateTime.now().toUtc()),
@@ -600,7 +599,6 @@ class ErpRepository {
           'action_type': a.actionType,
           'action_date': a.actionDate.toUtc().toIso8601String(),
           'notes': a.notes,
-          'attachment_url': a.attachmentUrl,
           'user_id': a.userId,
           'is_deleted': a.isDeleted,
           'updated_at': a.updatedAt.toUtc().toIso8601String()
@@ -1276,6 +1274,8 @@ class ErpRepository {
   // ==========================================
   Future<List<AppRole>> getAllRoles() => _localApi.getAllRoles();
   Future<List<LocalUser>> getAllLocalUsers() => _localApi.getAllLocalUsers();
+
+  Future<List<LocalUser>> getAllUsers() => _localApi.getAllLocalUsers();
 
   Future<void> createRole({required String name, required String permissionsJson}) async {
     final companion = AppRolesCompanion.insert(
