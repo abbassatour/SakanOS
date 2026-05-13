@@ -61,6 +61,34 @@ class LegalAffairsCubit extends Cubit<LegalAffairsState> {
   }
 
   // ==========================================
+  // تعديل إجراء قانوني موجود
+  // ==========================================
+  Future<void> updateLegalAction({
+    required String actionId,
+    required String contractId,
+    required String actionType,
+    required DateTime actionDate,
+    String? notes,
+  }) async {
+    emit(state.copyWith(status: LegalAffairsStatus.loading));
+    try {
+      // نجهز الكائن للتحديث
+      final updatedAction = LegalActionsCompanion(
+        id: Value(actionId),
+        contractId: Value(contractId),
+        actionType: Value(actionType),
+        actionDate: Value(actionDate.toUtc()),
+        notes: Value(notes),
+      );
+
+      await _erpRepository.updateLegalAction(updatedAction);
+      await fetchData(); // تحديث القائمة بعد التعديل
+    } catch (e) {
+      emit(state.copyWith(status: LegalAffairsStatus.failure, errorMessage: 'خطأ في التعديل: $e'));
+    }
+  }
+
+  // ==========================================
   // 2. إضافة إجراء قانوني جديد
   // ==========================================
   Future<void> addLegalAction({

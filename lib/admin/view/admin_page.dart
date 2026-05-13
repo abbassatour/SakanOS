@@ -55,6 +55,7 @@ class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMix
     // 🌟 الصلاحيات القانونية الجديدة
     AppPermissions.viewLegalAffairs: 'عرض الأرشيف القانوني',
     AppPermissions.addLegalAction: 'إضافة إجراء قانوني جديد',
+    AppPermissions.editLegalAction: 'تعديل إجراء قانوني', // 🌟 أضف هذا السطر
     AppPermissions.deleteLegalAction: 'حذف إجراء قانوني',
     AppPermissions.manageLegalAttachments: 'إدارة المرفقات القانونية (رفع/حذف)',
   };

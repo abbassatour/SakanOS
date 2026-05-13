@@ -35,7 +35,7 @@ class _LegalAffairsViewState extends State<LegalAffairsView> {
   Widget build(BuildContext context) {
     final authState = context.watch<AuthCubit>().state;
     
-    // 🌟 استدعاء الصلاحيات الدقيقة
+    
     final canAddAction = authState.hasPermission(AppPermissions.addLegalAction);
     final canDeleteAction = authState.hasPermission(AppPermissions.deleteLegalAction);
     final canManageAttachments = authState.hasPermission(AppPermissions.manageLegalAttachments);
