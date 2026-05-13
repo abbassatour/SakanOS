@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
+import 'legal_attachments_page.dart';
 import '../cubit/legal_affairs_cubit.dart';
 import '../../auth/cubit/auth_cubit.dart';
 import '../../core/constants/app_permissions.dart';
@@ -10,7 +11,6 @@ import 'package:local_storage_api/local_storage_api.dart' show LegalAction;
 
 // استيراد النوافذ المستقلة
 import 'dialogs/add_legal_action_dialog.dart';
-import 'dialogs/legal_attachments_dialog.dart';
 
 class LegalAffairsPage extends StatelessWidget {
   const LegalAffairsPage({super.key});
@@ -123,6 +123,7 @@ class _LegalAffairsViewState extends State<LegalAffairsView> {
                                     final action = entry.value;
                                     final contract = state.contracts.where((c) => c.id == action.contractId).firstOrNull;
                                     final client = contract != null ? state.clients.where((c) => c.id == contract.clientId).firstOrNull : null;
+                                    // نجلب المرفقات هنا فقط لمعرفة "العدد" وعرضه في الشارة
                                     final attachments = state.attachmentsMap[action.id] ??[];
 
                                     return DataRow(
@@ -140,24 +141,33 @@ class _LegalAffairsViewState extends State<LegalAffairsView> {
                                         ),
                                         DataCell(Text(DateFormat('yyyy/MM/dd').format(action.actionDate.toLocal()), style: const TextStyle(fontWeight: FontWeight.bold))),
                                         
-                                        // 🌟 استدعاء نافذة المرفقات المستقلة
-                                        DataCell(
-                                          InkWell(
-                                            onTap: () => showLegalAttachmentsDialog(context, action, attachments, canManage),
-                                            child: Container(
-                                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                              decoration: BoxDecoration(color: attachments.isNotEmpty ? Colors.blue.shade50 : Colors.grey.shade100, borderRadius: BorderRadius.circular(20), border: Border.all(color: attachments.isNotEmpty ? Colors.blue.shade200 : Colors.grey.shade300)),
-                                              child: Row(
-                                                mainAxisSize: MainAxisSize.min,
-                                                children:[
-                                                  Icon(Icons.attach_file, size: 16, color: attachments.isNotEmpty ? Colors.blue.shade700 : Colors.grey),
-                                                  const SizedBox(width: 4),
-                                                  Text('${attachments.length}', style: TextStyle(fontWeight: FontWeight.bold, color: attachments.isNotEmpty ? Colors.blue.shade700 : Colors.grey)),
-                                                ],
-                                              ),
-                                            ),
-                                          )
-                                        ),
+                                        // 🌟 استدعاء صفحة المرفقات (Page) كشاشة كاملة
+DataCell(
+  InkWell(
+    onTap: () {
+      Navigator.push(
+        context,
+        LegalAttachmentsPage.route(
+          action,
+          canManage,
+          context.read<LegalAffairsCubit>(), // تمرير الـ Cubit بذكاء
+        ),
+      );
+    },
+    child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(color: attachments.isNotEmpty ? Colors.blue.shade50 : Colors.grey.shade100, borderRadius: BorderRadius.circular(20), border: Border.all(color: attachments.isNotEmpty ? Colors.blue.shade200 : Colors.grey.shade300)),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children:[
+          Icon(Icons.attach_file, size: 16, color: attachments.isNotEmpty ? Colors.blue.shade700 : Colors.grey),
+          const SizedBox(width: 4),
+          Text('${attachments.length}', style: TextStyle(fontWeight: FontWeight.bold, color: attachments.isNotEmpty ? Colors.blue.shade700 : Colors.grey)),
+        ],
+      ),
+    ),
+  )
+),
                                         
                                         DataCell(
                                           Column(
