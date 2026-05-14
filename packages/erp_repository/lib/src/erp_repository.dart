@@ -151,9 +151,7 @@ class ErpRepository {
           penaltyPercentage: drift.Value(double.tryParse(c['penalty_percentage']?.toString() ?? '0') ?? 0.0),
           penaltyIntervalMonths: drift.Value(int.tryParse(c['penalty_interval_months']?.toString() ?? '1') ?? 1),
 
-          // سحب بيانات الاستلام المبدئي والتعهد
-          isInitialClearanceSigned: drift.Value(c['is_initial_clearance_signed'] == true),
-          clearanceNotes: drift.Value(c['clearance_notes']?.toString()),
+          
 
           isHandedOver: drift.Value(c['is_handed_over'] == true),
           agreedHandoverDate: drift.Value(c['agreed_handover_date'] != null ? DateTime.tryParse(c['agreed_handover_date'].toString())?.toUtc() : null),
@@ -412,9 +410,7 @@ class ErpRepository {
           'penalty_percentage': _safeNum(c.penaltyPercentage),
           'penalty_interval_months': c.penaltyIntervalMonths,
 
-          // 🌟 رفع بيانات الاستلام المبدئي
-          'is_initial_clearance_signed': c.isInitialClearanceSigned,
-          'clearance_notes': c.clearanceNotes,
+          
 
           'is_handed_over': c.isHandedOver,
           'agreed_handover_date': c.agreedHandoverDate?.toUtc().toIso8601String(),
