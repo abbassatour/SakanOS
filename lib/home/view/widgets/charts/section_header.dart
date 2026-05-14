@@ -67,9 +67,9 @@ class SectionHeader extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children:[
                   _NavButton(
-                    icon: Icons.chevron_right_rounded,
-                    tooltip: 'الفترة السابقة',
-                    onTap: onPrevious,
+                    icon: Icons.chevron_left_rounded,
+                    tooltip: 'الفترة التالية',
+                    onTap: onNext,
                   ),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -85,9 +85,9 @@ class SectionHeader extends StatelessWidget {
                     ),
                   ),
                   _NavButton(
-                    icon: Icons.chevron_left_rounded,
-                    tooltip: 'الفترة التالية',
-                    onTap: onNext,
+                    icon: Icons.chevron_right_rounded,
+                    tooltip: 'الفترة السابقة',
+                    onTap: onPrevious,
                   ),
                 ],
               ),
