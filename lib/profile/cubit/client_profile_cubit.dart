@@ -2,7 +2,8 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:erp_repository/erp_repository.dart';
-import 'package:local_storage_api/local_storage_api.dart' show Client, Contract;
+// 🌟 تأكدنا من استيراد LegalAction هنا
+import 'package:local_storage_api/local_storage_api.dart' show Client, Contract, LegalAction;
 
 part 'client_profile_state.dart';
 
@@ -24,9 +25,10 @@ class ClientProfileCubit extends Cubit<ClientProfileState> {
     emit(state.copyWith(status: ClientProfileStatus.loading, client: client));
     
     try {
-      // 1. جلب كل البيانات المطلوبة دفعة واحدة لتحسين الأداء
+      // 1. جلب كل البيانات المطلوبة دفعة واحدة لتحسين الأداء (تجنب N+1 Queries)
       final clientContracts = await _erpRepository.getContractsForClient(client.id);
-      final allPayments = await _erpRepository.getAllPayments(); // جلب كل الدفعات مرة واحدة
+      final allPayments = await _erpRepository.getAllPayments(); 
+      final allLegalActions = await _erpRepository.getAllLegalActions(); // 🌟 جلبنا كل الإجراءات القانونية
 
       List<ContractProfileSummary> summaries =[];
       double grandTotalPaid = 0.0;
@@ -73,10 +75,16 @@ class ClientProfileCubit extends Cubit<ClientProfileState> {
                 }
             }
         }
-        // ==========================================
         
         final totalOverdueWithPenalty = baseOverdueAmount + penaltyAmount;
         globalOverdue += totalOverdueWithPenalty;
+
+        // ==========================================
+        // 🌟 جلب وترتيب الإجراءات القانونية الخاصة بهذا العقد
+        // ==========================================
+        final contractLegalActions = allLegalActions.where((a) => a.contractId == contract.id).toList();
+        // ترتيب من الأحدث للأقدم
+        contractLegalActions.sort((a, b) => b.actionDate.compareTo(a.actionDate));
 
         summaries.add(ContractProfileSummary(
           contract: contract,
@@ -85,6 +93,7 @@ class ClientProfileCubit extends Cubit<ClientProfileState> {
           penaltyAmount: penaltyAmount,
           totalOverdueWithPenalty: totalOverdueWithPenalty,
           paidSchedulesCount: paidCount,
+          legalActions: contractLegalActions, // 🌟 التمرير هنا
         ));
       }
 

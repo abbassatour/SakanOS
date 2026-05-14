@@ -2,7 +2,7 @@
 part of 'client_profile_cubit.dart';
 
 // ==========================================
-// 🌟 نموذج بيانات مخصص يربط العقد بإحصائياته المالية الدقيقة (المرنة)
+// 🌟 نموذج بيانات مخصص يربط العقد بإحصائياته المالية والقانونية
 // ==========================================
 class ContractProfileSummary {
   final Contract contract;
@@ -11,6 +11,9 @@ class ContractProfileSummary {
   final double penaltyAmount;         // قيمة الغرامة المتراكمة (إن وجدت)
   final double totalOverdueWithPenalty; // إجمالي المطلوب منه حالياً
   final int paidSchedulesCount;       // عدد التسديدات (للمرجعية)
+  
+  // 🌟 [الإضافة الجديدة]: قائمة الإجراءات القانونية المتخذة بحق هذا العقد
+  final List<LegalAction> legalActions; 
 
   ContractProfileSummary({
     required this.contract,
@@ -19,6 +22,7 @@ class ContractProfileSummary {
     required this.penaltyAmount,
     required this.totalOverdueWithPenalty,
     required this.paidSchedulesCount,
+    required this.legalActions, // 🌟
   });
 }
 
@@ -32,7 +36,7 @@ class ClientProfileState extends Equatable {
   final Client? client;
   final List<ContractProfileSummary> contractsSummary;
   final double grandTotalPaid;
-  final double totalOverdueAcrossAll; // 🌟 أصبحت double لتمثل مبلغاً مالياً وليس عدداً
+  final double totalOverdueAcrossAll; 
   final String? errorMessage;
 
   const ClientProfileState({
@@ -40,7 +44,7 @@ class ClientProfileState extends Equatable {
     this.client,
     this.contractsSummary = const[],
     this.grandTotalPaid = 0.0,
-    this.totalOverdueAcrossAll = 0.0, // 🌟
+    this.totalOverdueAcrossAll = 0.0, 
     this.errorMessage,
   });
 
@@ -49,7 +53,7 @@ class ClientProfileState extends Equatable {
     Client? client,
     List<ContractProfileSummary>? contractsSummary,
     double? grandTotalPaid,
-    double? totalOverdueAcrossAll, // 🌟
+    double? totalOverdueAcrossAll, 
     String? errorMessage,
   }) {
     return ClientProfileState(
