@@ -10,6 +10,11 @@ import '../cubit/client_profile_cubit.dart';
 import '../../payments/cubit/payments_cubit.dart';
 import '../../schedule/cubit/schedule_cubit.dart';
 
+// 🌟 استيراد الصلاحيات والشؤون القانونية
+import '../../auth/cubit/auth_cubit.dart';
+import '../../core/constants/app_permissions.dart';
+import '../../legal/cubit/legal_affairs_cubit.dart';
+import '../../legal/view/legal_attachments_page.dart';
 
 String formatWithCommas(num number) {
   RegExp reg = RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))');
@@ -48,7 +53,7 @@ class ContractDetailsPage extends StatelessWidget {
       } catch (_) {}
     }
 
-    // 🌟 استخراج بيانات الغرامة بأمان
+    // استخراج بيانات الغرامة بأمان
     final bool isPenaltyActive = contract.isPenaltyActive ?? false;
     final double penaltyPct = contract.penaltyPercentage ?? 0.0;
     final int penaltyInterval = contract.penaltyIntervalMonths ?? 1;
@@ -68,7 +73,6 @@ class ContractDetailsPage extends StatelessWidget {
                   child: Stack(
                     clipBehavior: Clip.none,
                     children:[
-                      // الخلفية العلوية الملونة حسب نوع العقد
                       Container(
                         height: 220,
                         padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
@@ -86,7 +90,6 @@ class ContractDetailsPage extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children:[
-                            // شريط الرجوع والعنوان
                             Row(
                               children:[
                                 IconButton(
@@ -96,7 +99,6 @@ class ContractDetailsPage extends StatelessWidget {
                                 const Expanded(
                                   child: Text('تفاصيل العقد والمحفظة', style: TextStyle(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.bold)),
                                 ),
-                                // شارة نوع العقد
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                   decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(20)),
@@ -111,8 +113,6 @@ class ContractDetailsPage extends StatelessWidget {
                               ],
                             ),
                             const SizedBox(height: 16),
-                            
-                            // اسم العميل ومعرف العقد
                             Row(
                               children:[
                                 Container(
@@ -137,27 +137,23 @@ class ContractDetailsPage extends StatelessWidget {
                         ),
                       ),
 
-                      // البطاقة المحاسبية الطافية (Overlapping Card)
                       Positioned(
-                        top: 160, 
-                        left: 20,
-                        right: 20,
+                        top: 160, left: 20, right: 20,
                         child: Container(
                           padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
                           decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(16),
+                            color: Colors.white, borderRadius: BorderRadius.circular(16),
                             boxShadow:[BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))],
                             border: Border.all(color: Colors.grey.shade100),
                           ),
                           child: Row(
                             children:[
-                              _buildTopStat('المطلوب شهرياً', '${formatWithCommas(contract.agreedMonthlyAmount)}', 'ل.س', Icons.payments, Colors.deepOrange),
+                              _buildTopStat('المطلوب شهرياً', formatWithCommas(contract.agreedMonthlyAmount), 'ل.س', Icons.payments, Colors.deepOrange),
                               Container(height: 40, width: 1, color: Colors.grey.shade200),
                               if (isAllocated) ...[
-                                _buildTopStat('سعر المتر عند التوقيع', '${formatWithCommas(contract.baseMeterPriceAtSigning)}', 'ل.س', Icons.price_change, Colors.teal),
+                                _buildTopStat('سعر المتر عند التوقيع', formatWithCommas(contract.baseMeterPriceAtSigning), 'ل.س', Icons.price_change, Colors.teal),
                                 Container(height: 40, width: 1, color: Colors.grey.shade200),
-                                _buildTopStat('المساحة الإجمالية', '${contract.totalArea.toStringAsFixed(2)}', 'م²', Icons.architecture, Colors.indigo),
+                                _buildTopStat('المساحة الإجمالية', contract.totalArea.toStringAsFixed(2), 'م²', Icons.architecture, Colors.indigo),
                               ] else ...[
                                 _buildTopStat('سعر المتر', 'حسب السوق', 'يوم الدفع', Icons.trending_up, Colors.blue),
                                 Container(height: 40, width: 1, color: Colors.grey.shade200),
@@ -188,9 +184,7 @@ class ContractDetailsPage extends StatelessWidget {
                           children:[
                             Expanded(
                               child: _buildActionButton(
-                                icon: Icons.account_balance_wallet,
-                                label: 'صفحة الأقساط',
-                                color: Colors.deepOrange.shade600,
+                                icon: Icons.account_balance_wallet, label: 'صفحة الأقساط', color: Colors.deepOrange.shade600,
                                 onTap: () {
                                   context.read<PaymentsCubit>().selectContract(contract.id);
                                   context.read<DashboardCubit>().changeTab(4);
@@ -202,9 +196,7 @@ class ContractDetailsPage extends StatelessWidget {
                             const SizedBox(width: 12),
                             Expanded(
                               child: _buildActionButton(
-                                icon: Icons.radar,
-                                label: 'جدول المراقبة والمستحقات',
-                                color: Colors.indigo.shade600,
+                                icon: Icons.radar, label: 'جدول المراقبة والمستحقات', color: Colors.indigo.shade600,
                                 onTap: () {
                                   context.read<ScheduleCubit>().selectContract(contract.id);
                                   context.read<DashboardCubit>().changeTab(5);
@@ -220,9 +212,7 @@ class ContractDetailsPage extends StatelessWidget {
                           SizedBox(
                             width: double.infinity,
                             child: _buildActionButton(
-                              icon: Icons.attachment,
-                              label: 'عرض ملف العقد المرفق (PDF/Word)',
-                              color: Colors.green.shade700,
+                              icon: Icons.attachment, label: 'عرض ملف العقد المرفق (PDF/Word)', color: Colors.green.shade700,
                               onTap: () async {
                                 final Uri url = Uri.parse(contract.contractFileUrl!);
                                 if (await canLaunchUrl(url)) {
@@ -248,10 +238,7 @@ class ContractDetailsPage extends StatelessWidget {
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: _buildSectionCard(
-                      title: 'تفاصيل العقد والوحدة',
-                      icon: Icons.info_outline,
-                      color: mainColor,
-                      bgColor: bgColor,
+                      title: 'تفاصيل العقد والوحدة', icon: Icons.info_outline, color: mainColor, bgColor: bgColor,
                       child: Column(
                         children:[
                           _buildInfoRow('تاريخ توقيع العقد:', _formatDateSafely(contract.contractDate), Icons.calendar_month),
@@ -277,32 +264,21 @@ class ContractDetailsPage extends StatelessWidget {
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
                       child: _buildSectionCard(
-                        title: 'حالة تسليم العقار (المفتاح)',
-                        icon: Icons.vpn_key,
+                        title: 'حالة تسليم العقار (المفتاح)', icon: Icons.vpn_key,
                         color: contract.isHandedOver ? Colors.teal.shade700 : Colors.orange.shade700,
                         bgColor: contract.isHandedOver ? Colors.teal.shade50 : Colors.orange.shade50,
                         child: Column(
                           children:[
-                            // حالة التسليم
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                              decoration: BoxDecoration(
-                                color: contract.isHandedOver ? Colors.teal.shade100 : Colors.orange.shade100,
-                                borderRadius: BorderRadius.circular(8),
-                              ),
+                              decoration: BoxDecoration(color: contract.isHandedOver ? Colors.teal.shade100 : Colors.orange.shade100, borderRadius: BorderRadius.circular(8)),
                               child: Row(
                                 children:[
-                                  Icon(
-                                    contract.isHandedOver ? Icons.check_circle : Icons.hourglass_top, 
-                                    color: contract.isHandedOver ? Colors.teal.shade800 : Colors.orange.shade800
-                                  ),
+                                  Icon(contract.isHandedOver ? Icons.check_circle : Icons.hourglass_top, color: contract.isHandedOver ? Colors.teal.shade800 : Colors.orange.shade800),
                                   const SizedBox(width: 12),
                                   Text(
                                     contract.isHandedOver ? 'تم تسليم الشقة للعميل' : 'قيد الإنشاء / لم يتم التسليم بعد',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold, fontSize: 15, 
-                                      color: contract.isHandedOver ? Colors.teal.shade900 : Colors.orange.shade900
-                                    ),
+                                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: contract.isHandedOver ? Colors.teal.shade900 : Colors.orange.shade900),
                                   ),
                                 ],
                               ),
@@ -311,50 +287,26 @@ class ContractDetailsPage extends StatelessWidget {
                             _buildInfoRow('الموعد المتفق عليه بالعقد:', _formatDateSafely(contract.agreedHandoverDate), Icons.event),
                             const Divider(height: 24),
                             _buildInfoRow('فترة السماح (للمطور):', '${contract.gracePeriodMonths} أشهر', Icons.hourglass_empty),
-                            
-                            // ==========================================
-                            // 🌟 إعدادات الغرامة المسجلة في العقد
-                            // ==========================================
                             const Divider(height: 24),
                             _buildInfoRow(
                               'نظام غرامة التأخير (بعد التسليم):', 
                               isPenaltyActive ? 'مُفعّل ($penaltyPct% كل $penaltyInterval أشهر)' : 'غير مُفعّل', 
-                              Icons.local_fire_department,
-                              isBold: isPenaltyActive,
-                              valueColor: isPenaltyActive ? Colors.deepOrange.shade700 : Colors.grey,
+                              Icons.local_fire_department, isBold: isPenaltyActive, valueColor: isPenaltyActive ? Colors.deepOrange.shade700 : Colors.grey,
                             ),
 
-                            // التفاصيل الفعلية بعد التسليم
                             if (contract.isHandedOver) ...[
                               const Divider(height: 24),
-                              _buildInfoRow(
-                                'تاريخ التسليم الفعلي:', 
-                                _formatDateSafely(contract.actualHandoverDate), 
-                                Icons.event_available, 
-                                isBold: true, valueColor: Colors.teal.shade800
-                              ),
+                              _buildInfoRow('تاريخ التسليم الفعلي:', _formatDateSafely(contract.actualHandoverDate), Icons.event_available, isBold: true, valueColor: Colors.teal.shade800),
                               if (contract.handoverNotes != null && contract.handoverNotes!.isNotEmpty) ...[
                                 const Divider(height: 24),
-                                _buildInfoRow(
-                                  'ملاحظات / نواقص التسليم:', 
-                                  contract.handoverNotes!, 
-                                  Icons.note_alt, 
-                                  valueColor: Colors.red.shade700
-                                ),
+                                _buildInfoRow('ملاحظات / نواقص التسليم:', contract.handoverNotes!, Icons.note_alt, valueColor: Colors.red.shade700),
                               ],
                               
-                              // ==========================================
-                              // 🚨 عرض التنبيه المحاسبي إذا تم احتساب غرامة فعلياً
-                              // ==========================================
                               if (summary != null && summary!.penaltyAmount > 0) ...[
                                 const SizedBox(height: 16),
                                 Container(
                                   padding: const EdgeInsets.all(16),
-                                  decoration: BoxDecoration(
-                                    color: Colors.red.shade50,
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(color: Colors.red.shade300, width: 2)
-                                  ),
+                                  decoration: BoxDecoration(color: Colors.red.shade50, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.red.shade300, width: 2)),
                                   child: Row(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children:[
@@ -364,15 +316,9 @@ class ContractDetailsPage extends StatelessWidget {
                                         child: Column(
                                           crossAxisAlignment: CrossAxisAlignment.start,
                                           children:[
-                                            Text(
-                                              'تنبيه محاسبي: غرامات متراكمة', 
-                                              style: TextStyle(color: Colors.red.shade900, fontWeight: FontWeight.bold, fontSize: 14)
-                                            ),
+                                            Text('تنبيه محاسبي: غرامات متراكمة', style: TextStyle(color: Colors.red.shade900, fontWeight: FontWeight.bold, fontSize: 14)),
                                             const SizedBox(height: 4),
-                                            Text(
-                                              'لقد مر الزمن المحدد بعد الاستلام والعميل لا يزال مديناً. النظام أضاف آلياً غرامة بقيمة ${formatWithCommas(summary!.penaltyAmount)} ل.س إلى ديونه.',
-                                              style: TextStyle(color: Colors.red.shade800, fontSize: 13, height: 1.5),
-                                            ),
+                                            Text('لقد مر الزمن المحدد بعد الاستلام والعميل لا يزال مديناً. النظام أضاف آلياً غرامة بقيمة ${formatWithCommas(summary!.penaltyAmount)} ل.س إلى ديونه.', style: TextStyle(color: Colors.red.shade800, fontSize: 13, height: 1.5)),
                                           ],
                                         ),
                                       )
@@ -390,48 +336,132 @@ class ContractDetailsPage extends StatelessWidget {
                 ],
 
                 // ==========================================
-                // 📊 5. التحليل المالي والمعاملات (فك تشفير JSON)
+                // ⚖️ 5. السجل القانوني والإجراءات (Legal Section)
+                // ==========================================
+                if (summary != null)
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: _buildSectionCard(
+                        title: 'السجل القانوني والإجراءات',
+                        icon: Icons.gavel,
+                        color: Colors.brown.shade700,
+                        bgColor: Colors.brown.shade50,
+                        child: summary!.legalActions.isEmpty
+                            ? const Center(
+                                child: Padding(
+                                  padding: EdgeInsets.all(16.0),
+                                  child: Text('السجل نظيف. لا توجد أي إجراءات قانونية مسجلة.', style: TextStyle(color: Colors.grey, fontSize: 14, fontWeight: FontWeight.bold)),
+                                ),
+                              )
+                            : Column(
+                                children: summary!.legalActions.map((action) {
+                                  return Container(
+                                    margin: const EdgeInsets.only(bottom: 12),
+                                    padding: const EdgeInsets.all(12),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      border: Border.all(color: Colors.brown.shade200),
+                                      borderRadius: BorderRadius.circular(8),
+                                      boxShadow: [BoxShadow(color: Colors.brown.shade100.withOpacity(0.5), blurRadius: 4, offset: const Offset(0, 2))],
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            _buildActionTypeChip(action.actionType),
+                                            Row(
+                                              children: [
+                                                const Icon(Icons.event, size: 14, color: Colors.brown),
+                                                const SizedBox(width: 4),
+                                                Text(_formatDateSafely(action.actionDate), style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.brown, fontSize: 13)),
+                                              ],
+                                            )
+                                          ],
+                                        ),
+                                        if (action.notes != null && action.notes!.isNotEmpty) ...[
+                                          const SizedBox(height: 12),
+                                          Container(
+                                            width: double.infinity,
+                                            padding: const EdgeInsets.all(10),
+                                            decoration: BoxDecoration(color: Colors.grey.shade50, borderRadius: BorderRadius.circular(6), border: Border.all(color: Colors.grey.shade200)),
+                                            child: Text(action.notes!, style: TextStyle(color: Colors.grey.shade800, fontSize: 13, height: 1.5)),
+                                          ),
+                                        ],
+                                        const SizedBox(height: 8),
+                                        // 🌟 زر فتح معرض المرفقات للإجراء
+                                        Align(
+                                          alignment: Alignment.centerLeft,
+                                          child: TextButton.icon(
+                                            icon: const Icon(Icons.perm_media, size: 16),
+                                            label: const Text('معرض المرفقات', style: TextStyle(fontWeight: FontWeight.bold)),
+                                            style: TextButton.styleFrom(
+                                              foregroundColor: Colors.indigo,
+                                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                              backgroundColor: Colors.indigo.shade50,
+                                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))
+                                            ),
+                                            onPressed: () {
+                                               // جلب الصلاحية لتمريرها للنافذة
+                                               final authState = context.read<AuthCubit>().state;
+                                               final canManageAttachments = authState.hasPermission(AppPermissions.manageLegalAttachments);
+                                               
+                                               Navigator.push(
+                                                  context,
+                                                  LegalAttachmentsPage.route(
+                                                    action,
+                                                    canManageAttachments,
+                                                    context.read<LegalAffairsCubit>(),
+                                                  ),
+                                               );
+                                            }
+                                          ),
+                                        )
+                                      ],
+                                    ),
+                                  );
+                                }).toList(),
+                              ),
+                      ),
+                    ),
+                  ),
+
+                const SliverToBoxAdapter(child: SizedBox(height: 24)),
+
+                // ==========================================
+                // 📊 6. التحليل المالي والمعاملات
                 // ==========================================
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: _buildSectionCard(
-                      title: 'التحليل المالي والمعاملات (التميز)',
-                      icon: Icons.analytics,
-                      color: Colors.teal.shade700,
-                      bgColor: Colors.teal.shade50,
+                      title: 'التحليل المالي والمعاملات (التميز)', icon: Icons.analytics, color: Colors.teal.shade700, bgColor: Colors.teal.shade50,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children:[
                           if (isAllocated) ...[
                             if (coefficientsMap.isEmpty)
                               Container(
-                                width: double.infinity,
-                                padding: const EdgeInsets.all(16),
-                                decoration: BoxDecoration(color: Colors.grey.shade50, borderRadius: BorderRadius.circular(8)),
+                                width: double.infinity, padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: Colors.grey.shade50, borderRadius: BorderRadius.circular(8)),
                                 child: const Text('لا يوجد معاملات تميز إضافية مسجلة لهذا العقد.', style: TextStyle(color: Colors.grey, fontSize: 14)),
                               )
                             else
                               Wrap(
-                                spacing: 10,
-                                runSpacing: 10,
+                                spacing: 10, runSpacing: 10,
                                 children: coefficientsMap.entries.map((entry) {
                                   double percentage = (entry.value as num).toDouble() * 100;
                                   return Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                    decoration: BoxDecoration(
-                                      color: Colors.teal.shade50.withOpacity(0.5),
-                                      borderRadius: BorderRadius.circular(8),
-                                      border: Border.all(color: Colors.teal.shade100),
-                                    ),
+                                    decoration: BoxDecoration(color: Colors.teal.shade50.withOpacity(0.5), borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.teal.shade100)),
                                     child: Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children:[
                                         Text(entry.key, style: TextStyle(fontWeight: FontWeight.bold, color: Colors.teal.shade900, fontSize: 13)),
                                         const SizedBox(width: 8),
                                         Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4)),
+                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4)),
                                           child: Text('${percentage.toStringAsFixed(1)}%', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.teal.shade700)),
                                         )
                                       ],
@@ -441,9 +471,7 @@ class ContractDetailsPage extends StatelessWidget {
                               ),
                           ] else ...[
                             Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(color: Colors.blue.shade50, borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.blue.shade100)),
+                              width: double.infinity, padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: Colors.blue.shade50, borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.blue.shade100)),
                               child: Row(
                                 children:[
                                   Icon(Icons.info, color: Colors.blue.shade700),
@@ -467,7 +495,28 @@ class ContractDetailsPage extends StatelessWidget {
     );
   }
 
-  // דالة مساعدة لبطاقة الإحصائيات العلوية
+  // ==========================================
+  // الدوال المساعدة للـ UI
+  // ==========================================
+  
+  // دالة الشريطة الملونة للإجراء القانوني
+  Widget _buildActionTypeChip(String type) {
+    Color bgColor; Color textColor;
+    switch (type) {
+      case 'إنذار': bgColor = Colors.orange.shade100; textColor = Colors.orange.shade900; break;
+      case 'فراغ عقاري': bgColor = Colors.green.shade100; textColor = Colors.green.shade900; break;
+      case 'رهن': bgColor = Colors.purple.shade100; textColor = Colors.purple.shade900; break;
+      case 'تسوية': bgColor = Colors.teal.shade100; textColor = Colors.teal.shade900; break;
+      case 'دعوى قضائية': bgColor = Colors.red.shade100; textColor = Colors.red.shade900; break;
+      default: bgColor = Colors.blue.shade100; textColor = Colors.blue.shade900;
+    }
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(6)),
+      child: Text(type, style: TextStyle(color: textColor, fontWeight: FontWeight.bold, fontSize: 12)),
+    );
+  }
+
   Widget _buildTopStat(String label, String value, String unit, IconData icon, Color color) {
     return Expanded(
       child: Column(
@@ -494,7 +543,6 @@ class ContractDetailsPage extends StatelessWidget {
     );
   }
 
-  // דالة مساعدة لبناء البطاقات
   Widget _buildSectionCard({required String title, required IconData icon, required Color color, required Color bgColor, required Widget child}) {
     return Container(
       decoration: BoxDecoration(
@@ -527,7 +575,6 @@ class ContractDetailsPage extends StatelessWidget {
     );
   }
 
-  // דالة مساعدة لصفوف المعلومات مع أيقونات
   Widget _buildInfoRow(String label, String value, IconData icon, {bool isBold = false, Color? valueColor}) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -543,11 +590,8 @@ class ContractDetailsPage extends StatelessWidget {
   Widget _buildActionButton({required IconData icon, required String label, required Color color, required VoidCallback onTap}) {
     return ElevatedButton.icon(
       style: ElevatedButton.styleFrom(
-        backgroundColor: color,
-        foregroundColor: Colors.white,
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        elevation: 1,
+        backgroundColor: color, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), elevation: 1,
       ),
       icon: Icon(icon, size: 22),
       label: Text(label, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
