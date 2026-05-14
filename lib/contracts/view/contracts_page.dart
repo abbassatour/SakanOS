@@ -31,8 +31,10 @@ class ContractsView extends StatefulWidget {
 class _ContractsViewState extends State<ContractsView> {
   String _searchQuery = '';
   
-  // 🌟 متغير الفلترة الجديد (الافتراضي: جارية)
-  String _selectedFilter = 'جارية'; 
+  // 🌟 متغيرات الفلترة المتعددة (الافتراضي: عقود جارية فقط)
+  String _statusFilter = 'active'; // all, active, completed
+  String _typeFilter = 'all';      // all, allocated, unallocated
+  String _handoverFilter = 'all';  // all, delivered, pending
 
   @override
   Widget build(BuildContext context) {
@@ -72,21 +74,37 @@ class _ContractsViewState extends State<ContractsView> {
               );
             }
 
-            // 🌟 الفلترة المزدوجة الذكية (البحث النصي + حالة العقد)
+            // 🌟 الفلترة المركبة الذكية
             final filteredContracts = state.contracts.where((contract) {
-              // 1. الفلترة حسب الحالة (مكتمل / جاري)
-              if (_selectedFilter == 'جارية' && contract.isCompleted) return false;
-              if (_selectedFilter == 'مكتملة' && !contract.isCompleted) return false;
+              // 1. فلتر الحالة (مكتمل / جاري)
+              bool passStatus = _statusFilter == 'all' ||
+                               (_statusFilter == 'active' && !contract.isCompleted) ||
+                               (_statusFilter == 'completed' && contract.isCompleted);
 
-              // 2. الفلترة حسب البحث النصي
-              if (_searchQuery.isEmpty) return true;
-              final client = state.clients.firstWhere((c) => c.id == contract.clientId, orElse: () => state.clients.first);
-              final searchLower = _searchQuery.toLowerCase();
-              
-              return client.name.toLowerCase().contains(searchLower) ||
-                     contract.apartmentDetails.toLowerCase().contains(searchLower) ||
-                     contract.id.contains(searchLower);
+              // 2. فلتر النوع (متخصص / لاحق التخصص)
+              bool passType = _typeFilter == 'all' ||
+                             (_typeFilter == 'allocated' && contract.contractType == 'متخصص') ||
+                             (_typeFilter == 'unallocated' && contract.contractType == 'لاحق التخصص');
+
+              // 3. فلتر التسليم
+              bool passHandover = _handoverFilter == 'all' ||
+                                 (_handoverFilter == 'delivered' && contract.isHandedOver) ||
+                                 (_handoverFilter == 'pending' && !contract.isHandedOver);
+
+              // 4. فلتر البحث النصي
+              bool passSearch = true;
+              if (_searchQuery.isNotEmpty) {
+                final client = state.clients.firstWhere((c) => c.id == contract.clientId, orElse: () => state.clients.first);
+                final searchLower = _searchQuery.toLowerCase();
+                passSearch = client.name.toLowerCase().contains(searchLower) ||
+                             contract.apartmentDetails.toLowerCase().contains(searchLower) ||
+                             contract.id.contains(searchLower);
+              }
+
+              return passStatus && passType && passHandover && passSearch;
             }).toList();
+
+            final bool hasActiveFilters = _statusFilter != 'all' || _typeFilter != 'all' || _handoverFilter != 'all';
 
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -98,52 +116,83 @@ class _ContractsViewState extends State<ContractsView> {
                   onChanged: (val) => setState(() => _searchQuery = val),
                 ),
 
-                // 🌟 أزرار التصفية السريعة (Choice Chips)
+                // 🌟 شريط الفلاتر النشطة وزر الفتح (تصميم مستوحى من الرادار)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                  color: Colors.white,
-                  width: double.infinity,
-                  child: Wrap(
-                    spacing: 8.0,
-                    children: ['جارية', 'مكتملة', 'الكل'].map((filter) {
-                      final isSelected = _selectedFilter == filter;
-                      IconData? icon;
-                      if (filter == 'جارية') icon = Icons.trending_up;
-                      if (filter == 'مكتملة') icon = Icons.lock;
-                      if (filter == 'الكل') icon = Icons.all_inclusive;
-
-                      return ChoiceChip(
-                        label: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            if (icon != null) ...[Icon(icon, size: 16, color: isSelected ? Colors.white : Colors.blueGrey), const SizedBox(width: 6)],
-                            Text(filter, style: TextStyle(fontWeight: FontWeight.bold, color: isSelected ? Colors.white : Colors.blueGrey)),
+                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.teal.shade50,
+                    border: Border.all(color: Colors.teal.shade200),
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow:[BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 8)],
+                  ),
+                  child: Row(
+                    children:[
+                      const Icon(Icons.tune, color: Colors.teal, size: 28),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children:[
+                            Text(hasActiveFilters ? 'الفلاتر النشطة حالياً:' : 'عرض جميع العقود (بدون فلترة)', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                            if (hasActiveFilters)
+                              Text(
+                                '${_getStatusName(_statusFilter)} | ${_getTypeName(_typeFilter)} | ${_getHandoverName(_handoverFilter)}',
+                                style: const TextStyle(color: Colors.teal, fontWeight: FontWeight.bold, fontSize: 13),
+                                maxLines: 1, overflow: TextOverflow.ellipsis,
+                              ),
                           ],
                         ),
-                        selected: isSelected,
-                        selectedColor: filter == 'مكتملة' ? Colors.green.shade600 : Colors.teal.shade600,
-                        backgroundColor: Colors.grey.shade100,
-                        onSelected: (selected) {
-                          if (selected) setState(() => _selectedFilter = filter);
-                        },
-                      );
-                    }).toList(),
+                      ),
+                      const SizedBox(width: 12),
+                      
+                      ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.teal,
+                          foregroundColor: Colors.white,
+                          elevation: 2,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        ),
+                        onPressed: _showFilterBottomSheet,
+                        icon: const Icon(Icons.filter_alt, size: 18),
+                        label: const Text('تصفية', style: TextStyle(fontWeight: FontWeight.bold)),
+                      ),
+
+                      if (hasActiveFilters) ...[
+                        const SizedBox(width: 8),
+                        IconButton(
+                          icon: const Icon(Icons.clear, color: Colors.red),
+                          tooltip: 'إلغاء الفلاتر',
+                          style: IconButton.styleFrom(backgroundColor: Colors.red.shade50),
+                          onPressed: () {
+                            setState(() {
+                              _statusFilter = 'all';
+                              _typeFilter = 'all';
+                              _handoverFilter = 'all';
+                            });
+                          },
+                        )
+                      ]
+                    ],
                   ),
                 ),
-                
-                // خط فاصل أنيق
-                const Divider(height: 1, thickness: 1),
+
+                const SizedBox(height: 8),
 
                 Expanded(
                   child: filteredContracts.isEmpty
-                      ? EmptyContractsView(
-                          message: _selectedFilter == 'مكتملة' 
-                            ? 'لا توجد عقود مكتملة مطابقة للبحث' 
-                            : 'لا توجد نتائج للبحث', 
-                          icon: Icons.search_off, 
-                          iconColor: Colors.grey)
+                      ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children:[
+                              Icon(Icons.search_off, size: 60, color: Colors.grey.shade400),
+                              const SizedBox(height: 16),
+                              const Text('لا يوجد عقود تطابق الفلاتر المحددة', style: TextStyle(color: Colors.grey, fontSize: 16)),
+                            ],
+                          ),
+                        )
                       : ListView(
-                          padding: const EdgeInsets.all(16), 
+                          padding: const EdgeInsets.symmetric(horizontal: 16).copyWith(bottom: 80), 
                           children:[
                             ContractsDataTable(
                               contracts: filteredContracts, 
@@ -159,6 +208,153 @@ class _ContractsViewState extends State<ContractsView> {
         ),
       ),
     );
+  }
+
+  // ==========================================
+  // 🎛️ النافذة السفلية للفلترة (BottomSheet)
+  // ==========================================
+  void _showFilterBottomSheet() {
+    String tempStatus = _statusFilter;
+    String tempType = _typeFilter;
+    String tempHandover = _handoverFilter;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setModalState) {
+            return Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Row(
+                    children:[
+                      Icon(Icons.filter_alt, color: Colors.teal, size: 28),
+                      SizedBox(width: 8),
+                      Text('فرز وتصفية العقود', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.teal)),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  
+                  // 1. حالة العقد
+                  const Text('1. حالة العقد (أرشفة):', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black87)),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 8, runSpacing: 8,
+                    children:[
+                      _buildChipRadio('all', '🌐 الكل', tempStatus, Colors.blueGrey, (v) => setModalState(() => tempStatus = v)),
+                      _buildChipRadio('active', '📈 عقود جارية', tempStatus, Colors.teal, (v) => setModalState(() => tempStatus = v)),
+                      _buildChipRadio('completed', '🔒 عقود مكتملة (مؤرشفة)', tempStatus, Colors.green, (v) => setModalState(() => tempStatus = v)),
+                    ],
+                  ),
+                  
+                  const Divider(height: 32, thickness: 1.5),
+
+                  // 2. نوع العقد
+                  const Text('2. نوع العقد:', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black87)),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 8, runSpacing: 8,
+                    children:[
+                      _buildChipRadio('all', '🌐 الكل', tempType, Colors.blueGrey, (v) => setModalState(() => tempType = v)),
+                      _buildChipRadio('allocated', '🏢 متخصص (شقة محددة)', tempType, Colors.indigo, (v) => setModalState(() => tempType = v)),
+                      _buildChipRadio('unallocated', '📊 لاحق التخصص (أسهم)', tempType, Colors.deepOrange, (v) => setModalState(() => tempType = v)),
+                    ],
+                  ),
+
+                  const Divider(height: 32, thickness: 1.5),
+
+                  // 3. حالة التسليم
+                  const Text('3. حالة التسليم الفعلي للشقة:', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black87)),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 8, runSpacing: 8,
+                    children:[
+                      _buildChipRadio('all', '🌐 الكل', tempHandover, Colors.blueGrey, (v) => setModalState(() => tempHandover = v)),
+                      _buildChipRadio('delivered', '🔑 تم تسليم الشقة', tempHandover, Colors.green, (v) => setModalState(() => tempHandover = v)),
+                      _buildChipRadio('pending', '⏳ قيد الإنشاء / لم تسلم', tempHandover, Colors.orange, (v) => setModalState(() => tempHandover = v)),
+                    ],
+                  ),
+                  
+                  const SizedBox(height: 32),
+                  
+                  // زر التطبيق
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(backgroundColor: Colors.teal, foregroundColor: Colors.white),
+                      icon: const Icon(Icons.check_circle),
+                      label: const Text('تطبيق الفرز', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                      onPressed: () {
+                        setState(() {
+                          _statusFilter = tempStatus;
+                          _typeFilter = tempType;
+                          _handoverFilter = tempHandover;
+                        });
+                        Navigator.pop(ctx);
+                      },
+                    ),
+                  )
+                ],
+              ),
+            );
+          }
+        );
+      }
+    );
+  }
+
+  // ==========================================
+  // تصميم الأزرار (راديو)
+  // ==========================================
+  Widget _buildChipRadio(String value, String title, String groupValue, Color color, Function(String) onChanged) {
+    final isSelected = groupValue == value;
+    return InkWell(
+      onTap: () => onChanged(value),
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? color : Colors.white,
+          border: Border.all(color: isSelected ? color : Colors.grey.shade300),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Text(
+          title,
+          style: TextStyle(
+            color: isSelected ? Colors.white : Colors.black87,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            fontSize: 13,
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ==========================================
+  // دوال مساعدة لترجمة الفلاتر للعرض في الشريط
+  // ==========================================
+  String _getStatusName(String f) {
+    if (f == 'active') return 'عقود جارية';
+    if (f == 'completed') return 'عقود مكتملة';
+    return 'جميع الحالات';
+  }
+
+  String _getTypeName(String f) {
+    if (f == 'allocated') return 'متخصص';
+    if (f == 'unallocated') return 'لاحق التخصص';
+    return 'جميع الأنواع';
+  }
+
+  String _getHandoverName(String f) {
+    if (f == 'delivered') return 'مُسلّمة';
+    if (f == 'pending') return 'بانتظار التسليم';
+    return 'الكل';
   }
 
   // ==========================================
