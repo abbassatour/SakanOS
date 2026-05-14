@@ -130,10 +130,6 @@ class Contracts extends Table {
   RealColumn get downPayment => real().withDefault(const Constant(0.0))(); 
 
 
-// 🌟 [الإضافات الجديدة]: براءة الذمة الأولية والتجهيزات المشتركة
-  BoolColumn get isInitialClearanceSigned => boolean().withDefault(const Constant(false))();
-  TextColumn get clearanceNotes => text().nullable()();
-
 
   
   // 🌟 [الإضافات الجديدة]: إدارة تسليم الشقة (Handover Management)
