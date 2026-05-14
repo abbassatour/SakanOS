@@ -1362,22 +1362,6 @@ class AppDatabase extends _$AppDatabase {
     );
   }
       
-      
-      // ==========================================
-  // ✍️ توثيق براءة الذمة الأولية
-  // ==========================================
-  Future<int> signInitialClearance(String contractId, bool isSigned, String? notes, String userId) {
-    final nowUtc = DateTime.now().toUtc();
-    return (update(contracts)..where((t) => t.id.equals(contractId))).write(
-      ContractsCompanion(
-        isInitialClearanceSigned: Value(isSigned),
-        clearanceNotes: Value(notes),
-        userId: Value(userId),
-        updatedAt: Value(nowUtc),
-        isSynced: const Value(false)
-      )
-    );
-  }
 
   
 

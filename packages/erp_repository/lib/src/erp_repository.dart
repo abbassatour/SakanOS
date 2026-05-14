@@ -1397,16 +1397,7 @@ class ErpRepository {
     await syncPendingData(); 
   }
 
-  // ==========================================
-  // ✍️ توثيق براءة الذمة الأولية
-  // ==========================================
-  Future<void> signInitialClearance({required String contractId, required bool isSigned, String? notes}) async {
-    final String? safeUserId = currentUserId;
-    if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
 
-    await _localApi.signInitialClearance(contractId, isSigned, notes, safeUserId);
-    await syncPendingData(); 
-  }
 
   // ==========================================
   // ⚖️ إدارة الإجراءات القانونية (صفحة المحامي)

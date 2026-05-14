@@ -324,27 +324,6 @@ class ContractsCubit extends Cubit<ContractsState> {
 
 
 
-  // ==========================================
-  // 12. ✍️ توثيق توقيع براءة الذمة الأولية والتجهيزات المشتركة
-  // ==========================================
-  Future<void> signInitialClearance({
-    required String contractId,
-    required bool isSigned,
-    String? notes,
-  }) async {
-    emit(state.copyWith(status: ContractsStatus.loading));
-    try {
-      // 🌟 تم نقل الجهد للـ Repository ليصبح الكيوبت نظيفاً
-      await _erpRepository.signInitialClearance(
-        contractId: contractId,
-        isSigned: isSigned,
-        notes: notes,
-      );
-      await fetchData(); 
-    } catch (e) {
-      emit(state.copyWith(status: ContractsStatus.failure, errorMessage: 'فشل توثيق براءة الذمة: $e'));
-    }
-  }
 
   
 }

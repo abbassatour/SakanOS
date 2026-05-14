@@ -43,7 +43,6 @@ class _LegalAffairsViewState extends State<LegalAffairsView> {
 
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
-      
       // 🌟 تطبيق صلاحية "الإضافة"
       floatingActionButton: FloatingActionButton.extended(
         heroTag: 'add_legal_action_fab',
@@ -72,7 +71,6 @@ class _LegalAffairsViewState extends State<LegalAffairsView> {
             if (state.status == LegalAffairsStatus.loading && state.actions.isEmpty) {
               return const Center(child: CircularProgressIndicator(color: Colors.brown));
             }
-
             if (state.actions.isEmpty) {
               return Center(
                 child: Column(

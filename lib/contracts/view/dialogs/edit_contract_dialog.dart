@@ -27,8 +27,7 @@ void showEditContractDialog(BuildContext parentContext, Contract contract) {
   bool isHandoverFormVisible = contract.isHandedOver; 
   bool isAllocated = contract.contractType == 'متخصص';
 
-  // متحكمات براءة الذمة الأولية
-  bool isInitialClearanceSigned = contract.isInitialClearanceSigned;
+  // 🌟 (تم إزالة متحكمات براءة الذمة الأولية من هنا)
 
   // متحكمات الغرامة المرنة
   bool isPenaltyActive = contract.isPenaltyActive ?? false; 
@@ -191,20 +190,8 @@ void showEditContractDialog(BuildContext parentContext, Contract contract) {
                               ),
                               const SizedBox(height: 12),
                               
-                              // 🌟 براءة الذمة الأولية
-                              Container(
-                                padding: const EdgeInsets.symmetric(vertical: 8),
-                                decoration: BoxDecoration(color: Colors.amber.shade50, borderRadius: BorderRadius.circular(8)),
-                                child: CheckboxListTile(
-                                  title: const Text('توقيع براءة الذمة الأولية والتعهد بالتجهيزات المشتركة.', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.brown)),
-                                  value: isInitialClearanceSigned,
-                                  activeColor: Colors.teal,
-                                  onChanged: canEdit ? (val) => setState(() => isInitialClearanceSigned = val ?? false) : null,
-                                  controlAffinity: ListTileControlAffinity.leading,
-                                  contentPadding: const EdgeInsets.symmetric(horizontal: 8),
-                                ),
-                              ),
-                              const SizedBox(height: 8),
+                              // 🌟 (تم إزالة ويدجت التشيك بوكس من هنا)
+
                               TextField(controller: handoverNotesController, enabled: canEdit, maxLines: 2, decoration: const InputDecoration(labelText: 'ملاحظات / نواقص التسليم (إن وجدت)', border: OutlineInputBorder(), filled: true, fillColor: Colors.white)),
                               
                               const SizedBox(height: 12),
@@ -219,25 +206,18 @@ void showEditContractDialog(BuildContext parentContext, Contract contract) {
                                         ScaffoldMessenger.of(parentContext).showSnackBar(const SnackBar(content: Text('يجب تحديد تاريخ التسليم الفعلي!'), backgroundColor: Colors.red));
                                         return;
                                       }
-                                      if (!isInitialClearanceSigned) {
-                                        ScaffoldMessenger.of(parentContext).showSnackBar(const SnackBar(content: Text('يجب أن يوقع العميل على براءة الذمة الأولية أولاً!'), backgroundColor: Colors.red));
-                                        return;
-                                      }
                                       
                                       bool isAuthorized = await showVerifyPinDialog(parentContext);
                                       if (!isAuthorized) return;
 
                                       if(parentContext.mounted) {
-                                        ScaffoldMessenger.of(parentContext).showSnackBar(const SnackBar(content: Text('جاري توثيق التسليم وبراءة الذمة... ⏳'), backgroundColor: Colors.teal));
+                                        ScaffoldMessenger.of(parentContext).showSnackBar(const SnackBar(content: Text('جاري توثيق التسليم... ⏳'), backgroundColor: Colors.teal));
                                         
                                         await parentContext.read<ContractsCubit>().markContractAsHandedOver(
                                           contractId: contract.id, actualHandoverDate: actualHandoverDate!, notes: handoverNotesController.text,
                                         );
-                                        if (parentContext.mounted) {
-                                          await parentContext.read<ContractsCubit>().signInitialClearance(
-                                            contractId: contract.id, isSigned: isInitialClearanceSigned, notes: handoverNotesController.text,
-                                          );
-                                        }
+                                        
+                                        // 🌟 (تم إزالة استدعاء signInitialClearance من هنا)
                                         
                                         if(parentContext.mounted) {
                                           parentContext.read<BuildingsCubit>().loadData();
@@ -246,7 +226,7 @@ void showEditContractDialog(BuildContext parentContext, Contract contract) {
                                         }
                                       }
                                     },
-                                    child: Text(contract.isHandedOver ? 'تحديث بيانات الاستلام' : 'تأكيد وحفظ الاستلام والتعهد'),
+                                    child: Text(contract.isHandedOver ? 'تحديث بيانات الاستلام' : 'تأكيد وحفظ الاستلام'),
                                   ),
                                 ),
                               
@@ -264,9 +244,9 @@ void showEditContractDialog(BuildContext parentContext, Contract contract) {
                                       if(parentContext.mounted) {
                                         ScaffoldMessenger.of(parentContext).showSnackBar(const SnackBar(content: Text('جاري إلغاء التسليم... ⏳'), backgroundColor: Colors.orange));
                                         await parentContext.read<ContractsCubit>().cancelContractHandover(contractId: contract.id);
-                                        if (parentContext.mounted) {
-                                          await parentContext.read<ContractsCubit>().signInitialClearance(contractId: contract.id, isSigned: false, notes: null);
-                                        }
+                                        
+                                        // 🌟 (تم إزالة استدعاء التراجع عن signInitialClearance من هنا)
+
                                         if(parentContext.mounted) {
                                           parentContext.read<BuildingsCubit>().loadData();
                                           ScaffoldMessenger.of(parentContext).showSnackBar(const SnackBar(content: Text('تم إلغاء التسليم بنجاح!'), backgroundColor: Colors.green));

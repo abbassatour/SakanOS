@@ -59,8 +59,6 @@ class LocalStorageApi {
 
 
   
-  Future<int> signInitialClearance(String contractId, bool isSigned, String? notes, String userId) => 
-      _db.signInitialClearance(contractId, isSigned, notes, userId);
       
   
       
