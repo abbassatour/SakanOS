@@ -319,11 +319,5 @@ class ContractsCubit extends Cubit<ContractsState> {
     } catch (e) {
       emit(state.copyWith(status: ContractsStatus.failure, errorMessage: 'فشل تغيير حالة العقد: $e'));
     }
-  }
-  
-
-
-
-
-  
+  } 
 }
