@@ -2,8 +2,11 @@
 import 'package:erp_repository/erp_repository.dart';
 
 class CalculatorHelper {
+  // 🛡️ مساعد التقريب المالي (لأقرب 10 ليرات)
+  static double _roundTo10(double val) => (val / 10).round() * 10.0;
+
   /// محرك حساب تكلفة المتر الأساسي مطابق تماماً لمعادلات الإكسل
-  /// 🌟 تمت إضافة منطق الحساب المتسلسل (الموقع أولاً، ثم البقية)
+  /// 🌟 مع تطبيق التحصين المالي (التقريب لأقرب 10 ليرات)
   static Map<String, double> calculateContractValues({
     required double area,
     required MaterialPricesHistoryData currentPrices,
@@ -13,6 +16,7 @@ class CalculatorHelper {
     // -----------------------------------------------------
     // 1. حساب تكلفة المتر المربع الواحد (التكلفة الخام)
     // -----------------------------------------------------
+    // نترك الحسابات الوسيطة بـ double دقيق لضمان عدم تراكم أخطاء التقريب
     double baseCostPerSqm = 
         (currentPrices.ironPrice * 30.0) +                
         (currentPrices.cementPrice * 4.0) +               
@@ -22,39 +26,43 @@ class CalculatorHelper {
         (currentPrices.ordinaryWorkerWage * 1.0);         
 
     // -----------------------------------------------------
-    // 2. 🌟 تطبيق معامل "الموقع" أولاً (لإنشاء أساس سعري جديد)
+    // 2. تطبيق معامل "الموقع" أولاً
     // -----------------------------------------------------
-    // نبحث عن مفتاح 'الموقع'، إذا لم يوجد نعتبره 0
     double locationCoefficient = coefficients['الموقع'] ?? 0.0;
-    
-    // السعر بعد الموقع = التكلفة الخام + (التكلفة الخام × نسبة الموقع)
     double priceAfterLocation = baseCostPerSqm + (baseCostPerSqm * locationCoefficient);
 
     // -----------------------------------------------------
-    // 3. 🌟 تجميع وتطبيق باقي المعاملات على (السعر بعد الموقع)
+    // 3. تجميع وتطبيق باقي المعاملات على (السعر بعد الموقع)
     // -----------------------------------------------------
     double otherExtraPercentage = 0.0;
-    
-    // نجمع كل النسب (باستثناء الموقع لأنه حُسب بالفعل)
     coefficients.forEach((key, value) {
       if (key != 'الموقع') {
         otherExtraPercentage += value;
       }
     });
 
-    // السعر النهائي = السعر بعد الموقع + (السعر بعد الموقع × مجموع باقي النسب)
-    double finalPricePerSqm = priceAfterLocation + (priceAfterLocation * otherExtraPercentage);
+    double finalPricePerSqmRaw = priceAfterLocation + (priceAfterLocation * otherExtraPercentage);
+    
+    // 🛡️ [التحصين الأول]: تقريب سعر المتر النهائي لأقرب 10 ليرات
+    double finalPricePerSqm = _roundTo10(finalPricePerSqmRaw);
 
     // -----------------------------------------------------
     // 4. الحسابات النهائية للعقد (الإجمالي والقسط)
     // -----------------------------------------------------
-    double totalValue = finalPricePerSqm * area;
-    double monthlyInstallment = totalValue / months;
+    
+    // الإجمالي = السعر (المقرب لـ 10) × المساحة (الدقيقة)
+    double totalValueRaw = finalPricePerSqm * area;
+    
+    // 🛡️ [التحصين الثاني]: تقريب إجمالي قيمة العقد لأقرب 10 ليرات
+    double totalValue = _roundTo10(totalValueRaw);
+
+    // 🛡️ [التحصين الثالث]: تقريب القسط الشهري لأقرب 10 ليرات
+    double monthlyInstallment = _roundTo10(totalValue / months);
 
     return {
-      'baseCostPerSqm': baseCostPerSqm,         // التكلفة الخام المبدئية
-      'priceAfterLocation': priceAfterLocation, // السعر بعد الموقع (مرحلة وسيطة للعلم)
-      'pricePerSqm': finalPricePerSqm,          // السعر النهائي المعتمد في العقد
+      'baseCostPerSqm': _roundTo10(baseCostPerSqm),     // حتى القيم الوسيطة نعرضها نظيفة
+      'priceAfterLocation': _roundTo10(priceAfterLocation),
+      'pricePerSqm': finalPricePerSqm, 
       'totalValue': totalValue,
       'monthlyInstallment': monthlyInstallment,
     };
