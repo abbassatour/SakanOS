@@ -289,7 +289,7 @@ class ContractDetailsPage extends StatelessWidget {
                             _buildInfoRow('فترة السماح (للمطور):', '${contract.gracePeriodMonths} أشهر', Icons.hourglass_empty),
                             const Divider(height: 24),
                             _buildInfoRow(
-                              'نظام غرامة التأخير (بعد التسليم):', 
+                              'نظام الفائدة (بعد التسليم):', 
                               isPenaltyActive ? 'مُفعّل ($penaltyPct% كل $penaltyInterval أشهر)' : 'غير مُفعّل', 
                               Icons.local_fire_department, isBold: isPenaltyActive, valueColor: isPenaltyActive ? Colors.deepOrange.shade700 : Colors.grey,
                             ),
