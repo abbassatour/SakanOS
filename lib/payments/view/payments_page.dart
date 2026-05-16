@@ -18,6 +18,8 @@ import '../../core/utils/unallocated_ledger_pdf.dart'; // 🌟 الاستيرا�
 import '../../auth/cubit/auth_cubit.dart';
 import '../../core/constants/app_permissions.dart';
 
+import '../../core/utils/deposit_pdf_generator.dart';
+import '../../core/utils/refund_pdf_generator.dart';
 // ==========================================
 // 🌟 دالة مساعدة لتنسيق الأرقام بالفواصل
 // ==========================================
@@ -417,42 +419,75 @@ class PaymentsView extends StatelessWidget {
                                               mainAxisSize: MainAxisSize.min,
                                               children:[
                                                 IconButton(
-                                                  icon: const Icon(Icons.print, color: Colors.blue),
-                                                  tooltip: 'معاينة وطباعة الفاتورة',
-                                                  onPressed: () async {
-                                                    final contractIdx = state.contracts.indexWhere((c) => c.id == entry.contractId);
-                                                    if(contractIdx == -1) return;
-                                                    final contract = state.contracts[contractIdx];
+  icon: const Icon(Icons.print, color: Colors.blue),
+  tooltip: 'معاينة وطباعة الفاتورة',
+  onPressed: () async {
+    // 🌟 1. استخراج الكائنات من الـ state بناءً على الـ entry
+    final contractIdx = state.contracts.indexWhere((c) => c.id == entry.contractId);
+    if (contractIdx == -1) return;
+    final contract = state.contracts[contractIdx];
 
-                                                    final clientIdx = state.clients.indexWhere((c) => c.id == contract.clientId);
-                                                    if(clientIdx == -1) return;
-                                                    final client = state.clients[clientIdx];
-                                                    
-                                                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('جاري تجهيز الفاتورة...')));
+    final clientIdx = state.clients.indexWhere((c) => c.id == contract.clientId);
+    if (clientIdx == -1) return;
+    final client = state.clients[clientIdx];
+    
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('جاري تجهيز الفاتورة...')));
 
-                                                    double bonusPct = entry.fees; 
-                                                    double? originalInst;
-                                                    double? meterPriceBonus;
+    // 🌟 2. التحقق من نوع العملية (دفع أم استرداد)
+    final bool isRefund = entry.amountPaid < 0;
+    Uint8List pdfBytes;
 
-                                                    if (bonusPct > 0) {
-                                                      originalInst = entry.amountPaid + (entry.amountPaid * (bonusPct / 100));
-                                                      meterPriceBonus = entry.amountPaid / entry.convertedMeters;
-                                                    }
+    if (!isRefund) {
+      // =====================================
+      // عملية دفع (موجبة - إيصال قبض)
+      // =====================================
+      double bonusPct = entry.fees; 
+      double? originalInst;
+      double? meterPriceBonus;
+      
+      if (bonusPct != 0) { // ⬅️ التعديل هنا: يقرأ القيمة طالما لا تساوي صفر (حتى لو كانت سالبة بالخطأ)
+        originalInst = entry.amountPaid + (entry.amountPaid * (bonusPct.abs() / 100));
+        meterPriceBonus = entry.amountPaid / entry.convertedMeters;
+      }
 
-                                                    final pdfBytes = await PdfGenerator.generateReceiptPdf(
-                                                      entry: entry, 
-                                                      contract: contract, 
-                                                      client: client,
-                                                      originalInstallment: originalInst,
-                                                      bonusPercentage: bonusPct > 0 ? bonusPct : null,
-                                                      meterPriceAfterBonus: meterPriceBonus,
-                                                    );
+      pdfBytes = await DepositPdfGenerator.generate(
+        entry: entry, 
+        contract: contract, 
+        client: client,
+        originalInstallment: originalInst,
+        bonusPercentage: bonusPct != 0 ? bonusPct : null, // ⬅️ التمرير المباشر
+        meterPriceAfterBonus: meterPriceBonus,
+      );
+    } else {
+      // =====================================
+      // عملية استرداد (سالبة - سند صرف)
+      // =====================================
+      double penaltyPct = entry.fees; 
+      double? meterPricePenalty;
+      
+      if (penaltyPct != 0) { // ⬅️ التعديل هنا: يقرأ القيمة السالبة للغرامة بشكل صحيح
+        meterPricePenalty = entry.amountPaid.abs() / entry.convertedMeters.abs();
+      }
 
-                                                    if (context.mounted) {
-                                                      Navigator.push(context, MaterialPageRoute(builder: (_) => PdfPreviewPage(pdfBytes: pdfBytes, title: 'فاتورة_${entry.id.split('-').first}_${client.name}')));
-                                                    }
-                                                  },
-                                                ),
+      pdfBytes = await RefundPdfGenerator.generate(
+        entry: entry, 
+        contract: contract, 
+        client: client,
+        penaltyPercentage: penaltyPct != 0 ? penaltyPct : null, // ⬅️ تمرير القيمة سواء كانت سالبة أو موجبة
+        meterPriceAfterPenalty: meterPricePenalty,
+      );
+    }
+
+    if (context.mounted) {
+      Navigator.push(context, MaterialPageRoute(
+        builder: (_) => PdfPreviewPage(
+          pdfBytes: pdfBytes, 
+          title: '${isRefund ? "سند_استرداد" : "إيصال_دفع"}_${client.name}'
+        )
+      ));
+    }
+  },
+),
                                                 IconButton(
                                                   icon: Icon(Icons.chat, color: entry.isWhatsAppSent ? Colors.grey : Colors.green),
                                                   tooltip: entry.isWhatsAppSent ? 'تم الإرسال (إعادة إرسال)' : 'إرسال الفاتورة عبر واتساب',
