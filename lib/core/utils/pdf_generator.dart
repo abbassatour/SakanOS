@@ -1,29 +1,44 @@
 // lib/core/utils/pdf_generator.dart
-// ==========================================
-// 🟩 القسم 1: الاستيرادات (Imports)
-// ==========================================
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
-import 'package:erp_repository/erp_repository.dart';
-import 'arabic_tafqeet.dart';
+import 'package:intl/intl.dart'; // 🌟 أضفنا هذا الاستيراد للتنسيق الاحترافي
 import 'package:local_storage_api/local_storage_api.dart';
+import 'arabic_tafqeet.dart';
 
 class PdfGenerator {
   
   // ==========================================
-  // 🟩 القسم 2: دالة التفقيط (تحويل الأرقام لنصوص)
+  // 🛡️ مساعدات التنسيق البصري (للإيصال فقط)
   // ==========================================
+  
+  // تنسيق مالي: 1250340.0 -> 1,250,340
+  static String _fmtMoney(double amount) {
+    return NumberFormat("#,###", "en_US").format(amount.abs().round());
+  }
+
+  // تنسيق الأمتار (4 خانات): 0.830655 -> 0.8306
+  static String _fmtMeters(double meters) {
+    return meters.abs().toStringAsFixed(4);
+  }
+
+  // تنسيق المساحة الإجمالية: 125.5000 -> 125.5
+  static String _fmtArea(double area) {
+    final f = NumberFormat.decimalPattern();
+    f.minimumFractionDigits = 0;
+    f.maximumFractionDigits = 2;
+    return f.format(area);
+  }
+
   static String numberToArabicWords(double number) {
-    // 🌟 نأخذ القيمة المطلقة لمنع التفقيط من الانهيار عند الأرقام السالبة
     String text = ArabicTafqeet.convert(number.abs().toInt());
     return "فقط $text ليرة سورية لا غير.";
   }
 
   // ==========================================
-  // 🟩 القسم 3: الدالة الرئيسية لتوليد الـ PDF
+  // 🟩 توليد الـ PDF
   // ==========================================
   static Future<Uint8List> generateReceiptPdf({
     required PaymentsLedgerData entry,
@@ -35,25 +50,15 @@ class PdfGenerator {
   }) async {
     final pdf = pw.Document();
 
-    // إعدادات الخطوط والألوان الأساسية
     final arabicFont = await PdfGoogleFonts.cairoRegular();
     final arabicBoldFont = await PdfGoogleFonts.cairoBold();
     const primaryColor = PdfColor.fromInt(0xFF1A2B3D);
     
-    // 🌟 اكتشاف نوع الدفعة (إيداع أم سحب)
     final bool isDeposit = entry.amountPaid >= 0;
-    
-    // 🌟 تغيير لون التمييز بناءً على نوع الدفعة
     final accentColor = isDeposit ? const PdfColor.fromInt(0xFFE64A19) : PdfColors.red800;
 
-    // ==========================================
-    // 🟩 القسم 4: دالة بناء الإيصال المصغر (الواجهة والمحتوى)
-    // ==========================================
     pw.Widget buildCompactReceipt(String copyType) {
       
-      // ==========================================
-      // 🟩 القسم 5: جلب بيانات الأسعار وحساب الخصم
-      // ==========================================
       Map<String, dynamic> snapshot = {};
       try {
         if (entry.pricesSnapshot.isNotEmpty && entry.pricesSnapshot != '{}') {
@@ -63,11 +68,11 @@ class PdfGenerator {
         print('Error decoding prices snapshot: $e');
       }
 
-      String getPrice(String key) {
-        return (snapshot[key] as num?)?.toStringAsFixed(0) ?? '-';
+      String getPriceFormatted(String key) {
+        final val = (snapshot[key] as num?)?.toDouble();
+        return val != null ? _fmtMoney(val) : '-';
       }
 
-      // القيمة المطلقة للعمليات الحسابية
       final double absAmountPaid = entry.amountPaid.abs();
       final double absConvertedMeters = entry.convertedMeters.abs();
 
@@ -77,18 +82,10 @@ class PdfGenerator {
       return pw.Container(
         margin: const pw.EdgeInsets.only(right: 40), 
         padding: const pw.EdgeInsets.all(6),
-        decoration: pw.BoxDecoration(
-          borderRadius: pw.BorderRadius.circular(6),
-        ),
         child: pw.Column(
           crossAxisAlignment: pw.CrossAxisAlignment.start,
           children:[
-            
-            // ==========================================
-            // 🟩 القسم 6: الترويسة العليا (اسم الشركة والعنوان)
-            // ==========================================
             pw.Center(child: pw.Text('بيتنا Our Home', style: pw.TextStyle(font: arabicBoldFont, fontSize: 11, color: primaryColor))),
-            // 🌟 تغيير عنوان الفاتورة إذا كانت استرداد
             pw.Center(
               child: pw.Text(
                 isDeposit ? 'إيصال دفع - $copyType' : 'سند استرداد نقدي - $copyType', 
@@ -97,26 +94,19 @@ class PdfGenerator {
             ),
             pw.SizedBox(height: 4),
 
-            // ==========================================
-            // 🟩 القسم 7: معلومات الإيصال والعميل والشقة
-            // ==========================================
             pw.Row(mainAxisAlignment: pw.MainAxisAlignment.spaceBetween, children:[
               pw.Text('رقم: ${entry.id.split('-').first.toUpperCase()}', style: pw.TextStyle(font: arabicFont, fontSize: 8)),
               pw.Text('التاريخ: ${entry.paymentDate.year}/${entry.paymentDate.month}/${entry.paymentDate.day}', style: pw.TextStyle(font: arabicFont, fontSize: 8)),
             ]),
             pw.Divider(color: PdfColors.grey300, thickness: 0.5),
             pw.Text('العميل: ${client.name}', style: pw.TextStyle(font: arabicBoldFont, fontSize: 9, color: primaryColor)),
-            pw.Text('الشقة: ${contract.apartmentDetails} | م: ${contract.totalArea} م2', style: pw.TextStyle(font: arabicFont, fontSize: 8)),
+            // 🌟 تنسيق المساحة الإجمالية هنا
+            pw.Text('الشقة: ${contract.apartmentDetails} | م: ${_fmtArea(contract.totalArea)} م2', style: pw.TextStyle(font: arabicFont, fontSize: 8)),
             pw.SizedBox(height: 6),
 
-            // ==========================================
-            // 🟩 القسم 8 و 9: جدول المواد والخلاصة المالية
-            // ==========================================
             pw.Row(
               crossAxisAlignment: pw.CrossAxisAlignment.start, 
               children:[
-                
-                // 🌟 الجانب الأيمن: جدول المواد
                 pw.Expanded(
                   flex: 4, 
                   child: pw.TableHelper.fromTextArray(
@@ -131,29 +121,30 @@ class PdfGenerator {
                       1: const pw.FlexColumnWidth(1.2), 
                     },
                     headers:['المادة', 'السعر'],
-                    data: [['حديد', getPrice('iron')],['كوفراج', getPrice('formwork')],
-                      ['اسمنت', getPrice('cement')],['حصويات', getPrice('aggregates')],
-                      ['بلوك', getPrice('block')],
-                      ['عمال', getPrice('worker')],
+                    // 🌟 تنسيق أسعار المواد بالجدول
+                    data: [['حديد', getPriceFormatted('iron')],['كوفراج', getPriceFormatted('formwork')],
+                      ['اسمنت', getPriceFormatted('cement')],['حصويات', getPriceFormatted('aggregates')],
+                      ['بلوك', getPriceFormatted('block')],
+                      ['عمال', getPriceFormatted('worker')],
                     ],
                   ),
                 ),
 
                 pw.SizedBox(width: 6), 
 
-                // 🌟 الجانب الأيسر: الخلاصة المالية
                 pw.Expanded(
                   flex: 6, 
                   child: pw.Container(
                     padding: const pw.EdgeInsets.all(4), 
                     decoration: pw.BoxDecoration(
-                      color: isDeposit ? PdfColors.grey100 : PdfColors.red50, // 🌟 تلوين خلفية السحب بالأحمر الفاتح
+                      color: isDeposit ? PdfColors.grey100 : PdfColors.red50, 
                       border: pw.Border.all(color: accentColor, width: 0.5),
                       borderRadius: pw.BorderRadius.circular(4),
                     ),
                     child: pw.Column(
                       children:[
-                        _buildFinancialRow(font: arabicFont, boldFont: arabicBoldFont, title: 'سعر المتر المعتمد:', value: '${entry.meterPriceAtPayment.toStringAsFixed(0)} ل.س'),
+                        // 🌟 تنسيق سعر المتر
+                        _buildFinancialRow(font: arabicFont, boldFont: arabicBoldFont, title: 'سعر المتر المعتمد:', value: '${_fmtMoney(entry.meterPriceAtPayment)} ل.س'),
                         
                         if (bonusPercentage != null && bonusPercentage > 0)
                           _buildFinancialRow(
@@ -164,18 +155,18 @@ class PdfGenerator {
                           ),
 
                         if (meterPriceAfterBonus != null)
-                          _buildFinancialRow(font: arabicFont, boldFont: arabicBoldFont, title: 'السعر بعد البونص:', value: '${meterPriceAfterBonus.toStringAsFixed(0)} ل.س', valueColor: PdfColors.blue800),
+                          _buildFinancialRow(font: arabicFont, boldFont: arabicBoldFont, title: 'السعر بعد البونص:', value: '${_fmtMoney(meterPriceAfterBonus)} ل.س', valueColor: PdfColors.blue800),
                         
                         if(hasDiscount) ...[
-                          _buildFinancialRow(font: arabicFont, boldFont: arabicBoldFont, title: 'أصل القسط:', value: '${originalInstallment!.toStringAsFixed(0)} ل.س'),
-                          _buildFinancialRow(font: arabicFont, boldFont: arabicBoldFont, title: 'الخصم الممنوح:', value: '${discountAmount.toStringAsFixed(0)} ل.س', valueColor: PdfColors.red),
+                          _buildFinancialRow(font: arabicFont, boldFont: arabicBoldFont, title: 'أصل القسط:', value: '${_fmtMoney(originalInstallment!)} ل.س'),
+                          _buildFinancialRow(font: arabicFont, boldFont: arabicBoldFont, title: 'الخصم الممنوح:', value: '${_fmtMoney(discountAmount)} ل.س', valueColor: PdfColors.red),
                         ],
 
-                        // 🌟 المبلغ المدفوع / المسترد
+                        // 🌟 تنسيق المبلغ المدفوع النهائي
                         _buildFinancialRow(
                           font: arabicFont, boldFont: arabicBoldFont, 
                           title: isDeposit ? 'المبلغ المدفوع:' : 'المبلغ المسترد:', 
-                          value: '${absAmountPaid.toStringAsFixed(0)} ل.س', 
+                          value: '${_fmtMoney(absAmountPaid)} ل.س', 
                           isTotal: true, 
                           primaryColor: isDeposit ? primaryColor : PdfColors.red900
                         ),
@@ -187,11 +178,11 @@ class PdfGenerator {
 
                         pw.Divider(color: PdfColors.grey300, thickness: 0.5, height: 6),
                         
-                        // 🌟 الأمتار المحولة / المخصومة
+                        // 🌟 تنسيق الأمتار (4 خانات عشرية)
                         _buildFinancialRow(
                           font: arabicFont, boldFont: arabicBoldFont, 
                           title: isDeposit ? 'الأمتار المحولة:' : 'الأمتار المخصومة:', 
-                          value: '${isDeposit ? '' : '-'}${absConvertedMeters.toStringAsFixed(3)} م2', 
+                          value: '${isDeposit ? '' : '-'}${_fmtMeters(absConvertedMeters)} م2', 
                           isTotal: true, 
                           valueColor: isDeposit ? PdfColors.green800 : PdfColors.red900
                         ),
@@ -204,9 +195,6 @@ class PdfGenerator {
 
             pw.Spacer(),
 
-            // ==========================================
-            // 🟩 القسم 10: التذييل (معلومات العقد والتوقيع)
-            // ==========================================
             pw.Row(
               mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
               crossAxisAlignment: pw.CrossAxisAlignment.end,
@@ -233,9 +221,6 @@ class PdfGenerator {
       );
     }
 
-    // ==========================================
-    // 🟩 القسم 11: إعداد صفحة الطباعة
-    // ==========================================
     pdf.addPage(
       pw.Page(
         pageFormat: PdfPageFormat.a4,
@@ -264,9 +249,6 @@ class PdfGenerator {
     return pdf.save();
   }
 
-  // ==========================================
-  // 🟩 القسم 12: الدوال المساعدة
-  // ==========================================
   static pw.Widget _buildFinancialRow({
     required pw.Font font,
     required pw.Font boldFont,
