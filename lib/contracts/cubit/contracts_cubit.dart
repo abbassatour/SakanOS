@@ -4,10 +4,15 @@ import 'dart:convert';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:erp_repository/erp_repository.dart';
-// 🌟 أضفنا PaymentsLedgerCompanion لإنشاء الإيصال الآلي
-import 'package:local_storage_api/local_storage_api.dart' show ContractsCompanion, Contract, Client, MaterialPricesHistoryCompanion, PaymentsLedgerCompanion;
+import 'package:local_storage_api/local_storage_api.dart'
+    show
+        ContractsCompanion,
+        Contract,
+        Client,
+        MaterialPricesHistoryCompanion,
+        PaymentsLedgerCompanion;
 import 'package:drift/drift.dart' show Value;
-import 'package:uuid/uuid.dart'; // 🌟 أضفنا مكتبة الـ UUID لتوليد المعرفات
+import 'package:uuid/uuid.dart';
 
 part 'contracts_state.dart';
 
@@ -17,27 +22,46 @@ class ContractsCubit extends Cubit<ContractsState> {
   final ErpRepository _erpRepository;
 
   // ==========================================
+  // 🛡️ محرك التقريب والتحصين المالي (Financial Guarding)
+  // ==========================================
+  
+  // 💰 تقريب المبالغ المالية لأقرب 10 ليرات (للملاءمة مع التداول الفعلي)
+  double _roundTo10(double val) => (val / 10).round() * 10.0;
+
+  // 📏 تقريب المساحات (أمتار - 4 خانات عشرية للدقة العقارية)
+  double _roundArea(double val) => double.parse(val.toStringAsFixed(4));
+
+  // 🎯 تقريب الأمتار المحولة (6 خانات عشرية لضمان عدم ضياع أي قيمة عند تقسيم المبالغ على السعر)
+  double _roundConvertedMeters(double val) => double.parse(val.toStringAsFixed(6));
+
+  // 📈 تقريب النسب المئوية (خانتين عشريتين)
+  double _roundPercent(double val) => double.parse(val.toStringAsFixed(2));
+
+  // ==========================================
   // 1. جلب البيانات الأساسية
   // ==========================================
   Future<void> fetchData() async {
-    if (state.status == ContractsStatus.initial) emit(state.copyWith(status: ContractsStatus.loading));
+    if (state.status == ContractsStatus.initial) {
+      emit(state.copyWith(status: ContractsStatus.loading));
+    }
     try {
       final clients = await _erpRepository.getClients();
       final allContracts = await _erpRepository.getAllContracts();
-      
+
       final allUsers = await _erpRepository.getAllUsers();
       final Map<String, String> namesMap = {
         for (var user in allUsers) user.id: user.fullName ?? 'مدير النظام'
       };
 
       emit(state.copyWith(
-        status: ContractsStatus.success, 
-        clients: clients, 
+        status: ContractsStatus.success,
+        clients: clients,
         contracts: allContracts,
-        userNamesMap: namesMap, 
+        userNamesMap: namesMap,
       ));
     } catch (e) {
-      emit(state.copyWith(status: ContractsStatus.failure, errorMessage: e.toString()));
+      emit(state.copyWith(
+          status: ContractsStatus.failure, errorMessage: e.toString()));
     }
   }
 
@@ -49,37 +73,32 @@ class ContractsCubit extends Cubit<ContractsState> {
       final deleted = await _erpRepository.getDeletedContracts();
       emit(state.copyWith(deletedContracts: deleted));
     } catch (e) {
-      emit(state.copyWith(status: ContractsStatus.failure, errorMessage: e.toString()));
+      emit(state.copyWith(
+          status: ContractsStatus.failure, errorMessage: e.toString()));
     }
   }
 
   // ==========================================
-  // 3. إضافة عقد جديد (مع كافة الميزات الحديثة)
+  // 3. إضافة عقد جديد (مع تحصين أقرب 10 ليرات 🛡️)
   // ==========================================
   Future<void> addContract({
-    required String clientId, 
-    required String contractType, 
+    required String clientId,
+    required String contractType,
     required String details,
-    required String? apartmentId, 
+    required String? apartmentId,
     required double area,
     required double basePrice,
-    required double downPayment, 
-    required int installmentsCount, 
-    required String guarantorName, 
+    required double downPayment,
+    required int installmentsCount,
+    required String guarantorName,
     required double agreedMonthlyAmount,
-    Map<String, double> coefficients = const {}, 
-    DateTime? customDate, 
-    
-    // 🌟 متغيرات التسليم المتفق عليها 
-    DateTime? agreedHandoverDate, 
+    Map<String, double> coefficients = const {},
+    DateTime? customDate,
+    DateTime? agreedHandoverDate,
     int? gracePeriodMonths,
-    
-    // 🌟 متغيرات الغرامة المرنة
     bool isPenaltyActive = false,
     double penaltyPercentage = 0.0,
     int penaltyIntervalMonths = 1,
-
-    // متغيرات الأسعار التاريخية
     double? histIron,
     double? histCement,
     double? histBlock,
@@ -87,110 +106,129 @@ class ContractsCubit extends Cubit<ContractsState> {
     double? histAggregates,
     double? histWorker,
   }) async {
-    emit(state.copyWith(status: ContractsStatus.loading)); 
+    emit(state.copyWith(status: ContractsStatus.loading));
     try {
       final String? userId = _erpRepository.currentUserId;
-      if (userId == null) throw Exception('يجب تسجيل الدخول أولاً لإنشاء العقود.');
+      if (userId == null) {
+        throw Exception('يجب تسجيل الدخول أولاً لإنشاء العقود.');
+      }
 
       final contractDateToSave = customDate?.toUtc() ?? DateTime.now().toUtc();
 
-      // أ. تسجيل التسعيرة التاريخية إن وجدت
+      // 🛡️ تقريب الأسعار التاريخية لأقرب 10 ليرات قبل الحفظ
       if (customDate != null && histIron != null) {
         final historicalPrices = MaterialPricesHistoryCompanion.insert(
-          effectiveDate: Value(contractDateToSave), 
-          ironPrice: histIron, cementPrice: histCement!, block15Price: histBlock!,
-          formworkAndPouringWages: histFormwork!, aggregateMaterialsPrice: histAggregates!,
-          ordinaryWorkerWage: histWorker!, userId: userId, 
+          effectiveDate: Value(contractDateToSave),
+          ironPrice: _roundTo10(histIron),
+          cementPrice: _roundTo10(histCement!),
+          block15Price: _roundTo10(histBlock!),
+          formworkAndPouringWages: _roundTo10(histFormwork!),
+          aggregateMaterialsPrice: _roundTo10(histAggregates!),
+          ordinaryWorkerWage: _roundTo10(histWorker!),
+          userId: userId,
         );
         await _erpRepository.savePrices(historicalPrices);
       }
 
-      // ب. توليد ID العقد
       final String newContractId = const Uuid().v7();
 
-      // ج. إنشاء العقد
+      // 🛡️ تقريب بيانات العقد (المال لأقرب 10 ليرات، المساحة لدقة 4 خانات)
+      final double safeArea = _roundArea(area);
+      final double safeBasePrice = _roundTo10(basePrice);
+      final double safeDownPayment = _roundTo10(downPayment);
+      final double safeMonthlyAmount = _roundTo10(agreedMonthlyAmount);
+      final double safePenaltyPct = _roundPercent(penaltyPercentage);
+
       final newContract = ContractsCompanion.insert(
         id: Value(newContractId),
         clientId: clientId,
-        apartmentId: Value(apartmentId), 
+        apartmentId: Value(apartmentId),
         contractType: Value(contractType),
-        apartmentDetails: Value(details), 
-        totalArea: area,
-        baseMeterPriceAtSigning: basePrice,
-        downPayment: Value(downPayment), 
-        
-        agreedHandoverDate: agreedHandoverDate != null ? Value(agreedHandoverDate.toUtc()) : const Value.absent(),
+        apartmentDetails: Value(details),
+        totalArea: safeArea,
+        baseMeterPriceAtSigning: safeBasePrice,
+        downPayment: Value(safeDownPayment),
+        agreedHandoverDate: agreedHandoverDate != null
+            ? Value(agreedHandoverDate.toUtc())
+            : const Value.absent(),
         gracePeriodMonths: Value(gracePeriodMonths ?? 0),
-        
-        // 🌟 حفظ متغيرات الغرامة في قاعدة البيانات
         isPenaltyActive: Value(isPenaltyActive),
-        penaltyPercentage: Value(penaltyPercentage),
+        penaltyPercentage: Value(safePenaltyPct),
         penaltyIntervalMonths: Value(penaltyIntervalMonths),
-        
-        installmentsCount: Value(installmentsCount), 
-        agreedMonthlyAmount: Value(agreedMonthlyAmount), 
+        installmentsCount: Value(installmentsCount),
+        agreedMonthlyAmount: Value(safeMonthlyAmount),
         coefficients: Value(jsonEncode(coefficients)),
-        contractDate: contractDateToSave, 
-        guarantorName: guarantorName, 
-        userId: userId, 
+        contractDate: contractDateToSave,
+        guarantorName: guarantorName,
+        userId: userId,
       );
-      
+
       await _erpRepository.addContract(newContract);
 
-      // د. السحر المحاسبي: إدخال الدفعة الأولى في الأقساط
-      if (downPayment > 0) {
+      // 🛡️ إدخال الدفعة الأولى (المال لأقرب 10، الأمتار بدقة 6 خانات)
+      if (safeDownPayment > 0) {
+        double rawConverted = safeBasePrice > 0 ? (safeDownPayment / safeBasePrice) : 0;
+        
         final downPaymentEntry = PaymentsLedgerCompanion.insert(
-          contractId: newContractId, 
-          paymentDate: contractDateToSave, 
-          amountPaid: downPayment, 
-          meterPriceAtPayment: basePrice, 
-          convertedMeters: basePrice > 0 ? (downPayment / basePrice) : 0, 
+          contractId: newContractId,
+          paymentDate: contractDateToSave,
+          amountPaid: safeDownPayment,
+          meterPriceAtPayment: safeBasePrice,
+          convertedMeters: _roundConvertedMeters(rawConverted),
           pricesSnapshot: const Value('{"note": "الدفعة الأولى عند توقيع العقد"}'),
           userId: userId,
         );
         await _erpRepository.addLedgerEntry(downPaymentEntry);
       }
-      
-      // هـ. تحديث حالة الشقة إلى مباعة
+
       if (apartmentId != null && apartmentId.isNotEmpty) {
         await _erpRepository.changeApartmentStatus(apartmentId, 'sold');
       }
 
-      await fetchData(); 
+      await fetchData();
     } catch (e) {
-      emit(state.copyWith(status: ContractsStatus.failure, errorMessage: e.toString()));
+      emit(state.copyWith(
+          status: ContractsStatus.failure, errorMessage: e.toString()));
     }
   }
 
   // ==========================================
   // 4. إرفاق ملف العقد
   // ==========================================
-  Future<void> attachContractFile({required String contractId, required String filePath, required String extension}) async {
+  Future<void> attachContractFile(
+      {required String contractId,
+      required String filePath,
+      required String extension}) async {
     emit(state.copyWith(status: ContractsStatus.loading));
     try {
       final file = File(filePath);
       await _erpRepository.attachFileToContract(contractId, file, extension);
-      await fetchData(); 
+      await fetchData();
     } catch (e) {
-      emit(state.copyWith(status: ContractsStatus.failure, errorMessage: 'فشل إرفاق الملف: $e'));
+      emit(state.copyWith(
+          status: ContractsStatus.failure,
+          errorMessage: 'فشل إرفاق الملف: $e'));
     }
   }
 
   // ==========================================
-  // 5. الحذف الوهمي للعقد (ينقله لسلة المحذوفات)
+  // 5. الحذف الوهمي للعقد
   // ==========================================
-  Future<void> deleteContract(String id) async { 
+  Future<void> deleteContract(String id) async {
     emit(state.copyWith(status: ContractsStatus.loading));
     try {
       final contractToCancel = state.contracts.firstWhere((c) => c.id == id);
       await _erpRepository.deleteContract(id);
 
-      if (contractToCancel.apartmentId != null && contractToCancel.apartmentId!.isNotEmpty) {
-        await _erpRepository.changeApartmentStatus(contractToCancel.apartmentId!, 'available');
+      if (contractToCancel.apartmentId != null &&
+          contractToCancel.apartmentId!.isNotEmpty) {
+        await _erpRepository.changeApartmentStatus(
+            contractToCancel.apartmentId!, 'available');
       }
-      await fetchData(); 
+      await fetchData();
     } catch (e) {
-      emit(state.copyWith(status: ContractsStatus.failure, errorMessage: e.toString()));
+      emit(state.copyWith(
+          status: ContractsStatus.failure, errorMessage: e.toString()));
     }
   }
 
@@ -200,67 +238,74 @@ class ContractsCubit extends Cubit<ContractsState> {
   Future<void> restoreContract(Contract contract) async {
     try {
       await _erpRepository.restoreContract(contract.id);
-      
+
       if (contract.apartmentId != null && contract.apartmentId!.isNotEmpty) {
-        // 🌟 [اللمسة السحرية]: نتحقق، هل كان العقد مُسلّماً قبل حذفه؟
         final targetStatus = contract.isHandedOver ? 'delivered' : 'sold';
-        await _erpRepository.changeApartmentStatus(contract.apartmentId!, targetStatus);
+        await _erpRepository.changeApartmentStatus(
+            contract.apartmentId!, targetStatus);
       }
-      
-      await fetchDeletedContracts(); 
-      await fetchData(); 
+
+      await fetchDeletedContracts();
+      await fetchData();
     } catch (e) {
-      emit(state.copyWith(status: ContractsStatus.failure, errorMessage: e.toString()));
+      emit(state.copyWith(
+          status: ContractsStatus.failure, errorMessage: e.toString()));
     }
   }
 
   // ==========================================
-  // 7. الحذف النهائي للعقد (تدمير)
+  // 7. الحذف النهائي للعقد
   // ==========================================
   Future<void> forceHardDelete(String contractId) async {
     try {
       await _erpRepository.forceHardDeleteContract(contractId);
-      await fetchDeletedContracts(); 
+      await fetchDeletedContracts();
     } catch (e) {
-      emit(state.copyWith(status: ContractsStatus.failure, errorMessage: e.toString()));
+      emit(state.copyWith(
+          status: ContractsStatus.failure, errorMessage: e.toString()));
     }
   }
 
   // ==========================================
-  // 8. تعديل العقد (أضفنا متغيرات الغرامة هنا أيضاً)
+  // 8. تعديل العقد (مع تحصين أقرب 10 ليرات 🛡️)
   // ==========================================
   Future<void> updateContract({
     required String id,
     required String details,
     required String guarantorName,
     required int installmentsCount,
-    required double agreedMonthlyAmount, 
+    required double agreedMonthlyAmount,
     required DateTime contractDate,
-    // 🌟 متغيرات الغرامة لتعديلها لاحقاً
     required bool isPenaltyActive,
     required double penaltyPercentage,
     required int penaltyIntervalMonths,
   }) async {
     try {
+      // 🛡️ تقريب المبالغ المعدلة لأقرب 10 ليرات
+      final double safeMonthlyAmount = _roundTo10(agreedMonthlyAmount);
+      final double safePenaltyPct = _roundPercent(penaltyPercentage);
+
       await _erpRepository.updateContract(
         id: id,
         apartmentDetails: details,
         guarantorName: guarantorName,
         installmentsCount: installmentsCount,
-        agreedMonthlyAmount: agreedMonthlyAmount, 
-        contractDate: contractDate, 
+        agreedMonthlyAmount: safeMonthlyAmount,
+        contractDate: contractDate,
         isPenaltyActive: isPenaltyActive,
-        penaltyPercentage: penaltyPercentage,
+        penaltyPercentage: safePenaltyPct,
         penaltyIntervalMonths: penaltyIntervalMonths,
       );
-      await fetchData(); 
+      await fetchData();
     } catch (e) {
-      emit(state.copyWith(status: ContractsStatus.failure, errorMessage: 'حدث خطأ أثناء تعديل العقد: $e'));
+      emit(state.copyWith(
+          status: ContractsStatus.failure,
+          errorMessage: 'حدث خطأ أثناء تعديل العقد: $e'));
     }
   }
 
   // ==========================================
-  // 9. تسجيل تسليم الشقة الفعلي (Handover)
+  // 9. تسجيل تسليم الشقة الفعلي
   // ==========================================
   Future<void> markContractAsHandedOver({
     required String contractId,
@@ -269,19 +314,18 @@ class ContractsCubit extends Cubit<ContractsState> {
   }) async {
     emit(state.copyWith(status: ContractsStatus.loading));
     try {
-      final contract = state.contracts.firstWhere((c) => c.id == contractId);
-      
-      // نرسل العقد والشقة بطلب واحد للـ Repository
       await _erpRepository.markContractAsHandedOver(
         contractId: contractId,
-        apartmentId: contract.apartmentId, // 🌟 تمرير رقم الشقة
+        apartmentId: state.contracts.firstWhere((c) => c.id == contractId).apartmentId,
         actualHandoverDate: actualHandoverDate,
         notes: notes,
       );
-      
-      await fetchData(); 
+
+      await fetchData();
     } catch (e) {
-      emit(state.copyWith(status: ContractsStatus.failure, errorMessage: 'فشل عملية تسليم الشقة: $e'));
+      emit(state.copyWith(
+          status: ContractsStatus.failure,
+          errorMessage: 'فشل عملية تسليم الشقة: $e'));
     }
   }
 
@@ -291,33 +335,36 @@ class ContractsCubit extends Cubit<ContractsState> {
   Future<void> cancelContractHandover({required String contractId}) async {
     emit(state.copyWith(status: ContractsStatus.loading));
     try {
-      final contract = state.contracts.firstWhere((c) => c.id == contractId);
-      
       await _erpRepository.cancelContractHandover(
         contractId: contractId,
-        apartmentId: contract.apartmentId, // 🌟 تمرير رقم الشقة
+        apartmentId: state.contracts.firstWhere((c) => c.id == contractId).apartmentId,
       );
-      
-      await fetchData(); 
+
+      await fetchData();
     } catch (e) {
-      emit(state.copyWith(status: ContractsStatus.failure, errorMessage: 'فشل إلغاء التسليم: $e'));
+      emit(state.copyWith(
+          status: ContractsStatus.failure,
+          errorMessage: 'فشل إلغاء التسليم: $e'));
     }
   }
 
   // ==========================================
-  // 11. 🔒 إغلاق/أرشفة العقد أو إعادة فتحه
+  // 11. 🔒 إغلاق/أرشفة العقد
   // ==========================================
-  Future<void> toggleContractCompletion({required String contractId, required bool isCompleted}) async {
+  Future<void> toggleContractCompletion(
+      {required String contractId, required bool isCompleted}) async {
     emit(state.copyWith(status: ContractsStatus.loading));
     try {
       await _erpRepository.toggleContractCompletion(
         contractId: contractId,
         isCompleted: isCompleted,
       );
-      
-      await fetchData(); // تحديث الواجهة فوراً
+
+      await fetchData();
     } catch (e) {
-      emit(state.copyWith(status: ContractsStatus.failure, errorMessage: 'فشل تغيير حالة العقد: $e'));
+      emit(state.copyWith(
+          status: ContractsStatus.failure,
+          errorMessage: 'فشل تغيير حالة العقد: $e'));
     }
-  } 
+  }
 }
