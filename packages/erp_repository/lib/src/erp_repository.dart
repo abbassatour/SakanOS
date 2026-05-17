@@ -1480,6 +1480,61 @@ class ErpRepository {
     }
   }
   
+
+    // ==========================================
+  // 💵 Mappers (Dollar Prices) - ضعها هنا
+  // ==========================================
+  Map<String, dynamic> _mapDollarPriceToCloud(DollarPricesHistoryData localData) {
+    return {
+      'id': localData.id,
+      'effective_date': localData.effectiveDate.toUtc().toIso8601String(),
+      'exchange_rate': localData.exchangeRate,
+      'user_id': localData.userId,
+      'created_at': localData.createdAt.toUtc().toIso8601String(),
+      'updated_at': localData.updatedAt.toUtc().toIso8601String(),
+      'is_deleted': localData.isDeleted,
+    };
+  }
+
+  DollarPricesHistoryCompanion _mapCloudToDollarPrice(Map<String, dynamic> cloudData) {
+    return DollarPricesHistoryCompanion(
+      id: Value(cloudData['id']),
+      effectiveDate: Value(DateTime.parse(cloudData['effective_date']).toUtc()),
+      exchangeRate: Value((cloudData['exchange_rate'] as num).toDouble()),
+      userId: Value(cloudData['user_id']),
+      createdAt: Value(DateTime.parse(cloudData['created_at']).toUtc()),
+      updatedAt: Value(DateTime.parse(cloudData['updated_at']).toUtc()),
+      isDeleted: Value(cloudData['is_deleted'] == true),
+      isSynced: const Value(true),
+    );
+  }
+
+  // ==========================================
+  // 💵 دوال الدولار للواجهات - ضعها تحت الـ Mappers مباشرة
+  // ==========================================
+  
+  Stream<DollarPricesHistoryData?> watchLatestDollarPrice() => 
+      _localStorageApi.watchLatestDollarPrice();
+
+  Future<List<DollarPricesHistoryData>> getAllDollarPricesHistory() => 
+      _localStorageApi.getAllDollarPricesHistory();
+
+  Future<void> saveDollarPrice(DollarPricesHistoryCompanion prices) async {
+    final newId = await _localStorageApi.saveDollarPrice(prices);
+    try {
+      final savedData = await _localStorageApi.database.select(_localStorageApi.database.dollarPricesHistory)
+          .where((t) => t.id.equals(newId)).getSingle();
+      await _cloudStorageClient.upsertDollarPrice(_mapDollarPriceToCloud(savedData));
+      await _localStorageApi.syncDollarPrice(savedData.copyWith(isSynced: true).toCompanion(true));
+    } catch (e) {
+      print('⚠️ الحفظ المحلي تم، لكن الرفع السحابي فشل.');
+    }
+  }
+
+  Future<void> softDeleteDollarPrice(String id) async {
+    await _localStorageApi.softDeleteDollarPrice(id);
+    forceSyncWithCloud();
+  }
 }
 
 // نموذج يمثل حركة أو نشاط واحد في النظام
