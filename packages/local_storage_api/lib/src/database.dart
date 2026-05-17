@@ -418,13 +418,14 @@ class DollarPricesHistory extends Table {
 @DriftDatabase(tables:[
   Clients, 
   Contracts, 
-  Buildings,      // 🌟 أضفناه
-  Apartments,     // 🌟 أضفناه
+  Buildings,      
+  Apartments,     
   MaterialPricesHistory, 
+  DollarPricesHistory, // 🌟 تمت إضافة جدول الدولار هنا
   InstallmentsSchedule, 
   PaymentsLedger,
-  AppRoles,       // 🌟 تمت الإضافة
-  LocalUsers,      // 🌟 تمت الإضافة
+  AppRoles,       
+  LocalUsers,      
   LegalActions,
   LegalActionAttachments 
 ])
