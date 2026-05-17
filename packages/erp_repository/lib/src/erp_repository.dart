@@ -1496,48 +1496,9 @@ class ErpRepository {
     }
   }
 
-
-
-  // ==========================================
-  // 💵 دوال الدولار (Dollar Prices) للواجهات
-  // ==========================================
-  
-  // البث الحي (لاستخدامه في SettingsCubit)
-  Stream<DollarPricesHistoryData?> watchLatestDollarPrice() => 
-      _localStorageApi.watchLatestDollarPrice();
-
-  // جلب السجل التاريخي (لشاشة سجل الدولار)
-  Future<List<DollarPricesHistoryData>> getAllDollarPricesHistory() => 
-      _localStorageApi.getAllDollarPricesHistory();
-
-  // حفظ تسعيرة دولار جديدة (مع محاولة رفع فورية)
-  Future<void> saveDollarPrice(DollarPricesHistoryCompanion prices) async {
-    // 1. الحفظ محلياً أولاً
-    final newId = await _localStorageApi.saveDollarPrice(prices);
-    
-    // 2. محاولة الرفع السحابي الفوري
-    try {
-      final savedData = await _localStorageApi.database.select(_localStorageApi.database.dollarPricesHistory)
-          .where((t) => t.id.equals(newId)).getSingle();
-          
-      await _cloudStorageClient.upsertDollarPrice(_mapDollarPriceToCloud(savedData));
-      
-      // إذا نجح الرفع، نحدث حالة السجل إلى "متزامن"
-      await _localStorageApi.syncDollarPrice(savedData.copyWith(isSynced: true).toCompanion(true));
-    } catch (e) {
-      print('⚠️ الحفظ المحلي تم، لكن الرفع السحابي فشل (بدون إنترنت). سُيرفع لاحقاً.');
-    }
-  }
-
-  // حذف تسعيرة دولار من السجل
-  Future<void> softDeleteDollarPrice(String id) async {
-    await _localStorageApi.softDeleteDollarPrice(id);
-    // تفعيل المزامنة الخلفية لرفع حالة الحذف للسحابة
-    forceSyncWithCloud();
-  }
   
 
-  // ==========================================
+// ==========================================
   // 💵 Mappers (Dollar Prices)
   // ==========================================
   Map<String, dynamic> _mapDollarPriceToCloud(DollarPricesHistoryData localData) {
@@ -1568,6 +1529,7 @@ class ErpRepository {
   // ==========================================
   // 💵 دوال الدولار (Dollar Prices) للواجهات
   // ==========================================
+  
   Stream<DollarPricesHistoryData?> watchLatestDollarPrice() => 
       _localApi.watchLatestDollarPrice();
 
@@ -1577,10 +1539,12 @@ class ErpRepository {
   Future<void> saveDollarPrice(DollarPricesHistoryCompanion prices) async {
     final newId = await _localApi.saveDollarPrice(prices);
     try {
-      final savedData = await _localApi.database.select(_localApi.database.dollarPricesHistory)
-          .where((t) => t.id.equals(newId)).getSingle();
+      // 🌟 تم تصحيح استعلام Drift والمتغيرات هنا لتطابق ملفك
+      final savedData = await (_localApi.database.select(_localApi.database.dollarPricesHistory)
+          ..where((t) => t.id.equals(newId))).getSingle();
           
       await _cloudApi.upsertDollarPrice(_mapDollarPriceToCloud(savedData));
+      
       await _localApi.syncDollarPrice(savedData.copyWith(isSynced: true).toCompanion(true));
     } catch (e) {
       print('⚠️ الحفظ المحلي تم، لكن الرفع السحابي فشل (بدون إنترنت). سُيرفع لاحقاً.');
@@ -1592,11 +1556,7 @@ class ErpRepository {
     forceSyncWithCloud();
   }
 
-  Future<void> softDeleteDollarPrice(String id) async {
-    await _localStorageApi.softDeleteDollarPrice(id);
-    forceSyncWithCloud();
-  }
-}
+} // <--- نهاية كلاس ErpRepository
 
 // نموذج يمثل حركة أو نشاط واحد في النظام
 enum ActivityType { payment, contract, client, adminAction }

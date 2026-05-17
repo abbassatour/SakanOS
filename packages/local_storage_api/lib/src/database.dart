@@ -924,12 +924,16 @@ class AppDatabase extends _$AppDatabase {
   // ==========================================
   Future<void> clearAllData() {
     return transaction(() async {
+      // 🌟 أضف هذين السطرين لتفريغ الجداول القانونية أيضاً
+      await delete(legalActionAttachments).go(); 
+      await delete(legalActions).go(); 
+      
       await delete(localUsers).go(); 
       await delete(appRoles).go();   
       await delete(paymentsLedger).go();
       await delete(installmentsSchedule).go();
       await delete(materialPricesHistory).go();
-      await delete(dollarPricesHistory).go(); // 🌟 تمت الإضافة هنا
+      await delete(dollarPricesHistory).go(); // الدولار موجود هنا بفضل تعديلك
       await delete(contracts).go();
       await delete(apartments).go();
       await delete(buildings).go();
