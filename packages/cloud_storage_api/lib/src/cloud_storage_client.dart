@@ -172,6 +172,15 @@ class CloudStorageClient {
     return await query;
   }
 
+  // 📥 جلب أسعار الدولار (Pull)
+  Future<List<Map<String, dynamic>>> getDollarPrices({DateTime? lastSync}) async {
+    var query = _supabase.from('dollar_prices').select();
+    if (lastSync != null) {
+      query = query.gte('updated_at', lastSync.toUtc().toIso8601String());
+    }
+    return await query;
+  }
+
   // ==========================================
   // 📤 دوال رفع البيانات (PUSH to Cloud) - (UPSERT)
   // ==========================================
@@ -222,6 +231,10 @@ class CloudStorageClient {
   // 📤 رفع الإجراءات القانونية
   Future<void> upsertLegalAction(Map<String, dynamic> data) async => 
       await _supabase.from('legal_actions').upsert(data);
+
+  // 📤 رفع أسعار الدولار (Push / Upsert)
+  Future<void> upsertDollarPrice(Map<String, dynamic> data) async => 
+      await _supabase.from('dollar_prices').upsert(data);
 
   // ==========================================
   // 📂 رفع الملفات إلى Supabase Storage (طريقة التجاوز المباشر HTTP)

@@ -4497,6 +4497,526 @@ class MaterialPricesHistoryCompanion
   }
 }
 
+class $DollarPricesHistoryTable extends DollarPricesHistory
+    with TableInfo<$DollarPricesHistoryTable, DollarPricesHistoryData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $DollarPricesHistoryTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    clientDefault: () => _uuid.v7(),
+  );
+  static const VerificationMeta _effectiveDateMeta = const VerificationMeta(
+    'effectiveDate',
+  );
+  @override
+  late final GeneratedColumn<DateTime> effectiveDate =
+      GeneratedColumn<DateTime>(
+        'effective_date',
+        aliasedName,
+        false,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+        clientDefault: () => DateTime.now().toUtc(),
+      );
+  static const VerificationMeta _exchangeRateMeta = const VerificationMeta(
+    'exchangeRate',
+  );
+  @override
+  late final GeneratedColumn<double> exchangeRate = GeneratedColumn<double>(
+    'exchange_rate',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
+    'user_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    clientDefault: () => DateTime.now().toUtc(),
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    clientDefault: () => DateTime.now().toUtc(),
+  );
+  static const VerificationMeta _isDeletedMeta = const VerificationMeta(
+    'isDeleted',
+  );
+  @override
+  late final GeneratedColumn<bool> isDeleted = GeneratedColumn<bool>(
+    'is_deleted',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_deleted" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _isSyncedMeta = const VerificationMeta(
+    'isSynced',
+  );
+  @override
+  late final GeneratedColumn<bool> isSynced = GeneratedColumn<bool>(
+    'is_synced',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_synced" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    effectiveDate,
+    exchangeRate,
+    userId,
+    createdAt,
+    updatedAt,
+    isDeleted,
+    isSynced,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'dollar_prices_history';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<DollarPricesHistoryData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('effective_date')) {
+      context.handle(
+        _effectiveDateMeta,
+        effectiveDate.isAcceptableOrUnknown(
+          data['effective_date']!,
+          _effectiveDateMeta,
+        ),
+      );
+    }
+    if (data.containsKey('exchange_rate')) {
+      context.handle(
+        _exchangeRateMeta,
+        exchangeRate.isAcceptableOrUnknown(
+          data['exchange_rate']!,
+          _exchangeRateMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_exchangeRateMeta);
+    }
+    if (data.containsKey('user_id')) {
+      context.handle(
+        _userIdMeta,
+        userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_userIdMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    if (data.containsKey('is_deleted')) {
+      context.handle(
+        _isDeletedMeta,
+        isDeleted.isAcceptableOrUnknown(data['is_deleted']!, _isDeletedMeta),
+      );
+    }
+    if (data.containsKey('is_synced')) {
+      context.handle(
+        _isSyncedMeta,
+        isSynced.isAcceptableOrUnknown(data['is_synced']!, _isSyncedMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  DollarPricesHistoryData map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return DollarPricesHistoryData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      effectiveDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}effective_date'],
+      )!,
+      exchangeRate: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}exchange_rate'],
+      )!,
+      userId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}user_id'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      isDeleted: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_deleted'],
+      )!,
+      isSynced: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_synced'],
+      )!,
+    );
+  }
+
+  @override
+  $DollarPricesHistoryTable createAlias(String alias) {
+    return $DollarPricesHistoryTable(attachedDatabase, alias);
+  }
+}
+
+class DollarPricesHistoryData extends DataClass
+    implements Insertable<DollarPricesHistoryData> {
+  final String id;
+  final DateTime effectiveDate;
+  final double exchangeRate;
+  final String userId;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final bool isDeleted;
+  final bool isSynced;
+  const DollarPricesHistoryData({
+    required this.id,
+    required this.effectiveDate,
+    required this.exchangeRate,
+    required this.userId,
+    required this.createdAt,
+    required this.updatedAt,
+    required this.isDeleted,
+    required this.isSynced,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['effective_date'] = Variable<DateTime>(effectiveDate);
+    map['exchange_rate'] = Variable<double>(exchangeRate);
+    map['user_id'] = Variable<String>(userId);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    map['is_deleted'] = Variable<bool>(isDeleted);
+    map['is_synced'] = Variable<bool>(isSynced);
+    return map;
+  }
+
+  DollarPricesHistoryCompanion toCompanion(bool nullToAbsent) {
+    return DollarPricesHistoryCompanion(
+      id: Value(id),
+      effectiveDate: Value(effectiveDate),
+      exchangeRate: Value(exchangeRate),
+      userId: Value(userId),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      isDeleted: Value(isDeleted),
+      isSynced: Value(isSynced),
+    );
+  }
+
+  factory DollarPricesHistoryData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return DollarPricesHistoryData(
+      id: serializer.fromJson<String>(json['id']),
+      effectiveDate: serializer.fromJson<DateTime>(json['effectiveDate']),
+      exchangeRate: serializer.fromJson<double>(json['exchangeRate']),
+      userId: serializer.fromJson<String>(json['userId']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      isDeleted: serializer.fromJson<bool>(json['isDeleted']),
+      isSynced: serializer.fromJson<bool>(json['isSynced']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'effectiveDate': serializer.toJson<DateTime>(effectiveDate),
+      'exchangeRate': serializer.toJson<double>(exchangeRate),
+      'userId': serializer.toJson<String>(userId),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'isDeleted': serializer.toJson<bool>(isDeleted),
+      'isSynced': serializer.toJson<bool>(isSynced),
+    };
+  }
+
+  DollarPricesHistoryData copyWith({
+    String? id,
+    DateTime? effectiveDate,
+    double? exchangeRate,
+    String? userId,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    bool? isDeleted,
+    bool? isSynced,
+  }) => DollarPricesHistoryData(
+    id: id ?? this.id,
+    effectiveDate: effectiveDate ?? this.effectiveDate,
+    exchangeRate: exchangeRate ?? this.exchangeRate,
+    userId: userId ?? this.userId,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+    isDeleted: isDeleted ?? this.isDeleted,
+    isSynced: isSynced ?? this.isSynced,
+  );
+  DollarPricesHistoryData copyWithCompanion(DollarPricesHistoryCompanion data) {
+    return DollarPricesHistoryData(
+      id: data.id.present ? data.id.value : this.id,
+      effectiveDate: data.effectiveDate.present
+          ? data.effectiveDate.value
+          : this.effectiveDate,
+      exchangeRate: data.exchangeRate.present
+          ? data.exchangeRate.value
+          : this.exchangeRate,
+      userId: data.userId.present ? data.userId.value : this.userId,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      isDeleted: data.isDeleted.present ? data.isDeleted.value : this.isDeleted,
+      isSynced: data.isSynced.present ? data.isSynced.value : this.isSynced,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DollarPricesHistoryData(')
+          ..write('id: $id, ')
+          ..write('effectiveDate: $effectiveDate, ')
+          ..write('exchangeRate: $exchangeRate, ')
+          ..write('userId: $userId, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('isDeleted: $isDeleted, ')
+          ..write('isSynced: $isSynced')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    effectiveDate,
+    exchangeRate,
+    userId,
+    createdAt,
+    updatedAt,
+    isDeleted,
+    isSynced,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is DollarPricesHistoryData &&
+          other.id == this.id &&
+          other.effectiveDate == this.effectiveDate &&
+          other.exchangeRate == this.exchangeRate &&
+          other.userId == this.userId &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.isDeleted == this.isDeleted &&
+          other.isSynced == this.isSynced);
+}
+
+class DollarPricesHistoryCompanion
+    extends UpdateCompanion<DollarPricesHistoryData> {
+  final Value<String> id;
+  final Value<DateTime> effectiveDate;
+  final Value<double> exchangeRate;
+  final Value<String> userId;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<bool> isDeleted;
+  final Value<bool> isSynced;
+  final Value<int> rowid;
+  const DollarPricesHistoryCompanion({
+    this.id = const Value.absent(),
+    this.effectiveDate = const Value.absent(),
+    this.exchangeRate = const Value.absent(),
+    this.userId = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.isDeleted = const Value.absent(),
+    this.isSynced = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  DollarPricesHistoryCompanion.insert({
+    this.id = const Value.absent(),
+    this.effectiveDate = const Value.absent(),
+    required double exchangeRate,
+    required String userId,
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.isDeleted = const Value.absent(),
+    this.isSynced = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : exchangeRate = Value(exchangeRate),
+       userId = Value(userId);
+  static Insertable<DollarPricesHistoryData> custom({
+    Expression<String>? id,
+    Expression<DateTime>? effectiveDate,
+    Expression<double>? exchangeRate,
+    Expression<String>? userId,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<bool>? isDeleted,
+    Expression<bool>? isSynced,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (effectiveDate != null) 'effective_date': effectiveDate,
+      if (exchangeRate != null) 'exchange_rate': exchangeRate,
+      if (userId != null) 'user_id': userId,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (isDeleted != null) 'is_deleted': isDeleted,
+      if (isSynced != null) 'is_synced': isSynced,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  DollarPricesHistoryCompanion copyWith({
+    Value<String>? id,
+    Value<DateTime>? effectiveDate,
+    Value<double>? exchangeRate,
+    Value<String>? userId,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<bool>? isDeleted,
+    Value<bool>? isSynced,
+    Value<int>? rowid,
+  }) {
+    return DollarPricesHistoryCompanion(
+      id: id ?? this.id,
+      effectiveDate: effectiveDate ?? this.effectiveDate,
+      exchangeRate: exchangeRate ?? this.exchangeRate,
+      userId: userId ?? this.userId,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      isDeleted: isDeleted ?? this.isDeleted,
+      isSynced: isSynced ?? this.isSynced,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (effectiveDate.present) {
+      map['effective_date'] = Variable<DateTime>(effectiveDate.value);
+    }
+    if (exchangeRate.present) {
+      map['exchange_rate'] = Variable<double>(exchangeRate.value);
+    }
+    if (userId.present) {
+      map['user_id'] = Variable<String>(userId.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (isDeleted.present) {
+      map['is_deleted'] = Variable<bool>(isDeleted.value);
+    }
+    if (isSynced.present) {
+      map['is_synced'] = Variable<bool>(isSynced.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DollarPricesHistoryCompanion(')
+          ..write('id: $id, ')
+          ..write('effectiveDate: $effectiveDate, ')
+          ..write('exchangeRate: $exchangeRate, ')
+          ..write('userId: $userId, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('isDeleted: $isDeleted, ')
+          ..write('isSynced: $isSynced, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $InstallmentsScheduleTable extends InstallmentsSchedule
     with TableInfo<$InstallmentsScheduleTable, InstallmentsScheduleData> {
   @override
@@ -8465,6 +8985,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $ContractsTable contracts = $ContractsTable(this);
   late final $MaterialPricesHistoryTable materialPricesHistory =
       $MaterialPricesHistoryTable(this);
+  late final $DollarPricesHistoryTable dollarPricesHistory =
+      $DollarPricesHistoryTable(this);
   late final $InstallmentsScheduleTable installmentsSchedule =
       $InstallmentsScheduleTable(this);
   late final $PaymentsLedgerTable paymentsLedger = $PaymentsLedgerTable(this);
@@ -8492,6 +9014,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final Index idxPricesSync = Index(
     'idx_prices_sync',
     'CREATE INDEX idx_prices_sync ON material_prices_history (is_deleted, updated_at, effective_date)',
+  );
+  late final Index idxDollarPricesSync = Index(
+    'idx_dollar_prices_sync',
+    'CREATE INDEX idx_dollar_prices_sync ON dollar_prices_history (is_deleted, updated_at, effective_date)',
   );
   late final Index idxSchedulesSync = Index(
     'idx_schedules_sync',
@@ -8527,6 +9053,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     apartments,
     contracts,
     materialPricesHistory,
+    dollarPricesHistory,
     installmentsSchedule,
     paymentsLedger,
     appRoles,
@@ -8538,6 +9065,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     idxBuildingsSync,
     idxApartmentsSync,
     idxPricesSync,
+    idxDollarPricesSync,
     idxSchedulesSync,
     idxPaymentsSync,
     idxRolesSync,
@@ -11517,6 +12045,283 @@ typedef $$MaterialPricesHistoryTableProcessedTableManager =
       MaterialPricesHistoryData,
       PrefetchHooks Function()
     >;
+typedef $$DollarPricesHistoryTableCreateCompanionBuilder =
+    DollarPricesHistoryCompanion Function({
+      Value<String> id,
+      Value<DateTime> effectiveDate,
+      required double exchangeRate,
+      required String userId,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<bool> isDeleted,
+      Value<bool> isSynced,
+      Value<int> rowid,
+    });
+typedef $$DollarPricesHistoryTableUpdateCompanionBuilder =
+    DollarPricesHistoryCompanion Function({
+      Value<String> id,
+      Value<DateTime> effectiveDate,
+      Value<double> exchangeRate,
+      Value<String> userId,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<bool> isDeleted,
+      Value<bool> isSynced,
+      Value<int> rowid,
+    });
+
+class $$DollarPricesHistoryTableFilterComposer
+    extends Composer<_$AppDatabase, $DollarPricesHistoryTable> {
+  $$DollarPricesHistoryTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get effectiveDate => $composableBuilder(
+    column: $table.effectiveDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get exchangeRate => $composableBuilder(
+    column: $table.exchangeRate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get userId => $composableBuilder(
+    column: $table.userId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isDeleted => $composableBuilder(
+    column: $table.isDeleted,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isSynced => $composableBuilder(
+    column: $table.isSynced,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$DollarPricesHistoryTableOrderingComposer
+    extends Composer<_$AppDatabase, $DollarPricesHistoryTable> {
+  $$DollarPricesHistoryTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get effectiveDate => $composableBuilder(
+    column: $table.effectiveDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get exchangeRate => $composableBuilder(
+    column: $table.exchangeRate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get userId => $composableBuilder(
+    column: $table.userId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isDeleted => $composableBuilder(
+    column: $table.isDeleted,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isSynced => $composableBuilder(
+    column: $table.isSynced,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$DollarPricesHistoryTableAnnotationComposer
+    extends Composer<_$AppDatabase, $DollarPricesHistoryTable> {
+  $$DollarPricesHistoryTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get effectiveDate => $composableBuilder(
+    column: $table.effectiveDate,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get exchangeRate => $composableBuilder(
+    column: $table.exchangeRate,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get userId =>
+      $composableBuilder(column: $table.userId, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<bool> get isDeleted =>
+      $composableBuilder(column: $table.isDeleted, builder: (column) => column);
+
+  GeneratedColumn<bool> get isSynced =>
+      $composableBuilder(column: $table.isSynced, builder: (column) => column);
+}
+
+class $$DollarPricesHistoryTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $DollarPricesHistoryTable,
+          DollarPricesHistoryData,
+          $$DollarPricesHistoryTableFilterComposer,
+          $$DollarPricesHistoryTableOrderingComposer,
+          $$DollarPricesHistoryTableAnnotationComposer,
+          $$DollarPricesHistoryTableCreateCompanionBuilder,
+          $$DollarPricesHistoryTableUpdateCompanionBuilder,
+          (
+            DollarPricesHistoryData,
+            BaseReferences<
+              _$AppDatabase,
+              $DollarPricesHistoryTable,
+              DollarPricesHistoryData
+            >,
+          ),
+          DollarPricesHistoryData,
+          PrefetchHooks Function()
+        > {
+  $$DollarPricesHistoryTableTableManager(
+    _$AppDatabase db,
+    $DollarPricesHistoryTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$DollarPricesHistoryTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$DollarPricesHistoryTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$DollarPricesHistoryTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<DateTime> effectiveDate = const Value.absent(),
+                Value<double> exchangeRate = const Value.absent(),
+                Value<String> userId = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<bool> isDeleted = const Value.absent(),
+                Value<bool> isSynced = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => DollarPricesHistoryCompanion(
+                id: id,
+                effectiveDate: effectiveDate,
+                exchangeRate: exchangeRate,
+                userId: userId,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                isDeleted: isDeleted,
+                isSynced: isSynced,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<DateTime> effectiveDate = const Value.absent(),
+                required double exchangeRate,
+                required String userId,
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<bool> isDeleted = const Value.absent(),
+                Value<bool> isSynced = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => DollarPricesHistoryCompanion.insert(
+                id: id,
+                effectiveDate: effectiveDate,
+                exchangeRate: exchangeRate,
+                userId: userId,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                isDeleted: isDeleted,
+                isSynced: isSynced,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$DollarPricesHistoryTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $DollarPricesHistoryTable,
+      DollarPricesHistoryData,
+      $$DollarPricesHistoryTableFilterComposer,
+      $$DollarPricesHistoryTableOrderingComposer,
+      $$DollarPricesHistoryTableAnnotationComposer,
+      $$DollarPricesHistoryTableCreateCompanionBuilder,
+      $$DollarPricesHistoryTableUpdateCompanionBuilder,
+      (
+        DollarPricesHistoryData,
+        BaseReferences<
+          _$AppDatabase,
+          $DollarPricesHistoryTable,
+          DollarPricesHistoryData
+        >,
+      ),
+      DollarPricesHistoryData,
+      PrefetchHooks Function()
+    >;
 typedef $$InstallmentsScheduleTableCreateCompanionBuilder =
     InstallmentsScheduleCompanion Function({
       Value<String> id,
@@ -14474,6 +15279,8 @@ class $AppDatabaseManager {
       $$ContractsTableTableManager(_db, _db.contracts);
   $$MaterialPricesHistoryTableTableManager get materialPricesHistory =>
       $$MaterialPricesHistoryTableTableManager(_db, _db.materialPricesHistory);
+  $$DollarPricesHistoryTableTableManager get dollarPricesHistory =>
+      $$DollarPricesHistoryTableTableManager(_db, _db.dollarPricesHistory);
   $$InstallmentsScheduleTableTableManager get installmentsSchedule =>
       $$InstallmentsScheduleTableTableManager(_db, _db.installmentsSchedule);
   $$PaymentsLedgerTableTableManager get paymentsLedger =>
