@@ -380,6 +380,35 @@ class LegalActionAttachments extends Table {
   @override
   Set<Column> get primaryKey => {id};
 }
+
+// ==========================================
+// 💵 جدول سجل أسعار الدولار (Dollar Prices History)
+// ==========================================
+@TableIndex(name: 'idx_dollar_prices_sync', columns: {#isDeleted, #updatedAt, #effectiveDate})
+class DollarPricesHistory extends Table {
+  // 🌟 المعرف الفريد v7
+  TextColumn get id => text().clientDefault(() => _uuid.v7())();
+  
+  // 🌍 سريان مفعول السعر (UTC)
+  DateTimeColumn get effectiveDate => dateTime().clientDefault(() => DateTime.now().toUtc())(); 
+  
+  // سعر الصرف (كم يساوي الدولار بالعملة المحلية)
+  RealColumn get exchangeRate => real()(); 
+  
+  // 🌟 من قام بتحديث السعر؟ (مهم للتدقيق)
+  TextColumn get userId => text()();
+
+  // 🌍 حقول النظام والمزامنة (UTC)
+  DateTimeColumn get createdAt => dateTime().clientDefault(() => DateTime.now().toUtc())();
+  DateTimeColumn get updatedAt => dateTime().clientDefault(() => DateTime.now().toUtc())();
+  
+  BoolColumn get isDeleted => boolean().withDefault(const Constant(false))();
+  BoolColumn get isSynced => boolean().withDefault(const Constant(false))();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 // ==========================================
 // ==========================================
 // التكوين الرئيسي لقاعدة البيانات
