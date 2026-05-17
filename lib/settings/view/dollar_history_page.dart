@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../cubit/settings_cubit.dart';
 
-// 🌟 ديالوج إضافة سعر دولار قديم (سنقوم بإنشائه في الخطوة القادمة)
+// 🌟 ديالوج إضافة سعر دولار قديم 
 import 'dialogs/add_historical_dollar_dialog.dart';
 
 // دالة تنسيق الأرقام بالفواصل
@@ -12,8 +12,50 @@ String formatWithCommas(num number) {
   return number.toInt().toString().replaceAllMapped(reg, (Match match) => '${match[1]},');
 }
 
-class DollarHistoryPage extends StatelessWidget {
+// 🌟 تحويل الشاشة إلى StatefulWidget لدعم الفلترة المحلية
+class DollarHistoryPage extends StatefulWidget {
   const DollarHistoryPage({super.key});
+
+  @override
+  State<DollarHistoryPage> createState() => _DollarHistoryPageState();
+}
+
+class _DollarHistoryPageState extends State<DollarHistoryPage> {
+  // 🌟 متغير لحفظ فترة الفلترة المحددة
+  DateTimeRange? _selectedDateRange;
+
+  // 🌟 دالة فتح التقويم لاختيار فترة (من - إلى)
+  Future<void> _pickDateRange() async {
+    final initialDateRange = _selectedDateRange ??
+        DateTimeRange(
+          start: DateTime.now().subtract(const Duration(days: 30)),
+          end: DateTime.now(),
+        );
+
+    final newRange = await showDateRangePicker(
+      context: context,
+      initialDateRange: initialDateRange,
+      firstDate: DateTime(2000), // أقدم تاريخ مسموح
+      lastDate: DateTime.now(),  // لا يمكن فلترة المستقبل
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: ColorScheme.light(
+              primary: Colors.green.shade700, // لون التحديد
+              onPrimary: Colors.white, // لون النص داخل التحديد
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (newRange != null) {
+      setState(() {
+        _selectedDateRange = newRange;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,41 +65,65 @@ class DollarHistoryPage extends StatelessWidget {
         onPressed: () => showAddHistoricalDollarDialog(context),
         icon: const Icon(Icons.add_chart),
         label: const Text('إضافة تسعيرة قديمة', style: TextStyle(fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.green.shade700, // 🌟 اللون الأخضر المميز للدولار
+        backgroundColor: Colors.green.shade700, 
         foregroundColor: Colors.white,
       ),
       body: SafeArea(
         child: BlocBuilder<SettingsCubit, SettingsState>(
           builder: (context, state) {
             
-            // ترتيب تنازلي حسب تاريخ التسعيرة (الأحدث أولاً)
-            final sortedHistory = List.of(state.dollarPriceHistory)..sort((a, b) {
+            // 🌟 1. جلب السجل وتطبيق الفلتر (إن وُجد)
+            var filteredHistory = state.dollarPriceHistory;
+
+            if (_selectedDateRange != null) {
+              filteredHistory = filteredHistory.where((price) {
+                // تصفير الوقت للمقارنة بالأيام فقط
+                final date = DateTime(price.effectiveDate.year, price.effectiveDate.month, price.effectiveDate.day);
+                final start = DateTime(_selectedDateRange!.start.year, _selectedDateRange!.start.month, _selectedDateRange!.start.day);
+                final end = DateTime(_selectedDateRange!.end.year, _selectedDateRange!.end.month, _selectedDateRange!.end.day);
+
+                // التحقق هل يقع التاريخ ضمن الفترة
+                return (date.isAfter(start.subtract(const Duration(days: 1))) && date.isBefore(end.add(const Duration(days: 1))));
+              }).toList();
+            }
+
+            // 🌟 2. ترتيب تنازلي حسب تاريخ التسعيرة (الأحدث أولاً)
+            final sortedHistory = List.of(filteredHistory)..sort((a, b) {
               return b.effectiveDate.compareTo(a.effectiveDate); 
             });
 
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children:[
-                // 🌟 عنوان مدمج وأنيق
+              children: [
+                // العنوان المدمج وأيقونة الفلتر
                 _buildHeader(context, sortedHistory.length),
+
+                // 🌟 إظهار شريط الفلتر النشط إذا كان هناك فلتر محدد
+                if (_selectedDateRange != null) _buildActiveFilterIndicator(),
 
                 Expanded(
                   child: sortedHistory.isEmpty
                     ? Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
-                          children:[
+                          children: [
                             Icon(Icons.monetization_on_outlined, size: 80, color: Colors.grey.shade300),
                             const SizedBox(height: 16),
-                            const Text('لا يوجد سجل لأسعار الدولار بعد.', style: TextStyle(fontSize: 18, color: Colors.grey)),
+                            Text(
+                              _selectedDateRange != null 
+                                ? 'لا يوجد سجلات في هذه الفترة المحددة.' 
+                                : 'لا يوجد سجل لأسعار الدولار بعد.', 
+                              style: const TextStyle(fontSize: 18, color: Colors.grey)
+                            ),
                             const SizedBox(height: 8),
-                            const Text('اضغط على الزر بالأسفل لإضافة تسعيرة.', style: TextStyle(color: Colors.blueGrey)),
+                            if (_selectedDateRange == null)
+                              const Text('اضغط على الزر بالأسفل لإضافة تسعيرة.', style: TextStyle(color: Colors.blueGrey)),
                           ],
                         ),
                       )
                     : ListView(
-                        padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 100.0), 
-                        children:[
+                        padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 100.0), 
+                        children: [
                           Card(
                             elevation: 2,
                             margin: EdgeInsets.zero,
@@ -68,7 +134,7 @@ class DollarHistoryPage extends StatelessWidget {
                               child: ConstrainedBox(
                                 constraints: BoxConstraints(minWidth: MediaQuery.of(context).size.width - 32),
                                 child: DataTable(
-                                  headingRowColor: WidgetStateProperty.all(Colors.green.shade50), // 🌟 ترويسة خضراء
+                                  headingRowColor: WidgetStateProperty.all(Colors.green.shade50), 
                                   dataRowMinHeight: 55, 
                                   dataRowMaxHeight: 70, 
                                   columnSpacing: 40,
@@ -92,7 +158,7 @@ class DollarHistoryPage extends StatelessWidget {
                                         if (index.isEven) return Colors.grey.withOpacity(0.03); 
                                         return null; 
                                       }),
-                                      cells:[
+                                      cells: [
                                         // 1. التاريخ
                                         DataCell(Text(date, style: TextStyle(fontWeight: FontWeight.bold, color: Colors.green.shade800, fontSize: 14))), 
                                         
@@ -116,10 +182,10 @@ class DollarHistoryPage extends StatelessWidget {
                                           Column(
                                             mainAxisAlignment: MainAxisAlignment.center,
                                             crossAxisAlignment: CrossAxisAlignment.start,
-                                            children:[
+                                            children: [
                                               Row(
                                                 mainAxisSize: MainAxisSize.min,
-                                                children:[
+                                                children: [
                                                   Icon(Icons.person_outline, size: 14, color: Colors.orange.shade700),
                                                   const SizedBox(width: 4),
                                                   Text(
@@ -131,7 +197,7 @@ class DollarHistoryPage extends StatelessWidget {
                                               const SizedBox(height: 2),
                                               Row(
                                                 mainAxisSize: MainAxisSize.min,
-                                                children:[
+                                                children: [
                                                   const Icon(Icons.cloud_upload_outlined, size: 12, color: Colors.grey),
                                                   const SizedBox(width: 4),
                                                   Text(
@@ -173,11 +239,47 @@ class DollarHistoryPage extends StatelessWidget {
     );
   }
 
+  // 🌟 شريط يظهر عند وجود فلتر نشط
+  Widget _buildActiveFilterIndicator() {
+    final start = "${_selectedDateRange!.start.year}/${_selectedDateRange!.start.month}/${_selectedDateRange!.start.day}";
+    final end = "${_selectedDateRange!.end.year}/${_selectedDateRange!.end.month}/${_selectedDateRange!.end.day}";
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: Colors.green.shade50,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: Colors.green.shade200),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.filter_alt, color: Colors.green.shade700, size: 20),
+            const SizedBox(width: 8),
+            Text(
+              'تصفية من:  $start   إلى:  $end', 
+              style: TextStyle(color: Colors.green.shade900, fontWeight: FontWeight.bold)
+            ),
+            const Spacer(),
+            TextButton.icon(
+              onPressed: () {
+                setState(() => _selectedDateRange = null); // مسح الفلتر
+              },
+              icon: const Icon(Icons.clear, size: 16, color: Colors.red),
+              label: const Text('إلغاء الفلتر', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+            )
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildHeader(BuildContext context, int count) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 24, 16),
       child: Row(
-        children:[
+        children: [
           IconButton(
             icon: const Icon(Icons.arrow_forward_ios, color: Colors.blueGrey, size: 24),
             tooltip: 'العودة للإعدادات',
@@ -197,6 +299,15 @@ class DollarHistoryPage extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
             ),
           ),
+          
+          // 🌟 زر الفلتر
+          IconButton(
+            onPressed: _pickDateRange,
+            icon: Icon(Icons.date_range, color: Colors.green.shade700, size: 28),
+            tooltip: 'تصفية حسب التاريخ',
+          ),
+          const SizedBox(width: 16),
+
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
