@@ -1415,6 +1415,49 @@ class AppDatabase extends _$AppDatabase {
       )
     );
   }
+
+
+  // ==========================================
+  // 💵 --- استعلامات أسعار الدولار ---
+  // ==========================================
+  
+  // 1. جلب كل السجلات (للوحة التحكم والرسوم البيانية)
+  Future<List<DollarPricesHistoryData>> getAllDollarPricesHistory() => 
+      (select(dollarPricesHistory)..where((t) => t.isDeleted.equals(false))).get();
+
+  // 2. جلب أحدث سعر فعّال للدولار
+  Future<DollarPricesHistoryData?> getLatestDollarPrice() {
+    return (select(dollarPricesHistory)
+          ..where((t) => t.isDeleted.equals(false))
+          ..orderBy([
+            (t) => OrderingTerm.desc(t.effectiveDate), 
+            (t) => OrderingTerm.desc(t.createdAt),     
+          ])
+          ..limit(1))
+        .getSingleOrNull();
+  }
+
+  // 3. إضافة تسعيرة دولار جديدة (تضاف كسجل تاريخي جديد)
+  Future<String> insertDollarPriceRecord(DollarPricesHistoryCompanion prices) async {
+    final row = await into(dollarPricesHistory).insertReturning(prices);
+    return row.id;
+  }
+
+  // 4. البث الحي لأحدث سعر دولار (لواجهة الداشبورد)
+  Stream<DollarPricesHistoryData?> watchLatestDollarPrice() {
+    return (select(dollarPricesHistory)
+          ..where((t) => t.isDeleted.equals(false))
+          ..orderBy([
+            (t) => OrderingTerm.desc(t.effectiveDate),
+            (t) => OrderingTerm.desc(t.createdAt), 
+          ])
+          ..limit(1))
+        .watchSingleOrNull();
+  }
+
+  // 5. الحقن السحابي (Sync Upsert)
+  Future<void> syncDollarPrice(DollarPricesHistoryCompanion entity) => 
+      into(dollarPricesHistory).insert(entity, mode: InsertMode.insertOrReplace);
   
 }
 
