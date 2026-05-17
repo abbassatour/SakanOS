@@ -310,7 +310,7 @@ class _PriceHistoryPageState extends State<PriceHistoryPage> {
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: Colors.indigo.shade100)
             ),
-            child: Text(
+            child: Text( 
               'الإجمالي: $count',
               style: TextStyle(fontWeight: FontWeight.bold, color: Colors.indigo.shade700, fontSize: 14),
             ),
