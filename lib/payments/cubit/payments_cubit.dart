@@ -14,7 +14,8 @@ import 'package:local_storage_api/local_storage_api.dart'
         Apartment,
         Building,
         MaterialPricesHistoryCompanion,
-        MaterialPricesHistoryData;
+        MaterialPricesHistoryData,
+        DollarPricesHistoryCompanion; // 🌟 تمت إضافة استيراد الدولار هنا
 
 import '../../core/utils/calculator_helper.dart';
 
@@ -95,6 +96,7 @@ class PaymentsCubit extends Cubit<PaymentsState> {
     double? histFormwork,
     double? histAggregates,
     double? histWorker,
+    double? histDollarRate, // 🌟 المعامل الجديد لاستقبال سعر الدولار القديم
   }) async {
     emit(state.copyWith(status: PaymentsStatus.loading));
     try {
@@ -104,6 +106,20 @@ class PaymentsCubit extends Cubit<PaymentsState> {
 
       final String? userId = _erpRepository.currentUserId;
       if (userId == null) throw Exception('يجب تسجيل الدخول.');
+
+      // 🌟 [العملية المزدوجة]: حفظ سعر الدولار القديم في سجل الدولار فوراً
+      if (customDate != null && histDollarRate != null) {
+        try {
+          final historicalDollar = DollarPricesHistoryCompanion.insert(
+            exchangeRate: histDollarRate,
+            effectiveDate: Value(customDate.toUtc()),
+            userId: userId,
+          );
+          await _erpRepository.saveDollarPrice(historicalDollar);
+        } catch (e) {
+          print('⚠️ تحذير: فشل حفظ تسعيرة الدولار التاريخية: $e');
+        }
+      }
 
       Map<String, double> contractCoefficients = {};
       try {
@@ -128,7 +144,8 @@ class PaymentsCubit extends Cubit<PaymentsState> {
         meterPriceToUse = _roundTo10(customMeterPrice);
         pricesSnapshotJson = jsonEncode({
           'note': 'إدخال تاريخي سريع',
-          'manual_meter_price': meterPriceToUse
+          'manual_meter_price': meterPriceToUse,
+          'dollar_rate_used': histDollarRate // 🌟 توثيق سعر الدولار في اللقطة
         });
       } else if (customDate != null && histIron != null) {
         // 🛡️ تقريب الأسعار التاريخية قبل الحفظ
@@ -175,6 +192,7 @@ class PaymentsCubit extends Cubit<PaymentsState> {
           'formwork': _roundTo10(histFormwork),
           'aggregates': _roundTo10(histAggregates),
           'worker': _roundTo10(histWorker),
+          'dollar_rate_used': histDollarRate // 🌟 توثيق سعر الدولار في اللقطة
         });
       } else {
         final currentPrices = await _erpRepository.getLatestPrices();
