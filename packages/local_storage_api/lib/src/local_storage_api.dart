@@ -225,4 +225,15 @@ Future<void> handleRollingCheckpoint(String contractId, String scheduleId, Strin
   Future<List<LegalActionAttachment>> getAllLegalActionAttachments() => _db.getAllLegalActionAttachments();
 
   
+  // ==========================================
+  // 💵 أسعار الدولار
+  // ==========================================
+  Future<DollarPricesHistoryData?> getLatestDollarPrice() => _db.getLatestDollarPrice();
+  Future<String> saveDollarPrice(DollarPricesHistoryCompanion prices) => _db.insertDollarPriceRecord(prices);
+  Stream<DollarPricesHistoryData?> watchLatestDollarPrice() => _db.watchLatestDollarPrice();
+  Future<List<DollarPricesHistoryData>> getAllDollarPricesHistory() => _db.getAllDollarPricesHistory();
+  
+  // ولا تنسَ إضافتها في قسم Rights / Sync Upserts في نفس الملف:
+  Future<void> syncDollarPrice(DollarPricesHistoryCompanion c) => _db.syncDollarPrice(c);
+  
 }
