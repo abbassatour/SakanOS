@@ -1,18 +1,18 @@
 // lib/payments/view/dialogs/add_payment_dialog.dart
-import 'dart:convert'; // 🌟 لفك تشفير معاملات العقد
+import 'dart:convert'; 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart'; 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../cubit/payments_cubit.dart';
 import '../../../contracts/view/dialogs/verify_pin_dialog.dart'; 
 
-// 🌟 استدعاء أدوات الحساب والأسعار
+// استدعاء أدوات الحساب والأسعار
 import '../../../settings/cubit/settings_cubit.dart';
 import 'package:our_home_erp_app/core/utils/calculator_helper.dart';
 import 'package:local_storage_api/local_storage_api.dart';
 
 // ==========================================
-// 🌟 أداة تنسيق الأرقام (تضع فاصلة لكل 3 أرقام أثناء الكتابة)
+// 🌟 أداة تنسيق الأرقام
 // ==========================================
 class ThousandsFormatter extends TextInputFormatter {
   @override
@@ -35,7 +35,6 @@ class ThousandsFormatter extends TextInputFormatter {
   }
 }
 
-// دالة مساعدة سريعة لتنسيق العرض
 String formatWithCommas(num number) {
   RegExp reg = RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))');
   return number.toInt().toString().replaceAllMapped(reg, (Match match) => '${match[1]},');
@@ -45,15 +44,16 @@ void showAddPaymentDialog(BuildContext parentContext, String contractId) {
   final amountController = TextEditingController();
   final discountController = TextEditingController(text: '0'); 
 
-  // 🌟 المتغير للتحكم بنوع الدفعة (موجب أم سالب)
-  bool isDeposit = true; // True = قبض إيداع | False = استرداد / سحب
-
+  // متغيرات حالة الديالوج
+  bool isDeposit = true; 
   bool isHistoricalPayment = false;
   bool isDetailedMode = false; 
   DateTime selectedHistoricalDate = DateTime.now();
   
-  final meterPriceCtrl = TextEditingController(); 
+  // 🌟 متغير حالة الدولار
+  bool isDollarPayment = false;
   
+  final meterPriceCtrl = TextEditingController(); 
   final histIronCtrl = TextEditingController(); 
   final histCementCtrl = TextEditingController();
   final histBlockCtrl = TextEditingController();
@@ -61,9 +61,10 @@ void showAddPaymentDialog(BuildContext parentContext, String contractId) {
   final histAggregatesCtrl = TextEditingController();
   final histWorkerCtrl = TextEditingController();
 
-  // 🌟 جلب العقد الحالي وأسعار اليوم من الـ Cubits لعمل المحاكاة الحية
+  // جلب العقد، أسعار المواد، وسعر الدولار
   final contract = parentContext.read<PaymentsCubit>().state.contracts.firstWhere((c) => c.id == contractId);
   final currentPrices = parentContext.read<SettingsCubit>().state.currentPrices;
+  final currentDollar = parentContext.read<SettingsCubit>().state.currentDollarPrice; // 🌟 جلب الدولار
 
   showDialog(
     context: parentContext,
@@ -71,19 +72,28 @@ void showAddPaymentDialog(BuildContext parentContext, String contractId) {
       return StatefulBuilder(
         builder: (context, setState) {
           
-          // 1. قراءة المبلغ ونسبة الخصم
-          double rawAmount = double.tryParse(amountController.text.replaceAll(',', '')) ?? 0;
-          double discountPct = double.tryParse(discountController.text) ?? 0;
-          double effectiveAmount = rawAmount + (rawAmount * (discountPct / 100));
+          // ==========================================
+          // 🧠 المحرك الرياضي اللحظي للديالوج
+          // ==========================================
           
-          // 2. 🌟 محرك الحساب اللحظي لسعر المتر والأمتار
+          // 1. قراءة المبلغ المُدخل
+          double enteredAmount = double.tryParse(amountController.text.replaceAll(',', '')) ?? 0;
+          
+          // 🌟 2. التحويل التلقائي لليرة السورية إذا كان المفتاح مفعلاً
+          double sypEquivalentAmount = isDollarPayment && currentDollar != null
+              ? enteredAmount * currentDollar.exchangeRate
+              : enteredAmount;
+
+          // 3. حساب الخصم/البونص المئوي على المبلغ الإجمالي السوري
+          double discountPct = double.tryParse(discountController.text) ?? 0;
+          double effectiveAmount = sypEquivalentAmount + (sypEquivalentAmount * (discountPct / 100));
+          
+          // 4. حساب سعر المتر بناءً على المواد
           double calculatedMeterPrice = 0.0;
 
           if (isHistoricalPayment && !isDetailedMode) {
-            // حالة الإدخال اليدوي المباشر لسعر المتر
             calculatedMeterPrice = double.tryParse(meterPriceCtrl.text.replaceAll(',', '')) ?? 0;
           } else {
-            // حالة الحساب الآلي (سواء أسعار اليوم أو مواد تاريخية)
             MaterialPricesHistoryData? targetPrices;
             
             if (isHistoricalPayment && isDetailedMode) {
@@ -102,12 +112,10 @@ void showAddPaymentDialog(BuildContext parentContext, String contractId) {
 
             if (targetPrices != null) {
               try {
-                // استخراج معاملات العقد للضرب
                 final coeffs = jsonDecode(contract.coefficients) as Map<String, dynamic>;
                 final parsedCoeffs = coeffs.map((k, v) => MapEntry(k, (v as num).toDouble()));
-                
                 final calculations = CalculatorHelper.calculateContractValues(
-                  area: contract.totalArea > 0 ? contract.totalArea : 1.0, // حماية القسمة
+                  area: contract.totalArea > 0 ? contract.totalArea : 1.0, 
                   currentPrices: targetPrices,
                   coefficients: parsedCoeffs,
                 );
@@ -118,10 +126,9 @@ void showAddPaymentDialog(BuildContext parentContext, String contractId) {
             }
           }
 
-          // 3. حساب الأمتار المحولة أو المخصومة
+          // 5. حساب الأمتار 
           double previewMeters = calculatedMeterPrice > 0 ? (effectiveAmount / calculatedMeterPrice) : 0;
 
-          // ألوان متغيرة حسب النوع
           Color mainColor = isDeposit ? Colors.deepOrange : Colors.red.shade800;
           String titleText = isDeposit ? 'إدخال دفعة (إيداع)' : 'سحب / استرداد مبلغ';
 
@@ -139,51 +146,53 @@ void showAddPaymentDialog(BuildContext parentContext, String contractId) {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children:[
-                    // 🌟 1. مفتاح تغيير نوع العملية (إيداع أو سحب)
+                    // 1. نوع العملية (إيداع / سحب)
                     Container(
                       padding: const EdgeInsets.symmetric(vertical: 4),
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade100,
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: Colors.grey.shade300)
-                      ),
+                      decoration: BoxDecoration(color: Colors.grey.shade100, borderRadius: BorderRadius.circular(10), border: Border.all(color: Colors.grey.shade300)),
                       child: Row(
                         children:[
-                          Expanded(
-                            child: RadioListTile<bool>(
-                              title: const Text('إيداع (قبض)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                              value: true,
-                              groupValue: isDeposit,
-                              activeColor: Colors.deepOrange,
-                              onChanged: (val) => setState(() => isDeposit = val!),
-                            ),
-                          ),
-                          Expanded(
-                            child: RadioListTile<bool>(
-                              title: const Text('استرداد (سحب)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.red)),
-                              value: false,
-                              groupValue: isDeposit,
-                              activeColor: Colors.red,
-                              onChanged: (val) async {
-                                bool authorized = await showVerifyPinDialog(parentContext);
-                                if (authorized) {
-                                  setState(() => isDeposit = val!);
-                                }
-                              },
-                            ),
-                          ),
+                          Expanded(child: RadioListTile<bool>(title: const Text('إيداع (قبض)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)), value: true, groupValue: isDeposit, activeColor: Colors.deepOrange, onChanged: (val) => setState(() => isDeposit = val!))),
+                          Expanded(child: RadioListTile<bool>(title: const Text('استرداد (سحب)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.red)), value: false, groupValue: isDeposit, activeColor: Colors.red, onChanged: (val) async {
+                              bool authorized = await showVerifyPinDialog(parentContext);
+                              if (authorized) setState(() => isDeposit = val!);
+                            })),
                         ],
                       ),
                     ),
                     const SizedBox(height: 16),
 
-                    // 🌟 2. مفتاح الدفعة القديمة
+                    // ==========================================
+                    // 🌟 2. مفتاح التحويل للدولار
+                    // ==========================================
                     Container(
+                      margin: const EdgeInsets.only(bottom: 16),
                       decoration: BoxDecoration(
-                        color: isHistoricalPayment ? Colors.blue.shade50 : Colors.transparent,
-                        border: Border.all(color: isHistoricalPayment ? Colors.blue : Colors.transparent),
+                        color: isDollarPayment ? Colors.green.shade50 : Colors.white,
+                        border: Border.all(color: isDollarPayment ? Colors.green : Colors.grey.shade300),
                         borderRadius: BorderRadius.circular(8)
                       ),
+                      child: SwitchListTile(
+                        title: Text('إدخال المبلغ بالدولار الأمريكي (USD)', style: TextStyle(fontWeight: FontWeight.bold, color: isDollarPayment ? Colors.green.shade700 : Colors.black87, fontSize: 14)),
+                        subtitle: currentDollar != null 
+                            ? Text('سعر الصرف: ${formatWithCommas(currentDollar.exchangeRate)} ل.س', style: TextStyle(color: isDollarPayment ? Colors.green.shade900 : Colors.grey))
+                            : const Text('⚠️ لم يتم تعيين سعر دولار بعد', style: TextStyle(color: Colors.red)),
+                        value: isDollarPayment,
+                        activeColor: Colors.green,
+                        // 🛡️ حماية: لا يمكن استخدام الدولار إذا لم يكن مسجلاً، أو إذا كانت دفعة قديمة
+                        onChanged: currentDollar != null && !isHistoricalPayment ? (val) {
+                          setState(() {
+                            isDollarPayment = val;
+                            // تصفير الحقل عند التبديل لمنع الارتباك
+                            amountController.clear(); 
+                          });
+                        } : null, 
+                      ),
+                    ),
+
+                    // 3. مفتاح الدفعة القديمة
+                    Container(
+                      decoration: BoxDecoration(color: isHistoricalPayment ? Colors.blue.shade50 : Colors.transparent, border: Border.all(color: isHistoricalPayment ? Colors.blue : Colors.transparent), borderRadius: BorderRadius.circular(8)),
                       child: SwitchListTile(
                         title: const Text('إدخال عملية قديمة (تاريخية)', style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold)),
                         subtitle: const Text('لتسجيل حركات سابقة وإدخال سعر المتر يدوياً.'),
@@ -193,12 +202,11 @@ void showAddPaymentDialog(BuildContext parentContext, String contractId) {
                           if (val) {
                             bool authorized = await showVerifyPinDialog(parentContext);
                             if (authorized) {
-                              setState(() => isHistoricalPayment = true);
-                              final pickedDate = await showDatePicker(
-                                context: dialogContext, initialDate: selectedHistoricalDate,
-                                firstDate: DateTime(2000), lastDate: DateTime.now(),
-                                builder: (context, child) => Theme(data: ThemeData.light().copyWith(colorScheme: const ColorScheme.light(primary: Colors.blue)), child: child!),
-                              );
+                              setState(() { 
+                                isHistoricalPayment = true; 
+                                isDollarPayment = false; // 🌟 تعطيل الدولار في الدفعات القديمة لحماية الحسابات
+                              });
+                              final pickedDate = await showDatePicker(context: dialogContext, initialDate: selectedHistoricalDate, firstDate: DateTime(2000), lastDate: DateTime.now(), builder: (context, child) => Theme(data: ThemeData.light().copyWith(colorScheme: const ColorScheme.light(primary: Colors.blue)), child: child!));
                               if (pickedDate != null) setState(() => selectedHistoricalDate = pickedDate);
                             }
                           } else {
@@ -209,8 +217,9 @@ void showAddPaymentDialog(BuildContext parentContext, String contractId) {
                     ),
                     const SizedBox(height: 12),
 
-                    // 🌟 3. إعدادات التاريخ والمواد 
+                    // 4. إعدادات الدفعة التاريخية
                     if (isHistoricalPayment) ...[
+                      // الكود الخاص بالدفعة التاريخية موجود هنا كما هو في ملفك السابق...
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(color: Colors.white, border: Border.all(color: Colors.blue.shade300, width: 2), borderRadius: BorderRadius.circular(8)),
@@ -222,10 +231,7 @@ void showAddPaymentDialog(BuildContext parentContext, String contractId) {
                               children:[
                                 const Text('📅 تاريخ العملية:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                                 ElevatedButton.icon(
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.blue.shade50, foregroundColor: Colors.blue.shade700, elevation: 0,
-                                    side: BorderSide(color: Colors.blue.shade300, width: 2), padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                                  ),
+                                  style: ElevatedButton.styleFrom(backgroundColor: Colors.blue.shade50, foregroundColor: Colors.blue.shade700, elevation: 0, side: BorderSide(color: Colors.blue.shade300, width: 2), padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12)),
                                   icon: const Icon(Icons.calendar_month, size: 22),
                                   label: Text('${selectedHistoricalDate.year}/${selectedHistoricalDate.month}/${selectedHistoricalDate.day}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                                   onPressed: () async {
@@ -237,7 +243,6 @@ void showAddPaymentDialog(BuildContext parentContext, String contractId) {
                             ),
                             const SizedBox(height: 12),
                             const Divider(color: Colors.blue),
-                            
                             Row(
                               children:[
                                 Expanded(child: RadioListTile<bool>(title: const Text('إدخال مباشر', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)), subtitle: const Text('سعر المتر فقط', style: TextStyle(fontSize: 11)), value: false, groupValue: isDetailedMode, onChanged: (val) => setState(() => isDetailedMode = val!), activeColor: Colors.blue, contentPadding: EdgeInsets.zero)),
@@ -245,7 +250,6 @@ void showAddPaymentDialog(BuildContext parentContext, String contractId) {
                               ],
                             ),
                             const SizedBox(height: 8),
-
                             if (!isDetailedMode)
                               TextField(controller: meterPriceCtrl, inputFormatters:[ThousandsFormatter()], decoration: const InputDecoration(labelText: 'سعر المتر المربع في ذلك الوقت (ل.س)', border: OutlineInputBorder(), prefixIcon: Icon(Icons.speed, color: Colors.blue), filled: true, fillColor: Colors.white), keyboardType: TextInputType.number, onChanged: (_) => setState(() {}))
                             else
@@ -264,15 +268,26 @@ void showAddPaymentDialog(BuildContext parentContext, String contractId) {
                       const SizedBox(height: 16),
                     ],
 
-                    // 🌟 4. حقول المبلغ الأساسية
+                    // ==========================================
+                    // 🌟 5. حقل إدخال المبلغ الديناميكي (يتغير لونه وشكله حسب الدولار)
+                    // ==========================================
                     TextField(
                       controller: amountController,
                       inputFormatters:[ThousandsFormatter()], 
                       decoration: InputDecoration(
-                        labelText: isDeposit ? 'المبلغ المدفوع (ل.س)' : 'المبلغ المسترد / المسحوب (ل.س)', 
-                        border: const OutlineInputBorder(), prefixIcon: Icon(Icons.attach_money, color: mainColor),
-                        filled: true, fillColor: isDeposit ? Colors.white : Colors.red.shade50,
+                        labelText: isDollarPayment 
+                            ? 'المبلغ ${isDeposit ? "المدفوع" : "المسترد"} بالدولار (USD)' 
+                            : 'المبلغ ${isDeposit ? "المدفوع" : "المسترد"} (ل.س)', 
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)), 
+                        prefixIcon: Icon(isDollarPayment ? Icons.monetization_on : Icons.payments, color: isDollarPayment ? Colors.green : mainColor),
+                        filled: true, 
+                        fillColor: isDollarPayment ? Colors.green.shade50 : (isDeposit ? Colors.white : Colors.red.shade50),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: isDollarPayment ? Colors.green : mainColor, width: 2),
+                          borderRadius: BorderRadius.circular(10)
+                        )
                       ),
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: isDollarPayment ? Colors.green.shade900 : Colors.black87),
                       keyboardType: TextInputType.number,
                       onChanged: (val) => setState(() {}), 
                     ),
@@ -282,7 +297,8 @@ void showAddPaymentDialog(BuildContext parentContext, String contractId) {
                       controller: discountController,
                       decoration: InputDecoration(
                         labelText: isDeposit ? 'نسبة الخصم / البونص المئوية' : 'نسبة البونص المُراد استرجاعها', 
-                        border: const OutlineInputBorder(), suffixText: '%', prefixIcon: Icon(Icons.percent, color: mainColor),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)), 
+                        suffixText: '%', prefixIcon: Icon(Icons.percent, color: mainColor),
                         filled: true, fillColor: isDeposit ? Colors.white : Colors.red.shade50,
                       ),
                       keyboardType: TextInputType.number,
@@ -291,27 +307,45 @@ void showAddPaymentDialog(BuildContext parentContext, String contractId) {
                     const SizedBox(height: 16),
 
                     // ==========================================
-                    // 🌟 5. نافذة المعاينة (Live Preview) المطورة
+                    // 🌟 6. نافذة المعاينة الحية المطورة (مع عرض معادلة الدولار)
                     // ==========================================
-                    if (rawAmount > 0)
+                    if (enteredAmount > 0)
                       Container(
                         padding: const EdgeInsets.all(16),
                         width: double.infinity,
                         decoration: BoxDecoration(
-                          color: isDeposit ? Colors.green.shade50 : Colors.red.shade50, 
+                          color: isDeposit ? Colors.blue.shade50 : Colors.red.shade50, 
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: isDeposit ? Colors.green : Colors.red.shade200, width: 2)
+                          border: Border.all(color: isDeposit ? Colors.blue.shade200 : Colors.red.shade200, width: 2)
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children:[
-                            Text(isDeposit ? 'المبلغ المعتمد للتحويل:' : 'الرقم الإجمالي الذي سيُخصم من الرصيد:', style: TextStyle(fontSize: 13, color: Colors.grey.shade700)),
+                            // 🌟 عرض توضيحي لعملية التحويل إذا كانت الدفعة بالدولار
+                            if (isDollarPayment) ...[
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                width: double.infinity,
+                                decoration: BoxDecoration(color: Colors.green.shade100, borderRadius: BorderRadius.circular(6)),
+                                child: Column(
+                                  children: [
+                                    const Text('يعادل بالليرة السورية:', style: TextStyle(fontSize: 12, color: Colors.green)),
+                                    Text(
+                                      '${formatWithCommas(sypEquivalentAmount)} ل.س',
+                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.green.shade900),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                            ],
+
+                            Text(isDeposit ? 'المبلغ النهائي المعتمد للتحويل (مع البونص):' : 'الرقم الإجمالي الذي سيُخصم من الرصيد:', style: TextStyle(fontSize: 13, color: Colors.grey.shade700)),
                             Text(
                               '${isDeposit ? '' : '- '}${formatWithCommas(effectiveAmount)} ل.س',
-                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: isDeposit ? Colors.green.shade800 : Colors.red.shade800),
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: isDeposit ? Colors.blue.shade800 : Colors.red.shade800),
                             ),
                             
-                            // 🌟 عرض تفاصيل سعر المتر والأمتار المحسوبة
                             if (calculatedMeterPrice > 0) ...[
                               const Divider(height: 24),
                               Text('سعر المتر المعتمد لعملية التحويل:', style: TextStyle(fontSize: 13, color: Colors.grey.shade700)),
@@ -321,7 +355,7 @@ void showAddPaymentDialog(BuildContext parentContext, String contractId) {
                               Text(isDeposit ? 'الأمتار المضافة لرصيد العميل:' : 'الأمتار المخصومة من رصيد العميل:', style: TextStyle(fontSize: 13, color: Colors.grey.shade700)),
                               Text(
                                 '${isDeposit ? '+ ' : '- '}${previewMeters.toStringAsFixed(3)} م²',
-                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: isDeposit ? Colors.blue.shade700 : Colors.red.shade800),
+                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: isDeposit ? Colors.green.shade700 : Colors.red.shade800),
                               ),
                             ] else ...[
                               const Divider(height: 24),
@@ -341,10 +375,10 @@ void showAddPaymentDialog(BuildContext parentContext, String contractId) {
               ),
             ),
             actions:[
-              TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('إلغاء')),
+              TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('إلغاء', style: TextStyle(fontWeight: FontWeight.bold))),
               ElevatedButton(
-                style: ElevatedButton.styleFrom(backgroundColor: mainColor, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12)),
-                onPressed: rawAmount > 0 && calculatedMeterPrice > 0 ? () {
+                style: ElevatedButton.styleFrom(backgroundColor: mainColor, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
+                onPressed: enteredAmount > 0 && calculatedMeterPrice > 0 ? () {
                   
                   if (isHistoricalPayment) {
                     if (!isDetailedMode && meterPriceCtrl.text.isEmpty) {
@@ -362,7 +396,8 @@ void showAddPaymentDialog(BuildContext parentContext, String contractId) {
                     SnackBar(content: Text(isDeposit ? 'جاري إضافة الدفعة وتحديث الأمتار...' : 'جاري خصم المبلغ والأمتار...'), duration: const Duration(seconds: 1)),
                   );
 
-                  final double finalAmountToSave = isDeposit ? rawAmount : (rawAmount * -1);
+                  // 🌟 هنا نرسل القيمة بعد أن تم تحويلها لليرة السورية (sypEquivalentAmount)
+                  final double finalAmountToSave = isDeposit ? sypEquivalentAmount : (sypEquivalentAmount * -1);
 
                   parentContext.read<PaymentsCubit>().addLedgerEntry(
                     contractId: contractId,
@@ -370,7 +405,6 @@ void showAddPaymentDialog(BuildContext parentContext, String contractId) {
                     discountPercentage: discountPct, 
                     customDate: isHistoricalPayment ? selectedHistoricalDate : null,
                     customMeterPrice: isHistoricalPayment && !isDetailedMode ? double.parse(meterPriceCtrl.text.replaceAll(',', '')) : null,
-                    
                     histIron: isHistoricalPayment && isDetailedMode ? double.parse(histIronCtrl.text.replaceAll(',', '')) : null,
                     histCement: isHistoricalPayment && isDetailedMode ? double.parse(histCementCtrl.text.replaceAll(',', '')) : null,
                     histBlock: isHistoricalPayment && isDetailedMode ? double.parse(histBlockCtrl.text.replaceAll(',', '')) : null,
