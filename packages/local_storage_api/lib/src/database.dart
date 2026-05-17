@@ -924,11 +924,12 @@ class AppDatabase extends _$AppDatabase {
   // ==========================================
   Future<void> clearAllData() {
     return transaction(() async {
-      await delete(localUsers).go(); // 🌟 جديد
-      await delete(appRoles).go();   // 🌟 جديد
+      await delete(localUsers).go(); 
+      await delete(appRoles).go();   
       await delete(paymentsLedger).go();
       await delete(installmentsSchedule).go();
       await delete(materialPricesHistory).go();
+      await delete(dollarPricesHistory).go(); // 🌟 تمت الإضافة هنا
       await delete(contracts).go();
       await delete(apartments).go();
       await delete(buildings).go();
