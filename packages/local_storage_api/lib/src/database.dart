@@ -1459,6 +1459,18 @@ class AppDatabase extends _$AppDatabase {
   // 5. الحقن السحابي (Sync Upsert)
   Future<void> syncDollarPrice(DollarPricesHistoryCompanion entity) => 
       into(dollarPricesHistory).insert(entity, mode: InsertMode.insertOrReplace);
+
+
+  // الحذف الوهمي لتسعيرة دولار
+  Future<int> softDeleteDollarPrice(String id) {
+    return (update(dollarPricesHistory)..where((t) => t.id.equals(id))).write(
+      DollarPricesHistoryCompanion(
+        isDeleted: const Value(true),
+        updatedAt: Value(DateTime.now().toUtc()),
+        isSynced: const Value(false)
+      )
+    );
+  }
   
 }
 

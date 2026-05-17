@@ -235,5 +235,6 @@ Future<void> handleRollingCheckpoint(String contractId, String scheduleId, Strin
   
   // ولا تنسَ إضافتها في قسم Rights / Sync Upserts في نفس الملف:
   Future<void> syncDollarPrice(DollarPricesHistoryCompanion c) => _db.syncDollarPrice(c);
+  Future<int> softDeleteDollarPrice(String id) => _db.softDeleteDollarPrice(id);
   
 }
