@@ -108,6 +108,12 @@ class ErpRepository {
       final existingClients = await _localApi.getClients();
       final isDatabaseEmpty = existingClients.isEmpty;
 
+      // 📥 سحب أسعار الدولار من السحابة
+      final cloudDollarPrices = await _cloudStorageClient.getDollarPrices(); // يمكنك تمرير lastSync إذا كنت تستخدمه
+      for (var cloudJson in cloudDollarPrices) {
+        await _localStorageApi.syncDollarPrice(_mapCloudToDollarPrice(cloudJson));
+      }
+
       // 3. اتخاذ القرار: سحب تزايدي أم سحب شامل؟
       if (lastSyncStr != null && !isDatabaseEmpty) {
         lastSyncTime = DateTime.parse(lastSyncStr).toUtc();
@@ -1478,6 +1484,46 @@ class ErpRepository {
       print('❌ خطأ أثناء إرفاق الملف القانوني: $e');
       throw Exception('فشل الإرفاق: $e'); 
     }
+  }
+
+
+
+  // ==========================================
+  // 💵 دوال الدولار (Dollar Prices) للواجهات
+  // ==========================================
+  
+  // البث الحي (لاستخدامه في SettingsCubit)
+  Stream<DollarPricesHistoryData?> watchLatestDollarPrice() => 
+      _localStorageApi.watchLatestDollarPrice();
+
+  // جلب السجل التاريخي (لشاشة سجل الدولار)
+  Future<List<DollarPricesHistoryData>> getAllDollarPricesHistory() => 
+      _localStorageApi.getAllDollarPricesHistory();
+
+  // حفظ تسعيرة دولار جديدة (مع محاولة رفع فورية)
+  Future<void> saveDollarPrice(DollarPricesHistoryCompanion prices) async {
+    // 1. الحفظ محلياً أولاً
+    final newId = await _localStorageApi.saveDollarPrice(prices);
+    
+    // 2. محاولة الرفع السحابي الفوري
+    try {
+      final savedData = await _localStorageApi.database.select(_localStorageApi.database.dollarPricesHistory)
+          .where((t) => t.id.equals(newId)).getSingle();
+          
+      await _cloudStorageClient.upsertDollarPrice(_mapDollarPriceToCloud(savedData));
+      
+      // إذا نجح الرفع، نحدث حالة السجل إلى "متزامن"
+      await _localStorageApi.syncDollarPrice(savedData.copyWith(isSynced: true).toCompanion(true));
+    } catch (e) {
+      print('⚠️ الحفظ المحلي تم، لكن الرفع السحابي فشل (بدون إنترنت). سُيرفع لاحقاً.');
+    }
+  }
+
+  // حذف تسعيرة دولار من السجل
+  Future<void> softDeleteDollarPrice(String id) async {
+    await _localStorageApi.softDeleteDollarPrice(id);
+    // تفعيل المزامنة الخلفية لرفع حالة الحذف للسحابة
+    forceSyncWithCloud();
   }
   
 
