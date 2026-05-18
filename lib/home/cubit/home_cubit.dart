@@ -3,7 +3,8 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:erp_repository/erp_repository.dart';
 import 'package:intl/intl.dart';
-import 'package:local_storage_api/local_storage_api.dart' show PaymentsLedgerData, Contract, MaterialPricesHistoryData, Apartment; 
+// 🌟 أضفنا استيراد DollarPricesHistoryData
+import 'package:local_storage_api/local_storage_api.dart' show PaymentsLedgerData, Contract, MaterialPricesHistoryData, Apartment, DollarPricesHistoryData; 
 
 part 'home_state.dart';
 
@@ -12,11 +13,12 @@ class HomeCubit extends Cubit<HomeState> {
 
   final ErpRepository _erpRepository;
 
-  List<Contract> _cachedContracts =[];
-  List<PaymentsLedgerData> _cachedPayments =[];
-  List<MaterialPricesHistoryData> _cachedPrices =[]; 
-  List<ActivityItem> _cachedActivities =[]; 
-  List<Apartment> _cachedApartments =[];
+  List<Contract> _cachedContracts = [];
+  List<PaymentsLedgerData> _cachedPayments = [];
+  List<MaterialPricesHistoryData> _cachedPrices = []; 
+  List<ActivityItem> _cachedActivities = []; 
+  List<Apartment> _cachedApartments = [];
+  List<DollarPricesHistoryData> _cachedDollarPrices = []; // 🌟 مخبأ الدولار
 
   Future<void> fetchDashboardData() async {
     emit(state.copyWith(status: HomeStatus.loading)); 
@@ -26,6 +28,9 @@ class HomeCubit extends Cubit<HomeState> {
       _cachedPrices = await _erpRepository.getAllMaterialPricesHistory(); 
       _cachedActivities = await _erpRepository.getRecentActivities(limitPerType: 10, finalLimit: 20); 
       _cachedApartments = await _erpRepository.getAllApartments();
+      
+      // 🌟 جلب سجل الدولار
+      _cachedDollarPrices = await _erpRepository.getAllDollarPricesHistory();
 
       _processAndEmitData();
     } catch (e) {
@@ -64,12 +69,11 @@ class HomeCubit extends Cubit<HomeState> {
     _processAndEmitData(); 
   }
 
-  // 🌟 دالة مساعدة لحساب الأشهر المنقضية بدقة
   int _monthsBetween(DateTime from, DateTime to) {
     int years = to.year - from.year;
     int months = to.month - from.month;
     int totalMonths = years * 12 + months;
-    if (to.day < from.day) totalMonths--; // لم يكتمل الشهر تماماً
+    if (to.day < from.day) totalMonths--; 
     return totalMonths > 0 ? totalMonths : 0;
   }
 
@@ -84,21 +88,32 @@ class HomeCubit extends Cubit<HomeState> {
     Map<String, int> inventoryStatus = {'متاحة': 0, 'مباعة': 0, 'مُسلّمة': 0};
     
     Map<String, double> tempGroupedRev = {};
-    Map<String, List<double>> tempPriceTrend = {}; 
+    Map<String, List<double>> tempDollarTrend = {}; // 🌟 خريطة مؤقتة لحساب متوسط الدولار
     Map<String, List<double>> tempCostTrend = {}; 
 
     final refDate = state.referenceDate;
     final now = DateTime.now().toUtc();
     
-    // تهيئة الخرائط الزمنية (بقي كما هو)
+    // تهيئة الخرائط الزمنية
     if (state.timeFilter == TimeFilter.daily) {
-      for (int i = 6; i >= 0; i--) { String key = DateFormat('MM-dd').format(refDate.subtract(Duration(days: i))); tempGroupedRev[key] = 0.0; tempPriceTrend[key] =[]; tempCostTrend[key] =[]; }
+      for (int i = 6; i >= 0; i--) { 
+        String key = DateFormat('MM-dd').format(refDate.subtract(Duration(days: i))); 
+        tempGroupedRev[key] = 0.0; tempDollarTrend[key] = []; tempCostTrend[key] = []; 
+      }
     } else if (state.timeFilter == TimeFilter.weekly) {
-      for (int i = 1; i <= 4; i++) { tempGroupedRev['الأسبوع $i'] = 0.0; tempPriceTrend['الأسبوع $i'] =[]; tempCostTrend['الأسبوع $i'] =[]; }
+      for (int i = 1; i <= 4; i++) { 
+        tempGroupedRev['الأسبوع $i'] = 0.0; tempDollarTrend['الأسبوع $i'] = []; tempCostTrend['الأسبوع $i'] = []; 
+      }
     } else if (state.timeFilter == TimeFilter.monthly) {
-      for (int i = 1; i <= 12; i++) { String key = '${refDate.year}-${i.toString().padLeft(2, '0')}'; tempGroupedRev[key] = 0.0; tempPriceTrend[key] =[]; tempCostTrend[key] =[]; }
+      for (int i = 1; i <= 12; i++) { 
+        String key = '${refDate.year}-${i.toString().padLeft(2, '0')}'; 
+        tempGroupedRev[key] = 0.0; tempDollarTrend[key] = []; tempCostTrend[key] = []; 
+      }
     } else if (state.timeFilter == TimeFilter.yearly) {
-      for (int i = 4; i >= 0; i--) { String key = '${refDate.year - i}'; tempGroupedRev[key] = 0.0; tempPriceTrend[key] =[]; tempCostTrend[key] =[]; }
+      for (int i = 4; i >= 0; i--) { 
+        String key = '${refDate.year - i}'; 
+        tempGroupedRev[key] = 0.0; tempDollarTrend[key] = []; tempCostTrend[key] = []; 
+      }
     }
 
     // 1. حساب المدفوعات الإجمالية والأمتار المحصلة
@@ -106,7 +121,6 @@ class HomeCubit extends Cubit<HomeState> {
       totalRevenue += p.amountPaid; 
       totalPaidMeters += p.convertedMeters; 
       
-      // التوزيع الزمني للإيرادات
       if (state.timeFilter == TimeFilter.daily) {
         String key = DateFormat('MM-dd').format(p.paymentDate);
         if (tempGroupedRev.containsKey(key)) tempGroupedRev[key] = tempGroupedRev[key]! + p.amountPaid;
@@ -127,7 +141,6 @@ class HomeCubit extends Cubit<HomeState> {
     
     // 2. تحليل العقود (استخراج المبيعات والأمتار والديون المرنة)
     for (var c in _cachedContracts) {
-      // 🌟 نتجاهل العقود المحذوفة (مع أن الـ Repo يتجاهلها، لكن كطبقة حماية)
       if (c.isDeleted) continue;
 
       totalAreaSold += c.totalArea;
@@ -135,37 +148,26 @@ class HomeCubit extends Cubit<HomeState> {
       
       if (!c.isHandedOver) totalUndeliveredMeters += c.totalArea;
 
-      // ==========================================
-      // 🌟 الخوارزمية المرنة لحساب الديون المتأخرة المستعجلة + الغرامات
-      // ==========================================
+      // الخوارزمية المرنة لحساب الديون المتأخرة المستعجلة + الغرامات
       if (!c.isCompleted && c.agreedMonthlyAmount > 0) {
-        // أ) كم شهراً مر منذ التوقيع؟ (بحد أقصى مدة العقد)
         int monthsPassed = _monthsBetween(c.contractDate, now);
         if (monthsPassed > c.installmentsCount) monthsPassed = c.installmentsCount;
 
-        // ب) كم يجب أن يكون قد دفع حتى اليوم؟
         double expectedPayment = c.downPayment + (monthsPassed * c.agreedMonthlyAmount);
 
-        // ج) كم دفع فعلياً لهذا العقد؟
         double actualPaidForThisContract = 0.0;
         for (var p in _cachedPayments.where((p) => p.contractId == c.id && !p.isDeleted)) {
           actualPaidForThisContract += p.amountPaid;
         }
 
-        // د) حساب العجز الأساسي (الديون)
         double overdue = expectedPayment - actualPaidForThisContract;
 
-        // هـ) 🚨 السحر المالي: تطبيق غرامة ما بعد الاستلام
         if (overdue > 0 && c.isHandedOver && c.isPenaltyActive && c.actualHandoverDate != null) {
-          // كم شهراً مر منذ استلام الشقة؟
           int handoverMonthsPassed = _monthsBetween(c.actualHandoverDate!, now);
           
           if (handoverMonthsPassed > 0 && c.penaltyIntervalMonths > 0) {
-            // كم مرة نطبق الغرامة؟ (مثلاً مر 6 أشهر، وتُطبق كل 2 شهر = 3 مرات)
             int penaltyApplications = (handoverMonthsPassed / c.penaltyIntervalMonths).floor();
-            
             if (penaltyApplications > 0) {
-              // حساب قيمة الغرامة وإضافتها للدين المتأخر
               double penaltyAmount = overdue * (c.penaltyPercentage / 100) * penaltyApplications;
               overdue += penaltyAmount; 
             }
@@ -176,33 +178,38 @@ class HomeCubit extends Cubit<HomeState> {
           totalOverdueDebts += overdue;
         }
       }
-      // ==========================================
+      
+      // ❌ تم إزالة كود (توزيع سعر المبيع الزمني) من هنا نهائياً
+    }
 
-      // التوزيع الزمني لمتوسط السعر
+    // 🌟 3. توزيع أسعار الدولار عبر الزمن (الجديد)
+    for (var d in _cachedDollarPrices) {
+      if (d.isDeleted) continue;
+
       if (state.timeFilter == TimeFilter.daily) {
-        String key = DateFormat('MM-dd').format(c.contractDate);
-        if (tempPriceTrend.containsKey(key)) tempPriceTrend[key]!.add(c.baseMeterPriceAtSigning);
-      } else if (state.timeFilter == TimeFilter.weekly && c.contractDate.year == refDate.year && c.contractDate.month == refDate.month) {
-        int weekNum = ((c.contractDate.day - 1) / 7).floor() + 1;
+        String key = DateFormat('MM-dd').format(d.effectiveDate);
+        if (tempDollarTrend.containsKey(key)) tempDollarTrend[key]!.add(d.exchangeRate);
+      } else if (state.timeFilter == TimeFilter.weekly && d.effectiveDate.year == refDate.year && d.effectiveDate.month == refDate.month) {
+        int weekNum = ((d.effectiveDate.day - 1) / 7).floor() + 1;
         if (weekNum > 4) weekNum = 4;
-        tempPriceTrend['الأسبوع $weekNum']!.add(c.baseMeterPriceAtSigning);
-      } else if (state.timeFilter == TimeFilter.monthly && c.contractDate.year == refDate.year) {
-        String key = '${c.contractDate.year}-${c.contractDate.month.toString().padLeft(2, '0')}';
-        if (tempPriceTrend.containsKey(key)) tempPriceTrend[key]!.add(c.baseMeterPriceAtSigning);
+        tempDollarTrend['الأسبوع $weekNum']!.add(d.exchangeRate);
+      } else if (state.timeFilter == TimeFilter.monthly && d.effectiveDate.year == refDate.year) {
+        String key = '${d.effectiveDate.year}-${d.effectiveDate.month.toString().padLeft(2, '0')}';
+        if (tempDollarTrend.containsKey(key)) tempDollarTrend[key]!.add(d.exchangeRate);
       } else if (state.timeFilter == TimeFilter.yearly) {
-        String key = '${c.contractDate.year}';
-        if (tempPriceTrend.containsKey(key)) tempPriceTrend[key]!.add(c.baseMeterPriceAtSigning);
+        String key = '${d.effectiveDate.year}';
+        if (tempDollarTrend.containsKey(key)) tempDollarTrend[key]!.add(d.exchangeRate);
       }
     }
 
-    // 3. تحليل جرد الشقق والمخزون
+    // 4. تحليل جرد الشقق والمخزون
     for (var apt in _cachedApartments) {
       if (apt.status == 'available') inventoryStatus['متاحة'] = inventoryStatus['متاحة']! + 1;
       else if (apt.status == 'delivered') inventoryStatus['مُسلّمة'] = inventoryStatus['مُسلّمة']! + 1;
       else inventoryStatus['مباعة'] = inventoryStatus['مباعة']! + 1;
     }
 
-    // 4. تريند التكاليف
+    // 5. تريند التكاليف
     for (var price in _cachedPrices) {
       double baseCost = (price.ironPrice * 30.0) + (price.cementPrice * 4.0) + (price.block15Price * 50.0) + 
                         (price.formworkAndPouringWages * 1.0) + (price.aggregateMaterialsPrice * 2.0) + (price.ordinaryWorkerWage * 1.0);
@@ -223,9 +230,10 @@ class HomeCubit extends Cubit<HomeState> {
       }
     }
     
-    Map<String, double> finalPriceTrend = {};
-    tempPriceTrend.forEach((key, prices) {
-      finalPriceTrend[key] = prices.isEmpty ? 0.0 : prices.fold(0.0, (a, b) => a + b) / prices.length;
+    // 🌟 حساب المتوسطات للدولار والتكلفة
+    Map<String, double> finalDollarTrend = {};
+    tempDollarTrend.forEach((key, rates) {
+      finalDollarTrend[key] = rates.isEmpty ? 0.0 : rates.fold(0.0, (a, b) => a + b) / rates.length;
     });
 
     Map<String, double> finalCostTrend = {};
@@ -233,6 +241,7 @@ class HomeCubit extends Cubit<HomeState> {
       finalCostTrend[key] = costs.isEmpty ? 0.0 : costs.fold(0.0, (a, b) => a + b) / costs.length;
     });
 
+    // دالة الملء التلقائي للفراغات الزمنية (لضمان استمرارية المخطط)
     void applyForwardFill(Map<String, double> trendData) {
       double lastKnownValue = 0.0;
       for (var value in trendData.values) {
@@ -244,7 +253,7 @@ class HomeCubit extends Cubit<HomeState> {
       }
     }
 
-    applyForwardFill(finalPriceTrend);
+    applyForwardFill(finalDollarTrend); // 🌟 ملء فراغات الدولار
     applyForwardFill(finalCostTrend);
 
     var sortedPayments = List<PaymentsLedgerData>.from(_cachedPayments);
@@ -259,10 +268,10 @@ class HomeCubit extends Cubit<HomeState> {
       totalOverdueDebts: totalOverdueDebts,
       totalUndeliveredMeters: totalUndeliveredMeters, 
       inventoryStatus: inventoryStatus,
-      activeContractsCount: _cachedContracts.where((c) => !c.isDeleted && !c.isCompleted).length, // فقط الفعالة
+      activeContractsCount: _cachedContracts.where((c) => !c.isDeleted && !c.isCompleted).length, 
       latestPayments: latestFive,
       groupedRevenue: tempGroupedRev, 
-      priceTrend: finalPriceTrend,
+      dollarTrend: finalDollarTrend, // 🌟 تمرير خريطة الدولار الجاهزة
       costTrend: finalCostTrend, 
       contractsByType: byType,
       recentActivities: _cachedActivities,
