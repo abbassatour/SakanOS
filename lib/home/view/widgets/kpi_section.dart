@@ -12,7 +12,7 @@ class KpiSection extends StatelessWidget {
     final numberFormatter = NumberFormat.decimalPattern('ar_AR');
 
     final kpis =[
-      // 1. الأرقام القديمة (التي تعمل لديك بامتياز)
+      // 1. الأرقام القديمة 
       _KpiData(
         icon: Icons.account_balance_wallet_rounded,
         gradient: const LinearGradient(colors: [Color(0xFF11998e), Color(0xFF38ef7d)]),
@@ -31,7 +31,7 @@ class KpiSection extends StatelessWidget {
       ),
       
       // ==========================================
-      // 🌟 [الإضافات الجديدة]: البطاقات الإدارية الخطيرة
+      // 🌟 البطاقات الإدارية الخطيرة
       // ==========================================
       _KpiData(
         icon: Icons.warning_amber_rounded,
@@ -46,18 +46,19 @@ class KpiSection extends StatelessWidget {
         gradient: const LinearGradient(colors:[Color(0xFFf5af19), Color(0xFFf12711)]), // برتقالي تنبيهي
         title: 'الأمتار المتبقية ',
         value: '${numberFormatter.format(state.remainingMetersInDebt)} م²',
-        subtitle: 'أمتار للشركة لم ي تم قبض ثمنها',
+        subtitle: 'أمتار للشركة لم يتم قبض ثمنها',
         iconBg: const Color(0xFFf5af19),
       ),
-      // ==========================================
 
-      // عودة للأرقام القديمة
+      // ==========================================
+      // 🌟 [التعديل هنا]: استبدال متوسط السعر القديم بمؤشر الأمتار قيد التسليم
+      // ==========================================
       _KpiData(
-        icon: Icons.trending_up_rounded,
+        icon: Icons.vpn_key_rounded,
         gradient: const LinearGradient(colors: [Color(0xFFf7971e), Color(0xFFffd200)]),
-        title: 'متوسط سعر المتر',
-        value: '${numberFormatter.format(state.averageSellPrice.toInt())} ل.س',
-        subtitle: 'متوسط سعر البيع للمتر المربع',
+        title: 'أمتار قيد التسليم',
+        value: '${numberFormatter.format(state.totalUndeliveredMeters)} م²',
+        subtitle: 'مساحات مباعة لم تُسلم للعملاء بعد',
         iconBg: const Color(0xFFf7971e),
       ),
       _KpiData(
@@ -65,7 +66,7 @@ class KpiSection extends StatelessWidget {
         gradient: const LinearGradient(colors:[Color(0xFF7b4397), Color(0xFFdc2430)]),
         title: 'العقود الفعّالة',
         value: numberFormatter.format(state.activeContractsCount),
-        subtitle: 'إجمالي العقود المبرمة',
+        subtitle: 'إجمالي العقود المبرمة غير المؤرشفة',
         iconBg: const Color(0xFF7b4397),
       ),
     ];
@@ -99,7 +100,6 @@ class KpiSection extends StatelessWidget {
 
 // ✅ نموذج بيانات الكرت (بقي كما هو بدون أي مساس)
 class _KpiData {
-
   const _KpiData({
     required this.icon,
     required this.gradient,

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import '../../cubit/home_cubit.dart';
-import '../materials_trend_page.dart'; // 🌟 الاستيراد الجديد للصفحة التفصيلية
+import '../materials_trend_page.dart'; 
 
 // استيراد المكونات
 import 'charts/chart_colors.dart';
@@ -12,7 +12,6 @@ import 'charts/section_header.dart';
 import 'charts/revenue_chart.dart';
 import 'charts/trend_line_chart.dart';
 import 'charts/contracts_pie_chart.dart';
-// 🌟 استيراد المخططات الجديدة
 import 'charts/inventory_pie_chart.dart';
 import 'charts/meters_progress_chart.dart';
 
@@ -52,7 +51,7 @@ class ChartsSection extends StatelessWidget {
         ),
         const SizedBox(height: 24),
 
-        // 🌟 الصف الأول (أموال وأسعار)
+        // 🌟 الصف الأول (أموال وعملات)
         ChartRow(children:[
           Expanded(
             flex: 2,
@@ -66,12 +65,15 @@ class ChartsSection extends StatelessWidget {
           Expanded(
             flex: 2,
             child: TrendLineChart(
-              title: 'تطور متوسط سعر المبيع',
-              description: 'يوضح تغير متوسط سعر بيع المتر المربع عبر الزمن.',
-              data: state.priceTrend,
-              color: ChartColors.orange,
-              icon: Icons.trending_up_rounded,
-              peakLabel: 'أعلى فترة سعراً:',
+              // ==========================================
+              // 🌟 التعديل السحري: استبدال المخطط بسعر الدولار
+              // ==========================================
+              title: 'تطور سعر صرف الدولار',
+              description: 'يوضح التغير الزمني لمتوسط سعر صرف الدولار (USD) المعتمد في تقييم المدفوعات.',
+              data: state.dollarTrend, // 🌟 ربط المخطط ببيانات الدولار
+              color: Colors.green.shade600, // 🌟 لون أخضر أنيق للعملة
+              icon: Icons.currency_exchange, // 🌟 أيقونة الصرافة
+              peakLabel: 'أعلى سعر صرف:',
             ),
           ),
         ]),
@@ -101,9 +103,6 @@ class ChartsSection extends StatelessWidget {
               actionIcon: Icons.analytics_outlined,
               actionTooltip: 'تحليل تفصيلي لأسعار المواد الستة',
               onActionTap: () {
-                // ==========================================
-                // 🌟 تفعيل الانتقال للصفحة التحليلية الجديدة
-                // ==========================================
                 Navigator.push(
                   context, 
                   MaterialPageRoute(builder: (_) => const MaterialsTrendPage())
@@ -115,9 +114,7 @@ class ChartsSection extends StatelessWidget {
         
         const SizedBox(height: 16),
 
-        // ==========================================
-        // 🌟 الصف الثالث الجديد (الموقف التشغيلي والأمتار)
-        // ==========================================
+        // 🌟 الصف الثالث (الموقف التشغيلي والأمتار)
         ChartRow(children:[
           Expanded(
             flex: 1,
@@ -127,7 +124,7 @@ class ChartsSection extends StatelessWidget {
           ),
           const SizedBox(width: 16),
           Expanded(
-            flex: 2, // أعطينا الأمتار مساحة أكبر لأنها أشرطة أفقية
+            flex: 2, 
             child: MetersProgressChart(
               totalSold: state.totalAreaSold,
               paid: state.totalPaidMeters,
