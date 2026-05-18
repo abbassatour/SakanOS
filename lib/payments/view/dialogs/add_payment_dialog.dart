@@ -53,6 +53,9 @@ void showAddPaymentDialog(BuildContext parentContext, String contractId) {
   // 🌟 متغير حالة الدولار
   bool isDollarPayment = false;
   
+  // 🌟 متحكم حقل سعر الدولار القديم
+  final histDollarRateCtrl = TextEditingController(); 
+
   final meterPriceCtrl = TextEditingController(); 
   final histIronCtrl = TextEditingController(); 
   final histCementCtrl = TextEditingController();
@@ -79,10 +82,20 @@ void showAddPaymentDialog(BuildContext parentContext, String contractId) {
           // 1. قراءة المبلغ المُدخل
           double enteredAmount = double.tryParse(amountController.text.replaceAll(',', '')) ?? 0;
           
+          // 🌟 حساب سعر الدولار التاريخي المدخل (إن وُجد)
+          double historicalDollarRate = double.tryParse(histDollarRateCtrl.text.replaceAll(',', '')) ?? 0;
+
           // 🌟 2. التحويل التلقائي لليرة السورية إذا كان المفتاح مفعلاً
-          double sypEquivalentAmount = isDollarPayment && currentDollar != null
-              ? enteredAmount * currentDollar.exchangeRate
-              : enteredAmount;
+          double sypEquivalentAmount = enteredAmount;
+          if (isDollarPayment) {
+            if (isHistoricalPayment) {
+              // إذا كان تاريخي، نضرب بالسعر القديم المدخل
+              sypEquivalentAmount = enteredAmount * historicalDollarRate;
+            } else if (currentDollar != null) {
+              // إذا كان اليوم، نضرب بسعر اليوم
+              sypEquivalentAmount = enteredAmount * currentDollar.exchangeRate;
+            }
+          }
 
           // 3. حساب الخصم/البونص المئوي على المبلغ الإجمالي السوري
           double discountPct = double.tryParse(discountController.text) ?? 0;
@@ -174,16 +187,17 @@ void showAddPaymentDialog(BuildContext parentContext, String contractId) {
                       ),
                       child: SwitchListTile(
                         title: Text('إدخال المبلغ بالدولار الأمريكي (USD)', style: TextStyle(fontWeight: FontWeight.bold, color: isDollarPayment ? Colors.green.shade700 : Colors.black87, fontSize: 14)),
-                        subtitle: currentDollar != null 
-                            ? Text('سعر الصرف: ${formatWithCommas(currentDollar.exchangeRate)} ل.س', style: TextStyle(color: isDollarPayment ? Colors.green.shade900 : Colors.grey))
-                            : const Text('⚠️ لم يتم تعيين سعر دولار بعد', style: TextStyle(color: Colors.red)),
+                        subtitle: isHistoricalPayment 
+                            ? const Text('أدخل سعر صرف الدولار القديم في الأسفل', style: TextStyle(color: Colors.green))
+                            : (currentDollar != null 
+                                ? Text('سعر الصرف: ${formatWithCommas(currentDollar.exchangeRate)} ل.س', style: TextStyle(color: isDollarPayment ? Colors.green.shade900 : Colors.grey))
+                                : const Text('⚠️ لم يتم تعيين سعر دولار بعد', style: TextStyle(color: Colors.red))),
                         value: isDollarPayment,
                         activeColor: Colors.green,
-                        // 🛡️ حماية: لا يمكن استخدام الدولار إذا لم يكن مسجلاً، أو إذا كانت دفعة قديمة
-                        onChanged: currentDollar != null && !isHistoricalPayment ? (val) {
+                        // 🌟 السماح بتفعيل الدولار في الدفعات القديمة، أو إذا كان دولار اليوم موجوداً
+                        onChanged: (isHistoricalPayment || currentDollar != null) ? (val) {
                           setState(() {
                             isDollarPayment = val;
-                            // تصفير الحقل عند التبديل لمنع الارتباك
                             amountController.clear(); 
                           });
                         } : null, 
@@ -204,7 +218,7 @@ void showAddPaymentDialog(BuildContext parentContext, String contractId) {
                             if (authorized) {
                               setState(() { 
                                 isHistoricalPayment = true; 
-                                isDollarPayment = false; // 🌟 تعطيل الدولار في الدفعات القديمة لحماية الحسابات
+                                // نترك isDollarPayment كما هي (لا نقفلها) لكي نتيح له إدخال دولار تاريخي
                               });
                               final pickedDate = await showDatePicker(context: dialogContext, initialDate: selectedHistoricalDate, firstDate: DateTime(2000), lastDate: DateTime.now(), builder: (context, child) => Theme(data: ThemeData.light().copyWith(colorScheme: const ColorScheme.light(primary: Colors.blue)), child: child!));
                               if (pickedDate != null) setState(() => selectedHistoricalDate = pickedDate);
@@ -219,7 +233,6 @@ void showAddPaymentDialog(BuildContext parentContext, String contractId) {
 
                     // 4. إعدادات الدفعة التاريخية
                     if (isHistoricalPayment) ...[
-                      // الكود الخاص بالدفعة التاريخية موجود هنا كما هو في ملفك السابق...
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(color: Colors.white, border: Border.all(color: Colors.blue.shade300, width: 2), borderRadius: BorderRadius.circular(8)),
@@ -241,6 +254,25 @@ void showAddPaymentDialog(BuildContext parentContext, String contractId) {
                                 )
                               ],
                             ),
+                            
+                            // 🌟 حقل سعر الدولار التاريخي (يظهر فقط إذا كان الزرين مفعلين)
+                            if (isDollarPayment) ...[
+                              const SizedBox(height: 16),
+                              TextField(
+                                controller: histDollarRateCtrl, 
+                                inputFormatters:[ThousandsFormatter()], 
+                                decoration: InputDecoration(
+                                  labelText: 'سعر صرف 1 دولار في ذلك التاريخ (ل.س)', 
+                                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)), 
+                                  prefixIcon: const Icon(Icons.history_edu, color: Colors.green), 
+                                  filled: true, fillColor: Colors.green.shade50,
+                                  focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.green.shade700, width: 2))
+                                ), 
+                                keyboardType: TextInputType.number, 
+                                onChanged: (_) => setState(() {})
+                              ),
+                            ],
+
                             const SizedBox(height: 12),
                             const Divider(color: Colors.blue),
                             Row(
@@ -376,11 +408,17 @@ void showAddPaymentDialog(BuildContext parentContext, String contractId) {
             ),
             actions:[
               TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('إلغاء', style: TextStyle(fontWeight: FontWeight.bold))),
+              
+              // 🌟 تعطيل الزر إذا كان الدولار مفعلاً لكن السعر التاريخي مفقود
               ElevatedButton(
                 style: ElevatedButton.styleFrom(backgroundColor: mainColor, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
-                onPressed: enteredAmount > 0 && calculatedMeterPrice > 0 ? () {
+                onPressed: enteredAmount > 0 && calculatedMeterPrice > 0 && (!isDollarPayment || (isDollarPayment && (!isHistoricalPayment || (isHistoricalPayment && historicalDollarRate > 0)))) ? () {
                   
                   if (isHistoricalPayment) {
+                    if (isDollarPayment && histDollarRateCtrl.text.isEmpty) {
+                      ScaffoldMessenger.of(dialogContext).showSnackBar(const SnackBar(content: Text('الرجاء إدخال سعر صرف الدولار التاريخي!'), backgroundColor: Colors.red));
+                      return;
+                    }
                     if (!isDetailedMode && meterPriceCtrl.text.isEmpty) {
                       ScaffoldMessenger.of(dialogContext).showSnackBar(const SnackBar(content: Text('الرجاء إدخال سعر المتر!'), backgroundColor: Colors.red));
                       return;
@@ -396,7 +434,6 @@ void showAddPaymentDialog(BuildContext parentContext, String contractId) {
                     SnackBar(content: Text(isDeposit ? 'جاري إضافة الدفعة وتحديث الأمتار...' : 'جاري خصم المبلغ والأمتار...'), duration: const Duration(seconds: 1)),
                   );
 
-                  // 🌟 هنا نرسل القيمة بعد أن تم تحويلها لليرة السورية (sypEquivalentAmount)
                   final double finalAmountToSave = isDeposit ? sypEquivalentAmount : (sypEquivalentAmount * -1);
 
                   parentContext.read<PaymentsCubit>().addLedgerEntry(
@@ -411,6 +448,9 @@ void showAddPaymentDialog(BuildContext parentContext, String contractId) {
                     histFormwork: isHistoricalPayment && isDetailedMode ? double.parse(histFormworkCtrl.text.replaceAll(',', '')) : null,
                     histAggregates: isHistoricalPayment && isDetailedMode ? double.parse(histAggregatesCtrl.text.replaceAll(',', '')) : null,
                     histWorker: isHistoricalPayment && isDetailedMode ? double.parse(histWorkerCtrl.text.replaceAll(',', '')) : null,
+                    
+                    // 🌟 تمرير سعر الدولار القديم (إن وجد) ليتم حفظه
+                    histDollarRate: isHistoricalPayment && isDollarPayment ? historicalDollarRate : null,
                   );
                 } : null, 
                 child: Text(isDeposit ? 'تأكيد وحفظ الدفعة' : 'تأكيد السحب', style: const TextStyle(fontWeight: FontWeight.bold)),
