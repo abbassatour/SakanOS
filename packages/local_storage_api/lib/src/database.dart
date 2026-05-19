@@ -212,6 +212,12 @@ class InstallmentsSchedule extends Table {
   
   // 🌟 السطر الجديد: حقل الملاحظات
   TextColumn get notes => text().nullable()(); 
+
+
+  
+  // 🌟 [السطر الجديد]: المبلغ المخصص (للدفعات الموسمية والاستثنائية)
+  RealColumn get expectedAmount => real().nullable()(); 
+  
   
   TextColumn get userId => text()();
   DateTimeColumn get createdAt => dateTime().clientDefault(() => DateTime.now().toUtc())();
