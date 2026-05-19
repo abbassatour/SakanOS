@@ -293,15 +293,14 @@ class ScheduleCubit extends Cubit<ScheduleState> {
       }
 
       // 2. تجهيز كائن الدفعة الجديدة
-      // نعطيها رقماً أعلى من البقية (لكي لا تتضارب محاسبياً)، 
-      // لكن في الواجهة سنرتب العرض حسب التاريخ (dueDate) فتظهر في مكانها الصحيح!
       final companion = InstallmentsScheduleCompanion.insert(
         contractId: contractId,
         installmentNumber: maxNumber + 1,
         dueDate: dueDate.toUtc(),
         status: const Value('pending'),
         notes: Value(notes),
-        expectedAmount: Value(expectedAmount), // 🌟 هنا يتم حفظ المبلغ المميز
+        expectedAmount: Value(expectedAmount),
+        userId: 'temp', // 🌟 [الحل هنا]: قيمة مؤقتة لإرضاء Drift، الـ Repository سيستبدلها بالـ ID الحقيقي فوراً!
       );
 
       // 3. إرسال أمر الحفظ للمستودع
