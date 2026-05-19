@@ -5,6 +5,8 @@ import 'package:local_storage_api/local_storage_api.dart' show Contract;
 import '../../../../cubit/schedule_cubit.dart';
 import '../../../dialogs/edit_schedule_dialog.dart';
 import '../../../dialogs/reschedule_dialog.dart';
+// 🌟 [الاستدعاء الجديد]: استدعاء نافذة إضافة الدفعة الاستثنائية
+import '../../../dialogs/add_custom_schedule_dialog.dart'; 
 
 class ScheduleToolbar extends StatelessWidget {
   final ScheduleState state;
@@ -86,6 +88,28 @@ class ScheduleToolbar extends StatelessWidget {
           
           if (state.selectedContractId != null && !isPostAllocation) ...[
             const SizedBox(width: 16),
+            
+            // 🌟 [الزر الجديد]: إضافة دفعة استثنائية / موسمية
+            SizedBox(
+              height: 36, 
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.orange.shade600,
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                ),
+                icon: const Icon(Icons.star, size: 16),
+                label: const Text('دفعة استثنائية', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                onPressed: () {
+                  if (currentContract != null) {
+                    showAddCustomScheduleDialog(context, currentContract!.id);
+                  }
+                },
+              ),
+            ),
+            const SizedBox(width: 8),
+
             SizedBox(
               height: 36, 
               child: OutlinedButton.icon(
