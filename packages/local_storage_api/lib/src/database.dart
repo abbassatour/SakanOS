@@ -843,9 +843,13 @@ class AppDatabase extends _$AppDatabase {
         }
       }
 
-      // 2. الحذف الوهمي (Soft Delete) لجميع الأقساط "المعلقة" الحالية
+      // 2. الحذف الوهمي (Soft Delete) لجميع الأقساط "المعلقة" و "العادية" فقط
+      // 🌟 أضفنا t.expectedAmount.isNull() لحماية الدفعات الموسمية من الحذف
       await (update(installmentsSchedule)
-            ..where((t) => t.contractId.equals(contractId) & t.status.equals('pending') & t.isDeleted.equals(false)))
+            ..where((t) => t.contractId.equals(contractId) 
+                         & t.status.equals('pending') 
+                         & t.isDeleted.equals(false)
+                         & t.expectedAmount.isNull())) // 🛡️ جدار الحماية
           .write(
         InstallmentsScheduleCompanion(
           isDeleted: const Value(true),
@@ -856,7 +860,6 @@ class AppDatabase extends _$AppDatabase {
 
       // 3. توليد الأقساط الجديدة المتبقية بالتاريخ الجديد
       for (int i = 1; i <= newRemainingMonths; i++) {
-        // نستخدم DateTime.utc لضمان التوقيت العالمي، والـ Dart ذكية ستعالج زيادة الأشهر تلقائياً للسنوات القادمة
         final dueDate = DateTime.utc(newStartDate.year, newStartDate.month + (i - 1), newStartDate.day);
 
         final entry = InstallmentsScheduleCompanion.insert(
