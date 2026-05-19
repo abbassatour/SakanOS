@@ -753,6 +753,12 @@ class AppDatabase extends _$AppDatabase {
         ..orderBy([(t) => OrderingTerm.asc(t.dueDate)])
       ).get();
 
+
+  // 🌟 [السطر الجديد]: إضافة دفعة مخصصة / موسمية يدوياً
+  Future<String> insertCustomSchedule(InstallmentsScheduleCompanion entry) async {
+    final row = await into(installmentsSchedule).insertReturning(entry);
+    return row.id;
+  }
   
 
   // تحديث حالة القسط (مثلاً من pending إلى paid)
@@ -791,14 +797,21 @@ class AppDatabase extends _$AppDatabase {
 
 
   // ==========================================
-  // ✏️ تعديل قسط فردي (تأجيل + ملاحظات)
+  // ✏️ تعديل قسط فردي (تأجيل + ملاحظات + تعديل المبلغ المخصص)
   // ==========================================
-  Future<int> updateIndividualSchedule(String scheduleId, DateTime newDueDate, String? notes, String userId) {
+  Future<int> updateIndividualSchedule({
+    required String scheduleId, 
+    required DateTime newDueDate, 
+    String? notes, 
+    double? expectedAmount, // 🌟 إضافة الحقل هنا
+    required String userId
+  }) {
     return (update(installmentsSchedule)..where((t) => t.id.equals(scheduleId))).write(
       InstallmentsScheduleCompanion(
         dueDate: Value(newDueDate.toUtc()), 
         notes: Value(notes),
-        userId: Value(userId), // 🌟 حفظ آي دي الشخص الذي أجل القسط
+        expectedAmount: Value(expectedAmount), // 🌟 حفظ التعديل هنا
+        userId: Value(userId), 
         updatedAt: Value(DateTime.now().toUtc()), 
         isSynced: const Value(false) 
       )
