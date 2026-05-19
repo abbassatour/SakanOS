@@ -3,7 +3,9 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:erp_repository/erp_repository.dart';
 // استدعاء الكلاسات الضرورية
-import 'package:local_storage_api/local_storage_api.dart' show Contract, Client, InstallmentsScheduleData;
+import 'package:drift/drift.dart' show Value;
+import 'package:local_storage_api/local_storage_api.dart' show Contract, Client, InstallmentsScheduleData, InstallmentsScheduleCompanion;
+
 
 part 'schedule_state.dart';
 
@@ -244,27 +246,73 @@ class ScheduleCubit extends Cubit<ScheduleState> {
   }
 
   // ==========================================
-  // ✏️ تعديل تاريخ قسط فردي وإضافة ملاحظة
+  // ✏️ تعديل تاريخ قسط فردي وإضافة ملاحظة أو تعديل مبلغ موسمي
   // ==========================================
   Future<void> updateIndividualSchedule({
     required String scheduleId,
     required String contractId,
     required DateTime newDueDate,
     String? notes,
+    double? expectedAmount, // 🌟 [السطر الجديد]: استقبال المبلغ
   }) async {
     try {
       await _erpRepository.updateIndividualSchedule(
         scheduleId: scheduleId,
         newDueDate: newDueDate,
         notes: notes,
+        expectedAmount: expectedAmount, // 🌟 تمريره للمستودع
       );
       
-      // تحديث الجدول وإعادة حساب الرادارات (لأن التواريخ تغيرت)
+      // تحديث الجدول وإعادة حساب الرادارات 
       await fetchInitialData();
       await selectContract(contractId);
 
     } catch (e) {
       emit(state.copyWith(status: ScheduleStatus.failure, errorMessage: 'فشل تعديل القسط: $e'));
+    }
+  }
+
+  // ==========================================
+  // 🌟 إضافة دفعة موسمية / مخصصة (Seasonal Payment)
+  // ==========================================
+  Future<void> addCustomSeasonalSchedule({
+    required String contractId,
+    required DateTime dueDate,
+    required String notes,
+    required double expectedAmount,
+  }) async {
+    emit(state.copyWith(status: ScheduleStatus.loading));
+    try {
+      // 1. جلب الأقساط الحالية لمعرفة أعلى رقم قسط موجود
+      final currentSchedules = await _erpRepository.getContractSchedule(contractId);
+      int maxNumber = 0;
+      for (var s in currentSchedules) {
+        if (s.installmentNumber > maxNumber) {
+          maxNumber = s.installmentNumber;
+        }
+      }
+
+      // 2. تجهيز كائن الدفعة الجديدة
+      // نعطيها رقماً أعلى من البقية (لكي لا تتضارب محاسبياً)، 
+      // لكن في الواجهة سنرتب العرض حسب التاريخ (dueDate) فتظهر في مكانها الصحيح!
+      final companion = InstallmentsScheduleCompanion.insert(
+        contractId: contractId,
+        installmentNumber: maxNumber + 1,
+        dueDate: dueDate.toUtc(),
+        status: const Value('pending'),
+        notes: Value(notes),
+        expectedAmount: Value(expectedAmount), // 🌟 هنا يتم حفظ المبلغ المميز
+      );
+
+      // 3. إرسال أمر الحفظ للمستودع
+      await _erpRepository.addCustomSchedule(companion);
+
+      // 4. تحديث الواجهة والبيانات
+      await fetchInitialData();
+      await selectContract(contractId);
+
+    } catch (e) {
+      emit(state.copyWith(status: ScheduleStatus.failure, errorMessage: 'فشل إضافة الدفعة الموسمية: $e'));
     }
   }
 

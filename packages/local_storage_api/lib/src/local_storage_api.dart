@@ -83,17 +83,37 @@ class LocalStorageApi {
   // 📅 جدول الاستحقاقات (Installments Schedule)
   // ==========================================
   Future<List<InstallmentsScheduleData>> getContractSchedule(String contractId) => _db.getScheduleForContract(contractId);
+  
   Future<int> updateScheduleStatus(String id, String status, String userId) => 
       _db.updateScheduleStatus(id, status, userId);
+      
   Future<int> deleteScheduleEntry(String id) => _db.softDeleteScheduleEntry(id);
-  // 🌟 أضف هذا السطر في قسم (جدول الاستحقاقات)
+  
   Future<List<InstallmentsScheduleData>> getAllOverdueSchedules() => _db.getAllOverdueSchedules();
-  // 🌟 السطر الجديد
-  Future<int> updateIndividualSchedule(String id, DateTime newDueDate, String? notes, String userId) => 
-      _db.updateIndividualSchedule(id, newDueDate, notes, userId);
+
+  // 🌟 [الإضافة الجديدة]: دالة إدراج الدفعة المخصصة/الموسمية
+  Future<String> addCustomSchedule(InstallmentsScheduleCompanion entry) => 
+      _db.insertCustomSchedule(entry);
+
+  // 🌟 [تم التعديل]: تحويل المعاملات إلى Named Parameters وإضافة expectedAmount
+  Future<int> updateIndividualSchedule({
+    required String id, 
+    required DateTime newDueDate, 
+    String? notes, 
+    double? expectedAmount, // الحقل الجديد
+    required String userId,
+  }) => _db.updateIndividualSchedule(
+    scheduleId: id, 
+    newDueDate: newDueDate, 
+    notes: notes, 
+    expectedAmount: expectedAmount, 
+    userId: userId,
+  );
+
   Future<void> restructureContractSchedule({required String contractId, required int newRemainingMonths, required DateTime newStartDate, required String userId}) =>
       _db.restructureContractSchedule(contractId: contractId, newRemainingMonths: newRemainingMonths, newStartDate: newStartDate, userId: userId);
-Future<void> handleRollingCheckpoint(String contractId, String scheduleId, String action, DateTime nextDate, String userId) =>
+      
+  Future<void> handleRollingCheckpoint(String contractId, String scheduleId, String action, DateTime nextDate, String userId) =>
       _db.handleRollingCheckpoint(contractId: contractId, currentScheduleId: scheduleId, actionType: action, nextDueDate: nextDate, userId: userId);
 
   // ==========================================

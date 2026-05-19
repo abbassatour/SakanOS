@@ -211,6 +211,8 @@ class ErpRepository {
           dueDate: DateTime.tryParse(s['due_date']?.toString() ?? '')?.toUtc() ?? DateTime.now().toUtc(), 
           status: drift.Value(s['status']?.toString() ?? 'pending'),
           notes: drift.Value(s['notes']?.toString()),
+          // 🌟 [السطر الجديد]: سحب المبلغ المخصص من السحابة إن وجد
+          expectedAmount: drift.Value(s['expected_amount'] != null ? double.tryParse(s['expected_amount'].toString()) : null),
           userId: s['user_id']?.toString() ?? '', 
           isDeleted: drift.Value(s['is_deleted'] == true), 
           updatedAt: drift.Value(DateTime.tryParse(s['updated_at']?.toString() ?? '')?.toUtc() ?? DateTime.now().toUtc()), 
@@ -454,6 +456,7 @@ class ErpRepository {
           'due_date': s.dueDate.toUtc().toIso8601String(), 
           'status': s.status, 
           'notes': s.notes,
+          'expected_amount': s.expectedAmount, // 🌟 [السطر الجديد]: رفع المبلغ للسحابة
           'user_id': s.userId, 
           'is_deleted': s.isDeleted, 
           'updated_at': s.updatedAt.toUtc().toIso8601String()
@@ -869,18 +872,37 @@ class ErpRepository {
   
   Future<List<InstallmentsScheduleData>> getAllOverdueSchedules() => _localApi.getAllOverdueSchedules();
 
+  // 🌟 [تم التعديل]: دعم الحقل الجديد للمبلغ (بدون طلب userId من الـ Cubit)
   Future<void> updateIndividualSchedule({
     required String scheduleId,
     required DateTime newDueDate,
     String? notes,
+    double? expectedAmount, // 🌟 
   }) async {
     final String? safeUserId = currentUserId;
     if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
 
-    await _localApi.updateIndividualSchedule(scheduleId, newDueDate, notes, safeUserId);
+    await _localApi.updateIndividualSchedule(
+      id: scheduleId, 
+      newDueDate: newDueDate, 
+      notes: notes, 
+      expectedAmount: expectedAmount, // 🌟
+      userId: safeUserId
+    );
     await syncPendingData(); 
   }
 
+  // 🌟 [الدالة الجديدة]: إرسال أمر إضافة الدفعة الموسمية
+  Future<void> addCustomSchedule(InstallmentsScheduleCompanion schedule) async {
+    final String? safeUserId = currentUserId;
+    if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
+
+    final companionWithUser = schedule.copyWith(userId: drift.Value(safeUserId));
+    await _localApi.addCustomSchedule(companionWithUser);
+    await syncPendingData(); 
+  }
+
+  // 🌟 [هذه الدالة التي حُذفت بالخطأ - أعدناها الآن لكي يختفي الخطأ]
   Future<void> updateContractDateOnly({required String id, required DateTime contractDate}) async {
     final String? safeUserId = currentUserId;
     if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
