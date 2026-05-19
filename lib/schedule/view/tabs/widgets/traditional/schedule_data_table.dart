@@ -1,4 +1,4 @@
-//lib\schedule\view\tabs\widgets\traditional\schedule_data_table.dart
+// lib/schedule/view/tabs/widgets/traditional/schedule_data_table.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:local_storage_api/local_storage_api.dart' show Contract;
@@ -21,6 +21,12 @@ class ScheduleDataTable extends StatelessWidget {
     required this.formattedAgreedAmount,
     required this.metersPerInstallment,
   });
+
+  // 🌟 دالة مساعدة سريعة لتنسيق المبلغ الخاص بالدفعة الاستثنائية
+  String _formatMoney(num number) {
+    RegExp reg = RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))');
+    return number.toInt().toString().replaceAllMapped(reg, (Match match) => '${match[1]},');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,6 +54,9 @@ class ScheduleDataTable extends StatelessWidget {
               final isPaid = schedule.status == 'paid';
               final isMissed = schedule.status == 'missed'; 
               final isOverdue = !isPaid && !isMissed && schedule.dueDate.isBefore(DateTime.now());
+              
+              // 🌟 التحقق: هل هذه الدفعة استثنائية (موسمية)؟
+              final isCustom = schedule.expectedAmount != null;
 
               String statusText = 'قادم / معلق';
               Color statusColor = Colors.orange;
@@ -60,11 +69,28 @@ class ScheduleDataTable extends StatelessWidget {
                 statusText = 'متأخر 🚨'; statusColor = Colors.red;
               }
 
+              // 🌟 تحديد لون خلفية الصف بناءً على الحالة ونوع الدفعة
+              Color rowColor = Colors.transparent;
+              if (isOverdue) {
+                rowColor = Colors.red.shade50.withOpacity(0.5);
+              } else if (isCustom && !isPaid && !isMissed) {
+                rowColor = Colors.blue.shade50; // لون مميز للدفعة الاستثنائية
+              }
+
               return DataRow(
-                color: WidgetStateProperty.all(isOverdue ? Colors.red.shade50.withOpacity(0.5) : Colors.transparent),
+                color: WidgetStateProperty.all(rowColor),
                 cells:[
-                  DataCell(Text('#${schedule.installmentNumber}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13))),
+                  // 🌟 الخلية 1: رقم الشهر (يظهر بجانبه نجمة إذا كان استثنائياً)
+                  DataCell(Text(
+                    isCustom ? '🌟 #${schedule.installmentNumber}' : '#${schedule.installmentNumber}', 
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold, 
+                      fontSize: 13, 
+                      color: isCustom ? Colors.orange.shade800 : Colors.black
+                    )
+                  )),
                   
+                  // الخلية 2: التاريخ والملاحظات
                   DataCell(Row(
                     children:[
                       Text('${schedule.dueDate.year}/${schedule.dueDate.month}/${schedule.dueDate.day}', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
@@ -73,24 +99,33 @@ class ScheduleDataTable extends StatelessWidget {
                         Tooltip(
                           message: schedule.notes!, textStyle: const TextStyle(color: Colors.white, fontSize: 12),
                           decoration: BoxDecoration(color: Colors.black87, borderRadius: BorderRadius.circular(4)),
-                          child: const Icon(Icons.info_outline, size: 16, color: Colors.blueGrey),
+                          child: Icon(Icons.info_outline, size: 16, color: isCustom ? Colors.indigo : Colors.blueGrey),
                         ),
                       ],
                     ],
                   )),
 
-                  // 🌟 إظهار المبلغ الشهري للجميع
+                  // 🌟 الخلية 3: المبلغ (ذكي يفرق بين القسط العادي والدفعة الاستثنائية)
                   DataCell(isPaid || isMissed
                       ? const Text('مُغلق 🔒', style: TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.bold))
-                      : Text('$formattedAgreedAmount ل.س', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.teal, fontSize: 13))
+                      : Text(
+                          isCustom ? '${_formatMoney(schedule.expectedAmount!)} ل.س' : '$formattedAgreedAmount ل.س', 
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold, 
+                            color: isCustom ? Colors.indigo : Colors.teal, 
+                            fontSize: 13
+                          )
+                        )
                   ),
 
+                  // الخلية 4: الحالة
                   DataCell(Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(color: statusColor.withOpacity(0.1), borderRadius: BorderRadius.circular(4), border: Border.all(color: statusColor.withOpacity(0.5))),
                     child: Text(statusText, style: TextStyle(color: statusColor, fontWeight: FontWeight.bold, fontSize: 11)),
                   )),
 
+                  // الخلية 5: الإجراءات الإدارية
                   DataCell(Row(
                     mainAxisSize: MainAxisSize.min,
                     children:[
@@ -111,7 +146,7 @@ class ScheduleDataTable extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: 8),
-                        // زر تعديل التاريخ يدوياً
+                        // زر تعديل التاريخ يدوياً (الآن يدعم تعديل مبلغ الدفعة الاستثنائية من الداخل إذا أردنا)
                         SizedBox(
                           height: 28,
                           child: IconButton(
@@ -123,7 +158,7 @@ class ScheduleDataTable extends StatelessWidget {
                         ),
                         Container(height: 20, width: 1, color: Colors.grey.shade300, margin: const EdgeInsets.symmetric(horizontal: 8)),
                         
-                        // 🌟 الأزرار الإدارية السريعة (متاحة للجميع الآن)
+                        // 🌟 الأزرار الإدارية السريعة
                         SizedBox(
                           height: 28,
                           child: ElevatedButton.icon(
@@ -133,7 +168,7 @@ class ScheduleDataTable extends StatelessWidget {
                                 nextDueDate: DateTime(schedule.dueDate.year, schedule.dueDate.month + 1, schedule.dueDate.day),
                               );
                             },
-                            icon: const Icon(Icons.check, size: 14), label: const Text('تسديد يدوي', style: TextStyle(fontSize: 11)),
+                            icon: const Icon(Icons.check, size: 14), label: const Text('تسديد إداري', style: TextStyle(fontSize: 11)),
                             style: ElevatedButton.styleFrom(backgroundColor: Colors.green, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(horizontal: 8)),
                           ),
                         ),
