@@ -10,7 +10,8 @@ import 'package:local_storage_api/local_storage_api.dart'
         Contract,
         Client,
         MaterialPricesHistoryCompanion,
-        PaymentsLedgerCompanion;
+        PaymentsLedgerCompanion,
+        DollarPricesHistoryCompanion; // 🌟 1. تم إضافة استيراد الدولار
 import 'package:drift/drift.dart' show Value;
 import 'package:uuid/uuid.dart';
 
@@ -105,6 +106,7 @@ class ContractsCubit extends Cubit<ContractsState> {
     double? histFormwork,
     double? histAggregates,
     double? histWorker,
+    double? histDollarRate, // 🌟 2. معامل لاستقبال سعر الدولار التاريخي
   }) async {
     emit(state.copyWith(status: ContractsStatus.loading));
     try {
@@ -114,6 +116,20 @@ class ContractsCubit extends Cubit<ContractsState> {
       }
 
       final contractDateToSave = customDate?.toUtc() ?? DateTime.now().toUtc();
+
+      // 🌟 3. حفظ سعر الدولار القديم في سجل الدولار فوراً (إن وُجد)
+      if (customDate != null && histDollarRate != null) {
+        try {
+          final historicalDollar = DollarPricesHistoryCompanion.insert(
+            exchangeRate: histDollarRate,
+            effectiveDate: Value(contractDateToSave),
+            userId: userId,
+          );
+          await _erpRepository.saveDollarPrice(historicalDollar);
+        } catch (e) {
+          print('⚠️ تحذير: فشل حفظ تسعيرة الدولار التاريخية: $e');
+        }
+      }
 
       // 🛡️ تقريب الأسعار التاريخية لأقرب 10 ليرات قبل الحفظ
       if (customDate != null && histIron != null) {
@@ -165,17 +181,23 @@ class ContractsCubit extends Cubit<ContractsState> {
 
       await _erpRepository.addContract(newContract);
 
-      // 🛡️ إدخال الدفعة الأولى (المال لأقرب 10، الأمتار بدقة 6 خانات)
+      // 🛡️ إدخال الدفعة الأولى وتسجيل اللقطة التاريخية (المال لأقرب 10، الأمتار بدقة 6 خانات)
       if (safeDownPayment > 0) {
         double rawConverted = safeBasePrice > 0 ? (safeDownPayment / safeBasePrice) : 0;
         
+        // 🌟 4. تجهيز اللقطة لتتضمن الدفعة وسعر الدولار إن وجد
+        Map<String, dynamic> snapshotData = {'note': 'الدفعة الأولى عند توقيع العقد'};
+        if (histDollarRate != null) {
+          snapshotData['dollar_rate_used'] = histDollarRate;
+        }
+
         final downPaymentEntry = PaymentsLedgerCompanion.insert(
           contractId: newContractId,
           paymentDate: contractDateToSave,
           amountPaid: safeDownPayment,
           meterPriceAtPayment: safeBasePrice,
           convertedMeters: _roundConvertedMeters(rawConverted),
-          pricesSnapshot: const Value('{"note": "الدفعة الأولى عند توقيع العقد"}'),
+          pricesSnapshot: Value(jsonEncode(snapshotData)), // حفظ اللقطة المُحدثة بصيغة JSON
           userId: userId,
         );
         await _erpRepository.addLedgerEntry(downPaymentEntry);
