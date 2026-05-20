@@ -9,6 +9,7 @@ class RegisterState extends Equatable {
     this.fullName = '',
     this.email = '',
     this.password = '',
+    this.confirmPassword = '', // 🌟 المتغير الجديد
     this.errorMessage,
   });
 
@@ -16,6 +17,7 @@ class RegisterState extends Equatable {
   final String fullName;
   final String email;
   final String password;
+  final String confirmPassword; // 🌟 المتغير الجديد
   final String? errorMessage;
 
   RegisterState copyWith({
@@ -23,6 +25,7 @@ class RegisterState extends Equatable {
     String? fullName,
     String? email,
     String? password,
+    String? confirmPassword, // 🌟
     String? errorMessage,
   }) {
     return RegisterState(
@@ -30,10 +33,12 @@ class RegisterState extends Equatable {
       fullName: fullName ?? this.fullName,
       email: email ?? this.email,
       password: password ?? this.password,
+      confirmPassword: confirmPassword ?? this.confirmPassword, // 🌟
       errorMessage: errorMessage ?? this.errorMessage,
     );
   }
 
   @override
-  List<Object?> get props =>[status, fullName, email, password, errorMessage];
+  // 🌟 إضافة المتغير الجديد لمصفوفة الـ props
+  List<Object?> get props => [status, fullName, email, password, confirmPassword, errorMessage];
 }
