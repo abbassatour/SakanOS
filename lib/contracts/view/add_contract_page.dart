@@ -43,10 +43,10 @@ class _AddContractPageState extends State<AddContractPage> {
   DateTime? agreedHandoverDate; 
   final gracePeriodCtrl = TextEditingController(text: '0');
 
-  // 🌟 [الإضافة الجديدة]: متحكمات غرامة التأخير (المرونة العالية)
+  // متحكمات غرامة التأخير 
   bool isPenaltyActive = false;
-  final penaltyPctCtrl = TextEditingController(text: '2'); // افتراضياً 2%
-  final penaltyIntervalCtrl = TextEditingController(text: '1'); // افتراضياً كل 1 شهر
+  final penaltyPctCtrl = TextEditingController(text: '2'); 
+  final penaltyIntervalCtrl = TextEditingController(text: '1'); 
 
   // معاملات إضافية للتجهيزات المشتركة
   final blockCoeffCtrl = TextEditingController(text: '0');
@@ -63,6 +63,10 @@ class _AddContractPageState extends State<AddContractPage> {
   final histFormworkCtrl = TextEditingController();
   final histAggregatesCtrl = TextEditingController();
   final histWorkerCtrl = TextEditingController();
+
+  // 🌟 [إضافة الدولار]: المتغيرات الجديدة
+  bool isDollarContract = false;
+  final histDollarRateCtrl = TextEditingController();
 
   Map<String, double> autoImportedCoefficients = {};
   bool isHistoricalContract = false;
@@ -81,11 +85,12 @@ class _AddContractPageState extends State<AddContractPage> {
     areaController.dispose(); priceController.dispose(); monthsController.dispose();
     durationCoefficientCtrl.dispose(); guarantorController.dispose(); monthlyAmountCtrl.dispose();
     downPaymentCtrl.dispose(); gracePeriodCtrl.dispose(); 
-    penaltyPctCtrl.dispose(); penaltyIntervalCtrl.dispose(); // 🌟 تنظيف متحكمات الغرامة
+    penaltyPctCtrl.dispose(); penaltyIntervalCtrl.dispose(); 
     blockCoeffCtrl.dispose(); coloredPlasterCoeffCtrl.dispose(); marbleStairsCoeffCtrl.dispose();
     marbleFinsCoeffCtrl.dispose(); plumbingCoeffCtrl.dispose(); chimneysCoeffCtrl.dispose();
     histIronCtrl.dispose(); histCementCtrl.dispose(); histBlockCtrl.dispose();
     histFormworkCtrl.dispose(); histAggregatesCtrl.dispose(); histWorkerCtrl.dispose();
+    histDollarRateCtrl.dispose(); // 🌟 تنظيف متحكم الدولار
     super.dispose();
   }
 
@@ -244,7 +249,7 @@ class _AddContractPageState extends State<AddContractPage> {
                                 selectedContractType = val ?? 'متخصص';
                                 if (!isAllocated) { 
                                   autoImportedCoefficients.clear(); selectedBuildingId = null; selectedApartmentId = null; 
-                                  areaController.clear(); agreedHandoverDate = null; isPenaltyActive = false; // تصفير الغرامات 
+                                  areaController.clear(); agreedHandoverDate = null; isPenaltyActive = false;
                                 }
                               });
                             },
@@ -258,9 +263,6 @@ class _AddContractPageState extends State<AddContractPage> {
                             onApartmentChanged: (val) => _onApartmentSelected(val, availableApartments, buildingsState.buildings),
                           ),
                           
-                          // ==========================================
-                          // 🌟 قسم تفاصيل التسليم والغرامات
-                          // ==========================================
                           if (isAllocated) ...[
                             const SizedBox(height: 16),
                             Container(
@@ -316,7 +318,6 @@ class _AddContractPageState extends State<AddContractPage> {
                                     ],
                                   ),
                                   
-                                  // 🌟 القسم الفرعي: غرامات تأخير السداد بعد الاستلام
                                   const Padding(padding: EdgeInsets.symmetric(vertical: 16), child: Divider(color: Colors.blueGrey)),
                                   SwitchListTile(
                                     title: const Text('تفعيل غرامة التأخير (بعد تسليم المفتاح)', style: TextStyle(color: Colors.deepOrange, fontWeight: FontWeight.bold)),
@@ -361,8 +362,22 @@ class _AddContractPageState extends State<AddContractPage> {
                               plumbingCoeffCtrl: plumbingCoeffCtrl, chimneysCoeffCtrl: chimneysCoeffCtrl,
                             ),
                           
+                          // 🌟 تمرير متغيرات الدولار إلى قسم الماليات
                           FinancialSection(
-                            isAllocated: isAllocated, isHistoricalContract: isHistoricalContract,
+                            isAllocated: isAllocated, 
+                            isHistoricalContract: isHistoricalContract,
+                            isDollarContract: isDollarContract,
+                            histDollarRateCtrl: histDollarRateCtrl,
+                            currentDollarRate: settingsState.currentDollarPrice?.exchangeRate,
+                            onDollarToggle: (val) {
+                              setState(() {
+                                isDollarContract = val;
+                                downPaymentCtrl.clear();
+                                monthlyAmountCtrl.clear();
+                              });
+                            },
+                            onInputChanged: (val) => setState(() {}), // لإنعاش المعاينة الحية
+
                             areaController: areaController, monthsController: monthsController,
                             durationCoefficientCtrl: durationCoefficientCtrl, priceController: priceController,
                             monthlyAmountCtrl: monthlyAmountCtrl, downPaymentCtrl: downPaymentCtrl, 
@@ -409,7 +424,6 @@ class _AddContractPageState extends State<AddContractPage> {
     if (isAllocated && areaController.text.isEmpty) return _showError('يرجى تعبئة المساحة!');
     if (isAllocated && agreedHandoverDate == null) return _showError('يرجى تحديد الموعد المتفق عليه لتسليم الشقة!');
     
-    // 🌟 حماية لمدخلات الغرامة
     if (isAllocated && isPenaltyActive) {
       if (_safeParseDouble(penaltyPctCtrl) <= 0) return _showError('نسبة الغرامة يجب أن تكون أكبر من صفر!');
       if (_safeParseInt(penaltyIntervalCtrl) <= 0) return _showError('مدة تطبيق الغرامة غير صالحة!');
@@ -417,6 +431,29 @@ class _AddContractPageState extends State<AddContractPage> {
 
     if (priceController.text.isEmpty) return _showError('يرجى حساب السعر أولاً!');
     if (monthlyAmountCtrl.text.isEmpty) return _showError('يرجى إدخال المبلغ المتفق عليه شهرياً!');
+
+    // 🌟 حماية لمدخلات الدولار
+    if (isDollarContract && isHistoricalContract && histDollarRateCtrl.text.isEmpty) {
+      return _showError('الرجاء إدخال سعر صرف الدولار القديم!');
+    }
+
+    // 🧠 المحرك الرياضي لتحويل العملة
+    double exchangeRate = 1.0;
+    if (isDollarContract) {
+      if (isHistoricalContract) {
+        exchangeRate = _safeParseDouble(histDollarRateCtrl);
+      } else {
+        final currentDollar = context.read<SettingsCubit>().state.currentDollarPrice;
+        if (currentDollar == null) return _showError('سعر الدولار غير متوفر حالياً! يرجى إضافته من الإعدادات.');
+        exchangeRate = currentDollar.exchangeRate;
+      }
+    }
+
+    // 💰 حساب القيمة النهائية بالليرة السورية للتخزين
+    final double agreedAmountSYP = _safeParseDouble(monthlyAmountCtrl) * exchangeRate;
+    final double finalDownPaymentSYP = _safeParseDouble(downPaymentCtrl) * exchangeRate;
+
+    if (agreedAmountSYP <= 0) return _showError('المبلغ الشهري يجب أن يكون أكبر من صفر!');
 
     Map<String, double> finalCoeffs = _buildFinalCoefficients(isAllocated);
 
@@ -431,12 +468,8 @@ class _AddContractPageState extends State<AddContractPage> {
       generatedDetails = 'محفظة استثمارية (عقد لاحق التخصص)';
     }
 
-    final double agreedAmount = _safeParseDouble(monthlyAmountCtrl);
-    if (agreedAmount <= 0) return _showError('المبلغ الشهري يجب أن يكون أكبر من صفر!');
-
     final double finalArea = isAllocated ? _safeParseDouble(areaController) : 0.0;
     final int finalMonths = isAllocated ? _safeParseInt(monthsController, defaultValue: 48) : 48; 
-    final double finalDownPayment = _safeParseDouble(downPaymentCtrl);
 
     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('جاري الحفظ وتوقيع العقد... ⏳'), backgroundColor: Colors.teal));
     
@@ -447,17 +480,16 @@ class _AddContractPageState extends State<AddContractPage> {
       apartmentId: isAllocated ? selectedApartmentId : null,
       area: finalArea, 
       basePrice: _safeParseDouble(priceController), 
-      downPayment: finalDownPayment, 
+      downPayment: finalDownPaymentSYP, // 🌟 القيمة المحولة لليرة السورية
       installmentsCount: finalMonths, 
       guarantorName: guarantorController.text.trim(),
-      agreedMonthlyAmount: agreedAmount, 
+      agreedMonthlyAmount: agreedAmountSYP, // 🌟 القيمة المحولة لليرة السورية
       coefficients: finalCoeffs, 
       customDate: isHistoricalContract ? selectedHistoricalDate : null, 
       
       agreedHandoverDate: isAllocated ? agreedHandoverDate : null,
       gracePeriodMonths: isAllocated ? _safeParseInt(gracePeriodCtrl, defaultValue: 0) : null,
 
-      // 🌟 تمرير مدخلات الغرامة للكيوبت
       isPenaltyActive: isAllocated ? isPenaltyActive : false,
       penaltyPercentage: isAllocated && isPenaltyActive ? _safeParseDouble(penaltyPctCtrl) : 0.0,
       penaltyIntervalMonths: isAllocated && isPenaltyActive ? _safeParseInt(penaltyIntervalCtrl, defaultValue: 1) : 1,
@@ -468,6 +500,7 @@ class _AddContractPageState extends State<AddContractPage> {
       histFormwork: isHistoricalContract ? _safeParseDouble(histFormworkCtrl) : null,
       histAggregates: isHistoricalContract ? _safeParseDouble(histAggregatesCtrl) : null,
       histWorker: isHistoricalContract ? _safeParseDouble(histWorkerCtrl) : null,
+      histDollarRate: (isHistoricalContract && isDollarContract) ? exchangeRate : null, // 🌟 تمرير سعر الدولار
     );
 
     if (mounted) { 
