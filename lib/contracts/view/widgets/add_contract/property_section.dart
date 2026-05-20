@@ -1,3 +1,4 @@
+//lib\contracts\view\widgets\add_contract\property_section.dart
 import 'package:flutter/material.dart';
 
 class PropertySection extends StatelessWidget {
