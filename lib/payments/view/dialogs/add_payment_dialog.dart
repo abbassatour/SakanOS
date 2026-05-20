@@ -83,6 +83,7 @@ class _AddPaymentDialogContent extends StatefulWidget {
 
 class _AddPaymentDialogContentState extends State<_AddPaymentDialogContent> {
   // 🌟 المتحكمات (Controllers)
+  
   final amountController = TextEditingController();
   final discountController = TextEditingController(text: '0');
   final histDollarRateCtrl = TextEditingController();
@@ -100,6 +101,7 @@ class _AddPaymentDialogContentState extends State<_AddPaymentDialogContent> {
   bool isDetailedMode = false;
   bool isDollarPayment = false;
   DateTime selectedHistoricalDate = DateTime.now();
+  bool _isSaving = false; 
 
   @override
   void dispose() {
@@ -467,48 +469,94 @@ class _AddPaymentDialogContentState extends State<_AddPaymentDialogContent> {
             ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text('إلغاء', style: TextStyle(fontWeight: FontWeight.bold))),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: mainColor, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
-              onPressed: enteredAmount > 0 && calculatedMeterPrice > 0 && (!isDollarPayment || (isDollarPayment && (!isHistoricalPayment || (isHistoricalPayment && historicalDollarRate > 0)))) ? () {
-                if (isHistoricalPayment) {
-                  if (isDollarPayment && histDollarRateCtrl.text.isEmpty) {
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('الرجاء إدخال سعر صرف الدولار التاريخي!'), backgroundColor: Colors.red));
-                    return;
+            TextButton(
+              // 🌟 تعطيل الزر أثناء الحفظ
+              onPressed: _isSaving ? null : () => Navigator.pop(context), 
+              child: const Text('إلغاء', style: TextStyle(fontWeight: FontWeight.bold))
+            ),
+            
+            // 🌟 تحويل الزر إلى ElevatedButton.icon لإظهار دائرة التحميل
+            ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: mainColor, 
+                foregroundColor: Colors.white, 
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12), 
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))
+              ),
+              icon: _isSaving 
+                  ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                  : const Icon(Icons.check_circle, size: 18),
+              label: Text(
+                _isSaving ? 'جاري الحفظ...' : (isDeposit ? 'تأكيد وحفظ الدفعة' : 'تأكيد السحب'), 
+                style: const TextStyle(fontWeight: FontWeight.bold)
+              ),
+              
+              // 🌟 تعطيل الزر إذا كان قيد الحفظ أو إذا كانت الشروط غير محققة
+              onPressed: _isSaving || !(enteredAmount > 0 && calculatedMeterPrice > 0 && (!isDollarPayment || (isDollarPayment && (!isHistoricalPayment || (isHistoricalPayment && historicalDollarRate > 0))))) 
+                ? null 
+                : () async {
+                  // التحقق من الحقول الإجبارية
+                  if (isHistoricalPayment) {
+                    if (isDollarPayment && histDollarRateCtrl.text.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('الرجاء إدخال سعر صرف الدولار التاريخي!'), backgroundColor: Colors.red));
+                      return;
+                    }
+                    if (!isDetailedMode && meterPriceCtrl.text.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('الرجاء إدخال سعر المتر!'), backgroundColor: Colors.red));
+                      return;
+                    }
+                    if (isDetailedMode && (histIronCtrl.text.isEmpty || histCementCtrl.text.isEmpty || histWorkerCtrl.text.isEmpty)) {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('الرجاء إدخال جميع أسعار المواد!'), backgroundColor: Colors.red));
+                      return;
+                    }
                   }
-                  if (!isDetailedMode && meterPriceCtrl.text.isEmpty) {
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('الرجاء إدخال سعر المتر!'), backgroundColor: Colors.red));
-                    return;
+
+                  // 🌟 إغلاق الأزرار وتشغيل مؤشر التحميل
+                  setState(() {
+                    _isSaving = true;
+                  });
+
+                  try {
+                    final double finalAmountToSave = isDeposit ? sypEquivalentAmount : (sypEquivalentAmount * -1);
+
+                    // 🌟 ننتظر الإرسال لقاعدة البيانات (await)
+                    await context.read<PaymentsCubit>().addLedgerEntry(
+                      contractId: widget.contractId,
+                      amountPaid: finalAmountToSave,
+                      discountPercentage: discountPct,
+                      customDate: isHistoricalPayment ? selectedHistoricalDate : null,
+                      customMeterPrice: isHistoricalPayment && !isDetailedMode ? double.parse(meterPriceCtrl.text.replaceAll(',', '')) : null,
+                      histIron: isHistoricalPayment && isDetailedMode ? double.parse(histIronCtrl.text.replaceAll(',', '')) : null,
+                      histCement: isHistoricalPayment && isDetailedMode ? double.parse(histCementCtrl.text.replaceAll(',', '')) : null,
+                      histBlock: isHistoricalPayment && isDetailedMode ? double.parse(histBlockCtrl.text.replaceAll(',', '')) : null,
+                      histFormwork: isHistoricalPayment && isDetailedMode ? double.parse(histFormworkCtrl.text.replaceAll(',', '')) : null,
+                      histAggregates: isHistoricalPayment && isDetailedMode ? double.parse(histAggregatesCtrl.text.replaceAll(',', '')) : null,
+                      histWorker: isHistoricalPayment && isDetailedMode ? double.parse(histWorkerCtrl.text.replaceAll(',', '')) : null,
+                      histDollarRate: isHistoricalPayment && isDollarPayment ? historicalDollarRate : null,
+                    );
+
+                    // 🌟 إذا نجح الحفظ، نغلق النافذة ونعرض نجاح
+                    if (mounted) {
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(widget.parentContext).showSnackBar(
+                        SnackBar(
+                          content: Text(isDeposit ? 'تمت إضافة الدفعة بنجاح! ✅' : 'تم خصم المبلغ بنجاح! ✅'), 
+                          backgroundColor: Colors.green
+                        ),
+                      );
+                    }
+                  } catch (e) {
+                    // 🌟 في حال فشل الحفظ نرفع القفل عن الأزرار ليتمكن من المحاولة
+                    if (mounted) {
+                      setState(() {
+                        _isSaving = false;
+                      });
+                      ScaffoldMessenger.of(widget.parentContext).showSnackBar(
+                        SnackBar(content: Text('حدث خطأ أثناء الحفظ: ${e.toString()}'), backgroundColor: Colors.red),
+                      );
+                    }
                   }
-                  if (isDetailedMode && (histIronCtrl.text.isEmpty || histCementCtrl.text.isEmpty || histWorkerCtrl.text.isEmpty)) {
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('الرجاء إدخال جميع أسعار المواد!'), backgroundColor: Colors.red));
-                    return;
-                  }
-                }
-
-                Navigator.pop(context); // إغلاق الديالوج
-                ScaffoldMessenger.of(widget.parentContext).showSnackBar(
-                  SnackBar(content: Text(isDeposit ? 'جاري إضافة الدفعة وتحديث الأمتار...' : 'جاري خصم المبلغ والأمتار...'), duration: const Duration(seconds: 1)),
-                );
-
-                final double finalAmountToSave = isDeposit ? sypEquivalentAmount : (sypEquivalentAmount * -1);
-
-                context.read<PaymentsCubit>().addLedgerEntry(
-                  contractId: widget.contractId,
-                  amountPaid: finalAmountToSave,
-                  discountPercentage: discountPct,
-                  customDate: isHistoricalPayment ? selectedHistoricalDate : null,
-                  customMeterPrice: isHistoricalPayment && !isDetailedMode ? double.parse(meterPriceCtrl.text.replaceAll(',', '')) : null,
-                  histIron: isHistoricalPayment && isDetailedMode ? double.parse(histIronCtrl.text.replaceAll(',', '')) : null,
-                  histCement: isHistoricalPayment && isDetailedMode ? double.parse(histCementCtrl.text.replaceAll(',', '')) : null,
-                  histBlock: isHistoricalPayment && isDetailedMode ? double.parse(histBlockCtrl.text.replaceAll(',', '')) : null,
-                  histFormwork: isHistoricalPayment && isDetailedMode ? double.parse(histFormworkCtrl.text.replaceAll(',', '')) : null,
-                  histAggregates: isHistoricalPayment && isDetailedMode ? double.parse(histAggregatesCtrl.text.replaceAll(',', '')) : null,
-                  histWorker: isHistoricalPayment && isDetailedMode ? double.parse(histWorkerCtrl.text.replaceAll(',', '')) : null,
-                  histDollarRate: isHistoricalPayment && isDollarPayment ? historicalDollarRate : null,
-                );
-              } : null,
-              child: Text(isDeposit ? 'تأكيد وحفظ الدفعة' : 'تأكيد السحب', style: const TextStyle(fontWeight: FontWeight.bold)),
+                },
             ),
           ],
         );
