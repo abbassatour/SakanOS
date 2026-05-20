@@ -31,7 +31,6 @@ class RegisterView extends StatelessWidget {
               SnackBar(content: Text(state.errorMessage ?? 'حدث خطأ'), backgroundColor: Colors.red),
             );
           } else if (state.status == RegisterStatus.success) {
-            // 🌟 إظهار رسالة النجاح بتصميم الخطوتين (بدون أخطاء const)
             showDialog(
               context: context,
               barrierDismissible: false,
@@ -44,7 +43,6 @@ class RegisterView extends StatelessWidget {
                     Text('تأكيد البريد الإلكتروني', style: TextStyle(color: Colors.indigo, fontWeight: FontWeight.bold)),
                   ],
                 ),
-                // 🌟 تمت إزالة الـ const من هنا وتوزيعها بالداخل
                 content: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -147,9 +145,21 @@ class RegisterView extends StatelessWidget {
                     obscureText: true,
                     decoration: const InputDecoration(labelText: 'كلمة المرور (6 أحرف على الأقل)', prefixIcon: Icon(Icons.lock_outline), border: OutlineInputBorder()),
                   ),
+                  const SizedBox(height: 16),
+
+                  // 🌟 4. حقل تأكيد الباسورد الجديد
+                  TextField(
+                    onChanged: (val) => context.read<RegisterCubit>().confirmPasswordChanged(val),
+                    obscureText: true,
+                    decoration: const InputDecoration(
+                      labelText: 'تأكيد كلمة المرور', 
+                      prefixIcon: Icon(Icons.lock_reset), // أيقونة مختلفة قليلاً للتمييز
+                      border: OutlineInputBorder()
+                    ),
+                  ),
                   const SizedBox(height: 32),
 
-                  // 4. زر إنشاء الحساب
+                  // 5. زر إنشاء الحساب
                   BlocBuilder<RegisterCubit, RegisterState>(
                     builder: (context, state) {
                       return state.status == RegisterStatus.loading
@@ -171,7 +181,7 @@ class RegisterView extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   
-                  // 5. زر الرجوع
+                  // 6. زر الرجوع
                   TextButton.icon(
                     onPressed: () => Navigator.pop(context),
                     icon: const Icon(Icons.arrow_back, color: Colors.blueGrey),
