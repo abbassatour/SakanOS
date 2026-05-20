@@ -1,3 +1,4 @@
+//lib\register\cubit\register_state.dart
 part of 'register_cubit.dart';
 
 enum RegisterStatus { initial, loading, success, failure }

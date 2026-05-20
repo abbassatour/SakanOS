@@ -1,3 +1,4 @@
+//lib\register\cubit\register_cubit.dart
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:erp_repository/erp_repository.dart';
