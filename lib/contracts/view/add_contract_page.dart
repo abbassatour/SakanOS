@@ -26,6 +26,7 @@ class AddContractPage extends StatefulWidget {
 }
 
 class _AddContractPageState extends State<AddContractPage> {
+  bool _isSaving = false;
   String? selectedClientId;
   String selectedContractType = 'متخصص'; 
   String? selectedBuildingId;
@@ -397,27 +398,47 @@ class _AddContractPageState extends State<AddContractPage> {
     );
   }
 
+  // 2. استبدل دالة _buildBottomBar بهذه:
   Widget _buildBottomBar(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-      decoration: const BoxDecoration(color: Colors.white, boxShadow:[BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, -2))]),
+      decoration: const BoxDecoration(
+          color: Colors.white,
+          boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, -2))]),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.end,
-        children:[
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('إلغاء والتراجع', style: TextStyle(fontSize: 16, color: Colors.grey))),
+        children: [
+          TextButton(
+            // 🌟 تعطيل الزر إذا كان قيد الحفظ
+            onPressed: _isSaving ? null : () => Navigator.pop(context),
+            child: const Text('إلغاء والتراجع', style: TextStyle(fontSize: 16, color: Colors.grey)),
+          ),
           const SizedBox(width: 16),
           ElevatedButton.icon(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.teal, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 18)),
-            icon: const Icon(Icons.check_circle),
-            label: const Text('اعتماد وتوقيع العقد', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            onPressed: _saveContract,
+            style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.teal,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 18)),
+            // 🌟 إظهار دائرة تحميل عند الحفظ
+            icon: _isSaving
+                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                : const Icon(Icons.check_circle),
+            // 🌟 تغيير النص
+            label: Text(_isSaving ? 'جاري الحفظ...' : 'اعتماد وتوقيع العقد',
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            // 🌟 منع تكرار الضغط
+            onPressed: _isSaving ? null : _saveContract,
           ),
         ],
       ),
     );
   }
 
+  // 3. استبدل دالة _saveContract بهذه:
   Future<void> _saveContract() async {
+    // 🌟 حماية أمان إضافية
+    if (_isSaving) return;
+
     bool isAllocated = selectedContractType == 'متخصص'; 
     
     if (isAllocated && selectedApartmentId == null) return _showError('يرجى اختيار شقة من الكتالوج!');
@@ -432,12 +453,10 @@ class _AddContractPageState extends State<AddContractPage> {
     if (priceController.text.isEmpty) return _showError('يرجى حساب السعر أولاً!');
     if (monthlyAmountCtrl.text.isEmpty) return _showError('يرجى إدخال المبلغ المتفق عليه شهرياً!');
 
-    // 🌟 حماية لمدخلات الدولار
     if (isDollarContract && isHistoricalContract && histDollarRateCtrl.text.isEmpty) {
       return _showError('الرجاء إدخال سعر صرف الدولار القديم!');
     }
 
-    // 🧠 المحرك الرياضي لتحويل العملة
     double exchangeRate = 1.0;
     if (isDollarContract) {
       if (isHistoricalContract) {
@@ -449,63 +468,75 @@ class _AddContractPageState extends State<AddContractPage> {
       }
     }
 
-    // 💰 حساب القيمة النهائية بالليرة السورية للتخزين
     final double agreedAmountSYP = _safeParseDouble(monthlyAmountCtrl) * exchangeRate;
     final double finalDownPaymentSYP = _safeParseDouble(downPaymentCtrl) * exchangeRate;
 
     if (agreedAmountSYP <= 0) return _showError('المبلغ الشهري يجب أن يكون أكبر من صفر!');
 
-    Map<String, double> finalCoeffs = _buildFinalCoefficients(isAllocated);
+    // 🌟 بدء عملية الحفظ (قفل الشاشة)
+    setState(() {
+      _isSaving = true;
+    });
 
-    String generatedDetails = '';
-    if (isAllocated) {
-      final allApartments = context.read<BuildingsCubit>().state.apartments;
-      final buildings = context.read<BuildingsCubit>().state.buildings;
-      final apt = allApartments.firstWhere((a) => a.id == selectedApartmentId);
-      final bld = buildings.firstWhere((b) => b.id == selectedBuildingId);
-      generatedDetails = 'محضر: ${bld.name} | شقة: ${apt.apartmentNumber} | طابق: ${apt.floorName}';
-    } else {
-      generatedDetails = 'محفظة استثمارية (عقد لاحق التخصص)';
-    }
+    try {
+      Map<String, double> finalCoeffs = _buildFinalCoefficients(isAllocated);
 
-    final double finalArea = isAllocated ? _safeParseDouble(areaController) : 0.0;
-    final int finalMonths = isAllocated ? _safeParseInt(monthsController, defaultValue: 48) : 48; 
+      String generatedDetails = '';
+      if (isAllocated) {
+        final allApartments = context.read<BuildingsCubit>().state.apartments;
+        final buildings = context.read<BuildingsCubit>().state.buildings;
+        final apt = allApartments.firstWhere((a) => a.id == selectedApartmentId);
+        final bld = buildings.firstWhere((b) => b.id == selectedBuildingId);
+        generatedDetails = 'محضر: ${bld.name} | شقة: ${apt.apartmentNumber} | طابق: ${apt.floorName}';
+      } else {
+        generatedDetails = 'محفظة استثمارية (عقد لاحق التخصص)';
+      }
 
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('جاري الحفظ وتوقيع العقد... ⏳'), backgroundColor: Colors.teal));
-    
-    await context.read<ContractsCubit>().addContract(
-      clientId: selectedClientId!, 
-      contractType: selectedContractType, 
-      details: generatedDetails, 
-      apartmentId: isAllocated ? selectedApartmentId : null,
-      area: finalArea, 
-      basePrice: _safeParseDouble(priceController), 
-      downPayment: finalDownPaymentSYP, // 🌟 القيمة المحولة لليرة السورية
-      installmentsCount: finalMonths, 
-      guarantorName: guarantorController.text.trim(),
-      agreedMonthlyAmount: agreedAmountSYP, // 🌟 القيمة المحولة لليرة السورية
-      coefficients: finalCoeffs, 
-      customDate: isHistoricalContract ? selectedHistoricalDate : null, 
+      final double finalArea = isAllocated ? _safeParseDouble(areaController) : 0.0;
+      final int finalMonths = isAllocated ? _safeParseInt(monthsController, defaultValue: 48) : 48; 
+
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('جاري الحفظ وتوقيع العقد... ⏳'), backgroundColor: Colors.teal));
       
-      agreedHandoverDate: isAllocated ? agreedHandoverDate : null,
-      gracePeriodMonths: isAllocated ? _safeParseInt(gracePeriodCtrl, defaultValue: 0) : null,
+      await context.read<ContractsCubit>().addContract(
+        clientId: selectedClientId!, 
+        contractType: selectedContractType, 
+        details: generatedDetails, 
+        apartmentId: isAllocated ? selectedApartmentId : null,
+        area: finalArea, 
+        basePrice: _safeParseDouble(priceController), 
+        downPayment: finalDownPaymentSYP, 
+        installmentsCount: finalMonths, 
+        guarantorName: guarantorController.text.trim(),
+        agreedMonthlyAmount: agreedAmountSYP, 
+        coefficients: finalCoeffs, 
+        customDate: isHistoricalContract ? selectedHistoricalDate : null, 
+        agreedHandoverDate: isAllocated ? agreedHandoverDate : null,
+        gracePeriodMonths: isAllocated ? _safeParseInt(gracePeriodCtrl, defaultValue: 0) : null,
+        isPenaltyActive: isAllocated ? isPenaltyActive : false,
+        penaltyPercentage: isAllocated && isPenaltyActive ? _safeParseDouble(penaltyPctCtrl) : 0.0,
+        penaltyIntervalMonths: isAllocated && isPenaltyActive ? _safeParseInt(penaltyIntervalCtrl, defaultValue: 1) : 1,
+        histIron: isHistoricalContract ? _safeParseDouble(histIronCtrl) : null, 
+        histCement: isHistoricalContract ? _safeParseDouble(histCementCtrl) : null,
+        histBlock: isHistoricalContract ? _safeParseDouble(histBlockCtrl) : null,
+        histFormwork: isHistoricalContract ? _safeParseDouble(histFormworkCtrl) : null,
+        histAggregates: isHistoricalContract ? _safeParseDouble(histAggregatesCtrl) : null,
+        histWorker: isHistoricalContract ? _safeParseDouble(histWorkerCtrl) : null,
+        histDollarRate: (isHistoricalContract && isDollarContract) ? exchangeRate : null,
+      );
 
-      isPenaltyActive: isAllocated ? isPenaltyActive : false,
-      penaltyPercentage: isAllocated && isPenaltyActive ? _safeParseDouble(penaltyPctCtrl) : 0.0,
-      penaltyIntervalMonths: isAllocated && isPenaltyActive ? _safeParseInt(penaltyIntervalCtrl, defaultValue: 1) : 1,
-
-      histIron: isHistoricalContract ? _safeParseDouble(histIronCtrl) : null, 
-      histCement: isHistoricalContract ? _safeParseDouble(histCementCtrl) : null,
-      histBlock: isHistoricalContract ? _safeParseDouble(histBlockCtrl) : null,
-      histFormwork: isHistoricalContract ? _safeParseDouble(histFormworkCtrl) : null,
-      histAggregates: isHistoricalContract ? _safeParseDouble(histAggregatesCtrl) : null,
-      histWorker: isHistoricalContract ? _safeParseDouble(histWorkerCtrl) : null,
-      histDollarRate: (isHistoricalContract && isDollarContract) ? exchangeRate : null, // 🌟 تمرير سعر الدولار
-    );
-
-    if (mounted) { 
-      Navigator.pop(context); 
-      _showSuccess('تم توقيع العقد بنجاح! ✅'); 
+      if (mounted) { 
+        Navigator.pop(context); 
+        _showSuccess('تم توقيع العقد بنجاح! ✅'); 
+      }
+    } catch (e) {
+      // 🌟 فك القفل إذا حدث خطأ برمجي ليتمكن من المحاولة مجدداً
+      if (mounted) {
+        setState(() {
+          _isSaving = false;
+        });
+        _showError('حدث خطأ أثناء الحفظ: ${e.toString()}');
+      }
     }
   }
 
