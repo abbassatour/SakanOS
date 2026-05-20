@@ -5,29 +5,58 @@ import '../../../../core/utils/formatters.dart';
 class FinancialSection extends StatelessWidget {
   final bool isAllocated;
   final bool isHistoricalContract;
+  
+  // 🌟 متغيرات الدولار الجديدة
+  final bool isDollarContract;
+  final ValueChanged<bool>? onDollarToggle;
+  final TextEditingController histDollarRateCtrl;
+  final double? currentDollarRate;
+  final ValueChanged<String>? onInputChanged;
+
   final TextEditingController areaController;
   final TextEditingController monthsController;
   final TextEditingController durationCoefficientCtrl;
   final TextEditingController priceController;
   final TextEditingController monthlyAmountCtrl; 
-  final TextEditingController downPaymentCtrl; // 🌟 1. تم تعريف المتحكم الجديد
+  final TextEditingController downPaymentCtrl;
   final VoidCallback onCalculate;
 
   const FinancialSection({
     super.key,
     required this.isAllocated,
     required this.isHistoricalContract,
+    required this.isDollarContract,
+    required this.onDollarToggle,
+    required this.histDollarRateCtrl,
+    required this.currentDollarRate,
+    required this.onInputChanged,
     required this.areaController,
     required this.monthsController,
     required this.durationCoefficientCtrl,
     required this.priceController,
     required this.monthlyAmountCtrl, 
-    required this.downPaymentCtrl, // 🌟 2. إضافته في الدالة البانية
+    required this.downPaymentCtrl,
     required this.onCalculate,
   });
 
   @override
   Widget build(BuildContext context) {
+    // 🧠 حساب المعادل السوري اللحظي للمعاينة الحية
+    double exchangeRate = 1.0;
+    if (isDollarContract) {
+      if (isHistoricalContract) {
+        exchangeRate = double.tryParse(histDollarRateCtrl.text.replaceAll(',', '')) ?? 0.0;
+      } else if (currentDollarRate != null) {
+        exchangeRate = currentDollarRate!;
+      }
+    }
+
+    double downPaymentVal = double.tryParse(downPaymentCtrl.text.replaceAll(',', '')) ?? 0.0;
+    double monthlyVal = double.tryParse(monthlyAmountCtrl.text.replaceAll(',', '')) ?? 0.0;
+
+    double sypDownPayment = downPaymentVal * exchangeRate;
+    double sypMonthly = monthlyVal * exchangeRate;
+
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: Colors.teal.shade200)),
@@ -37,7 +66,53 @@ class FinancialSection extends StatelessWidget {
           children:[
             
             // ==========================================
-            // 🌟 1. حقول الأساس المالي (الدفعة الأولى + القسط الشهري)
+            // 🌟 1. مفتاح التحويل للدولار
+            // ==========================================
+            Container(
+              margin: const EdgeInsets.only(bottom: 16),
+              decoration: BoxDecoration(
+                color: isDollarContract ? Colors.green.shade50 : Colors.white,
+                border: Border.all(color: isDollarContract ? Colors.green : Colors.grey.shade300),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Column(
+                children: [
+                  SwitchListTile(
+                    title: Text('إدخال المقدم والقسط بالدولار الأمريكي (USD)', style: TextStyle(fontWeight: FontWeight.bold, color: isDollarContract ? Colors.green.shade700 : Colors.black87, fontSize: 14)),
+                    subtitle: isHistoricalContract
+                        ? const Text('سعر الصرف القديم يجب إدخاله أدناه', style: TextStyle(color: Colors.green))
+                        : (currentDollarRate != null
+                            ? Text('سعر الصرف الحالي: ${NumberFormatters.formatWithCommas(currentDollarRate!)} ل.س', style: TextStyle(color: isDollarContract ? Colors.green.shade900 : Colors.grey))
+                            : const Text('⚠️ جاري تحميل التسعيرة أو لم يتم تعيينها', style: TextStyle(color: Colors.red))),
+                    value: isDollarContract,
+                    activeColor: Colors.green,
+                    onChanged: (isHistoricalContract || currentDollarRate != null) ? onDollarToggle : null,
+                  ),
+                  
+                  // إدخال سعر الدولار التاريخي (يظهر فقط إذا كان العقد تاريخياً والدولار مفعلاً)
+                  if (isDollarContract && isHistoricalContract)
+                    Padding(
+                      padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
+                      child: TextField(
+                        controller: histDollarRateCtrl,
+                        inputFormatters: [ThousandsFormatter()],
+                        decoration: InputDecoration(
+                          labelText: 'سعر صرف 1 دولار وقت كتابة العقد (ل.س)',
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                          prefixIcon: const Icon(Icons.history_edu, color: Colors.green),
+                          filled: true,
+                          fillColor: Colors.white,
+                        ),
+                        keyboardType: TextInputType.number,
+                        onChanged: onInputChanged,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+
+            // ==========================================
+            // 🌟 2. حقول الأساس المالي (الدفعة الأولى + القسط الشهري)
             // ==========================================
             Container(
               padding: const EdgeInsets.all(16),
@@ -52,38 +127,61 @@ class FinancialSection extends StatelessWidget {
                   const Text('الأساس المالي للعقد', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.deepOrange, fontSize: 16)),
                   const SizedBox(height: 12),
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children:[
                       // 🌟 حقل الدفعة الأولى
                       Expanded(
-                        child: TextField(
-                          controller: downPaymentCtrl,
-                          inputFormatters: [ThousandsFormatter()],
-                          decoration: const InputDecoration(
-                            labelText: 'الدفعة الأولى (مقدم العقد)', 
-                            hintText: 'مثال: 5000000',
-                            border: OutlineInputBorder(), 
-                            filled: true, 
-                            fillColor: Colors.white,
-                            prefixIcon: Icon(Icons.price_check, color: Colors.green) // أيقونة خضراء للدفعة
-                          ),
-                          keyboardType: TextInputType.number,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            TextField(
+                              controller: downPaymentCtrl,
+                              inputFormatters: [ThousandsFormatter()],
+                              decoration: InputDecoration(
+                                labelText: isDollarContract ? 'المقدم (دولار)' : 'الدفعة الأولى (مقدم العقد)', 
+                                hintText: isDollarContract ? 'مثال: 5000' : 'مثال: 5000000',
+                                border: const OutlineInputBorder(), 
+                                filled: true, 
+                                fillColor: Colors.white,
+                                prefixIcon: Icon(isDollarContract ? Icons.monetization_on : Icons.price_check, color: Colors.green)
+                              ),
+                              keyboardType: TextInputType.number,
+                              onChanged: onInputChanged,
+                            ),
+                            if (isDollarContract && downPaymentVal > 0)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 4, right: 4),
+                                child: Text('≈ ${NumberFormatters.formatWithCommas(sypDownPayment)} ل.س', style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 12)),
+                              )
+                          ],
                         ),
                       ),
                       const SizedBox(width: 16),
-                      // حقل القسط الشهري
+                      // 🌟 حقل القسط الشهري
                       Expanded(
-                        child: TextField(
-                          controller: monthlyAmountCtrl,
-                          inputFormatters:[ThousandsFormatter()],
-                          decoration: const InputDecoration(
-                            labelText: 'القسط الشهري المتفق عليه', 
-                            hintText: 'مثال: 150000',
-                            border: OutlineInputBorder(), 
-                            filled: true, 
-                            fillColor: Colors.white,
-                            prefixIcon: Icon(Icons.payments_outlined, color: Colors.orange)
-                          ),
-                          keyboardType: TextInputType.number,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            TextField(
+                              controller: monthlyAmountCtrl,
+                              inputFormatters:[ThousandsFormatter()],
+                              decoration: InputDecoration(
+                                labelText: isDollarContract ? 'القسط (دولار)' : 'القسط الشهري المتفق عليه', 
+                                hintText: isDollarContract ? 'مثال: 200' : 'مثال: 150000',
+                                border: const OutlineInputBorder(), 
+                                filled: true, 
+                                fillColor: Colors.white,
+                                prefixIcon: Icon(isDollarContract ? Icons.monetization_on_outlined : Icons.payments_outlined, color: Colors.orange)
+                              ),
+                              keyboardType: TextInputType.number,
+                              onChanged: onInputChanged,
+                            ),
+                            if (isDollarContract && monthlyVal > 0)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 4, right: 4),
+                                child: Text('≈ ${NumberFormatters.formatWithCommas(sypMonthly)} ل.س', style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 12)),
+                              )
+                          ],
                         ),
                       ),
                     ],
@@ -93,7 +191,7 @@ class FinancialSection extends StatelessWidget {
             ),
             const SizedBox(height: 16),
 
-            // 🌟 2. إخفاء المساحة والمدة بالكامل إذا كان العقد (لاحق التخصص)
+            // 🌟 3. إخفاء المساحة والمدة بالكامل إذا كان العقد (لاحق التخصص)
             if (isAllocated) ...[
               Row(
                 children:[
@@ -103,7 +201,6 @@ class FinancialSection extends StatelessWidget {
                     readOnly: true,
                   )),
                   const SizedBox(width: 12),
-                  // حقل المدة أصبح شكلياً، لذلك سنضيف عليه تلميح
                   Expanded(flex: 2, child: TextField(controller: monthsController, decoration: const InputDecoration(labelText: 'المدة  (أشهر)', border: OutlineInputBorder()), keyboardType: TextInputType.number)),
                   const SizedBox(width: 12),
                   Expanded(flex: 2, child: TextField(controller: durationCoefficientCtrl, decoration: const InputDecoration(labelText: 'نسبة التقسيط %', border: OutlineInputBorder(), filled: true, fillColor: Colors.orangeAccent), keyboardType: TextInputType.number)),
@@ -111,7 +208,6 @@ class FinancialSection extends StatelessWidget {
               ),
               const SizedBox(height: 16),
             ] else ...[
-              // تلميح صغير للموظف لعقود لاحق التخصص
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(8),
@@ -121,7 +217,7 @@ class FinancialSection extends StatelessWidget {
               ),
             ],
 
-            // 🌟 3. زر الحساب وحقل السعر المرجعي
+            // 🌟 4. زر الحساب وحقل السعر المرجعي
             SizedBox(
               width: double.infinity,
               height: 50,
@@ -139,7 +235,7 @@ class FinancialSection extends StatelessWidget {
               inputFormatters:[ThousandsFormatter()], 
               style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               decoration: InputDecoration(
-                labelText: isHistoricalContract ? 'سعر المتر المربع (يمكنك تعديله يدوياً)' : 'سعر المتر المربع النهائي (يُحسب آلياً)', 
+                labelText: isHistoricalContract ? 'سعر المتر المربع بالسوري (يمكنك تعديله يدوياً)' : 'سعر المتر المربع النهائي بالسوري (يُحسب آلياً)', 
                 border: const OutlineInputBorder(), 
                 filled: true, 
                 fillColor: isHistoricalContract ? Colors.white : Colors.teal.shade50,
