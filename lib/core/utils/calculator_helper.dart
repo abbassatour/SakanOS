@@ -5,8 +5,6 @@ class CalculatorHelper {
   // 🛡️ مساعد التقريب المالي (لأقرب 10 ليرات)
   static double _roundTo10(double val) => (val / 10).round() * 10.0;
 
-  /// محرك حساب تكلفة المتر الأساسي مطابق تماماً لمعادلات الإكسل
-  /// 🌟 مع تطبيق التحصين المالي (التقريب لأقرب 10 ليرات)
   static Map<String, double> calculateContractValues({
     required double area,
     required MaterialPricesHistoryData currentPrices,
@@ -16,8 +14,7 @@ class CalculatorHelper {
     // -----------------------------------------------------
     // 1. حساب تكلفة المتر المربع الواحد (التكلفة الخام)
     // -----------------------------------------------------
-    // نترك الحسابات الوسيطة بـ double دقيق لضمان عدم تراكم أخطاء التقريب
-    double baseCostPerSqm = 
+    double baseCostPerSqmRaw = 
         (currentPrices.ironPrice * 30.0) +                
         (currentPrices.cementPrice * 4.0) +               
         (currentPrices.block15Price * 50.0) +             
@@ -29,10 +26,10 @@ class CalculatorHelper {
     // 2. تطبيق معامل "الموقع" أولاً
     // -----------------------------------------------------
     double locationCoefficient = coefficients['الموقع'] ?? 0.0;
-    double priceAfterLocation = baseCostPerSqm + (baseCostPerSqm * locationCoefficient);
+    double priceAfterLocationRaw = baseCostPerSqmRaw + (baseCostPerSqmRaw * locationCoefficient);
 
     // -----------------------------------------------------
-    // 3. تجميع وتطبيق باقي المعاملات على (السعر بعد الموقع)
+    // 3. تجميع وتطبيق باقي المعاملات
     // -----------------------------------------------------
     double otherExtraPercentage = 0.0;
     coefficients.forEach((key, value) {
@@ -41,30 +38,44 @@ class CalculatorHelper {
       }
     });
 
-    double finalPricePerSqmRaw = priceAfterLocation + (priceAfterLocation * otherExtraPercentage);
-    
-    // 🛡️ [التحصين الأول]: تقريب سعر المتر النهائي لأقرب 10 ليرات
-    double finalPricePerSqm = _roundTo10(finalPricePerSqmRaw);
+    // السعر النهائي للمتر (بدون أي تقريب لاستخدامه في حساب الإجمالي)
+    double finalPricePerSqmRaw = priceAfterLocationRaw + (priceAfterLocationRaw * otherExtraPercentage);
 
     // -----------------------------------------------------
-    // 4. الحسابات النهائية للعقد (الإجمالي والقسط)
+    // 4. الحسابات النهائية للعقد (الآن نستخدم القيم الخام)
     // -----------------------------------------------------
     
-    // الإجمالي = السعر (المقرب لـ 10) × المساحة (الدقيقة)
-    double totalValueRaw = finalPricePerSqm * area;
+    // ✅ الإجمالي = السعر الخام الدقيق × المساحة الدقيقة
+    double totalValueRaw = finalPricePerSqmRaw * area;
     
-    // 🛡️ [التحصين الثاني]: تقريب إجمالي قيمة العقد لأقرب 10 ليرات
-    double totalValue = _roundTo10(totalValueRaw);
+    // 🛡️ هنا فقط نقوم بالتقريب النهائي للإجمالي
+    double finalTotalValue = _roundTo10(totalValueRaw);
 
-    // 🛡️ [التحصين الثالث]: تقريب القسط الشهري لأقرب 10 ليرات
-    double monthlyInstallment = _roundTo10(totalValue / months);
+    // -----------------------------------------------------
+    // 5. معالجة الأقساط باحترافية لتجنب (فجوة الأقساط)
+    // -----------------------------------------------------
+    double monthlyInstallment = 0.0;
+    double lastInstallment = 0.0; // القسط الأخير المعدل
 
+    if (months > 0) {
+      // نحسب القسط بناءً على الإجمالي المقرب
+      monthlyInstallment = _roundTo10(finalTotalValue / months);
+      
+      // ✅ السر المحاسبي: القسط الأخير يمتص أي فجوة ناتجة عن التقريب
+      // نضرب القسط في (عدد الأشهر - 1) ونطرحه من الإجمالي لمعرفة القسط الأخير الفعلي
+      lastInstallment = finalTotalValue - (monthlyInstallment * (months - 1));
+    }
+
+    // -----------------------------------------------------
+    // 6. إرجاع النتيجة (نقرب القيم فقط بهدف العرض للمستخدم)
+    // -----------------------------------------------------
     return {
-      'baseCostPerSqm': _roundTo10(baseCostPerSqm),     // حتى القيم الوسيطة نعرضها نظيفة
-      'priceAfterLocation': _roundTo10(priceAfterLocation),
-      'pricePerSqm': finalPricePerSqm, 
-      'totalValue': totalValue,
+      'baseCostPerSqm': _roundTo10(baseCostPerSqmRaw),     
+      'priceAfterLocation': _roundTo10(priceAfterLocationRaw),
+      'pricePerSqm': _roundTo10(finalPricePerSqmRaw), // نقرب سعر المتر للعرض فقط
+      'totalValue': finalTotalValue,
       'monthlyInstallment': monthlyInstallment,
+      'lastInstallment': lastInstallment, // يفضل إرسال القسط الأخير للواجهة وعرضه إذا كان يختلف عن باقي الأقساط
     };
   }
 }
