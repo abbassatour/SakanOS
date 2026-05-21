@@ -23,19 +23,14 @@ class ContractsCubit extends Cubit<ContractsState> {
   final ErpRepository _erpRepository;
 
   // ==========================================
-  // 🛡️ محرك التقريب والتحصين المالي (Financial Guarding)
+  // 🛡️ محرك التقريب والتحصين المالي 
   // ==========================================
   
-  // 💰 تقريب المبالغ المالية لأقرب 10 ليرات (للملاءمة مع التداول الفعلي)
+  // 💰 تقريب المبالغ المالية الكلية للورق (وليس للمواد)
   double _roundTo10(double val) => (val / 10).round() * 10.0;
 
-  // 📏 تقريب المساحات (أمتار - 4 خانات عشرية للدقة العقارية)
   double _roundArea(double val) => double.parse(val.toStringAsFixed(4));
-
-  // 🎯 تقريب الأمتار المحولة (6 خانات عشرية لضمان عدم ضياع أي قيمة عند تقسيم المبالغ على السعر)
   double _roundConvertedMeters(double val) => double.parse(val.toStringAsFixed(6));
-
-  // 📈 تقريب النسب المئوية (خانتين عشريتين)
   double _roundPercent(double val) => double.parse(val.toStringAsFixed(2));
 
   // ==========================================
@@ -88,8 +83,8 @@ class ContractsCubit extends Cubit<ContractsState> {
     required String details,
     required String? apartmentId,
     required double area,
-    required double basePrice, // 🌟 يصل كقيمة خام ودقيقة
-    required double downPayment, // 🌟 يصل كقيمة خام
+    required double basePrice, 
+    required double downPayment, 
     required int installmentsCount,
     required String guarantorName,
     required double agreedMonthlyAmount,
@@ -131,16 +126,16 @@ class ContractsCubit extends Cubit<ContractsState> {
         }
       }
 
-      // حفظ الأسعار التاريخية
+      // 🌟 التعديل: حفظ الأسعار التاريخية للمواد كما هي "خام" (بدون أي تقريب) 
       if (customDate != null && histIron != null) {
         final historicalPrices = MaterialPricesHistoryCompanion.insert(
           effectiveDate: Value(contractDateToSave),
-          ironPrice: _roundTo10(histIron),
-          cementPrice: _roundTo10(histCement!),
-          block15Price: _roundTo10(histBlock!),
-          formworkAndPouringWages: _roundTo10(histFormwork!),
-          aggregateMaterialsPrice: _roundTo10(histAggregates!),
-          ordinaryWorkerWage: _roundTo10(histWorker!),
+          ironPrice: histIron, 
+          cementPrice: histCement!,
+          block15Price: histBlock!,
+          formworkAndPouringWages: histFormwork!,
+          aggregateMaterialsPrice: histAggregates!,
+          ordinaryWorkerWage: histWorker!,
           userId: userId,
         );
         await _erpRepository.savePrices(historicalPrices);
@@ -148,10 +143,10 @@ class ContractsCubit extends Cubit<ContractsState> {
 
       final String newContractId = const Uuid().v7();
 
-      // 🌟 [الفصل المالي]: تقريب بيانات "نص العقد" لتطابق الورق
+      // تقريب بيانات "نص العقد" لتطابق الورق
       final double safeArea = _roundArea(area);
-      final double safeBasePriceForContract = _roundTo10(basePrice); // سعر مقرب للعقد
-      final double safeDownPaymentForContract = _roundTo10(downPayment); // دفعة مقربة للعقد
+      final double safeBasePriceForContract = _roundTo10(basePrice); 
+      final double safeDownPaymentForContract = _roundTo10(downPayment); 
       final double safeMonthlyAmount = _roundTo10(agreedMonthlyAmount);
       final double safePenaltyPct = _roundPercent(penaltyPercentage);
 
@@ -162,8 +157,8 @@ class ContractsCubit extends Cubit<ContractsState> {
         contractType: Value(contractType),
         apartmentDetails: Value(details),
         totalArea: safeArea,
-        baseMeterPriceAtSigning: safeBasePriceForContract, // للحفظ في واجهة العقد فقط
-        downPayment: Value(safeDownPaymentForContract), // للحفظ في واجهة العقد فقط
+        baseMeterPriceAtSigning: safeBasePriceForContract, 
+        downPayment: Value(safeDownPaymentForContract), 
         agreedHandoverDate: agreedHandoverDate != null
             ? Value(agreedHandoverDate.toUtc())
             : const Value.absent(),
@@ -181,10 +176,8 @@ class ContractsCubit extends Cubit<ContractsState> {
 
       await _erpRepository.addContract(newContract);
 
-      // 🛡️ [الدرع المالي]: حساب أمتار الدفعة الأولى بدقة متناهية (Raw / Raw)
-      if (downPayment > 0) { // نستخدم المبلغ الخام الذي لم يُقرب
-        
-        // 🌟 المعادلة السحرية لحفظ الأمتار بدون ضياع أي سنتيمتر
+      // حساب أمتار الدفعة الأولى بدقة متناهية (Raw / Raw)
+      if (downPayment > 0) { 
         double rawConverted = basePrice > 0 ? (downPayment / basePrice) : 0;
         
         Map<String, dynamic> snapshotData = {'note': 'الدفعة الأولى عند توقيع العقد'};
@@ -195,8 +188,8 @@ class ContractsCubit extends Cubit<ContractsState> {
         final downPaymentEntry = PaymentsLedgerCompanion.insert(
           contractId: newContractId,
           paymentDate: contractDateToSave,
-          amountPaid: downPayment, // 🌟 الدفعة الخام (بدون تقريب)
-          meterPriceAtPayment: basePrice, // 🌟 السعر الخام (بدون تقريب)
+          amountPaid: downPayment, // خام
+          meterPriceAtPayment: basePrice, // خام
           convertedMeters: _roundConvertedMeters(rawConverted), // دقة 6 خانات
           pricesSnapshot: Value(jsonEncode(snapshotData)),
           userId: userId,
@@ -290,7 +283,7 @@ class ContractsCubit extends Cubit<ContractsState> {
   }
 
   // ==========================================
-  // 8. تعديل العقد (مع تحصين أقرب 10 ليرات 🛡️)
+  // 8. تعديل العقد 
   // ==========================================
   Future<void> updateContract({
     required String id,
