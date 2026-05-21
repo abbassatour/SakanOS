@@ -73,6 +73,9 @@ class _AddContractPageState extends State<AddContractPage> {
   bool isHistoricalContract = false;
   DateTime selectedHistoricalDate = DateTime.now();
 
+  // 🌟 [الدرع المالي]: متغير لحفظ السعر الخام (غير المقرب) في الخلفية
+  double _rawCalculatedPricePerSqm = 0.0;
+
   @override
   void initState() {
     super.initState();
@@ -192,6 +195,11 @@ class _AddContractPageState extends State<AddContractPage> {
     final calculations = CalculatorHelper.calculateContractValues(
       area: dummyAreaForCalculation, currentPrices: targetPrices, coefficients: finalCoeffs, 
     );
+
+    // 🌟 [الدرع المالي]: الاحتفاظ بالسعر الخام في الذاكرة لضمان عدم ضياع الدقة
+    _rawCalculatedPricePerSqm = calculations['pricePerSqmRaw'] ?? calculations['pricePerSqm']!;
+
+    // عرض السعر المقرب للمستخدم
     priceController.text = NumberFormatters.formatWithCommas(calculations['pricePerSqm']!);
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(isHistoricalContract ? 'تم الحساب بناءً على المواد التاريخية ✅' : 'تم الحساب بناءً على أسعار اليوم ✅'), backgroundColor: Colors.green));
   }
@@ -231,7 +239,7 @@ class _AddContractPageState extends State<AddContractPage> {
                                   setState(() { isHistoricalContract = true; if (pickedDate != null) selectedHistoricalDate = pickedDate; });
                                 }
                               } else {
-                                setState(() { isHistoricalContract = false; priceController.clear(); });
+                                setState(() { isHistoricalContract = false; priceController.clear(); _rawCalculatedPricePerSqm = 0.0; });
                               }
                             },
                             onDateTap: () async {
@@ -473,6 +481,16 @@ class _AddContractPageState extends State<AddContractPage> {
 
     if (agreedAmountSYP <= 0) return _showError('المبلغ الشهري يجب أن يكون أكبر من صفر!');
 
+    // 🌟 [الدرع المالي]: الذكاء المالي للتحقق من السعر المعتمد
+    double uiDisplayedPrice = _safeParseDouble(priceController);
+    double finalBasePriceToSend = uiDisplayedPrice;
+    
+    // إذا كان السعر في المربع هو نفس السعر المحسوب تقريباً (الفرق أقل من 20 ليرة)
+    // نعتمد السعر الدقيق (الخام) لضمان الدقة الرياضية للدفعة الأولى.
+    if (_rawCalculatedPricePerSqm > 0 && (uiDisplayedPrice - _rawCalculatedPricePerSqm).abs() < 20) {
+      finalBasePriceToSend = _rawCalculatedPricePerSqm;
+    }
+
     // 🌟 بدء عملية الحفظ (قفل الشاشة)
     setState(() {
       _isSaving = true;
@@ -504,7 +522,7 @@ class _AddContractPageState extends State<AddContractPage> {
         details: generatedDetails, 
         apartmentId: isAllocated ? selectedApartmentId : null,
         area: finalArea, 
-        basePrice: _safeParseDouble(priceController), 
+        basePrice: finalBasePriceToSend, // 🌟 إرسال السعر بدقة متناهية (الخام)
         downPayment: finalDownPaymentSYP, 
         installmentsCount: finalMonths, 
         guarantorName: guarantorController.text.trim(),
