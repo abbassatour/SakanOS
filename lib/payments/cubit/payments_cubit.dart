@@ -15,7 +15,7 @@ import 'package:local_storage_api/local_storage_api.dart'
         Building,
         MaterialPricesHistoryCompanion,
         MaterialPricesHistoryData,
-        DollarPricesHistoryCompanion; // 🌟 تمت إضافة استيراد الدولار هنا
+        DollarPricesHistoryCompanion; 
 
 import '../../core/utils/calculator_helper.dart';
 
@@ -27,16 +27,16 @@ class PaymentsCubit extends Cubit<PaymentsState> {
   final ErpRepository _erpRepository;
 
   // ==========================================
-  // 🛡️ محرك التقريب والتحصين المالي (Financial Guarding)
+  // 🛡️ محرك التقريب المالي (محدث)
   // ==========================================
 
-  // 💰 تقريب المبالغ المالية لأقرب 10 ليرات
+  // نستخدم التقريب فقط للقيم التي ستُعرض للمستخدم كـ (نص) في اللقطات
   double _roundTo10(double val) => (val / 10).round() * 10.0;
-
-  // 🎯 تقريب الأمتار المحولة بدقة متناهية (6 خانات عشرية)
+  
+  // دقة الأمتار ممتازة (6 خانات) ونبقي عليها
   double _roundConvertedMeters(double val) => double.parse(val.toStringAsFixed(6));
 
-  // 📈 تقريب النسب المئوية (خانتين عشريتين)
+  // تقريب النسب المئوية
   double _roundPercent(double val) => double.parse(val.toStringAsFixed(2));
 
   // ==========================================
@@ -81,11 +81,11 @@ class PaymentsCubit extends Cubit<PaymentsState> {
   }
 
   // ==========================================
-  // 2. تسجيل دفعة جديدة (مع التحصين المالي 🛡️)
+  // 2. تسجيل دفعة جديدة (مع التحصين المالي الحقيقي 🛡️)
   // ==========================================
   Future<void> addLedgerEntry({
     required String contractId,
-    required double amountPaid,
+    required double amountPaid, // نأخذ المبلغ كما أدخله المستخدم بالضبط
     double discountPercentage = 0,
     String? scheduleId,
     DateTime? customDate,
@@ -96,7 +96,7 @@ class PaymentsCubit extends Cubit<PaymentsState> {
     double? histFormwork,
     double? histAggregates,
     double? histWorker,
-    double? histDollarRate, // 🌟 المعامل الجديد لاستقبال سعر الدولار القديم
+    double? histDollarRate,
   }) async {
     emit(state.copyWith(status: PaymentsStatus.loading));
     try {
@@ -107,7 +107,7 @@ class PaymentsCubit extends Cubit<PaymentsState> {
       final String? userId = _erpRepository.currentUserId;
       if (userId == null) throw Exception('يجب تسجيل الدخول.');
 
-      // 🌟 [العملية المزدوجة]: حفظ سعر الدولار القديم في سجل الدولار فوراً
+      // 🌟 حفظ سعر الدولار القديم في سجل الدولار
       if (customDate != null && histDollarRate != null) {
         try {
           final historicalDollar = DollarPricesHistoryCompanion.insert(
@@ -122,55 +122,38 @@ class PaymentsCubit extends Cubit<PaymentsState> {
       }
 
       Map<String, double> contractCoefficients = {};
-      try {
-        if (contract.coefficients.isNotEmpty && contract.coefficients != '{}') {
-          final Map<String, dynamic> decodedMap = jsonDecode(contract.coefficients);
-          decodedMap.forEach((key, value) {
-            contractCoefficients[key.toString()] = (value as num).toDouble();
-          });
-        }
-      } catch (e) {
-        print('⚠️ تحذير: فشل في قراءة معاملات العقد: $e');
+      if (contract.coefficients.isNotEmpty && contract.coefficients != '{}') {
+        final Map<String, dynamic> decodedMap = jsonDecode(contract.coefficients);
+        decodedMap.forEach((key, value) {
+          contractCoefficients[key.toString()] = (value as num).toDouble();
+        });
       }
 
       final double safeAreaForCalculation = contract.totalArea > 0 ? contract.totalArea : 1.0;
       final paymentDateToSave = customDate?.toUtc() ?? DateTime.now().toUtc();
 
-      double meterPriceToUse = 0.0;
+      double rawMeterPriceToUse = 0.0; // 🌟 السر هنا: السعر الخام الدقيق
       String pricesSnapshotJson = '{}';
 
-      // 🧠 حساب السعر المطبق مع التقريب لأقرب 10 ليرات
+      // 🧠 حساب سعر المتر (نحتفظ بالدقة الكاملة)
       if (customDate != null && customMeterPrice != null && histIron == null) {
-        meterPriceToUse = _roundTo10(customMeterPrice);
+        rawMeterPriceToUse = customMeterPrice; // إدخال يدوي مباشر نأخذه كما هو
         pricesSnapshotJson = jsonEncode({
           'note': 'إدخال تاريخي سريع',
-          'manual_meter_price': meterPriceToUse,
-          'dollar_rate_used': histDollarRate // 🌟 توثيق سعر الدولار في اللقطة
+          'manual_meter_price': _roundTo10(rawMeterPriceToUse), // نقربه فقط في الـ JSON للعرض
+          'dollar_rate_used': histDollarRate
         });
       } else if (customDate != null && histIron != null) {
-        // 🛡️ تقريب الأسعار التاريخية قبل الحفظ
-        final historicalPrices = MaterialPricesHistoryCompanion.insert(
-          effectiveDate: Value(paymentDateToSave),
-          ironPrice: _roundTo10(histIron),
-          cementPrice: _roundTo10(histCement!),
-          block15Price: _roundTo10(histBlock!),
-          formworkAndPouringWages: _roundTo10(histFormwork!),
-          aggregateMaterialsPrice: _roundTo10(histAggregates!),
-          ordinaryWorkerWage: _roundTo10(histWorker!),
-          userId: userId,
-        );
-
-        await _erpRepository.savePrices(historicalPrices);
-
+        // 🛡️ حفظ الأسعار التاريخية
         final targetPrices = MaterialPricesHistoryData(
           id: 'dummy',
           effectiveDate: paymentDateToSave,
-          ironPrice: _roundTo10(histIron),
-          cementPrice: _roundTo10(histCement),
-          block15Price: _roundTo10(histBlock),
-          formworkAndPouringWages: _roundTo10(histFormwork),
-          aggregateMaterialsPrice: _roundTo10(histAggregates),
-          ordinaryWorkerWage: _roundTo10(histWorker),
+          ironPrice: histIron, // 🌟 لا تقرب المدخلات هنا لتجنب تراكم الخطأ
+          cementPrice: histCement!,
+          block15Price: histBlock!,
+          formworkAndPouringWages: histFormwork!,
+          aggregateMaterialsPrice: histAggregates!,
+          ordinaryWorkerWage: histWorker!,
           userId: userId,
           createdAt: DateTime.now(),
           updatedAt: DateTime.now(),
@@ -178,21 +161,36 @@ class PaymentsCubit extends Cubit<PaymentsState> {
           isSynced: false,
         );
 
+        // هنا استخدمنا البيانات الخام
+        final historicalPrices = MaterialPricesHistoryCompanion.insert(
+          effectiveDate: Value(paymentDateToSave),
+          ironPrice: histIron,
+          cementPrice: histCement,
+          block15Price: histBlock,
+          formworkAndPouringWages: histFormwork,
+          aggregateMaterialsPrice: histAggregates,
+          ordinaryWorkerWage: histWorker,
+          userId: userId,
+        );
+        await _erpRepository.savePrices(historicalPrices);
+
         final calculations = CalculatorHelper.calculateContractValues(
           area: safeAreaForCalculation,
           currentPrices: targetPrices,
           coefficients: contractCoefficients,
         );
 
-        meterPriceToUse = _roundTo10(calculations['pricePerSqm']!);
+        // 🌟 نطلب السعر الخام من الآلة الحاسبة
+        rawMeterPriceToUse = calculations['pricePerSqmRaw'] ?? calculations['pricePerSqm']!;
+        
         pricesSnapshotJson = jsonEncode({
-          'iron': _roundTo10(histIron),
-          'cement': _roundTo10(histCement),
-          'block': _roundTo10(histBlock),
-          'formwork': _roundTo10(histFormwork),
-          'aggregates': _roundTo10(histAggregates),
-          'worker': _roundTo10(histWorker),
-          'dollar_rate_used': histDollarRate // 🌟 توثيق سعر الدولار في اللقطة
+          'iron': histIron,
+          'cement': histCement,
+          'block': histBlock,
+          'formwork': histFormwork,
+          'aggregates': histAggregates,
+          'worker': histWorker,
+          'dollar_rate_used': histDollarRate
         });
       } else {
         final currentPrices = await _erpRepository.getLatestPrices();
@@ -204,40 +202,43 @@ class PaymentsCubit extends Cubit<PaymentsState> {
           coefficients: contractCoefficients,
         );
 
-        meterPriceToUse = _roundTo10(calculations['pricePerSqm']!);
+        rawMeterPriceToUse = calculations['pricePerSqmRaw'] ?? calculations['pricePerSqm']!;
+        
         pricesSnapshotJson = jsonEncode({
-          'iron': _roundTo10(currentPrices.ironPrice),
-          'cement': _roundTo10(currentPrices.cementPrice),
-          'block': _roundTo10(currentPrices.block15Price),
-          'formwork': _roundTo10(currentPrices.formworkAndPouringWages),
-          'aggregates': _roundTo10(currentPrices.aggregateMaterialsPrice),
-          'worker': _roundTo10(currentPrices.ordinaryWorkerWage),
+          'iron': currentPrices.ironPrice,
+          'cement': currentPrices.cementPrice,
+          'block': currentPrices.block15Price,
+          'formwork': currentPrices.formworkAndPouringWages,
+          'aggregates': currentPrices.aggregateMaterialsPrice,
+          'worker': currentPrices.ordinaryWorkerWage,
         });
       }
 
-      // 🛡️ حساب القيمة الفعلية (بإضافة الخصم/الزيادة) مع تقريبها لأقرب 10
-      final double safeAmountPaid = _roundTo10(amountPaid);
-      final double safeDiscountPercent = _roundPercent(discountPercentage);
+      // -------------------------------------------------------------------
+      // 🛡️ الحساب الدقيق للأمتار (المحرك الرياضي الحقيقي)
+      // -------------------------------------------------------------------
       
-      final double effectiveValue = _roundTo10(safeAmountPaid + (safeAmountPaid * (safeDiscountPercent / 100)));
+      // 1. لا نقرب المبلغ المدفوع أبداً
+      // 2. لا نقرب نسبة الخصم أبداً
+      final double effectiveValueRaw = amountPaid + (amountPaid * (discountPercentage / 100));
       
-      // 🛡️ حساب الأمتار المحولة بدقة 6 خانات
-      final double convertedMeters = _roundConvertedMeters(effectiveValue / meterPriceToUse);
+      // 3. نقسم القيمة الدقيقة على السعر الدقيق
+      final double convertedMeters = _roundConvertedMeters(effectiveValueRaw / rawMeterPriceToUse);
 
       final newEntry = PaymentsLedgerCompanion.insert(
         contractId: contractId,
         scheduleId: scheduleId != null ? Value(scheduleId) : const Value.absent(),
         paymentDate: paymentDateToSave,
-        amountPaid: safeAmountPaid,
-        meterPriceAtPayment: meterPriceToUse,
-        convertedMeters: convertedMeters,
+        amountPaid: amountPaid, // نحفظ المبلغ الدقيق
+        meterPriceAtPayment: rawMeterPriceToUse, // نحفظ السعر الدقيق للمتر ليتم القسمة عليه مستقبلاً لو احتجنا
+        convertedMeters: convertedMeters, // الأمتار المحسوبة بدقة
         pricesSnapshot: Value(pricesSnapshotJson),
-        fees: Value(safeDiscountPercent),
+        fees: Value(discountPercentage),
         userId: userId,
       );
 
       await _erpRepository.addLedgerEntry(newEntry);
-
+      
       if (scheduleId != null) {
         final currentSchedules = await _erpRepository.getContractSchedule(contractId);
         final targetScheduleIndex = currentSchedules.indexWhere((s) => s.id == scheduleId);
@@ -264,7 +265,7 @@ class PaymentsCubit extends Cubit<PaymentsState> {
   }
 
   // ==========================================
-  // 3. تعديل دفعة قديمة (مع التحصين المالي 🛡️)
+  // 3. تعديل دفعة قديمة (التصحيح الدقيق 🛡️)
   // ==========================================
   Future<void> editOldLedgerEntry({
     required PaymentsLedgerData entryToEdit,
@@ -273,18 +274,16 @@ class PaymentsCubit extends Cubit<PaymentsState> {
   }) async {
     emit(state.copyWith(status: PaymentsStatus.loading));
     try {
-      // 🛡️ تقريب المدخلات الجديدة
-      final double safeNewAmount = _roundTo10(newAmountPaid);
-      final double safeNewDiscount = _roundPercent(newDiscountPercentage);
+      // 🛡️ استخدام القيم الخام (Raw) بدون تقريب مبكر
+      final double effectiveValueRaw = newAmountPaid + (newAmountPaid * (newDiscountPercentage / 100));
       
-      // 🛡️ إعادة حساب القيمة المضافة للأمتار
-      final double effectiveValue = _roundTo10(safeNewAmount + (safeNewAmount * (safeNewDiscount / 100)));
-      final double newConvertedMeters = _roundConvertedMeters(effectiveValue / entryToEdit.meterPriceAtPayment);
+      // 🛡️ القسمة تتم على السعر الدقيق المحفوظ مسبقاً في الدفعة
+      final double newConvertedMeters = _roundConvertedMeters(effectiveValueRaw / entryToEdit.meterPriceAtPayment);
 
       await _erpRepository.updateLedgerEntryAmount(
         entryId: entryToEdit.id,
-        newAmount: safeNewAmount,
-        newDiscount: safeNewDiscount,
+        newAmount: newAmountPaid,
+        newDiscount: newDiscountPercentage,
         newConvertedMeters: newConvertedMeters,
       );
 
@@ -318,7 +317,7 @@ class PaymentsCubit extends Cubit<PaymentsState> {
   }
 
   // ==========================================
-  // بقية الدوال (المحذوفات والواتساب) تبقى كما هي
+  // بقية الدوال (المحذوفات والواتساب) 
   // ==========================================
   Future<void> fetchDeletedEntries() async {
     try {

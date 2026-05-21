@@ -73,6 +73,7 @@ class CalculatorHelper {
       'baseCostPerSqm': _roundTo10(baseCostPerSqmRaw),     
       'priceAfterLocation': _roundTo10(priceAfterLocationRaw),
       'pricePerSqm': _roundTo10(finalPricePerSqmRaw), // نقرب سعر المتر للعرض فقط
+      'pricePerSqmRaw': finalPricePerSqmRaw,
       'totalValue': finalTotalValue,
       'monthlyInstallment': monthlyInstallment,
       'lastInstallment': lastInstallment, // يفضل إرسال القسط الأخير للواجهة وعرضه إذا كان يختلف عن باقي الأقساط
