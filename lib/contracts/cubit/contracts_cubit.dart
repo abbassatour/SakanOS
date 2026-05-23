@@ -180,9 +180,33 @@ class ContractsCubit extends Cubit<ContractsState> {
       if (downPayment > 0) { 
         double rawConverted = basePrice > 0 ? (downPayment / basePrice) : 0;
         
+        // 🌟 [الدرع المالي]: بناء لقطة الأسعار بشكل دقيق يطابق ما يحدث في الدفعات (PaymentsCubit)
         Map<String, dynamic> snapshotData = {'note': 'الدفعة الأولى عند توقيع العقد'};
+        
         if (histDollarRate != null) {
           snapshotData['dollar_rate_used'] = histDollarRate;
+        }
+
+        // 🌟 حفظ أسعار المواد داخل اللقطة
+        if (customDate != null && histIron != null) {
+          // 1. إذا كان العقد تاريخياً وتم إدخال المواد يدوياً
+          snapshotData['iron'] = histIron;
+          snapshotData['cement'] = histCement;
+          snapshotData['block'] = histBlock;
+          snapshotData['formwork'] = histFormwork;
+          snapshotData['aggregates'] = histAggregates;
+          snapshotData['worker'] = histWorker;
+        } else {
+          // 2. إذا كان العقد بتاريخ اليوم، نجلب أحدث أسعار من الإعدادات
+          final currentPrices = await _erpRepository.getLatestPrices();
+          if (currentPrices != null) {
+            snapshotData['iron'] = currentPrices.ironPrice;
+            snapshotData['cement'] = currentPrices.cementPrice;
+            snapshotData['block'] = currentPrices.block15Price;
+            snapshotData['formwork'] = currentPrices.formworkAndPouringWages;
+            snapshotData['aggregates'] = currentPrices.aggregateMaterialsPrice;
+            snapshotData['worker'] = currentPrices.ordinaryWorkerWage;
+          }
         }
 
         final downPaymentEntry = PaymentsLedgerCompanion.insert(
@@ -191,9 +215,10 @@ class ContractsCubit extends Cubit<ContractsState> {
           amountPaid: downPayment, // خام
           meterPriceAtPayment: basePrice, // خام
           convertedMeters: _roundConvertedMeters(rawConverted), // دقة 6 خانات
-          pricesSnapshot: Value(jsonEncode(snapshotData)),
+          pricesSnapshot: Value(jsonEncode(snapshotData)), // 🌟 يتم حفظها كاملة الآن
           userId: userId,
         );
+        
         await _erpRepository.addLedgerEntry(downPaymentEntry);
       }
 
