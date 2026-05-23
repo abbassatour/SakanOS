@@ -130,20 +130,7 @@ class DashboardView extends StatelessWidget {
       ));
     }
 
-    // ==========================================
-    // 🌟 5. [التبويب الجديد]: الشؤون القانونية والأرشيف
-    // ==========================================
-    if (authState.hasPermission(AppPermissions.viewLegalAffairs)) {
-      availableTabs.add(NavTab(
-        label: 'القانونية',
-        icon: Icons.gavel_outlined,
-        selectedIcon: Icons.gavel,
-        page: const LegalAffairsPage(),
-        onSelected: (ctx) => ctx.read<LegalAffairsCubit>().fetchData(),
-      ));
-    }
-
-    // 6. الأقساط والدفعات
+    // 5. الأقساط والدفعات
     if (authState.hasPermission(AppPermissions.viewPayments)) {
       availableTabs.add(NavTab(
         label: 'الأقساط',
@@ -154,7 +141,7 @@ class DashboardView extends StatelessWidget {
       ));
     }
 
-    // 7. المراقبة
+    // 6. المراقبة
     if (authState.hasPermission(AppPermissions.viewPayments)) {
       availableTabs.add(NavTab(
         label: 'المراقبة',
@@ -165,7 +152,7 @@ class DashboardView extends StatelessWidget {
       ));
     }
 
-    // 8. الإعدادات
+    // 7. الإعدادات
     if (authState.hasPermission(AppPermissions.viewPrices)) {
       availableTabs.add(NavTab(
         label: 'الإعدادات',
@@ -173,6 +160,19 @@ class DashboardView extends StatelessWidget {
         selectedIcon: Icons.settings,
         page: const SettingsPage(),
         onSelected: (ctx) => ctx.read<SettingsCubit>().fetchPrices(),
+      ));
+    }
+
+    // ==========================================
+    // 🌟 8. الشؤون القانونية والأرشيف (تم نقلها للأسفل)
+    // ==========================================
+    if (authState.hasPermission(AppPermissions.viewLegalAffairs)) {
+      availableTabs.add(NavTab(
+        label: 'القانونية',
+        icon: Icons.gavel_outlined,
+        selectedIcon: Icons.gavel,
+        page: const LegalAffairsPage(),
+        onSelected: (ctx) => ctx.read<LegalAffairsCubit>().fetchData(),
       ));
     }
 
