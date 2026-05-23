@@ -231,25 +231,73 @@ class DashboardView extends StatelessWidget {
                       ),
                       const SizedBox(height: 16),
 
-                      IconButton(
+                                            IconButton(
                         icon: const Icon(Icons.sync, color: Colors.greenAccent, size: 28),
                         tooltip: 'مزامنة يدوية مع السحابة (Pull & Push)',
                         onPressed: () async {
+                          // 1. إظهار رسالة بدء العملية
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('جاري المزامنة مع السحابة... ☁️🔄')),
+                            const SnackBar(
+                              content: Text('جاري الاتصال بالخادم والمزامنة... ☁️🔄'),
+                              duration: Duration(seconds: 2),
+                            ),
                           );
                           
-                          final resultMessage = await context.read<ErpRepository>().forceSyncWithCloud();
-                          
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(resultMessage), 
-                                backgroundColor: resultMessage.contains('بنجاح') ? Colors.green : Colors.red,
-                              ),
-                            );
-                            context.read<AuthCubit>().checkSession();
-                            availableTabs[safeIndex].onSelected(context);
+                          try {
+                            // 2. محاولة المزامنة
+                            final resultMessage = await context.read<ErpRepository>().forceSyncWithCloud();
+                            
+                            // 3. نجاح العملية (حتى لو عادت برسالة خطأ من السيرفر، فقد تم الاتصال)
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(resultMessage), 
+                                  backgroundColor: resultMessage.contains('بنجاح') ? Colors.green : Colors.orange,
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
+                              context.read<AuthCubit>().checkSession();
+                              availableTabs[safeIndex].onSelected(context);
+                            }
+                          } catch (e) {
+                            // 4. 🌟 التقاط الأخطاء (هنا بيت القصيد)
+                            if (context.mounted) {
+                              final errorString = e.toString().toLowerCase();
+                              
+                              // التحقق مما إذا كان الخطأ بسبب انقطاع الإنترنت
+                              final isNetworkError = errorString.contains('socketexception') || 
+                                                    errorString.contains('failed host lookup') ||
+                                                    errorString.contains('clientexception') ||
+                                                    errorString.contains('failed to fetch') ||
+                                                    errorString.contains('network is unreachable');
+
+                              if (isNetworkError) {
+                                // رسالة مخصصة لانقطاع الإنترنت
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: const Row(
+                                      children: [
+                                        Icon(Icons.wifi_off, color: Colors.white),
+                                        SizedBox(width: 12),
+                                        Expanded(child: Text('تعذرت المزامنة: لا يوجد اتصال بالإنترنت. سيتم حفظ بياناتك محلياً مؤقتاً. 🌐❌')),
+                                      ],
+                                    ),
+                                    backgroundColor: Colors.red.shade800,
+                                    behavior: SnackBarBehavior.floating,
+                                    duration: const Duration(seconds: 5),
+                                  ),
+                                );
+                              } else {
+                                // رسالة لأي خطأ برمجي آخر
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('حدث خطأ أثناء المزامنة: ${e.toString()}'), 
+                                    backgroundColor: Colors.red.shade900,
+                                    behavior: SnackBarBehavior.floating,
+                                  ),
+                                );
+                              }
+                            }
                           }
                         },
                       ),
