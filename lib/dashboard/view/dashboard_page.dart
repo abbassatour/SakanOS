@@ -7,6 +7,7 @@ import 'package:erp_repository/erp_repository.dart';
 import '../../auth/cubit/auth_cubit.dart';
 import '../../core/constants/app_permissions.dart';
 import 'dart:async'; // ضروري لالتقاط خطأ TimeoutException
+import 'dart:io'; 
 // استدعاء الشاشات
 import '../../home/view/home_page.dart';
 import '../../clients/view/clients_page.dart';
@@ -235,22 +236,69 @@ class DashboardView extends StatelessWidget {
                         icon: const Icon(Icons.sync, color: Colors.greenAccent, size: 28),
                         tooltip: 'مزامنة يدوية مع السحابة (Pull & Push)',
                         onPressed: () async {
-                          // 1. إظهار رسالة بدء العملية
+                          // 1. إظهار رسالة فحص الاتصال
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                              content: Text('جاري الاتصال بالخادم والمزامنة ... ⏳🔄'),
+                              content: Text('جاري فحص الاتصال بالإنترنت... 📡'),
                               duration: Duration(seconds: 2),
                             ),
                           );
-                          
+
+                          bool hasInternet = false;
+
+                          // ==========================================
+                          // 🛡️ الفحص المسبق السريع (يستغرق 5 ثوانٍ كحد أقصى)
+                          // ==========================================
                           try {
-                            // 2. محاولة المزامنة مع إجبارها على التوقف بعد 10 ثوانٍ ⏱️
-                            final resultMessage = await context.read<ErpRepository>()
-                                .forceSyncWithCloud()
-                                .timeout(const Duration(seconds: 10));
+                            // نقوم بفحص الاتصال بعنوان عالمي (أو يمكنك وضع رابط السيرفر الخاص بك)
+                            final result = await InternetAddress.lookup('google.com')
+                                .timeout(const Duration(seconds: 5)); // ⏱️ مهلة 5 ثوانٍ فقط للفحص
                             
-                            // 3. نجاح العملية في الوقت المحدد
+                            if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
+                              hasInternet = true;
+                            }
+                          } catch (_) {
+                            hasInternet = false;
+                          }
+
+                          // إذا فشل الفحص، نوقف العملية فوراً ونبلغ المستخدم
+                          if (!hasInternet) {
                             if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: const Row(
+                                    children: [
+                                      Icon(Icons.wifi_off, color: Colors.white),
+                                      SizedBox(width: 12),
+                                      Expanded(child: Text('لا يوجد اتصال بالإنترنت! يرجى التحقق من الشبكة. 🌐❌')),
+                                    ],
+                                  ),
+                                  backgroundColor: Colors.red.shade800,
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
+                            }
+                            return; // ⛔ إنهاء التنفيذ هنا
+                          }
+
+                          // ==========================================
+                          // 🔄 بدء المزامنة الحقيقية (بما أن الإنترنت متوفر)
+                          // ==========================================
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('الإنترنت متصل ✅ جاري مزامنة البيانات، يرجى الانتظار... ☁️🔄'),
+                                duration: Duration(seconds: 10), // رسالة تبقى ظاهرة أثناء المزامنة
+                              ),
+                            );
+                          }
+
+                          try {
+                            // هذه العملية نتركها تأخذ وقتها الطبيعي (سواء 5 ثوانٍ أو دقيقة)
+                            final resultMessage = await context.read<ErpRepository>().forceSyncWithCloud();
+                            
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).hideCurrentSnackBar(); // إخفاء رسالة الانتظار
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(resultMessage), 
@@ -261,60 +309,16 @@ class DashboardView extends StatelessWidget {
                               context.read<AuthCubit>().checkSession();
                               availableTabs[safeIndex].onSelected(context);
                             }
-                            
-                          // 4. 🌟 التقاط خطأ انتهاء الوقت (10 ثوانٍ) بالتحديد
-                          } on TimeoutException catch (_) {
+                          } catch (e) {
+                            // التقاط أي خطأ آخر قد يحدث أثناء المزامنة
                             if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
-                                  content: const Row(
-                                    children: [
-                                      Icon(Icons.timer_off, color: Colors.white),
-                                      SizedBox(width: 12),
-                                      Expanded(child: Text('انتهى وقت الاتصال! الخادم لا يستجيب أو الإنترنت ضعيف جداً. سيتم حفظ بياناتك محلياً. ⏳❌')),
-                                    ],
-                                  ),
-                                  backgroundColor: Colors.orange.shade900,
+                                  content: Text('حدث خطأ غير متوقع أثناء المزامنة: ${e.toString()}'), 
+                                  backgroundColor: Colors.red.shade900,
                                   behavior: SnackBarBehavior.floating,
-                                  duration: const Duration(seconds: 5),
                                 ),
                               );
-                            }
-                            
-                          // 5. التقاط الأخطاء الأخرى (مثل انقطاع الإنترنت الفوري)
-                          } catch (e) {
-                            if (context.mounted) {
-                              final errorString = e.toString().toLowerCase();
-                              
-                              final isNetworkError = errorString.contains('socketexception') || 
-                                                    errorString.contains('failed host lookup') ||
-                                                    errorString.contains('clientexception') ||
-                                                    errorString.contains('failed to fetch') ||
-                                                    errorString.contains('network is unreachable');
-
-                              if (isNetworkError) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: const Row(
-                                      children: [
-                                        Icon(Icons.wifi_off, color: Colors.white),
-                                        SizedBox(width: 12),
-                                        Expanded(child: Text('تعذرت المزامنة: لا يوجد اتصال بالإنترنت. 🌐❌')),
-                                      ],
-                                    ),
-                                    backgroundColor: Colors.red.shade800,
-                                    behavior: SnackBarBehavior.floating,
-                                  ),
-                                );
-                              } else {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text('حدث خطأ أثناء المزامنة: ${e.toString()}'), 
-                                    backgroundColor: Colors.red.shade900,
-                                    behavior: SnackBarBehavior.floating,
-                                  ),
-                                );
-                              }
                             }
                           }
                         },
