@@ -1,4 +1,4 @@
-//lib\register\view\register_page.dart
+// lib/register/view/register_page.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:erp_repository/erp_repository.dart';
@@ -27,8 +27,25 @@ class RegisterView extends StatelessWidget {
       body: BlocListener<RegisterCubit, RegisterState>(
         listener: (context, state) {
           if (state.status == RegisterStatus.failure) {
+            // 🌟 تحسين شكل عرض الخطأ بناءً على نوعه
+            final isNetworkError = state.errorMessage != null && state.errorMessage!.contains('الإنترنت');
+            
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.errorMessage ?? 'حدث خطأ'), backgroundColor: Colors.red),
+              SnackBar(
+                content: Row(
+                  children: [
+                    Icon(
+                      isNetworkError ? Icons.wifi_off : Icons.error_outline,
+                      color: Colors.white,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(child: Text(state.errorMessage ?? 'حدث خطأ غير معروف')),
+                  ],
+                ),
+                backgroundColor: isNetworkError ? Colors.red.shade800 : Colors.red,
+                behavior: SnackBarBehavior.floating,
+                duration: const Duration(seconds: 4),
+              ),
             );
           } else if (state.status == RegisterStatus.success) {
             showDialog(
