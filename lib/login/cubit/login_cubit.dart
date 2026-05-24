@@ -1,4 +1,5 @@
-//lib\login\cubit\login_cubit.dart
+// lib/login/cubit/login_cubit.dart
+import 'dart:async'; // 🌟 إضافة ضرورية لدالة المهلة timeout
 import 'dart:io';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
@@ -48,6 +49,33 @@ class LoginCubit extends Cubit<LoginState> {
     emit(state.copyWith(status: LoginStatus.loading));
     
     try {
+      // ==========================================
+      // 🛡️ 1. الفحص المسبق السريع للإنترنت (Ping) - مهلة 5 ثوانٍ
+      // ==========================================
+      bool hasInternet = false;
+      try {
+        final result = await InternetAddress.lookup('google.com')
+            .timeout(const Duration(seconds: 5)); // ⏱️ لن ينتظر أكثر من 5 ثوانٍ
+            
+        if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
+          hasInternet = true;
+        }
+      } catch (_) {
+        hasInternet = false;
+      }
+
+      // ⛔ إيقاف العملية فوراً إذا لم يكن هناك إنترنت
+      if (!hasInternet) {
+        emit(state.copyWith(
+          status: LoginStatus.failure,
+          errorMessage: 'لا يوجد اتصال بالإنترنت! يرجى التحقق من الشبكة والمحاولة مجدداً. 🌐❌',
+        ));
+        return; // خروج لعدم استدعاء قاعدة البيانات
+      }
+
+      // ==========================================
+      // 🔄 2. محاولة تسجيل الدخول الفعلية (بما أن الإنترنت متوفر)
+      // ==========================================
       await _erpRepository.signIn(
         email: state.email.trim(),
         password: state.password,
@@ -65,13 +93,21 @@ class LoginCubit extends Cubit<LoginState> {
       emit(state.copyWith(status: LoginStatus.success));
       
     } catch (e) {
+      // ==========================================
+      // 🐛 3. التقاط الأخطاء وتخصيص الرسائل
+      // ==========================================
       String msg = 'فشل تسجيل الدخول. تأكد من صحة البيانات أو اتصالك بالإنترنت.';
+      final errorString = e.toString().toLowerCase();
       
-      // 🌟 اصطياد خطأ الإيميل غير المؤكد من Supabase
-      if (e.toString().contains('Email not confirmed')) {
+      // اصطياد أخطاء Supabase
+      if (errorString.contains('email not confirmed')) {
         msg = 'يرجى تأكيد بريدك الإلكتروني أولاً عبر الرابط الذي أرسلناه إليك.';
-      } else if (e.toString().contains('Invalid login credentials')) {
+      } else if (errorString.contains('invalid login credentials')) {
         msg = 'البريد الإلكتروني أو كلمة المرور غير صحيحة.';
+      } 
+      // حماية إضافية في حال انقطع الاتصال فجأة أثناء الطلب
+      else if (errorString.contains('socketexception') || errorString.contains('failed host lookup') || errorString.contains('clientexception')) {
+        msg = 'انقطع الاتصال بالإنترنت أثناء تسجيل الدخول. 🌐❌';
       }
 
       emit(state.copyWith(
