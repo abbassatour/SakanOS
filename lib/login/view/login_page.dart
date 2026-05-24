@@ -1,4 +1,4 @@
-//lib\login\view\login_page.dart
+//lib/login/view/login_page.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../register/view/register_page.dart';
@@ -53,8 +53,25 @@ class _LoginViewState extends State<LoginView> {
               }
 
               if (state.status == LoginStatus.failure) {
+                // 🌟 تحسين شكل عرض الخطأ بناءً على نوعه (إنترنت أو بيانات خاطئة)
+                final isNetworkError = state.errorMessage != null && state.errorMessage!.contains('الإنترنت');
+                
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(state.errorMessage ?? 'حدث خطأ غير معروف'), backgroundColor: Colors.red),
+                  SnackBar(
+                    content: Row(
+                      children: [
+                        Icon(
+                          isNetworkError ? Icons.wifi_off : Icons.error_outline,
+                          color: Colors.white,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(child: Text(state.errorMessage ?? 'حدث خطأ غير معروف')),
+                      ],
+                    ),
+                    backgroundColor: isNetworkError ? Colors.red.shade800 : Colors.red,
+                    behavior: SnackBarBehavior.floating,
+                    duration: const Duration(seconds: 4),
+                  ),
                 );
               } 
               // عند النجاح، نطلب من الحارس الشخصي فحص الصلاحيات
