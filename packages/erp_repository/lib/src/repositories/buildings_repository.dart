@@ -9,7 +9,7 @@ import 'package:path/path.dart' as p;
 import 'package:drift/drift.dart' as drift;
 import 'package:local_storage_api/local_storage_api.dart';
 
-import 'sync_repository.dart';
+import 'sync_repository.dart' hide SecureTime;
 
 class BuildingsRepository {
   const BuildingsRepository({
@@ -92,7 +92,7 @@ class BuildingsRepository {
         name: drift.Value(name),
         location: drift.Value(location),
         userId: drift.Value(userId),
-        updatedAt: drift.Value(DateTime.now().toUtc()),
+        updatedAt: drift.Value(SecureTime.now()),
         isSynced: const drift.Value(false),
       ),
     );
@@ -115,7 +115,7 @@ class BuildingsRepository {
         area: drift.Value(area),
         directionName: drift.Value(directionName),
         userId: drift.Value(userId),
-        updatedAt: drift.Value(DateTime.now().toUtc()),
+        updatedAt: drift.Value(SecureTime.now()),
         isSynced: const drift.Value(false),
       ),
     );

@@ -1,5 +1,6 @@
 // packages/local_storage_api/lib/src/tables/local_users.dart
 import 'package:drift/drift.dart';
+import '../secure_time.dart';
 import 'app_roles.dart';
 
 @TableIndex(name: 'idx_users_sync', columns: {#isDeleted, #updatedAt})
@@ -18,9 +19,9 @@ class LocalUsers extends Table {
       text().withDefault(const Constant('[]'))();
   BoolColumn get isActive => boolean().withDefault(const Constant(true))();
   DateTimeColumn get createdAt =>
-      dateTime().clientDefault(() => DateTime.now().toUtc())();
+      dateTime().clientDefault(() => SecureTime.now())();
   DateTimeColumn get updatedAt =>
-      dateTime().clientDefault(() => DateTime.now().toUtc())();
+      dateTime().clientDefault(() => SecureTime.now())();
   BoolColumn get isDeleted => boolean().withDefault(const Constant(false))();
   BoolColumn get isSynced => boolean().withDefault(const Constant(false))();
 

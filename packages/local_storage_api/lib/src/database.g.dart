@@ -70,7 +70,7 @@ class $ClientsTable extends Clients with TableInfo<$ClientsTable, Client> {
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    clientDefault: () => DateTime.now().toUtc(),
+    clientDefault: () => SecureTime.now(),
   );
   static const VerificationMeta _updatedAtMeta = const VerificationMeta(
     'updatedAt',
@@ -82,7 +82,7 @@ class $ClientsTable extends Clients with TableInfo<$ClientsTable, Client> {
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    clientDefault: () => DateTime.now().toUtc(),
+    clientDefault: () => SecureTime.now(),
   );
   static const VerificationMeta _isDeletedMeta = const VerificationMeta(
     'isDeleted',
@@ -655,7 +655,7 @@ class $BuildingsTable extends Buildings
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    clientDefault: () => DateTime.now().toUtc(),
+    clientDefault: () => SecureTime.now(),
   );
   static const VerificationMeta _updatedAtMeta = const VerificationMeta(
     'updatedAt',
@@ -667,7 +667,7 @@ class $BuildingsTable extends Buildings
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    clientDefault: () => DateTime.now().toUtc(),
+    clientDefault: () => SecureTime.now(),
   );
   static const VerificationMeta _isSyncedMeta = const VerificationMeta(
     'isSynced',
@@ -1312,7 +1312,7 @@ class $ApartmentsTable extends Apartments
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    clientDefault: () => DateTime.now().toUtc(),
+    clientDefault: () => SecureTime.now(),
   );
   static const VerificationMeta _updatedAtMeta = const VerificationMeta(
     'updatedAt',
@@ -1324,7 +1324,7 @@ class $ApartmentsTable extends Apartments
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    clientDefault: () => DateTime.now().toUtc(),
+    clientDefault: () => SecureTime.now(),
   );
   static const VerificationMeta _isSyncedMeta = const VerificationMeta(
     'isSynced',
@@ -2279,7 +2279,7 @@ class $ContractsTable extends Contracts
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    clientDefault: () => DateTime.now().toUtc(),
+    clientDefault: () => SecureTime.now(),
   );
   static const VerificationMeta _updatedAtMeta = const VerificationMeta(
     'updatedAt',
@@ -2291,7 +2291,7 @@ class $ContractsTable extends Contracts
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    clientDefault: () => DateTime.now().toUtc(),
+    clientDefault: () => SecureTime.now(),
   );
   static const VerificationMeta _lastActionDateMeta = const VerificationMeta(
     'lastActionDate',
@@ -3717,7 +3717,7 @@ class $MaterialPricesHistoryTable extends MaterialPricesHistory
         false,
         type: DriftSqlType.dateTime,
         requiredDuringInsert: false,
-        clientDefault: () => DateTime.now().toUtc(),
+        clientDefault: () => SecureTime.now(),
       );
   static const VerificationMeta _ironPriceMeta = const VerificationMeta(
     'ironPrice',
@@ -3804,7 +3804,7 @@ class $MaterialPricesHistoryTable extends MaterialPricesHistory
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    clientDefault: () => DateTime.now().toUtc(),
+    clientDefault: () => SecureTime.now(),
   );
   static const VerificationMeta _updatedAtMeta = const VerificationMeta(
     'updatedAt',
@@ -3816,7 +3816,7 @@ class $MaterialPricesHistoryTable extends MaterialPricesHistory
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    clientDefault: () => DateTime.now().toUtc(),
+    clientDefault: () => SecureTime.now(),
   );
   static const VerificationMeta _isDeletedMeta = const VerificationMeta(
     'isDeleted',
@@ -4524,7 +4524,7 @@ class $DollarPricesHistoryTable extends DollarPricesHistory
         false,
         type: DriftSqlType.dateTime,
         requiredDuringInsert: false,
-        clientDefault: () => DateTime.now().toUtc(),
+        clientDefault: () => SecureTime.now(),
       );
   static const VerificationMeta _exchangeRateMeta = const VerificationMeta(
     'exchangeRate',
@@ -4556,7 +4556,7 @@ class $DollarPricesHistoryTable extends DollarPricesHistory
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    clientDefault: () => DateTime.now().toUtc(),
+    clientDefault: () => SecureTime.now(),
   );
   static const VerificationMeta _updatedAtMeta = const VerificationMeta(
     'updatedAt',
@@ -4568,7 +4568,7 @@ class $DollarPricesHistoryTable extends DollarPricesHistory
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    clientDefault: () => DateTime.now().toUtc(),
+    clientDefault: () => SecureTime.now(),
   );
   static const VerificationMeta _isDeletedMeta = const VerificationMeta(
     'isDeleted',
@@ -5118,7 +5118,7 @@ class $InstallmentsScheduleTable extends InstallmentsSchedule
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    clientDefault: () => DateTime.now().toUtc(),
+    clientDefault: () => SecureTime.now(),
   );
   static const VerificationMeta _updatedAtMeta = const VerificationMeta(
     'updatedAt',
@@ -5130,7 +5130,7 @@ class $InstallmentsScheduleTable extends InstallmentsSchedule
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    clientDefault: () => DateTime.now().toUtc(),
+    clientDefault: () => SecureTime.now(),
   );
   static const VerificationMeta _isDeletedMeta = const VerificationMeta(
     'isDeleted',
@@ -5890,7 +5890,7 @@ class $PaymentsLedgerTable extends PaymentsLedger
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    clientDefault: () => DateTime.now().toUtc(),
+    clientDefault: () => SecureTime.now(),
   );
   static const VerificationMeta _updatedAtMeta = const VerificationMeta(
     'updatedAt',
@@ -5902,7 +5902,7 @@ class $PaymentsLedgerTable extends PaymentsLedger
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    clientDefault: () => DateTime.now().toUtc(),
+    clientDefault: () => SecureTime.now(),
   );
   static const VerificationMeta _isDeletedMeta = const VerificationMeta(
     'isDeleted',
@@ -6733,7 +6733,7 @@ class $AppRolesTable extends AppRoles with TableInfo<$AppRolesTable, AppRole> {
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    clientDefault: () => DateTime.now().toUtc(),
+    clientDefault: () => SecureTime.now(),
   );
   static const VerificationMeta _updatedAtMeta = const VerificationMeta(
     'updatedAt',
@@ -6745,7 +6745,7 @@ class $AppRolesTable extends AppRoles with TableInfo<$AppRolesTable, AppRole> {
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    clientDefault: () => DateTime.now().toUtc(),
+    clientDefault: () => SecureTime.now(),
   );
   static const VerificationMeta _isDeletedMeta = const VerificationMeta(
     'isDeleted',
@@ -7294,7 +7294,7 @@ class $LocalUsersTable extends LocalUsers
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    clientDefault: () => DateTime.now().toUtc(),
+    clientDefault: () => SecureTime.now(),
   );
   static const VerificationMeta _updatedAtMeta = const VerificationMeta(
     'updatedAt',
@@ -7306,7 +7306,7 @@ class $LocalUsersTable extends LocalUsers
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    clientDefault: () => DateTime.now().toUtc(),
+    clientDefault: () => SecureTime.now(),
   );
   static const VerificationMeta _isDeletedMeta = const VerificationMeta(
     'isDeleted',
@@ -7993,7 +7993,7 @@ class $LegalActionsTable extends LegalActions
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    clientDefault: () => DateTime.now().toUtc(),
+    clientDefault: () => SecureTime.now(),
   );
   static const VerificationMeta _updatedAtMeta = const VerificationMeta(
     'updatedAt',
@@ -8005,7 +8005,7 @@ class $LegalActionsTable extends LegalActions
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    clientDefault: () => DateTime.now().toUtc(),
+    clientDefault: () => SecureTime.now(),
   );
   static const VerificationMeta _isDeletedMeta = const VerificationMeta(
     'isDeleted',
@@ -8605,7 +8605,7 @@ class $LegalActionAttachmentsTable extends LegalActionAttachments
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    clientDefault: () => DateTime.now().toUtc(),
+    clientDefault: () => SecureTime.now(),
   );
   static const VerificationMeta _updatedAtMeta = const VerificationMeta(
     'updatedAt',
@@ -8617,7 +8617,7 @@ class $LegalActionAttachmentsTable extends LegalActionAttachments
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    clientDefault: () => DateTime.now().toUtc(),
+    clientDefault: () => SecureTime.now(),
   );
   static const VerificationMeta _isDeletedMeta = const VerificationMeta(
     'isDeleted',
@@ -9221,7 +9221,7 @@ class $ContractAttachmentsTable extends ContractAttachments
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    clientDefault: () => DateTime.now().toUtc(),
+    clientDefault: () => SecureTime.now(),
   );
   static const VerificationMeta _updatedAtMeta = const VerificationMeta(
     'updatedAt',
@@ -9233,7 +9233,7 @@ class $ContractAttachmentsTable extends ContractAttachments
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    clientDefault: () => DateTime.now().toUtc(),
+    clientDefault: () => SecureTime.now(),
   );
   static const VerificationMeta _isDeletedMeta = const VerificationMeta(
     'isDeleted',
@@ -9831,7 +9831,7 @@ class $ApartmentAttachmentsTable extends ApartmentAttachments
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    clientDefault: () => DateTime.now().toUtc(),
+    clientDefault: () => SecureTime.now(),
   );
   static const VerificationMeta _updatedAtMeta = const VerificationMeta(
     'updatedAt',
@@ -9843,7 +9843,7 @@ class $ApartmentAttachmentsTable extends ApartmentAttachments
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    clientDefault: () => DateTime.now().toUtc(),
+    clientDefault: () => SecureTime.now(),
   );
   static const VerificationMeta _isDeletedMeta = const VerificationMeta(
     'isDeleted',
@@ -10445,7 +10445,7 @@ class $BuildingAttachmentsTable extends BuildingAttachments
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    clientDefault: () => DateTime.now().toUtc(),
+    clientDefault: () => SecureTime.now(),
   );
   static const VerificationMeta _updatedAtMeta = const VerificationMeta(
     'updatedAt',
@@ -10457,7 +10457,7 @@ class $BuildingAttachmentsTable extends BuildingAttachments
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
-    clientDefault: () => DateTime.now().toUtc(),
+    clientDefault: () => SecureTime.now(),
   );
   static const VerificationMeta _isDeletedMeta = const VerificationMeta(
     'isDeleted',

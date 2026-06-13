@@ -2,6 +2,7 @@
 import 'dart:io';
 
 import 'package:drift/drift.dart';
+import 'package:local_storage_api/local_storage_api.dart';
 import 'package:drift/native.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
@@ -69,7 +70,7 @@ class AppDatabase extends _$AppDatabase {
   // ==========================================
   Future<void> softDeleteClient(String clientId, String userId) async {
     return transaction(() async {
-      final nowUtc = Value(DateTime.now().toUtc());
+      final nowUtc = Value(SecureTime.now());
 
       await (update(clients)..where((t) => t.id.equals(clientId))).write(
         ClientsCompanion(
@@ -138,7 +139,7 @@ class AppDatabase extends _$AppDatabase {
       LegalActionsCompanion(
         isDeleted: const Value(true),
         userId: Value(userId),
-        updatedAt: Value(DateTime.now().toUtc()),
+        updatedAt: Value(SecureTime.now()),
         isSynced: const Value(false),
       ),
     );
@@ -149,7 +150,7 @@ class AppDatabase extends _$AppDatabase {
       legalActions,
     )..where((t) => t.id.equals(action.id.value))).write(
       action.copyWith(
-        updatedAt: Value(DateTime.now().toUtc()),
+        updatedAt: Value(SecureTime.now()),
         isSynced: const Value(false),
       ),
     );
@@ -170,7 +171,7 @@ class AppDatabase extends _$AppDatabase {
     String note,
     String userId,
   ) {
-    final nowUtc = DateTime.now().toUtc();
+    final nowUtc = SecureTime.now();
     return (update(contracts)..where((t) => t.id.equals(contractId))).write(
       ContractsCompanion(
         lastActionDate: Value(nowUtc),
@@ -193,7 +194,7 @@ class AppDatabase extends _$AppDatabase {
     String userId,
   ) async {
     return transaction(() async {
-      final nowUtc = DateTime.now().toUtc();
+      final nowUtc = SecureTime.now();
 
       await (update(contracts)..where((t) => t.id.equals(contractId))).write(
         ContractsCompanion(
@@ -230,7 +231,7 @@ class AppDatabase extends _$AppDatabase {
     String userId,
   ) async {
     return transaction(() async {
-      final nowUtc = DateTime.now().toUtc();
+      final nowUtc = SecureTime.now();
 
       await (update(contracts)..where((t) => t.id.equals(contractId))).write(
         ContractsCompanion(
@@ -311,7 +312,7 @@ class AppDatabase extends _$AppDatabase {
           ApartmentsCompanion(
             status: const Value('sold'),
             userId: Value(userId),
-            updatedAt: Value(DateTime.now().toUtc()),
+            updatedAt: Value(SecureTime.now()),
             isSynced: const Value(false),
           ),
         );
@@ -328,7 +329,7 @@ class AppDatabase extends _$AppDatabase {
     String userId,
   ) async {
     return transaction(() async {
-      final nowUtc = Value(DateTime.now().toUtc());
+      final nowUtc = Value(SecureTime.now());
 
       await (update(contracts)..where((t) => t.id.equals(contractId))).write(
         ContractsCompanion(
@@ -420,7 +421,7 @@ class AppDatabase extends _$AppDatabase {
     String userId,
   ) async {
     return transaction(() async {
-      final nowUtc = Value(DateTime.now().toUtc());
+      final nowUtc = Value(SecureTime.now());
 
       await (update(contracts)..where((t) => t.id.equals(contractId))).write(
         ContractsCompanion(
@@ -583,7 +584,7 @@ class AppDatabase extends _$AppDatabase {
       PaymentsLedgerCompanion(
         isWhatsAppSent: const Value(true),
         userId: Value(userId),
-        updatedAt: Value(DateTime.now().toUtc()),
+        updatedAt: Value(SecureTime.now()),
         isSynced: const Value(false),
       ),
     );
@@ -641,7 +642,7 @@ class AppDatabase extends _$AppDatabase {
       InstallmentsScheduleCompanion(
         status: Value(status),
         userId: Value(userId),
-        updatedAt: Value(DateTime.now().toUtc()),
+        updatedAt: Value(SecureTime.now()),
         isSynced: const Value(false),
       ),
     );
@@ -651,14 +652,14 @@ class AppDatabase extends _$AppDatabase {
     return (update(installmentsSchedule)..where((t) => t.id.equals(id))).write(
       InstallmentsScheduleCompanion(
         isDeleted: const Value(true),
-        updatedAt: Value(DateTime.now().toUtc()),
+        updatedAt: Value(SecureTime.now()),
         isSynced: const Value(false),
       ),
     );
   }
 
   Future<List<InstallmentsScheduleData>> getAllOverdueSchedules() {
-    final nowUtc = DateTime.now().toUtc();
+    final nowUtc = SecureTime.now();
     return (select(installmentsSchedule)
           ..where(
             (t) =>
@@ -685,7 +686,7 @@ class AppDatabase extends _$AppDatabase {
         notes: Value(notes),
         expectedAmount: Value(expectedAmount),
         userId: Value(userId),
-        updatedAt: Value(DateTime.now().toUtc()),
+        updatedAt: Value(SecureTime.now()),
         isSynced: const Value(false),
       ),
     );
@@ -698,7 +699,7 @@ class AppDatabase extends _$AppDatabase {
     required String userId,
   }) async {
     return transaction(() async {
-      final nowUtc = Value(DateTime.now().toUtc());
+      final nowUtc = Value(SecureTime.now());
 
       final paidSchedules =
           await (select(installmentsSchedule)..where(
@@ -807,7 +808,7 @@ class AppDatabase extends _$AppDatabase {
       ApartmentsCompanion(
         status: Value(newStatus),
         userId: Value(userId),
-        updatedAt: Value(DateTime.now().toUtc()),
+        updatedAt: Value(SecureTime.now()),
         isSynced: const Value(false),
       ),
     );
@@ -982,7 +983,7 @@ class AppDatabase extends _$AppDatabase {
       ContractAttachmentsCompanion(
         isDeleted: const Value(true),
         userId: Value(userId),
-        updatedAt: Value(DateTime.now().toUtc()),
+        updatedAt: Value(SecureTime.now()),
         isSynced: const Value(false),
       ),
     );
@@ -1010,7 +1011,7 @@ class AppDatabase extends _$AppDatabase {
 
   Future<void> restoreSoftDeletedClient(String clientId, String userId) async {
     return transaction(() async {
-      final nowUtc = Value(DateTime.now().toUtc());
+      final nowUtc = Value(SecureTime.now());
       await (update(clients)..where((t) => t.id.equals(clientId))).write(
         ClientsCompanion(
           isDeleted: const Value(false),
@@ -1027,9 +1028,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   Future<void> autoCleanOldDeletedClients() async {
-    final sevenDaysAgo = DateTime.now().toUtc().subtract(
-      const Duration(days: 7),
-    );
+    final sevenDaysAgo = SecureTime.now().subtract(const Duration(days: 7));
     await (delete(clients)..where(
           (t) =>
               t.isDeleted.equals(true) &
@@ -1045,9 +1044,7 @@ class AppDatabase extends _$AppDatabase {
       (select(contracts)..where((t) => t.isDeleted.equals(true))).get();
 
   Future<void> autoCleanOldDeletedContracts() async {
-    final sevenDaysAgo = DateTime.now().toUtc().subtract(
-      const Duration(days: 7),
-    );
+    final sevenDaysAgo = SecureTime.now().subtract(const Duration(days: 7));
     final oldContracts =
         await (select(contracts)..where(
               (t) =>
@@ -1076,7 +1073,7 @@ class AppDatabase extends _$AppDatabase {
         fees: Value(newDiscount),
         convertedMeters: Value(newConvertedMeters),
         userId: Value(userId),
-        updatedAt: Value(DateTime.now().toUtc()),
+        updatedAt: Value(SecureTime.now()),
         isSynced: const Value(false),
       ),
     );
@@ -1087,7 +1084,7 @@ class AppDatabase extends _$AppDatabase {
       PaymentsLedgerCompanion(
         isDeleted: const Value(true),
         userId: Value(userId),
-        updatedAt: Value(DateTime.now().toUtc()),
+        updatedAt: Value(SecureTime.now()),
         isSynced: const Value(false),
       ),
     );
@@ -1101,7 +1098,7 @@ class AppDatabase extends _$AppDatabase {
       PaymentsLedgerCompanion(
         isDeleted: const Value(false),
         userId: Value(userId),
-        updatedAt: Value(DateTime.now().toUtc()),
+        updatedAt: Value(SecureTime.now()),
         isSynced: const Value(false),
       ),
     );
@@ -1112,9 +1109,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   Future<void> autoCleanOldDeletedLedgerEntries() async {
-    final sevenDaysAgo = DateTime.now().toUtc().subtract(
-      const Duration(days: 7),
-    );
+    final sevenDaysAgo = SecureTime.now().subtract(const Duration(days: 7));
     await (delete(paymentsLedger)..where(
           (t) =>
               t.isDeleted.equals(true) &
@@ -1134,7 +1129,7 @@ class AppDatabase extends _$AppDatabase {
     required String userId,
   }) async {
     return transaction(() async {
-      final nowUtc = Value(DateTime.now().toUtc());
+      final nowUtc = Value(SecureTime.now());
 
       await (update(
         installmentsSchedule,
@@ -1178,7 +1173,7 @@ class AppDatabase extends _$AppDatabase {
   // ==========================================
   Future<void> softDeleteBuilding(String buildingId, String userId) async {
     return transaction(() async {
-      final nowUtc = Value(DateTime.now().toUtc());
+      final nowUtc = Value(SecureTime.now());
 
       await (update(buildings)..where((t) => t.id.equals(buildingId))).write(
         BuildingsCompanion(
@@ -1224,7 +1219,7 @@ class AppDatabase extends _$AppDatabase {
     String userId,
   ) async {
     return transaction(() async {
-      final nowUtc = Value(DateTime.now().toUtc());
+      final nowUtc = Value(SecureTime.now());
       await (update(buildings)..where((t) => t.id.equals(buildingId))).write(
         BuildingsCompanion(
           isDeleted: const Value(false),
@@ -1265,7 +1260,7 @@ class AppDatabase extends _$AppDatabase {
 
   Future<void> softDeleteApartment(String apartmentId, String userId) {
     return transaction(() async {
-      final nowUtc = Value(DateTime.now().toUtc());
+      final nowUtc = Value(SecureTime.now());
 
       await (update(apartments)..where((t) => t.id.equals(apartmentId))).write(
         ApartmentsCompanion(
@@ -1292,7 +1287,7 @@ class AppDatabase extends _$AppDatabase {
 
   Future<void> restoreSoftDeletedApartment(String apartmentId, String userId) {
     return transaction(() async {
-      final nowUtc = Value(DateTime.now().toUtc());
+      final nowUtc = Value(SecureTime.now());
 
       await (update(apartments)..where((t) => t.id.equals(apartmentId))).write(
         ApartmentsCompanion(
@@ -1353,9 +1348,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   Future<void> autoCleanOldDeletedBuildingsAndApartments() async {
-    final sevenDaysAgo = DateTime.now().toUtc().subtract(
-      const Duration(days: 7),
-    );
+    final sevenDaysAgo = SecureTime.now().subtract(const Duration(days: 7));
 
     await (delete(apartments)..where(
           (t) =>
@@ -1390,7 +1383,7 @@ class AppDatabase extends _$AppDatabase {
     return (update(appRoles)..where((t) => t.id.equals(roleId))).write(
       AppRolesCompanion(
         permissionsJson: Value(newPermissionsJson),
-        updatedAt: Value(DateTime.now().toUtc()),
+        updatedAt: Value(SecureTime.now()),
         isSynced: const Value(false),
       ),
     );
@@ -1413,14 +1406,14 @@ class AppDatabase extends _$AppDatabase {
             ? Value(revokedPermissionsJson)
             : const Value.absent(),
         isActive: isActive != null ? Value(isActive) : const Value.absent(),
-        updatedAt: Value(DateTime.now().toUtc()),
+        updatedAt: Value(SecureTime.now()),
         isSynced: const Value(false),
       ),
     );
   }
 
   Future<void> softDeleteRole(String roleId) async {
-    final nowUtc = Value(DateTime.now().toUtc());
+    final nowUtc = Value(SecureTime.now());
     await (update(appRoles)..where((t) => t.id.equals(roleId))).write(
       AppRolesCompanion(
         isDeleted: const Value(true),
@@ -1437,7 +1430,7 @@ class AppDatabase extends _$AppDatabase {
     return (update(localUsers)..where((t) => t.id.equals(userId))).write(
       LocalUsersCompanion(
         securityPin: Value(newPin),
-        updatedAt: Value(DateTime.now().toUtc()),
+        updatedAt: Value(SecureTime.now()),
         isSynced: const Value(false),
       ),
     );
@@ -1481,7 +1474,7 @@ class AppDatabase extends _$AppDatabase {
     bool isCompleted,
     String userId,
   ) {
-    final nowUtc = DateTime.now().toUtc();
+    final nowUtc = SecureTime.now();
     return (update(contracts)..where((t) => t.id.equals(contractId))).write(
       ContractsCompanion(
         isCompleted: Value(isCompleted),
@@ -1523,7 +1516,7 @@ class AppDatabase extends _$AppDatabase {
       LegalActionAttachmentsCompanion(
         isDeleted: const Value(true),
         userId: Value(userId),
-        updatedAt: Value(DateTime.now().toUtc()),
+        updatedAt: Value(SecureTime.now()),
         isSynced: const Value(false),
       ),
     );
@@ -1569,7 +1562,7 @@ class AppDatabase extends _$AppDatabase {
     return (update(dollarPricesHistory)..where((t) => t.id.equals(id))).write(
       DollarPricesHistoryCompanion(
         isDeleted: const Value(true),
-        updatedAt: Value(DateTime.now().toUtc()),
+        updatedAt: Value(SecureTime.now()),
         isSynced: const Value(false),
       ),
     );
@@ -1606,7 +1599,7 @@ class AppDatabase extends _$AppDatabase {
       ApartmentAttachmentsCompanion(
         isDeleted: const Value(true),
         userId: Value(userId),
-        updatedAt: Value(DateTime.now().toUtc()),
+        updatedAt: Value(SecureTime.now()),
         isSynced: const Value(false),
       ),
     );
@@ -1655,7 +1648,7 @@ class AppDatabase extends _$AppDatabase {
       BuildingAttachmentsCompanion(
         isDeleted: const Value(true),
         userId: Value(userId),
-        updatedAt: Value(DateTime.now().toUtc()),
+        updatedAt: Value(SecureTime.now()),
         isSynced: const Value(false),
       ),
     );

@@ -4,7 +4,7 @@
 import 'package:drift/drift.dart' as drift;
 import 'package:local_storage_api/local_storage_api.dart';
 
-import 'sync_repository.dart';
+import 'sync_repository.dart' hide SecureTime;
 
 class PaymentsRepository {
   const PaymentsRepository({
@@ -45,7 +45,7 @@ class PaymentsRepository {
     final userId = _getCurrentUserId();
     if (userId == null) throw Exception('يجب تسجيل الدخول أولاً.');
 
-    final paymentDateToSave = customDate?.toUtc() ?? DateTime.now().toUtc();
+    final paymentDateToSave = customDate?.toUtc() ?? SecureTime.now();
 
     // 1. حفظ سعر الدولار التاريخي
     if (customDate != null && histDollarRate != null) {

@@ -4,7 +4,7 @@
 import 'package:drift/drift.dart' as drift;
 import 'package:local_storage_api/local_storage_api.dart';
 
-import 'sync_repository.dart';
+import 'sync_repository.dart' hide SecureTime;
 
 class ClientsRepository {
   const ClientsRepository({
@@ -58,7 +58,7 @@ class ClientsRepository {
         phone: drift.Value(phone),
         nationalId: drift.Value(nationalId),
         userId: drift.Value(userId),
-        updatedAt: drift.Value(DateTime.now().toUtc()),
+        updatedAt: drift.Value(SecureTime.now()),
         isSynced: const drift.Value(false),
       ),
     );

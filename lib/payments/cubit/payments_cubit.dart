@@ -12,7 +12,8 @@ import 'package:local_storage_api/local_storage_api.dart'
         Client,
         Contract,
         MaterialPricesHistoryData,
-        PaymentsLedgerData;
+        PaymentsLedgerData,
+        SecureTime;
 import 'package:our_home_erp_app/core/utils/calculator_helper.dart';
 
 part 'payments_state.dart';
@@ -127,7 +128,7 @@ class PaymentsCubit extends Cubit<PaymentsState> {
       final safeAreaForCalculation = contract.totalArea > 0
           ? contract.totalArea
           : 1.0;
-      final paymentDateToSave = customDate?.toUtc() ?? DateTime.now().toUtc();
+      final paymentDateToSave = customDate?.toUtc() ?? SecureTime.now();
 
       var rawMeterPriceToUse = 0.0;
       var pricesSnapshotJson = '{}';

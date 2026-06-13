@@ -220,7 +220,7 @@ class DashboardRepository {
     final tempDollarTrend = <String, List<double>>{};
     final tempCostTrend = <String, List<double>>{};
 
-    final now = DateTime.now().toUtc();
+    final now = SecureTime.now();
     final validDailyDates = <DateTime>[];
 
     // تهيئة الخرائط الزمنية

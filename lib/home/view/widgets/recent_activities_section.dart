@@ -1,6 +1,7 @@
 // lib/home/view/widgets/recent_activities_section.dart
 import 'package:flutter/material.dart';
 import 'package:erp_repository/erp_repository.dart';
+import 'package:local_storage_api/local_storage_api.dart';
 
 class RecentActivitiesSection extends StatelessWidget {
   final List<ActivityItem> activities;
@@ -9,7 +10,7 @@ class RecentActivitiesSection extends StatelessWidget {
 
   // 🌟 دالة مساعدة لتحويل الوقت إلى صيغة (منذ 5 دقائق)
   String _getTimeAgo(DateTime dateTime) {
-    final difference = DateTime.now().toUtc().difference(dateTime);
+    final difference = SecureTime.now().difference(dateTime);
     if (difference.inMinutes < 1) return 'الآن';
     if (difference.inMinutes < 60) return 'منذ ${difference.inMinutes} دقيقة';
     if (difference.inHours < 24) return 'منذ ${difference.inHours} ساعة';

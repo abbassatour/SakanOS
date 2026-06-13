@@ -11,7 +11,7 @@ void main() {
   group('ScheduleCubit - Smart Radar Engine', () {
     late MockErpRepository mockErpRepository;
 
-    final now = DateTime.now().toUtc();
+    final now = SecureTime.now();
 
     final dummyClient = Client(
       id: 'client_1',

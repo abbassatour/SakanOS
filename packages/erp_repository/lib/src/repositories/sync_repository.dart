@@ -127,7 +127,7 @@ class SyncRepository {
           isDeleted: drift.Value(c['is_deleted'] == true),
           updatedAt: drift.Value(
             DateTime.tryParse(c['updated_at']?.toString() ?? '')?.toUtc() ??
-                DateTime.now().toUtc(),
+                SecureTime.now(),
           ),
           isSynced: const drift.Value(true),
         );
@@ -197,7 +197,7 @@ class SyncRepository {
               DateTime.tryParse(
                 c['contract_date']?.toString() ?? '',
               )?.toUtc() ??
-              DateTime.now().toUtc(),
+              SecureTime.now(),
           guarantorName: c['guarantor_name']?.toString() ?? 'بدون كفيل',
           contractFileUrl: drift.Value(c['contract_file_url']?.toString()),
           userId: c['user_id']?.toString() ?? '',
@@ -211,7 +211,7 @@ class SyncRepository {
           isDeleted: drift.Value(c['is_deleted'] == true),
           updatedAt: drift.Value(
             DateTime.tryParse(c['updated_at']?.toString() ?? '')?.toUtc() ??
-                DateTime.now().toUtc(),
+                SecureTime.now(),
           ),
           isSynced: const drift.Value(true),
         );
@@ -244,7 +244,7 @@ class SyncRepository {
               0.0,
           effectiveDate: drift.Value(
             DateTime.tryParse(p['effective_date']?.toString() ?? '')?.toUtc() ??
-                DateTime.now().toUtc(),
+                SecureTime.now(),
           ),
           userId: p['user_id']?.toString() ?? '',
           isDeleted: drift.Value(p['is_deleted'] == true),
@@ -266,7 +266,7 @@ class SyncRepository {
               int.tryParse(s['installment_number']?.toString() ?? '1') ?? 1,
           dueDate:
               DateTime.tryParse(s['due_date']?.toString() ?? '')?.toUtc() ??
-              DateTime.now().toUtc(),
+              SecureTime.now(),
           status: drift.Value(s['status']?.toString() ?? 'pending'),
           notes: drift.Value(s['notes']?.toString()),
           expectedAmount: drift.Value(
@@ -278,7 +278,7 @@ class SyncRepository {
           isDeleted: drift.Value(s['is_deleted'] == true),
           updatedAt: drift.Value(
             DateTime.tryParse(s['updated_at']?.toString() ?? '')?.toUtc() ??
-                DateTime.now().toUtc(),
+                SecureTime.now(),
           ),
           isSynced: const drift.Value(true),
         );
@@ -300,7 +300,7 @@ class SyncRepository {
           ),
           paymentDate:
               DateTime.tryParse(p['payment_date']?.toString() ?? '')?.toUtc() ??
-              DateTime.now().toUtc(),
+              SecureTime.now(),
           amountPaid:
               double.tryParse(p['amount_paid']?.toString() ?? '0') ?? 0.0,
           meterPriceAtPayment:
@@ -317,7 +317,7 @@ class SyncRepository {
           isDeleted: drift.Value(p['is_deleted'] == true),
           updatedAt: drift.Value(
             DateTime.tryParse(p['updated_at']?.toString() ?? '')?.toUtc() ??
-                DateTime.now().toUtc(),
+                SecureTime.now(),
           ),
           isSynced: const drift.Value(true),
         );
@@ -342,7 +342,7 @@ class SyncRepository {
           isDeleted: drift.Value(b['is_deleted'] == true),
           updatedAt: drift.Value(
             DateTime.tryParse(b['updated_at']?.toString() ?? '')?.toUtc() ??
-                DateTime.now().toUtc(),
+                SecureTime.now(),
           ),
           isSynced: const drift.Value(true),
         );
@@ -369,7 +369,7 @@ class SyncRepository {
           isDeleted: drift.Value(a['is_deleted'] == true),
           updatedAt: drift.Value(
             DateTime.tryParse(a['updated_at']?.toString() ?? '')?.toUtc() ??
-                DateTime.now().toUtc(),
+                SecureTime.now(),
           ),
           isSynced: const drift.Value(true),
         );
@@ -388,7 +388,7 @@ class SyncRepository {
           isDeleted: drift.Value(r['is_deleted'] == true),
           updatedAt: drift.Value(
             DateTime.tryParse(r['updated_at']?.toString() ?? '')?.toUtc() ??
-                DateTime.now().toUtc(),
+                SecureTime.now(),
           ),
           isSynced: const drift.Value(true),
         );
@@ -417,7 +417,7 @@ class SyncRepository {
           isActive: drift.Value(u['is_active'] != false),
           updatedAt: drift.Value(
             DateTime.tryParse(u['updated_at']?.toString() ?? '')?.toUtc() ??
-                DateTime.now().toUtc(),
+                SecureTime.now(),
           ),
           isSynced: const drift.Value(true),
         );
@@ -440,7 +440,7 @@ class SyncRepository {
           isDeleted: drift.Value(a['is_deleted'] == true),
           updatedAt: drift.Value(
             DateTime.tryParse(a['updated_at']?.toString() ?? '')?.toUtc() ??
-                DateTime.now().toUtc(),
+                SecureTime.now(),
           ),
           isSynced: const drift.Value(true),
         );
@@ -463,7 +463,7 @@ class SyncRepository {
           isDeleted: drift.Value(att['is_deleted'] == true),
           updatedAt: drift.Value(
             DateTime.tryParse(att['updated_at']?.toString() ?? '')?.toUtc() ??
-                DateTime.now().toUtc(),
+                SecureTime.now(),
           ),
           isSynced: const drift.Value(true),
         );
@@ -486,7 +486,7 @@ class SyncRepository {
           isDeleted: drift.Value(att['is_deleted'] == true),
           updatedAt: drift.Value(
             DateTime.tryParse(att['updated_at']?.toString() ?? '')?.toUtc() ??
-                DateTime.now().toUtc(),
+                SecureTime.now(),
           ),
           isSynced: const drift.Value(true),
         );
@@ -509,7 +509,7 @@ class SyncRepository {
           isDeleted: drift.Value(att['is_deleted'] == true),
           updatedAt: drift.Value(
             DateTime.tryParse(att['updated_at']?.toString() ?? '')?.toUtc() ??
-                DateTime.now().toUtc(),
+                SecureTime.now(),
           ),
           isSynced: const drift.Value(true),
         );
@@ -532,7 +532,7 @@ class SyncRepository {
           isDeleted: drift.Value(att['is_deleted'] == true),
           updatedAt: drift.Value(
             DateTime.tryParse(att['updated_at']?.toString() ?? '')?.toUtc() ??
-                DateTime.now().toUtc(),
+                SecureTime.now(),
           ),
           isSynced: const drift.Value(true),
         );
@@ -754,7 +754,7 @@ class SyncRepository {
           'ordinary_worker_wage': safeNum(p.ordinaryWorkerWage),
           'user_id': p.userId,
           'is_deleted': p.isDeleted,
-          'updated_at': DateTime.now().toUtc().toIso8601String(),
+          'updated_at': SecureTime.now().toIso8601String(),
         });
         await (db.update(
           db.materialPricesHistory,
@@ -1268,7 +1268,7 @@ class SyncRepository {
 
     // 1. جلب الوقت الحقيقي
     final realTime = await _getTrueNetworkTime();
-    final localTime = DateTime.now().toUtc();
+    final localTime = SecureTime.now();
 
     // 2. حساب الفجوة الزمنية (Offset) بين السيرفر والجهاز
     final offset = realTime.difference(localTime);
@@ -1353,6 +1353,6 @@ class SecureTime {
 
   // استخدم هذه الدالة في كل مكان في التطبيق بدلاً من DateTime.now()
   static DateTime now() {
-    return DateTime.now().toUtc().add(_offset);
+    return SecureTime.now().add(_offset);
   }
 }

@@ -4,6 +4,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:erp_repository/erp_repository.dart';
+import 'package:local_storage_api/local_storage_api.dart';
 
 part 'schedule_state.dart';
 
@@ -67,7 +68,7 @@ class ScheduleCubit extends Cubit<ScheduleState> {
     }
 
     final alerts = <OverdueContractAlert>[];
-    final now = DateTime.now().toUtc();
+    final now = SecureTime.now();
 
     grouped.forEach((contractId, schedules) {
       final contractIdx = allContracts.indexWhere((c) => c.id == contractId);

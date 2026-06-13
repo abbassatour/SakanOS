@@ -3,7 +3,7 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:erp_repository/erp_repository.dart';
 import 'package:local_storage_api/local_storage_api.dart'
-    show Client, Contract, LegalAction;
+    show Client, Contract, LegalAction, SecureTime;
 
 part 'client_profile_state.dart';
 
@@ -43,7 +43,7 @@ class ClientProfileCubit extends Cubit<ClientProfileState> {
       double grandTotalPaid = 0.0;
       double globalOverdue = 0.0;
 
-      final now = DateTime.now().toUtc();
+      final now = SecureTime.now();
 
       // 2. الدخول في حلقة لجلب الإحصائيات الدقيقة لكل عقد
       for (final contract in clientContracts) {

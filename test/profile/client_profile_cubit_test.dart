@@ -14,7 +14,7 @@ void main() {
       late MockErpRepository mockErpRepository;
 
       // 🌟 توحيد التواريخ لضمان دقة الرياضيات في الاختبار
-      final now = DateTime.now().toUtc();
+      final now = SecureTime.now();
       // عقد تم توقيعه قبل 100 يوم (يضمن مرور 3 أشهر فعلية على الأقل)
       final contractDate = now.subtract(const Duration(days: 100));
       // شقة تم تسليمها قبل 70 يوماً (يضمن مرور شهرين كاملين على الاستلام)

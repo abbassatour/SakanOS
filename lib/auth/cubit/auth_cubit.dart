@@ -4,7 +4,8 @@ import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:erp_repository/erp_repository.dart';
-import 'package:local_storage_api/local_storage_api.dart' show LocalUser;
+import 'package:local_storage_api/local_storage_api.dart'
+    show LocalUser, SecureTime;
 
 part 'auth_state.dart';
 
@@ -148,7 +149,7 @@ class AuthCubit extends Cubit<AuthState> {
     finalPermissions.removeAll(revokedPerms);
     // 👇👇 [التحقق من اشتراك الشركة السحابي] 👇👇
     final expiryDate = await _erpRepository.getLocalSubscriptionExpiry();
-    final now = DateTime.now().toUtc();
+    final now = SecureTime.now();
 
     // 1. إذا لم يجد تاريخ (تلاعب)، أو 2. إذا تجاوز تاريخ اليوم تاريخ الانتهاء (انتهى الاشتراك)
     if (expiryDate == null || now.isAfter(expiryDate)) {

@@ -1,5 +1,6 @@
 // lib/login/cubit/login_cubit.dart
 import 'dart:async';
+import 'dart:developer';
 import 'dart:io';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
@@ -107,9 +108,12 @@ class LoginCubit extends Cubit<LoginState> {
       }
 
       emit(state.copyWith(status: LoginStatus.success));
-    } catch (e) {
+    } catch (e, stackTrace) {
+      // 🌟 1. طباعة الخطأ الحقيقي والتفصيلي في الكونسول للمطور
+      log('🚨 Supabase Login Error: $e', stackTrace: stackTrace);
+
       // ==========================================
-      // 🐛 3. التقاط الأخطاء وتخصيص الرسائل
+      // 🐛 2. تخصيص الرسائل العربية وعرضها للمستخدم على الشاشة
       // ==========================================
       String msg =
           'فشل تسجيل الدخول. تأكد من صحة البيانات أو اتصالك بالإنترنت.';
@@ -125,6 +129,7 @@ class LoginCubit extends Cubit<LoginState> {
         msg = 'انقطع الاتصال بالإنترنت أثناء تسجيل الدخول. 🌐❌';
       }
 
+      // 🌟 3. إرسال الرسالة العربية فقط للواجهة
       emit(
         state.copyWith(
           status: LoginStatus.failure,

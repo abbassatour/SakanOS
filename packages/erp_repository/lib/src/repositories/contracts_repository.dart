@@ -10,7 +10,7 @@ import 'package:cloud_storage_api/cloud_storage_api.dart';
 import 'package:drift/drift.dart' as drift;
 import 'package:local_storage_api/local_storage_api.dart';
 
-import 'sync_repository.dart';
+import 'sync_repository.dart' hide SecureTime;
 
 class ContractsRepository {
   const ContractsRepository({
@@ -84,7 +84,7 @@ class ContractsRepository {
     final userId = _getCurrentUserId();
     if (userId == null) throw Exception('يجب تسجيل الدخول أولاً.');
 
-    final contractDateToSave = customDate?.toUtc() ?? DateTime.now().toUtc();
+    final contractDateToSave = customDate?.toUtc() ?? SecureTime.now();
 
     // 1. حفظ سعر الدولار التاريخي
     if (customDate != null && histDollarRate != null) {
@@ -233,7 +233,7 @@ class ContractsRepository {
         penaltyPercentage: drift.Value(safePenaltyPct),
         penaltyIntervalMonths: drift.Value(penaltyIntervalMonths),
         userId: drift.Value(userId),
-        updatedAt: drift.Value(DateTime.now().toUtc()),
+        updatedAt: drift.Value(SecureTime.now()),
         isSynced: const drift.Value(false),
       ),
     );
@@ -357,7 +357,7 @@ class ContractsRepository {
           localFile.path,
         ), // 🌟 حفظ المسار المحلي هنا
         userId: drift.Value(userId),
-        updatedAt: drift.Value(DateTime.now().toUtc()),
+        updatedAt: drift.Value(SecureTime.now()),
         isSynced: const drift.Value(false), // 🌟 تأشير كـ "غير متزامن"
       ),
     );
@@ -409,7 +409,7 @@ class ContractsRepository {
       ContractsCompanion(
         contractDate: drift.Value(contractDate.toUtc()),
         userId: drift.Value(userId),
-        updatedAt: drift.Value(DateTime.now().toUtc()),
+        updatedAt: drift.Value(SecureTime.now()),
         isSynced: const drift.Value(false),
       ),
     );

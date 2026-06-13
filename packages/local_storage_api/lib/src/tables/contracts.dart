@@ -1,5 +1,6 @@
 // packages/local_storage_api/lib/src/tables/contracts.dart
 import 'package:drift/drift.dart';
+import '../secure_time.dart';
 import 'package:uuid/uuid.dart';
 import 'clients.dart';
 import 'apartments.dart';
@@ -40,9 +41,9 @@ class Contracts extends Table {
   DateTimeColumn get contractDate => dateTime()();
   BoolColumn get isCompleted => boolean().withDefault(const Constant(false))();
   DateTimeColumn get createdAt =>
-      dateTime().clientDefault(() => DateTime.now().toUtc())();
+      dateTime().clientDefault(() => SecureTime.now())();
   DateTimeColumn get updatedAt =>
-      dateTime().clientDefault(() => DateTime.now().toUtc())();
+      dateTime().clientDefault(() => SecureTime.now())();
   DateTimeColumn get lastActionDate => dateTime().nullable()();
   TextColumn get lastActionNote => text().nullable()();
   BoolColumn get isDeleted => boolean().withDefault(const Constant(false))();

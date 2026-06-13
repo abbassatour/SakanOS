@@ -1,5 +1,6 @@
 // packages/local_storage_api/lib/src/tables/legal_action_attachments.dart
 import 'package:drift/drift.dart';
+import '../secure_time.dart';
 import 'package:uuid/uuid.dart';
 import 'legal_actions.dart';
 
@@ -16,9 +17,9 @@ class LegalActionAttachments extends Table {
   TextColumn get fileType => text().nullable()();
   TextColumn get userId => text()();
   DateTimeColumn get createdAt =>
-      dateTime().clientDefault(() => DateTime.now().toUtc())();
+      dateTime().clientDefault(() => SecureTime.now())();
   DateTimeColumn get updatedAt =>
-      dateTime().clientDefault(() => DateTime.now().toUtc())();
+      dateTime().clientDefault(() => SecureTime.now())();
   BoolColumn get isDeleted => boolean().withDefault(const Constant(false))();
   BoolColumn get isSynced => boolean().withDefault(const Constant(false))();
 

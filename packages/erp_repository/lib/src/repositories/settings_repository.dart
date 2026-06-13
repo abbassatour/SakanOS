@@ -5,7 +5,7 @@ import 'package:drift/drift.dart' as drift;
 import 'package:local_storage_api/local_storage_api.dart';
 import 'package:uuid/uuid.dart';
 
-import 'sync_repository.dart';
+import 'sync_repository.dart' hide SecureTime;
 
 class SettingsRepository {
   const SettingsRepository({
@@ -44,7 +44,7 @@ class SettingsRepository {
     final userId = _getCurrentUserId();
     if (userId == null) throw Exception('يجب تسجيل الدخول أولاً.');
 
-    final dateToSave = effectiveDate?.toUtc() ?? DateTime.now().toUtc();
+    final dateToSave = effectiveDate?.toUtc() ?? SecureTime.now();
 
     final newPrices = MaterialPricesHistoryCompanion.insert(
       id: drift.Value(const Uuid().v7()),
@@ -75,7 +75,7 @@ class SettingsRepository {
       MaterialPricesHistoryCompanion(
         isDeleted: const drift.Value(true),
         userId: drift.Value(userId),
-        updatedAt: drift.Value(DateTime.now().toUtc()),
+        updatedAt: drift.Value(SecureTime.now()),
         isSynced: const drift.Value(false),
       ),
     );
@@ -98,7 +98,7 @@ class SettingsRepository {
     final userId = _getCurrentUserId();
     if (userId == null) throw Exception('يجب تسجيل الدخول أولاً.');
 
-    final dateToSave = effectiveDate?.toUtc() ?? DateTime.now().toUtc();
+    final dateToSave = effectiveDate?.toUtc() ?? SecureTime.now();
 
     final newDollar = DollarPricesHistoryCompanion.insert(
       id: drift.Value(const Uuid().v7()),
@@ -124,7 +124,7 @@ class SettingsRepository {
       DollarPricesHistoryCompanion(
         isDeleted: const drift.Value(true),
         userId: drift.Value(userId), // توثيق من حذف
-        updatedAt: drift.Value(DateTime.now().toUtc()),
+        updatedAt: drift.Value(SecureTime.now()),
         isSynced: const drift.Value(false),
       ),
     );

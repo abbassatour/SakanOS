@@ -1,5 +1,6 @@
 // packages/local_storage_api/lib/src/tables/payments_ledger.dart
 import 'package:drift/drift.dart';
+import '../secure_time.dart';
 import 'package:uuid/uuid.dart';
 import 'contracts.dart';
 import 'installments_schedule.dart';
@@ -27,9 +28,9 @@ class PaymentsLedger extends Table {
       boolean().withDefault(const Constant(false))();
   TextColumn get userId => text()();
   DateTimeColumn get createdAt =>
-      dateTime().clientDefault(() => DateTime.now().toUtc())();
+      dateTime().clientDefault(() => SecureTime.now())();
   DateTimeColumn get updatedAt =>
-      dateTime().clientDefault(() => DateTime.now().toUtc())();
+      dateTime().clientDefault(() => SecureTime.now())();
   BoolColumn get isDeleted => boolean().withDefault(const Constant(false))();
   BoolColumn get isSynced => boolean().withDefault(const Constant(false))();
 

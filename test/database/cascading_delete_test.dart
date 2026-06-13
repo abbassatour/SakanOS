@@ -53,7 +53,7 @@ void main() {
                 totalArea: 100.0,
                 baseMeterPriceAtSigning: 1000.0,
                 guarantorName: 'كفيل تجريبي', // 🌟 تم إضافة الحقل الإجباري هنا
-                contractDate: DateTime.now().toUtc(),
+                contractDate: SecureTime.now(),
                 userId: adminUser,
               ),
             );
@@ -66,7 +66,7 @@ void main() {
                 id: const drift.Value(scheduleId),
                 contractId: contractId, // 🔗 ربط القسط بالعقد
                 installmentNumber: 1,
-                dueDate: DateTime.now().toUtc(),
+                dueDate: SecureTime.now(),
                 userId: adminUser,
               ),
             );
@@ -78,7 +78,7 @@ void main() {
               PaymentsLedgerCompanion.insert(
                 id: const drift.Value(paymentId),
                 contractId: contractId, // 🔗 ربط الدفعة بالعقد
-                paymentDate: DateTime.now().toUtc(),
+                paymentDate: SecureTime.now(),
                 amountPaid: 50000.0,
                 meterPriceAtPayment: 1000.0,
                 convertedMeters: 50.0,
