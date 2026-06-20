@@ -11,6 +11,7 @@ import 'repositories/auth_repository.dart';
 import 'repositories/backup_repository.dart';
 import 'repositories/sync_repository.dart';
 import 'repositories/buildings_repository.dart';
+import 'repositories/contracts_repository.dart';
 import 'repositories/clients_repository.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -27,6 +28,7 @@ class ErpRepository {
   late final BuildingsRepository _buildingsRepo;
   final LocalStorageApi _localApi;
   final CloudStorageClient _cloudApi;
+  late final ContractsRepository _contractsRepo;
 
   ErpRepository({
     required LocalStorageApi localStorageApi,
@@ -48,6 +50,13 @@ class ErpRepository {
 
     _buildingsRepo = BuildingsRepository(
       localApi: _localApi,
+      syncRepo: _syncRepo,
+      getCurrentUserId: () => currentUserId,
+    );
+
+     _contractsRepo = ContractsRepository(
+      localApi: _localApi,
+      cloudApi: _cloudApi,
       syncRepo: _syncRepo,
       getCurrentUserId: () => currentUserId,
     );
@@ -159,150 +168,84 @@ class ErpRepository {
       _clientsRepo.forceHardDeleteClient(clientId);
 
   // ==========================================
-  // 📄 العقود والتوليد الآلي للاستحقاقات
+  // 📄 العقود (Contracts Facade)
   // ==========================================
-  Future<List<Contract>> getAllContracts() => _localApi.getAllContracts();
+  Future<List<Contract>> getAllContracts() => _contractsRepo.getAllContracts();
+  Future<List<Contract>> getDeletedContracts() => _contractsRepo.getDeletedContracts();
+  Future<List<Contract>> getContractsForClient(String clientId) => _contractsRepo.getContractsForClient(clientId);
 
-  Future<List<Contract>> getContractsForClient(String clientId) async {
-    final allContracts = await getAllContracts();
-    return allContracts.where((c) => c.clientId == clientId && c.isDeleted != true).toList();
-  }
-
-  Future<void> markContractActionTaken({required String contractId, required String note}) async {
-    final String? safeUserId = currentUserId;
-    if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
-
-    await _localApi.markContractActionTaken(contractId, note, safeUserId);
-    await syncPendingData(); 
-  }
-  
-  Future<void> addContract(ContractsCompanion contractCompanion) async {
-    if (currentUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
-    
-    final companionWithUser = contractCompanion.copyWith(userId: drift.Value(currentUserId!));
-    final int months = contractCompanion.installmentsCount.present ? contractCompanion.installmentsCount.value : 48;
-    final DateTime startDate = contractCompanion.contractDate.present ? contractCompanion.contractDate.value : DateTime.now().toUtc();
-    
-    final String type = contractCompanion.contractType.present ? contractCompanion.contractType.value : 'متخصص';
-    
-    await _localApi.addContractWithSchedules(companionWithUser, months, startDate, currentUserId!, type);
-    await syncPendingData();
-  }
-
-  Future<void> deleteContract(String contractId) async {
-    final String? safeUserId = currentUserId;
-    if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
-
-    await _localApi.deleteContract(contractId, safeUserId);
-    syncPendingData();
-  }
-
-  // ==========================================
-  // 🌟 تعديل العقد الأساسي
-  // ==========================================
-  Future<void> updateContract({
-    required String id,
-    required String apartmentDetails,
-    required String guarantorName,
+  Future<void> addContract({
+    required String clientId,
+    required String contractType,
+    required String details,
+    required String? apartmentId,
+    required double area,
+    required double basePrice,
+    required double downPayment,
     required int installmentsCount,
+    required String guarantorName,
     required double agreedMonthlyAmount,
-    required DateTime contractDate,
-    required bool isPenaltyActive,
-    required double penaltyPercentage,
-    required int penaltyIntervalMonths,
-  }) async {
-    final db = _localApi.database;
-    final String? safeUserId = currentUserId;
-    if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
+    Map<String, double> coefficients = const {},
+    DateTime? customDate,
+    DateTime? agreedHandoverDate,
+    int? gracePeriodMonths,
+    bool isPenaltyActive = false,
+    double penaltyPercentage = 0.0,
+    int penaltyIntervalMonths = 1,
+    double? histIron,
+    double? histCement,
+    double? histBlock,
+    double? histFormwork,
+    double? histAggregates,
+    double? histWorker,
+    double? histDollarRate,
+  }) => _contractsRepo.addContract(
+        clientId: clientId, contractType: contractType, details: details,
+        apartmentId: apartmentId, area: area, basePrice: basePrice,
+        downPayment: downPayment, installmentsCount: installmentsCount,
+        guarantorName: guarantorName, agreedMonthlyAmount: agreedMonthlyAmount,
+        coefficients: coefficients, customDate: customDate,
+        agreedHandoverDate: agreedHandoverDate, gracePeriodMonths: gracePeriodMonths,
+        isPenaltyActive: isPenaltyActive, penaltyPercentage: penaltyPercentage,
+        penaltyIntervalMonths: penaltyIntervalMonths, histIron: histIron,
+        histCement: histCement, histBlock: histBlock, histFormwork: histFormwork,
+        histAggregates: histAggregates, histWorker: histWorker, histDollarRate: histDollarRate,
+      );
 
-    await (db.update(db.contracts)..where((t) => t.id.equals(id))).write(
-      ContractsCompanion(
-        apartmentDetails: drift.Value(apartmentDetails),
-        guarantorName: drift.Value(guarantorName),
-        installmentsCount: drift.Value(installmentsCount),
-        agreedMonthlyAmount: drift.Value(agreedMonthlyAmount),
-        contractDate: drift.Value(contractDate.toUtc()), 
-        isPenaltyActive: drift.Value(isPenaltyActive),
-        penaltyPercentage: drift.Value(penaltyPercentage),
-        penaltyIntervalMonths: drift.Value(penaltyIntervalMonths),
-        userId: drift.Value(safeUserId), 
-        updatedAt: drift.Value(DateTime.now().toUtc()),
-        isSynced: const drift.Value(false), 
-      )
-    );
+  Future<void> updateContract({
+    required String id, required String details, required String guarantorName,
+    required int installmentsCount, required double agreedMonthlyAmount,
+    required DateTime contractDate, required bool isPenaltyActive,
+    required double penaltyPercentage, required int penaltyIntervalMonths,
+  }) => _contractsRepo.updateContract(
+        id: id, details: details, guarantorName: guarantorName,
+        installmentsCount: installmentsCount, agreedMonthlyAmount: agreedMonthlyAmount,
+        contractDate: contractDate, isPenaltyActive: isPenaltyActive,
+        penaltyPercentage: penaltyPercentage, penaltyIntervalMonths: penaltyIntervalMonths,
+      );
 
-    await (db.update(db.installmentsSchedule)
-      ..where((t) => t.contractId.equals(id))
-      ..where((t) => t.installmentNumber.isBiggerThanValue(installmentsCount)) 
-      ..where((t) => t.status.equals('pending')) 
-    ).write(
-      const InstallmentsScheduleCompanion(isDeleted: drift.Value(true), isSynced: drift.Value(false))
-    );
+  Future<void> deleteContract(String contractId, String? apartmentId) => _contractsRepo.deleteContract(contractId, apartmentId);
+  Future<void> restoreContract(String contractId, String? apartmentId, bool isHandedOver) => _contractsRepo.restoreContract(contractId, apartmentId, isHandedOver);
+  Future<void> forceHardDeleteContract(String contractId) => _contractsRepo.forceHardDeleteContract(contractId);
 
-    await syncPendingData();
-  }
-
-  Future<void> restructureContractSchedule({
-    required String contractId,
-    required int newRemainingMonths,
-    required DateTime newStartDate,
-  }) async {
-    final String? safeUserId = currentUserId;
-    if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً لإجراء التعديلات المالية.');
-
-    await _localApi.restructureContractSchedule(
-      contractId: contractId,
-      newRemainingMonths: newRemainingMonths,
-      newStartDate: newStartDate.toUtc(), 
-      userId: safeUserId,
-    );
-    await syncPendingData();
-  }
-
-  // ==========================================
-  // 🔑 تسليم الشقة (خاص بالعقود المتخصصة)
-  // ==========================================
-  Future<void> markContractAsHandedOver({
-    required String contractId, 
-    required String? apartmentId, 
-    required DateTime actualHandoverDate, 
-    String? notes
-  }) async {
-    final String? safeUserId = currentUserId;
-    if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
-
-    await _localApi.markContractAsHandedOver(contractId, apartmentId, actualHandoverDate, notes, safeUserId);
-    await syncPendingData(); 
-  }
-
-  // ==========================================
-  // ⏪ التراجع عن تسليم الشقة
-  // ==========================================
-  Future<void> cancelContractHandover({required String contractId, required String? apartmentId}) async {
-    final String? safeUserId = currentUserId;
-    if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
-
-    await _localApi.cancelContractHandover(contractId, apartmentId, safeUserId);
-    await syncPendingData(); 
-  }
+  Future<void> markContractAsHandedOver({required String contractId, required String? apartmentId, required DateTime actualHandoverDate, String? notes}) => 
+      _contractsRepo.markContractAsHandedOver(contractId: contractId, apartmentId: apartmentId, actualHandoverDate: actualHandoverDate, notes: notes);
   
-  // ==========================================
-  // 🗑️ إدارة سلة المحذوفات للعقود
-  // ==========================================
-  Future<List<Contract>> getDeletedContracts() => _localApi.getDeletedContracts();
+  Future<void> cancelContractHandover({required String contractId, required String? apartmentId}) => 
+      _contractsRepo.cancelContractHandover(contractId: contractId, apartmentId: apartmentId);
 
-  Future<void> restoreContract(String contractId) async {
-    final String? safeUserId = currentUserId;
-    if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
+  Future<void> toggleContractCompletion({required String contractId, required bool isCompleted}) => 
+      _contractsRepo.toggleContractCompletion(contractId: contractId, isCompleted: isCompleted);
 
-    await _localApi.restoreContract(contractId, safeUserId);
-    await syncPendingData(); 
-  }
+  Future<void> attachContractFile(String contractId, File file, String extension) => 
+      _contractsRepo.attachContractFile(contractId, file, extension);
+    
+  Future<void> markContractActionTaken({required String contractId, required String note}) =>
+      _contractsRepo.markContractActionTaken(contractId: contractId, note: note);
 
-  Future<void> forceHardDeleteContract(String contractId) async {
-    await _localApi.hardDeleteContractLocal(contractId);
-  }
-
+  Future<void> restructureContractSchedule({required String contractId, required int newRemainingMonths, required DateTime newStartDate}) =>
+      _contractsRepo.restructureContractSchedule(contractId: contractId, newRemainingMonths: newRemainingMonths, newStartDate: newStartDate);
+      
   // ==========================================
   // 📅 جدول الاستحقاقات (المراقبة)
   // ==========================================
@@ -744,17 +687,6 @@ class ErpRepository {
     return trimmedActivities;
   }
   
-  // ==========================================
-  // 🔒 إغلاق أو إعادة فتح العقد (أرشفة)
-  // ==========================================
-  Future<void> toggleContractCompletion({required String contractId, required bool isCompleted}) async {
-    final String? safeUserId = currentUserId;
-    if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
-
-    await _localApi.toggleContractCompletion(contractId, isCompleted, safeUserId);
-    await syncPendingData(); 
-  }
-
 
 
   // ==========================================
