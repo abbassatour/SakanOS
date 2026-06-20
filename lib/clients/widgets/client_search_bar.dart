@@ -1,5 +1,5 @@
 // مسار الملف: lib/clients/widgets/client_search_bar.dart
-// المسؤولية: عرض حقل البحث المخصص للعملاء مع عداد النتائج المفلترة.
+// ignore_for_file: always_use_package_imports
 
 import 'package:flutter/material.dart';
 
@@ -28,14 +28,14 @@ class _ClientSearchBarState extends State<ClientSearchBar> {
 
   @override
   void dispose() {
-    _controller.dispose(); // تنظيف الذاكرة بشكل آمن
+    _controller.dispose();
     super.dispose();
   }
 
   void _clearSearch() {
     _controller.clear();
     widget.onChanged('');
-    FocusScope.of(context).unfocus(); // إخفاء لوحة المفاتيح
+    FocusScope.of(context).unfocus();
   }
 
   @override
@@ -46,10 +46,11 @@ class _ClientSearchBarState extends State<ClientSearchBar> {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            // 🌟 استخدام withValues بدلاً من withOpacity المهجورة
+            color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 4,
             offset: const Offset(0, 2),
-          )
+          ),
         ],
       ),
       child: Row(
@@ -60,7 +61,10 @@ class _ClientSearchBarState extends State<ClientSearchBar> {
               child: TextField(
                 controller: _controller,
                 onChanged: widget.onChanged,
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                ),
                 decoration: InputDecoration(
                   prefixIcon: const Icon(Icons.search, color: Colors.blueAccent),
                   hintText: 'ابحث عن اسم، هاتف، أو رقم وطني...',
@@ -77,11 +81,18 @@ class _ClientSearchBarState extends State<ClientSearchBar> {
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide(color: Colors.blue.shade400, width: 2),
+                    borderSide: BorderSide(
+                      color: Colors.blue.shade400,
+                      width: 2,
+                    ),
                   ),
                   suffixIcon: _controller.text.isNotEmpty
                       ? IconButton(
-                          icon: const Icon(Icons.clear, color: Colors.grey, size: 20),
+                          icon: const Icon(
+                            Icons.clear,
+                            color: Colors.grey,
+                            size: 20,
+                          ),
                           onPressed: _clearSearch,
                         )
                       : null,
@@ -107,7 +118,7 @@ class _ClientSearchBarState extends State<ClientSearchBar> {
                 fontSize: 14,
               ),
             ),
-          )
+          ),
         ],
       ),
     );

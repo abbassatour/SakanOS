@@ -1,5 +1,7 @@
 // مسار الملف: lib/clients/widgets/edit_client_dialog.dart
-// المسؤولية: عرض نموذج تعديل أو حذف بيانات العميل، والتحقق من صلاحية الحذف الإداري.
+// ignore_for_file: always_use_package_imports, depend_on_referenced_packages
+
+import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -11,22 +13,23 @@ import '../cubit/clients_cubit.dart';
 import 'verify_pin_dialog.dart';
 
 void showEditClientDialog(BuildContext parentContext, Client client) {
-  // جلب الصلاحيات لمعرفة ما إذا كان يملك صلاحية (حذف العملاء) أم لا
   final authState = parentContext.read<AuthCubit>().state;
   final canDelete = authState.hasPermission(AppPermissions.deleteClients);
 
-  showDialog<void>(
-    context: parentContext,
-    builder: (dialogContext) {
-      return BlocProvider.value(
-        value: parentContext.read<ClientsCubit>(),
-        child: _EditClientDialogContent(
-          client: client,
-          canDelete: canDelete,
-          parentContext: parentContext,
-        ),
-      );
-    },
+  unawaited(
+    showDialog<void>(
+      context: parentContext,
+      builder: (dialogContext) {
+        return BlocProvider.value(
+          value: parentContext.read<ClientsCubit>(),
+          child: _EditClientDialogContent(
+            client: client,
+            canDelete: canDelete,
+            parentContext: parentContext,
+          ),
+        );
+      },
+    ),
   );
 }
 
@@ -83,7 +86,10 @@ class _EditClientDialogContentState extends State<_EditClientDialogContent> {
         prefixIcon: Icon(icon, size: 22, color: Colors.blueAccent.shade400),
         filled: true,
         fillColor: Colors.white,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 16,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
           borderSide: BorderSide(color: Colors.grey.shade300),
@@ -101,17 +107,23 @@ class _EditClientDialogContentState extends State<_EditClientDialogContent> {
   }
 
   Future<void> _handleDelete() async {
-    Navigator.pop(context); // إغلاق نافذة التعديل أولاً
+    Navigator.pop(context);
     final isAuthorized = await showVerifyPinDialog(widget.parentContext);
-    
+
     if (isAuthorized && widget.parentContext.mounted) {
-      widget.parentContext.read<ClientsCubit>().deleteClient(widget.client.id);
-      ScaffoldMessenger.of(widget.parentContext).showSnackBar(
-        const SnackBar(
-          content: Text('تم نقل العميل لسلة المحذوفات'),
-          backgroundColor: Colors.green,
-        ),
-      );
+      // 🌟 إضافة await بدلاً من ترك الـ Future معلقاً
+      await widget.parentContext
+          .read<ClientsCubit>()
+          .deleteClient(widget.client.id);
+
+      if (widget.parentContext.mounted) {
+        ScaffoldMessenger.of(widget.parentContext).showSnackBar(
+          const SnackBar(
+            content: Text('تم نقل العميل لسلة المحذوفات'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
     }
   }
 
@@ -130,22 +142,26 @@ class _EditClientDialogContentState extends State<_EditClientDialogContent> {
       return;
     }
 
-    Navigator.pop(context); // إغلاق نافذة التعديل أولاً
+    Navigator.pop(context);
     final isAuthorized = await showVerifyPinDialog(widget.parentContext);
 
     if (isAuthorized && widget.parentContext.mounted) {
-      widget.parentContext.read<ClientsCubit>().updateClient(
+      // 🌟 إضافة await بدلاً من ترك الـ Future معلقاً
+      await widget.parentContext.read<ClientsCubit>().updateClient(
             id: widget.client.id,
             name: name,
             phone: phone,
             nationalId: nationalId.isEmpty ? null : nationalId,
           );
-      ScaffoldMessenger.of(widget.parentContext).showSnackBar(
-        const SnackBar(
-          content: Text('تم تحديث بيانات العميل بنجاح ✅'),
-          backgroundColor: Colors.green,
-        ),
-      );
+
+      if (widget.parentContext.mounted) {
+        ScaffoldMessenger.of(widget.parentContext).showSnackBar(
+          const SnackBar(
+            content: Text('تم تحديث بيانات العميل بنجاح ✅'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
     }
   }
 
@@ -197,11 +213,17 @@ class _EditClientDialogContentState extends State<_EditClientDialogContent> {
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.security, color: Colors.amber.shade800, size: 28),
+                    Icon(
+                      Icons.security,
+                      color: Colors.amber.shade800,
+                      size: 28,
+                    ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        'تنبيه أمني: إجراءات التعديل أو الحذف للعملاء المسجلين تتطلب إدخال رمز الأمان (PIN) الخاص بالإدارة للحفاظ على موثوقية العقود.',
+                        'تنبيه أمني: إجراءات التعديل أو الحذف للعملاء المسجلين '
+                        'تتطلب إدخال رمز الأمان (PIN) الخاص بالإدارة للحفاظ '
+                        'على موثوقية العقود.',
                         style: TextStyle(
                           color: Colors.amber.shade900,
                           fontWeight: FontWeight.w600,
@@ -264,7 +286,10 @@ class _EditClientDialogContentState extends State<_EditClientDialogContent> {
                 icon: const Icon(Icons.delete_forever, color: Colors.red),
                 label: const Text(
                   'حذف ونقل للسلة',
-                  style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    color: Colors.red,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 onPressed: _handleDelete,
               )
@@ -307,13 +332,16 @@ class _EditClientDialogContentState extends State<_EditClientDialogContent> {
                   icon: const Icon(Icons.save),
                   label: const Text(
                     'حفظ التعديلات',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ],
             ),
           ],
-        )
+        ),
       ],
     );
   }

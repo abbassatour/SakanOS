@@ -1,5 +1,5 @@
 // مسار الملف: lib/clients/widgets/verify_pin_dialog.dart
-// المسؤولية: عرض نافذة لإدخال رمز الأمان والتحقق منه قبل تنفيذ العمليات الحساسة (تعديل/حذف).
+// ignore_for_file: always_use_package_imports
 
 import 'package:flutter/material.dart';
 
@@ -16,12 +16,13 @@ class _VerifyPinDialogContent extends StatefulWidget {
   const _VerifyPinDialogContent();
 
   @override
-  State<_VerifyPinDialogContent> createState() => _VerifyPinDialogContentState();
+  State<_VerifyPinDialogContent> createState() =>
+      _VerifyPinDialogContentState();
 }
 
 class _VerifyPinDialogContentState extends State<_VerifyPinDialogContent> {
   late final TextEditingController _pinController;
-  static const String _correctPin = '0000'; // الرمز الافتراضي للإدارة
+  static const String _correctPin = '0000';
 
   @override
   void initState() {
@@ -31,7 +32,7 @@ class _VerifyPinDialogContentState extends State<_VerifyPinDialogContent> {
 
   @override
   void dispose() {
-    _pinController.dispose(); // تنظيف الذاكرة بشكل آمن
+    _pinController.dispose();
     super.dispose();
   }
 
@@ -87,7 +88,8 @@ class _VerifyPinDialogContentState extends State<_VerifyPinDialogContent> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'هذه العملية حساسة ومراقبة. يرجى إدخال رمز الأمان (PIN) الخاص بالإدارة للمتابعة.',
+              'هذه العملية حساسة ومراقبة. يرجى إدخال رمز الأمان (PIN) '
+              'الخاص بالإدارة للمتابعة.',
               style: TextStyle(color: Colors.grey, fontSize: 14, height: 1.5),
             ),
             const SizedBox(height: 24),
@@ -103,7 +105,7 @@ class _VerifyPinDialogContentState extends State<_VerifyPinDialogContent> {
                 letterSpacing: 24,
                 fontWeight: FontWeight.bold,
               ),
-              onSubmitted: (_) => _verifyPin(), // دعم زر الإدخال في الكيبورد
+              onSubmitted: (_) => _verifyPin(),
               decoration: InputDecoration(
                 hintText: '----',
                 hintStyle: TextStyle(
