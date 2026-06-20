@@ -163,7 +163,6 @@ class ClientTable extends StatelessWidget {
                         ConstrainedBox(
                           constraints: const BoxConstraints(maxWidth: 200),
                           child: InkWell(
-                            // 🌟 حل مشكلة المستقبل المتجاهل واستخدام dart:async
                             onTap: () {
                               unawaited(
                                 Navigator.push<void>(
@@ -181,9 +180,15 @@ class ClientTable extends StatelessWidget {
                                           value: context.read<ScheduleCubit>(),
                                         ),
                                         BlocProvider(
-                                          create: (_) => ClientProfileCubit(
-                                            context.read<ErpRepository>(),
-                                          )..fetchClientData(client),
+                                          create: (ctx) {
+                                            final cubit = ClientProfileCubit(
+                                              ctx.read<ErpRepository>(),
+                                            );
+                                            unawaited(
+                                              cubit.fetchClientData(client),
+                                            );
+                                            return cubit;
+                                          },
                                         ),
                                       ],
                                       child: ClientProfilePage(client: client),
@@ -327,7 +332,6 @@ class ClientTable extends StatelessWidget {
                           ),
                           tooltip:
                               canEdit ? 'تعديل بيانات' : 'لا تملك الصلاحية',
-                          // 🌟 حل مشكلة السطر الطويل بالنزول للأسفل
                           onPressed: canEdit
                               ? () => showEditClientDialog(context, client)
                               : null,
