@@ -16,7 +16,7 @@ class $ClientsTable extends Clients with TableInfo<$ClientsTable, Client> {
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: false,
-    clientDefault: () => _uuid.v7(),
+    clientDefault: () => const Uuid().v7(),
   );
   static const VerificationMeta _nameMeta = const VerificationMeta('name');
   @override
@@ -573,7 +573,7 @@ class $BuildingsTable extends Buildings
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: false,
-    clientDefault: () => _uuid.v7(),
+    clientDefault: () => Uuid().v7(),
   );
   static const VerificationMeta _nameMeta = const VerificationMeta('name');
   @override
@@ -1185,7 +1185,7 @@ class $ApartmentsTable extends Apartments
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: false,
-    clientDefault: () => _uuid.v7(),
+    clientDefault: () => Uuid().v7(),
   );
   static const VerificationMeta _buildingIdMeta = const VerificationMeta(
     'buildingId',
@@ -1989,7 +1989,7 @@ class $ContractsTable extends Contracts
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: false,
-    clientDefault: () => _uuid.v7(),
+    clientDefault: () => Uuid().v7(),
   );
   static const VerificationMeta _clientIdMeta = const VerificationMeta(
     'clientId',
@@ -3704,7 +3704,7 @@ class $MaterialPricesHistoryTable extends MaterialPricesHistory
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: false,
-    clientDefault: () => _uuid.v7(),
+    clientDefault: () => Uuid().v7(),
   );
   static const VerificationMeta _effectiveDateMeta = const VerificationMeta(
     'effectiveDate',
@@ -4511,7 +4511,7 @@ class $DollarPricesHistoryTable extends DollarPricesHistory
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: false,
-    clientDefault: () => _uuid.v7(),
+    clientDefault: () => Uuid().v7(),
   );
   static const VerificationMeta _effectiveDateMeta = const VerificationMeta(
     'effectiveDate',
@@ -5031,7 +5031,7 @@ class $InstallmentsScheduleTable extends InstallmentsSchedule
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: false,
-    clientDefault: () => _uuid.v7(),
+    clientDefault: () => Uuid().v7(),
   );
   static const VerificationMeta _contractIdMeta = const VerificationMeta(
     'contractId',
@@ -5749,7 +5749,7 @@ class $PaymentsLedgerTable extends PaymentsLedger
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: false,
-    clientDefault: () => _uuid.v7(),
+    clientDefault: () => Uuid().v7(),
   );
   static const VerificationMeta _contractIdMeta = const VerificationMeta(
     'contractId',
@@ -6629,7 +6629,7 @@ class $AppRolesTable extends AppRoles with TableInfo<$AppRolesTable, AppRole> {
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: false,
-    clientDefault: () => _uuid.v7(),
+    clientDefault: () => Uuid().v7(),
   );
   static const VerificationMeta _nameMeta = const VerificationMeta('name');
   @override
@@ -7820,7 +7820,7 @@ class $LegalActionsTable extends LegalActions
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: false,
-    clientDefault: () => _uuid.v7(),
+    clientDefault: () => Uuid().v7(),
   );
   static const VerificationMeta _contractIdMeta = const VerificationMeta(
     'contractId',
@@ -8430,7 +8430,7 @@ class $LegalActionAttachmentsTable extends LegalActionAttachments
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: false,
-    clientDefault: () => _uuid.v7(),
+    clientDefault: () => Uuid().v7(),
   );
   static const VerificationMeta _legalActionIdMeta = const VerificationMeta(
     'legalActionId',
@@ -9165,7 +9165,7 @@ final class $$ClientsTableReferences
   static MultiTypedResultKey<$ContractsTable, List<Contract>>
   _contractsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
     db.contracts,
-    aliasName: $_aliasNameGenerator(db.clients.id, db.contracts.clientId),
+    aliasName: 'clients__id__contracts__client_id',
   );
 
   $$ContractsTableProcessedTableManager get contractsRefs {
@@ -9538,7 +9538,7 @@ final class $$BuildingsTableReferences
   static MultiTypedResultKey<$ApartmentsTable, List<Apartment>>
   _apartmentsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
     db.apartments,
-    aliasName: $_aliasNameGenerator(db.buildings.id, db.apartments.buildingId),
+    aliasName: 'buildings__id__apartments__building_id',
   );
 
   $$ApartmentsTableProcessedTableManager get apartmentsRefs {
@@ -9944,9 +9944,7 @@ final class $$ApartmentsTableReferences
   $$ApartmentsTableReferences(super.$_db, super.$_table, super.$_typedResult);
 
   static $BuildingsTable _buildingIdTable(_$AppDatabase db) =>
-      db.buildings.createAlias(
-        $_aliasNameGenerator(db.apartments.buildingId, db.buildings.id),
-      );
+      db.buildings.createAlias('apartments__building_id__buildings__id');
 
   $$BuildingsTableProcessedTableManager get buildingId {
     final $_column = $_itemColumn<String>('building_id')!;
@@ -9965,7 +9963,7 @@ final class $$ApartmentsTableReferences
   static MultiTypedResultKey<$ContractsTable, List<Contract>>
   _contractsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
     db.contracts,
-    aliasName: $_aliasNameGenerator(db.apartments.id, db.contracts.apartmentId),
+    aliasName: 'apartments__id__contracts__apartment_id',
   );
 
   $$ContractsTableProcessedTableManager get contractsRefs {
@@ -10561,8 +10559,8 @@ final class $$ContractsTableReferences
     extends BaseReferences<_$AppDatabase, $ContractsTable, Contract> {
   $$ContractsTableReferences(super.$_db, super.$_table, super.$_typedResult);
 
-  static $ClientsTable _clientIdTable(_$AppDatabase db) => db.clients
-      .createAlias($_aliasNameGenerator(db.contracts.clientId, db.clients.id));
+  static $ClientsTable _clientIdTable(_$AppDatabase db) =>
+      db.clients.createAlias('contracts__client_id__clients__id');
 
   $$ClientsTableProcessedTableManager get clientId {
     final $_column = $_itemColumn<String>('client_id')!;
@@ -10579,9 +10577,7 @@ final class $$ContractsTableReferences
   }
 
   static $ApartmentsTable _apartmentIdTable(_$AppDatabase db) =>
-      db.apartments.createAlias(
-        $_aliasNameGenerator(db.contracts.apartmentId, db.apartments.id),
-      );
+      db.apartments.createAlias('contracts__apartment_id__apartments__id');
 
   $$ApartmentsTableProcessedTableManager? get apartmentId {
     final $_column = $_itemColumn<String>('apartment_id');
@@ -10604,10 +10600,7 @@ final class $$ContractsTableReferences
   _installmentsScheduleRefsTable(_$AppDatabase db) =>
       MultiTypedResultKey.fromTable(
         db.installmentsSchedule,
-        aliasName: $_aliasNameGenerator(
-          db.contracts.id,
-          db.installmentsSchedule.contractId,
-        ),
+        aliasName: 'contracts__id__installments_schedule__contract_id',
       );
 
   $$InstallmentsScheduleTableProcessedTableManager
@@ -10628,10 +10621,7 @@ final class $$ContractsTableReferences
   static MultiTypedResultKey<$PaymentsLedgerTable, List<PaymentsLedgerData>>
   _paymentsLedgerRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
     db.paymentsLedger,
-    aliasName: $_aliasNameGenerator(
-      db.contracts.id,
-      db.paymentsLedger.contractId,
-    ),
+    aliasName: 'contracts__id__payments_ledger__contract_id',
   );
 
   $$PaymentsLedgerTableProcessedTableManager get paymentsLedgerRefs {
@@ -10649,10 +10639,7 @@ final class $$ContractsTableReferences
   static MultiTypedResultKey<$LegalActionsTable, List<LegalAction>>
   _legalActionsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
     db.legalActions,
-    aliasName: $_aliasNameGenerator(
-      db.contracts.id,
-      db.legalActions.contractId,
-    ),
+    aliasName: 'contracts__id__legal_actions__contract_id',
   );
 
   $$LegalActionsTableProcessedTableManager get legalActionsRefs {
@@ -12424,13 +12411,8 @@ final class $$InstallmentsScheduleTableReferences
     super.$_typedResult,
   );
 
-  static $ContractsTable _contractIdTable(_$AppDatabase db) =>
-      db.contracts.createAlias(
-        $_aliasNameGenerator(
-          db.installmentsSchedule.contractId,
-          db.contracts.id,
-        ),
-      );
+  static $ContractsTable _contractIdTable(_$AppDatabase db) => db.contracts
+      .createAlias('installments_schedule__contract_id__contracts__id');
 
   $$ContractsTableProcessedTableManager get contractId {
     final $_column = $_itemColumn<String>('contract_id')!;
@@ -12449,10 +12431,7 @@ final class $$InstallmentsScheduleTableReferences
   static MultiTypedResultKey<$PaymentsLedgerTable, List<PaymentsLedgerData>>
   _paymentsLedgerRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
     db.paymentsLedger,
-    aliasName: $_aliasNameGenerator(
-      db.installmentsSchedule.id,
-      db.paymentsLedger.scheduleId,
-    ),
+    aliasName: 'installments_schedule__id__payments_ledger__schedule_id',
   );
 
   $$PaymentsLedgerTableProcessedTableManager get paymentsLedgerRefs {
@@ -13005,9 +12984,7 @@ final class $$PaymentsLedgerTableReferences
   );
 
   static $ContractsTable _contractIdTable(_$AppDatabase db) =>
-      db.contracts.createAlias(
-        $_aliasNameGenerator(db.paymentsLedger.contractId, db.contracts.id),
-      );
+      db.contracts.createAlias('payments_ledger__contract_id__contracts__id');
 
   $$ContractsTableProcessedTableManager get contractId {
     final $_column = $_itemColumn<String>('contract_id')!;
@@ -13023,13 +13000,9 @@ final class $$PaymentsLedgerTableReferences
     );
   }
 
-  static $InstallmentsScheduleTable _scheduleIdTable(_$AppDatabase db) =>
-      db.installmentsSchedule.createAlias(
-        $_aliasNameGenerator(
-          db.paymentsLedger.scheduleId,
-          db.installmentsSchedule.id,
-        ),
-      );
+  static $InstallmentsScheduleTable _scheduleIdTable(_$AppDatabase db) => db
+      .installmentsSchedule
+      .createAlias('payments_ledger__schedule_id__installments_schedule__id');
 
   $$InstallmentsScheduleTableProcessedTableManager? get scheduleId {
     final $_column = $_itemColumn<String>('schedule_id');
@@ -13611,7 +13584,7 @@ final class $$AppRolesTableReferences
   static MultiTypedResultKey<$LocalUsersTable, List<LocalUser>>
   _localUsersRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
     db.localUsers,
-    aliasName: $_aliasNameGenerator(db.appRoles.id, db.localUsers.roleId),
+    aliasName: 'app_roles__id__local_users__role_id',
   );
 
   $$LocalUsersTableProcessedTableManager get localUsersRefs {
@@ -13975,8 +13948,8 @@ final class $$LocalUsersTableReferences
     extends BaseReferences<_$AppDatabase, $LocalUsersTable, LocalUser> {
   $$LocalUsersTableReferences(super.$_db, super.$_table, super.$_typedResult);
 
-  static $AppRolesTable _roleIdTable(_$AppDatabase db) => db.appRoles
-      .createAlias($_aliasNameGenerator(db.localUsers.roleId, db.appRoles.id));
+  static $AppRolesTable _roleIdTable(_$AppDatabase db) =>
+      db.appRoles.createAlias('local_users__role_id__app_roles__id');
 
   $$AppRolesTableProcessedTableManager? get roleId {
     final $_column = $_itemColumn<String>('role_id');
@@ -14409,9 +14382,7 @@ final class $$LegalActionsTableReferences
   $$LegalActionsTableReferences(super.$_db, super.$_table, super.$_typedResult);
 
   static $ContractsTable _contractIdTable(_$AppDatabase db) =>
-      db.contracts.createAlias(
-        $_aliasNameGenerator(db.legalActions.contractId, db.contracts.id),
-      );
+      db.contracts.createAlias('legal_actions__contract_id__contracts__id');
 
   $$ContractsTableProcessedTableManager get contractId {
     final $_column = $_itemColumn<String>('contract_id')!;
@@ -14434,10 +14405,8 @@ final class $$LegalActionsTableReferences
   _legalActionAttachmentsRefsTable(_$AppDatabase db) =>
       MultiTypedResultKey.fromTable(
         db.legalActionAttachments,
-        aliasName: $_aliasNameGenerator(
-          db.legalActions.id,
-          db.legalActionAttachments.legalActionId,
-        ),
+        aliasName:
+            'legal_actions__id__legal_action_attachments__legal_action_id',
       );
 
   $$LegalActionAttachmentsTableProcessedTableManager
@@ -14947,10 +14916,7 @@ final class $$LegalActionAttachmentsTableReferences
 
   static $LegalActionsTable _legalActionIdTable(_$AppDatabase db) =>
       db.legalActions.createAlias(
-        $_aliasNameGenerator(
-          db.legalActionAttachments.legalActionId,
-          db.legalActions.id,
-        ),
+        'legal_action_attachments__legal_action_id__legal_actions__id',
       );
 
   $$LegalActionsTableProcessedTableManager get legalActionId {
