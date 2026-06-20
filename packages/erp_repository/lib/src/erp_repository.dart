@@ -17,6 +17,7 @@ import 'repositories/clients_repository.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'repositories/sync_repository.dart';
+import 'repositories/schedules_repository.dart';
 /// المدير الذكي بنظام (Offline-First) والمزامنة الشبحية ثنائية الاتجاه (Push & Pull)
 class ErpRepository {
   // ==========================================
@@ -31,6 +32,7 @@ class ErpRepository {
   final CloudStorageClient _cloudApi;
   late final ContractsRepository _contractsRepo;
   late final LegalRepository _legalRepo; 
+  late final SchedulesRepository _schedulesRepo;
   ErpRepository({
     required LocalStorageApi localStorageApi,
     required CloudStorageClient cloudStorageClient,
@@ -65,6 +67,12 @@ class ErpRepository {
      _legalRepo = LegalRepository(
       localApi: _localApi,
       cloudApi: _cloudApi,
+      syncRepo: _syncRepo,
+      getCurrentUserId: () => currentUserId,
+    );
+
+    _schedulesRepo = SchedulesRepository(
+      localApi: _localApi,
       syncRepo: _syncRepo,
       getCurrentUserId: () => currentUserId,
     );
@@ -232,6 +240,8 @@ class ErpRepository {
         penaltyPercentage: penaltyPercentage, penaltyIntervalMonths: penaltyIntervalMonths,
       );
 
+  Future<void> updateContractDateOnly({required String id, required DateTime contractDate}) => _contractsRepo.updateContractDateOnly(id: id, contractDate: contractDate);
+
   Future<void> deleteContract(String contractId, String? apartmentId) => _contractsRepo.deleteContract(contractId, apartmentId);
   Future<void> restoreContract(String contractId, String? apartmentId, bool isHandedOver) => _contractsRepo.restoreContract(contractId, apartmentId, isHandedOver);
   Future<void> forceHardDeleteContract(String contractId) => _contractsRepo.forceHardDeleteContract(contractId);
@@ -255,71 +265,27 @@ class ErpRepository {
       _contractsRepo.restructureContractSchedule(contractId: contractId, newRemainingMonths: newRemainingMonths, newStartDate: newStartDate);
 
   // ==========================================
-  // 📅 جدول الاستحقاقات (المراقبة)
+  // 📅 جدول الاستحقاقات (Schedules Facade)
   // ==========================================
-  Future<List<InstallmentsScheduleData>> getContractSchedule(String contractId) => _localApi.getContractSchedule(contractId);
+  Future<List<InstallmentsScheduleData>> getContractSchedule(String contractId) => _schedulesRepo.getContractSchedule(contractId);
+  Future<List<InstallmentsScheduleData>> getAllOverdueSchedules() => _schedulesRepo.getAllOverdueSchedules();
 
   Future<void> handleRollingCheckpoint({
-    required String contractId,
-    required String scheduleId,
-    required String actionType,
-    required DateTime nextDueDate,
-  }) async {
-    final String? safeUserId = currentUserId;
-    if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
+    required String contractId, required String scheduleId,
+    required String actionType, required DateTime nextDueDate,
+  }) => _schedulesRepo.handleRollingCheckpoint(contractId: contractId, scheduleId: scheduleId, actionType: actionType, nextDueDate: nextDueDate);
 
-    await _localApi.handleRollingCheckpoint(contractId, scheduleId, actionType, nextDueDate, safeUserId);
-    await syncPendingData(); 
-  }
-  
-  Future<List<InstallmentsScheduleData>> getAllOverdueSchedules() => _localApi.getAllOverdueSchedules();
-
-  // 🌟 [تم التعديل]: دعم الحقل الجديد للمبلغ (بدون طلب userId من الـ Cubit)
   Future<void> updateIndividualSchedule({
-    required String scheduleId,
-    required DateTime newDueDate,
-    String? notes,
-    double? expectedAmount, // 🌟 
-  }) async {
-    final String? safeUserId = currentUserId;
-    if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
+    required String scheduleId, required DateTime newDueDate,
+    String? notes, double? expectedAmount,
+  }) => _schedulesRepo.updateIndividualSchedule(scheduleId: scheduleId, newDueDate: newDueDate, notes: notes, expectedAmount: expectedAmount);
 
-    await _localApi.updateIndividualSchedule(
-      id: scheduleId, 
-      newDueDate: newDueDate, 
-      notes: notes, 
-      expectedAmount: expectedAmount, // 🌟
-      userId: safeUserId
-    );
-    await syncPendingData(); 
-  }
+  Future<void> updateScheduleStatus(String scheduleId, String status) => _schedulesRepo.updateScheduleStatus(scheduleId, status);
 
-  // 🌟 [الدالة الجديدة]: إرسال أمر إضافة الدفعة الموسمية
-  Future<void> addCustomSchedule(InstallmentsScheduleCompanion schedule) async {
-    final String? safeUserId = currentUserId;
-    if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
-
-    final companionWithUser = schedule.copyWith(userId: drift.Value(safeUserId));
-    await _localApi.addCustomSchedule(companionWithUser);
-    await syncPendingData(); 
-  }
-
-  // 🌟 [هذه الدالة التي حُذفت بالخطأ - أعدناها الآن لكي يختفي الخطأ]
-  Future<void> updateContractDateOnly({required String id, required DateTime contractDate}) async {
-    final String? safeUserId = currentUserId;
-    if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
-
-    final db = _localApi.database;
-    await (db.update(db.contracts)..where((t) => t.id.equals(id))).write(
-      ContractsCompanion(
-        contractDate: drift.Value(contractDate.toUtc()),
-        userId: drift.Value(safeUserId), 
-        updatedAt: drift.Value(DateTime.now().toUtc()),
-        isSynced: const drift.Value(false), 
-      )
-    );
-    await syncPendingData();
-  }
+  Future<void> addCustomSchedule({
+    required String contractId, required DateTime dueDate,
+    required String notes, required double expectedAmount,
+  }) => _schedulesRepo.addCustomSchedule(contractId: contractId, dueDate: dueDate, notes: notes, expectedAmount: expectedAmount);
   
   // ==========================================
   // 💰 الأقساط (Payments Ledger)
@@ -340,13 +306,7 @@ class ErpRepository {
     await syncPendingData(); 
   }
 
-  Future<void> updateScheduleStatus(String scheduleId, String status) async {
-    final String? safeUserId = currentUserId;
-    if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
 
-    await _localApi.updateScheduleStatus(scheduleId, status, safeUserId);
-    await syncPendingData(); 
-  }
 
   Future<void> markWhatsAppAsSent(String entryId) async { 
     final String? safeUserId = currentUserId;

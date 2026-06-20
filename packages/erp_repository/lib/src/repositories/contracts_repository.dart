@@ -385,4 +385,26 @@ class ContractsRepository {
     );
     await _syncRepo.syncPendingData();
   }
+
+  // ==========================================
+  // 📅 تعديل تاريخ العقد فقط
+  // ==========================================
+  Future<void> updateContractDateOnly({
+    required String id,
+    required DateTime contractDate,
+  }) async {
+    final userId = _getCurrentUserId();
+    if (userId == null) throw Exception('يجب تسجيل الدخول أولاً.');
+
+    final db = _localApi.database;
+    await (db.update(db.contracts)..where((t) => t.id.equals(id))).write(
+      ContractsCompanion(
+        contractDate: drift.Value(contractDate.toUtc()),
+        userId: drift.Value(userId),
+        updatedAt: drift.Value(DateTime.now().toUtc()),
+        isSynced: const drift.Value(false),
+      ),
+    );
+    await _syncRepo.syncPendingData();
+  }
 }
