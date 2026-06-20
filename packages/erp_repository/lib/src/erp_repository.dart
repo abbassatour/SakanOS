@@ -10,6 +10,7 @@ import 'package:path_provider/path_provider.dart';
 import 'repositories/auth_repository.dart';
 import 'repositories/backup_repository.dart';
 import 'repositories/sync_repository.dart';
+import 'repositories/legal_repository.dart';
 import 'repositories/buildings_repository.dart';
 import 'repositories/contracts_repository.dart';
 import 'repositories/clients_repository.dart';
@@ -29,7 +30,7 @@ class ErpRepository {
   final LocalStorageApi _localApi;
   final CloudStorageClient _cloudApi;
   late final ContractsRepository _contractsRepo;
-
+  late final LegalRepository _legalRepo; 
   ErpRepository({
     required LocalStorageApi localStorageApi,
     required CloudStorageClient cloudStorageClient,
@@ -55,6 +56,13 @@ class ErpRepository {
     );
 
      _contractsRepo = ContractsRepository(
+      localApi: _localApi,
+      cloudApi: _cloudApi,
+      syncRepo: _syncRepo,
+      getCurrentUserId: () => currentUserId,
+    );
+
+     _legalRepo = LegalRepository(
       localApi: _localApi,
       cloudApi: _cloudApi,
       syncRepo: _syncRepo,
@@ -245,7 +253,7 @@ class ErpRepository {
 
   Future<void> restructureContractSchedule({required String contractId, required int newRemainingMonths, required DateTime newStartDate}) =>
       _contractsRepo.restructureContractSchedule(contractId: contractId, newRemainingMonths: newRemainingMonths, newStartDate: newStartDate);
-      
+
   // ==========================================
   // 📅 جدول الاستحقاقات (المراقبة)
   // ==========================================
@@ -689,91 +697,64 @@ class ErpRepository {
   
 
 
+// ==========================================
+  // ⚖️ الإجراءات القانونية (Legal Facade)
   // ==========================================
-  // ⚖️ إدارة الإجراءات القانونية (صفحة المحامي)
-  // ==========================================
-  Future<List<LegalAction>> getLegalActionsForContract(String contractId) => _localApi.getLegalActionsForContract(contractId);
+  Future<List<LegalAction>> getLegalActionsForContract(String contractId) =>
+      _legalRepo.getLegalActionsForContract(contractId);
 
-  Future<void> addLegalAction(LegalActionsCompanion action) async {
-    final String? safeUserId = currentUserId;
-    if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
+  Future<List<LegalAction>> getAllLegalActions() =>
+      _legalRepo.getAllLegalActions();
 
-    final companionWithUser = action.copyWith(userId: drift.Value(safeUserId));
-    await _localApi.addLegalAction(companionWithUser);
-    await syncPendingData(); 
-  }
+  Future<List<LegalActionAttachment>> getAllLegalActionAttachments() =>
+      _legalRepo.getAllLegalActionAttachments();
 
-  // ==========================================
-  // تعديل إجراء قانوني
-  // ==========================================
-  Future<void> updateLegalAction(LegalActionsCompanion action) async {
-    // 🌟 تم تصحيح الاسم من _localStorageApi إلى _localApi
-    await _localApi.updateLegalAction(action);
-    await syncPendingData(); // 🌟 أضفنا هذا السطر أيضاً ليقوم برفع التعديل للسحابة مباشرة
-  }
-  Future<void> deleteLegalAction(String actionId) async {
-    final String? safeUserId = currentUserId;
-    if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
+  Future<void> addLegalAction({
+    required String contractId,
+    required String actionType,
+    required DateTime actionDate,
+    String? notes,
+  }) =>
+      _legalRepo.addLegalAction(
+        contractId: contractId,
+        actionType: actionType,
+        actionDate: actionDate,
+        notes: notes,
+      );
 
-    await _localApi.deleteLegalAction(actionId, safeUserId);
-    await syncPendingData(); 
-  }
+  Future<void> updateLegalAction({
+    required String actionId,
+    required String contractId,
+    required String actionType,
+    required DateTime actionDate,
+    String? notes,
+  }) =>
+      _legalRepo.updateLegalAction(
+        actionId: actionId,
+        contractId: contractId,
+        actionType: actionType,
+        actionDate: actionDate,
+        notes: notes,
+      );
 
-  Future<List<LegalAction>> getAllLegalActions() => _localApi.getAllLegalActions();
-  Future<List<LegalActionAttachment>> getAllLegalActionAttachments() => _localApi.getAllLegalActionAttachments();
+  Future<void> deleteLegalAction(String actionId) =>
+      _legalRepo.deleteLegalAction(actionId);
 
-  // 🌟 (هذه الدالة لحذف المرفق التي استدعيناها في الـ Cubit)
-  Future<void> deleteLegalActionAttachment(String attachmentId) async {
-    final String? safeUserId = currentUserId;
-    if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
-
-    await _localApi.deleteLegalActionAttachment(attachmentId, safeUserId);
-    await syncPendingData(); 
-  }
-  
-  // 📎 إرفاق ملف لإجراء قانوني
   Future<void> attachFileToLegalAction({
-    required String actionId, 
-    required File file, 
+    required String actionId,
+    required File file,
     required String extension,
     required String originalFileName,
-  }) async {
-    final String? safeUserId = currentUserId;
-    if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
-
-    try {
-      // 1. توليد آي دي جديد للمرفق
-      final String attachmentId = const Uuid().v7();
-
-      // 2. رفع الملف الفعلي للسحابة وجلب الرابط
-      final fileUrl = await _cloudApi.uploadLegalAttachmentFile(
-        attachmentId: attachmentId, 
-        file: file, 
-        extension: extension
+  }) =>
+      _legalRepo.attachFileToLegalAction(
+        actionId: actionId,
+        file: file,
+        extension: extension,
+        originalFileName: originalFileName,
       );
 
-      // 3. حفظ بيانات المرفق في قاعدة البيانات المحلية
-      final newAttachment = LegalActionAttachmentsCompanion.insert(
-        id: drift.Value(attachmentId),
-        legalActionId: actionId,
-        fileUrl: fileUrl,
-        fileName: drift.Value(originalFileName),
-        fileType: drift.Value(extension),
-        userId: safeUserId,
-        isSynced: const drift.Value(false), // ستتم مزامنتها تلقائياً بالخطوة التالية
-      );
-
-      await _localApi.database.insertLegalActionAttachment(newAttachment);
-      
-      // 4. دفع البيانات للسحابة
-      await syncPendingData();
-
-    } catch (e) {
-      print('❌ خطأ أثناء إرفاق الملف القانوني: $e');
-      throw Exception('فشل الإرفاق: $e'); 
-    }
-  }
-
+  Future<void> deleteLegalActionAttachment(String attachmentId) =>
+      _legalRepo.deleteLegalActionAttachment(attachmentId);
   
 
 // ==========================================
