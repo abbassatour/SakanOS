@@ -10,6 +10,7 @@ import 'package:path_provider/path_provider.dart';
 import 'repositories/auth_repository.dart';
 import 'repositories/backup_repository.dart';
 import 'repositories/sync_repository.dart';
+import 'repositories/buildings_repository.dart';
 import 'repositories/clients_repository.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -23,7 +24,7 @@ class ErpRepository {
   late final BackupRepository _backupRepo;
   late final SyncRepository _syncRepo;
   late final ClientsRepository _clientsRepo;
-
+  late final BuildingsRepository _buildingsRepo;
   final LocalStorageApi _localApi;
   final CloudStorageClient _cloudApi;
 
@@ -40,6 +41,12 @@ class ErpRepository {
 
     // 🌟 هيئه هنا ومرر له دالة جلب الـ ID
     _clientsRepo = ClientsRepository(
+      localApi: _localApi,
+      syncRepo: _syncRepo,
+      getCurrentUserId: () => currentUserId,
+    );
+
+    _buildingsRepo = BuildingsRepository(
       localApi: _localApi,
       syncRepo: _syncRepo,
       getCurrentUserId: () => currentUserId,
@@ -480,76 +487,89 @@ class ErpRepository {
   }
 
   // ==========================================
-  // 🏢 إدارة المحاضر والشقق
+  // 🏢 إدارة المحاضر والشقق (Buildings Facade)
   // ==========================================
-  Future<List<Building>> getBuildings() => _localApi.getBuildings();
-  Future<List<Apartment>> getAllApartments() => _localApi.getAllApartments();
+  Future<List<Building>> getBuildings() => _buildingsRepo.getBuildings();
+  Future<List<Apartment>> getAllApartments() => _buildingsRepo.getAllApartments();
 
-  Future<void> changeApartmentStatus(String apartmentId, String status) async {
-    final String? safeUserId = currentUserId;
-    if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
+  Future<void> addBuilding({
+    required String name,
+    required String location,
+    Map<String, double> floorCoeffs = const {},
+    Map<String, double> dirCoeffs = const {},
+  }) =>
+      _buildingsRepo.addBuilding(
+        name: name,
+        location: location,
+        floorCoeffs: floorCoeffs,
+        dirCoeffs: dirCoeffs,
+      );
 
-    await _localApi.changeApartmentStatus(apartmentId, status, safeUserId);
-    await syncPendingData(); 
-  }
-
-  Future<void> addBuilding(BuildingsCompanion building) async {
-    if (currentUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
-    final companionWithUser = building.copyWith(userId: drift.Value(currentUserId!));
-    await _localApi.addBuilding(companionWithUser);
-    await syncPendingData(); 
-  }
-
-  Future<void> addApartment(ApartmentsCompanion apartment) async {
-    if (currentUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
-    final companionWithUser = apartment.copyWith(userId: drift.Value(currentUserId!));
-    await _localApi.addApartment(companionWithUser);
-    await syncPendingData(); 
-  }
+  Future<void> addApartment({
+    required String buildingId,
+    required String aptNumber,
+    required double area,
+    required String floorName,
+    required String directionName,
+    String unitType = 'apartment',
+    Map<String, double> customCoeffs = const {},
+  }) =>
+      _buildingsRepo.addApartment(
+        buildingId: buildingId,
+        aptNumber: aptNumber,
+        area: area,
+        floorName: floorName,
+        directionName: directionName,
+        unitType: unitType,
+        customCoeffs: customCoeffs,
+      );
 
   Future<void> updateBuilding({
     required String id,
     required String name,
     required String location,
-  }) async {
-    final db = _localApi.database;
-    final String? safeUserId = currentUserId;
-    if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
-
-    await (db.update(db.buildings)..where((t) => t.id.equals(id))).write(
-      BuildingsCompanion(
-        name: drift.Value(name),
-        location: drift.Value(location),
-        userId: drift.Value(safeUserId), 
-        updatedAt: drift.Value(DateTime.now().toUtc()),
-        isSynced: const drift.Value(false), 
-      )
-    );
-    await syncPendingData();
-  }
+  }) =>
+      _buildingsRepo.updateBuilding(id: id, name: name, location: location);
 
   Future<void> updateApartment({
     required String id,
     required String apartmentNumber,
     required double area,
     required String directionName,
-  }) async {
-    final db = _localApi.database;
-    final String? safeUserId = currentUserId;
-    if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
+  }) =>
+      _buildingsRepo.updateApartment(
+        id: id,
+        apartmentNumber: apartmentNumber,
+        area: area,
+        directionName: directionName,
+      );
 
-    await (db.update(db.apartments)..where((t) => t.id.equals(id))).write(
-      ApartmentsCompanion(
-        apartmentNumber: drift.Value(apartmentNumber),
-        area: drift.Value(area),
-        directionName: drift.Value(directionName),
-        userId: drift.Value(safeUserId), 
-        updatedAt: drift.Value(DateTime.now().toUtc()),
-        isSynced: const drift.Value(false), 
-      )
-    );
-    await syncPendingData();
-  }
+  Future<void> changeApartmentStatus(String apartmentId, String status) =>
+      _buildingsRepo.changeApartmentStatus(apartmentId, status);
+
+  Future<void> softDeleteApartment(String apartmentId) =>
+      _buildingsRepo.softDeleteApartment(apartmentId);
+
+  Future<void> softDeleteBuilding(String buildingId) =>
+      _buildingsRepo.softDeleteBuilding(buildingId);
+
+  Future<void> restoreApartment(String apartmentId) =>
+      _buildingsRepo.restoreApartment(apartmentId);
+
+  Future<void> restoreBuilding(String buildingId) =>
+      _buildingsRepo.restoreBuilding(buildingId);
+
+  Future<void> forceHardDeleteApartment(String apartmentId) =>
+      _buildingsRepo.forceHardDeleteApartment(apartmentId);
+
+  Future<void> forceHardDeleteBuilding(String buildingId) =>
+      _buildingsRepo.forceHardDeleteBuilding(buildingId);
+
+  Future<List<Building>> getDeletedBuildings() =>
+      _buildingsRepo.getDeletedBuildings();
+
+  Future<List<Apartment>> getDeletedApartments() =>
+      _buildingsRepo.getDeletedApartments();
   
   // ==========================================
   // 📡 محرك الاستماع السحابي الحي (Realtime Sync)
@@ -605,66 +625,7 @@ class ErpRepository {
 
 
   
-  // ==========================================
-  // 🗑️ إدارة حذف المحاضر والشقق (مع طبقة الحماية)
-  // ==========================================
 
-  Future<void> softDeleteApartment(String apartmentId) async {
-    final db = _localApi.database;
-    final String? safeUserId = currentUserId;
-    if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
-    
-    final apt = await (db.select(db.apartments)..where((t) => t.id.equals(apartmentId))).getSingle();
-    if (apt.status != 'available') {
-      throw Exception('⚠️ لا يمكن حذف هذه الوحدة لأن حالتها حالياً: ${apt.status}');
-    }
-
-    await db.softDeleteApartment(apartmentId, safeUserId); 
-    await syncPendingData(); 
-  }
-
-  Future<void> softDeleteBuilding(String buildingId) async {
-    final db = _localApi.database;
-    final String? safeUserId = currentUserId;
-    if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
-
-    final buildingApartments = await (db.select(db.apartments)..where((t) => t.buildingId.equals(buildingId) & t.isDeleted.equals(false))).get();
-    
-    final hasSoldApartments = buildingApartments.any((apt) => apt.status != 'available');
-    if (hasSoldApartments) {
-      throw Exception('⛔ لا يمكن حذف هذا المحضر لاحتوائه على وحدات مباعة. يرجى حذف الوحدات المتاحة يدوياً إن أردت.');
-    }
-
-    await db.softDeleteBuilding(buildingId, safeUserId); 
-    await syncPendingData(); 
-  }
-
-  Future<void> restoreApartment(String apartmentId) async {
-    final String? safeUserId = currentUserId;
-    if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
-
-    await _localApi.database.restoreSoftDeletedApartment(apartmentId, safeUserId);
-    await syncPendingData();
-  }
-
-  Future<void> restoreBuilding(String buildingId) async {
-    final String? safeUserId = currentUserId;
-    if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
-
-    await _localApi.database.restoreSoftDeletedBuilding(buildingId, safeUserId);
-    await syncPendingData();
-  }
-
-  Future<void> forceHardDeleteApartment(String apartmentId) async {
-    await _localApi.database.hardDeleteApartment(apartmentId);
-  }
-
-  Future<void> forceHardDeleteBuilding(String buildingId) async {
-    await _localApi.database.hardDeleteBuilding(buildingId);
-  }
-
-  Future<List<Building>> getDeletedBuildings() => _localApi.database.getDeletedBuildings();
-  Future<List<Apartment>> getDeletedApartments() => _localApi.database.getDeletedApartments();
 
   // ==========================================
   // 🛡️ إدارة الصلاحيات والمستخدمين (لوحة تحكم الأدمن)
