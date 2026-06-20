@@ -1,5 +1,5 @@
-// مسار الملف: lib/clients/widgets/add_client_dialog.dart
-// المسؤولية: عرض نموذج لإدخال بيانات العميل الجديد وإرسالها إلى الـ Cubit مع إظهار حالة التحميل أثناء الحفظ.
+//
+import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -9,15 +9,17 @@ import '../cubit/clients_cubit.dart';
 void showAddClientDialog(BuildContext parentContext) {
   final clientsCubit = parentContext.read<ClientsCubit>();
 
-  showDialog<void>(
-    context: parentContext,
-    barrierDismissible: false,
-    builder: (dialogContext) {
-      return BlocProvider.value(
-        value: clientsCubit,
-        child: _AddClientDialogContent(parentContext: parentContext),
-      );
-    },
+  unawaited(
+    showDialog<void>(
+      context: parentContext,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        return BlocProvider.value(
+          value: clientsCubit,
+          child: _AddClientDialogContent(parentContext: parentContext),
+        );
+      },
+    ),
   );
 }
 
@@ -109,7 +111,7 @@ class _AddClientDialogContentState extends State<_AddClientDialogContent> {
             nationalId: nationalId.isEmpty ? null : nationalId,
           );
 
-      if (mounted) {
+      if (mounted && widget.parentContext.mounted) {
         Navigator.pop(context);
         ScaffoldMessenger.of(widget.parentContext).showSnackBar(
           const SnackBar(
@@ -118,8 +120,8 @@ class _AddClientDialogContentState extends State<_AddClientDialogContent> {
           ),
         );
       }
-    } catch (e) {
-      if (mounted) {
+    } on Exception catch (e) {
+      if (mounted && widget.parentContext.mounted) {
         setState(() => _isSaving = false);
         ScaffoldMessenger.of(widget.parentContext).showSnackBar(
           SnackBar(
@@ -170,7 +172,7 @@ class _AddClientDialogContentState extends State<_AddClientDialogContent> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                'يرجى إدخال بيانات العميل (الفريق الثاني) بدقة للتواصل وإعداد العقود.',
+                'يرجى إدخال بيانات العميل بدقة للتواصل وإعداد العقود.',
                 style: TextStyle(color: Colors.grey, fontSize: 14),
               ),
               const SizedBox(height: 24),
