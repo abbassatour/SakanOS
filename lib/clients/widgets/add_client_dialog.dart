@@ -1,4 +1,6 @@
-//
+// مسار الملف: lib/clients/widgets/add_client_dialog.dart
+// ignore_for_file: always_use_package_imports
+
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -29,10 +31,10 @@ class _AddClientDialogContent extends StatefulWidget {
   final BuildContext parentContext;
 
   @override
-  State<_AddClientDialogContent> createState() => _AddClientDialogContentState();
+  State<_AddClientDialogContent> createState() => _AddClientDialogState();
 }
 
-class _AddClientDialogContentState extends State<_AddClientDialogContent> {
+class _AddClientDialogState extends State<_AddClientDialogContent> {
   late final TextEditingController _nameController;
   late final TextEditingController _phoneController;
   late final TextEditingController _nationalIdController;
@@ -67,10 +69,17 @@ class _AddClientDialogContentState extends State<_AddClientDialogContent> {
       style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
       decoration: InputDecoration(
         labelText: label,
-        prefixIcon: Icon(icon, size: 22, color: Colors.blueAccent.shade400),
+        prefixIcon: Icon(
+          icon,
+          size: 22,
+          color: Colors.blueAccent.shade400,
+        ),
         filled: true,
         fillColor: Colors.grey.shade50,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 16,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
           borderSide: BorderSide(color: Colors.grey.shade200),
@@ -187,7 +196,7 @@ class _AddClientDialogContentState extends State<_AddClientDialogContent> {
                   Expanded(
                     child: _buildField(
                       controller: _phoneController,
-                      label: 'رقم الهاتف (للواتساب)',
+                      label: 'رقم الهاتف',
                       icon: Icons.phone_android,
                       keyboardType: TextInputType.phone,
                     ),
@@ -196,7 +205,7 @@ class _AddClientDialogContentState extends State<_AddClientDialogContent> {
                   Expanded(
                     child: _buildField(
                       controller: _nationalIdController,
-                      label: 'الرقم الوطني (اختياري)',
+                      label: 'الرقم الوطني',
                       icon: Icons.badge,
                       keyboardType: TextInputType.number,
                     ),

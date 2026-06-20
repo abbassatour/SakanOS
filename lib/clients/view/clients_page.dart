@@ -1,5 +1,5 @@
 // مسار الملف: lib/clients/view/clients_page.dart
-// المسؤولية: نقطة الدخول الرئيسية لصفحة العملاء من نظام التوجيه (Router).
+// ignore_for_file: always_use_package_imports
 
 import 'package:flutter/material.dart';
 

@@ -1,5 +1,7 @@
 // مسار الملف: lib/clients/widgets/edit_client_dialog.dart
-// ignore_for_file: always_use_package_imports, depend_on_referenced_packages
+// ignore_for_file: always_use_package_imports
+// ignore_for_file: depend_on_referenced_packages
+// ignore_for_file: simple_directive_paths
 
 import 'dart:async';
 
@@ -83,7 +85,11 @@ class _EditClientDialogContentState extends State<_EditClientDialogContent> {
       style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
       decoration: InputDecoration(
         labelText: label,
-        prefixIcon: Icon(icon, size: 22, color: Colors.blueAccent.shade400),
+        prefixIcon: Icon(
+          icon,
+          size: 22,
+          color: Colors.blueAccent.shade400,
+        ),
         filled: true,
         fillColor: Colors.white,
         contentPadding: const EdgeInsets.symmetric(
@@ -111,7 +117,6 @@ class _EditClientDialogContentState extends State<_EditClientDialogContent> {
     final isAuthorized = await showVerifyPinDialog(widget.parentContext);
 
     if (isAuthorized && widget.parentContext.mounted) {
-      // 🌟 إضافة await بدلاً من ترك الـ Future معلقاً
       await widget.parentContext
           .read<ClientsCubit>()
           .deleteClient(widget.client.id);
@@ -146,7 +151,6 @@ class _EditClientDialogContentState extends State<_EditClientDialogContent> {
     final isAuthorized = await showVerifyPinDialog(widget.parentContext);
 
     if (isAuthorized && widget.parentContext.mounted) {
-      // 🌟 إضافة await بدلاً من ترك الـ Future معلقاً
       await widget.parentContext.read<ClientsCubit>().updateClient(
             id: widget.client.id,
             name: name,
@@ -221,8 +225,8 @@ class _EditClientDialogContentState extends State<_EditClientDialogContent> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        'تنبيه أمني: إجراءات التعديل أو الحذف للعملاء المسجلين '
-                        'تتطلب إدخال رمز الأمان (PIN) الخاص بالإدارة للحفاظ '
+                        'تنبيه أمني: إجراءات التعديل أو الحذف للعملاء '
+                        'تتطلب إدخال رمز الأمان الخاص بالإدارة للحفاظ '
                         'على موثوقية العقود.',
                         style: TextStyle(
                           color: Colors.amber.shade900,
@@ -246,7 +250,7 @@ class _EditClientDialogContentState extends State<_EditClientDialogContent> {
                   Expanded(
                     child: _buildField(
                       controller: _phoneController,
-                      label: 'رقم الهاتف (للواتساب)',
+                      label: 'رقم الهاتف',
                       icon: Icons.phone_android,
                       keyboardType: TextInputType.phone,
                     ),
@@ -255,7 +259,7 @@ class _EditClientDialogContentState extends State<_EditClientDialogContent> {
                   Expanded(
                     child: _buildField(
                       controller: _nationalIdController,
-                      label: 'الرقم الوطني (اختياري)',
+                      label: 'الرقم الوطني',
                       icon: Icons.badge,
                       keyboardType: TextInputType.number,
                     ),
@@ -331,7 +335,7 @@ class _EditClientDialogContentState extends State<_EditClientDialogContent> {
                   onPressed: _handleSave,
                   icon: const Icon(Icons.save),
                   label: const Text(
-                    'حفظ التعديلات',
+                    'حفظ',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,

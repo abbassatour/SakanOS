@@ -1,5 +1,4 @@
 // مسار الملف: lib/clients/widgets/client_search_bar.dart
-// ignore_for_file: always_use_package_imports
 
 import 'package:flutter/material.dart';
 
@@ -46,7 +45,6 @@ class _ClientSearchBarState extends State<ClientSearchBar> {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            // 🌟 استخدام withValues بدلاً من withOpacity المهجورة
             color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 4,
             offset: const Offset(0, 2),
@@ -66,7 +64,10 @@ class _ClientSearchBarState extends State<ClientSearchBar> {
                   fontSize: 14,
                 ),
                 decoration: InputDecoration(
-                  prefixIcon: const Icon(Icons.search, color: Colors.blueAccent),
+                  prefixIcon: const Icon(
+                    Icons.search,
+                    color: Colors.blueAccent,
+                  ),
                   hintText: 'ابحث عن اسم، هاتف، أو رقم وطني...',
                   filled: true,
                   fillColor: Colors.grey.shade50,

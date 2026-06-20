@@ -1,5 +1,4 @@
 // مسار الملف: lib/clients/widgets/verify_pin_dialog.dart
-// ignore_for_file: always_use_package_imports
 
 import 'package:flutter/material.dart';
 

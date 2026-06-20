@@ -1,12 +1,11 @@
 // مسار الملف: lib/clients/widgets/client_table.dart
-// ignore_for_file: always_use_package_imports, depend_on_referenced_packages
+// ignore_for_file: always_use_package_imports
 
 import 'dart:async';
 
 import 'package:erp_repository/erp_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:local_storage_api/local_storage_api.dart' show Client;
 
 import '../../dashboard/cubit/dashboard_cubit.dart';
 import '../../payments/cubit/payments_cubit.dart';
@@ -28,7 +27,6 @@ class ClientTable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 🌟 إزالة تحديد النوع المباشر واستخدام الـ Generics حسب متطلبات المحلل
     final userNamesMap = context.select<ClientsCubit, Map<String, String>>(
       (cubit) => cubit.state.userNamesMap,
     );
@@ -132,6 +130,19 @@ class ClientTable extends StatelessWidget {
                   final index = mapEntry.key;
                   final client = mapEntry.value;
 
+                  // 🌟 تجهيز التواريخ لتقليل طول الأسطر داخل الشجرة
+                  final cAt = client.createdAt;
+                  final uAt = client.updatedAt;
+
+                  final dateAdded = '${cAt.year}/'
+                      '${cAt.month.toString().padLeft(2, '0')}/'
+                      '${cAt.day.toString().padLeft(2, '0')}';
+
+                  final dateUpdated = '${uAt.year}/'
+                      '${uAt.month.toString().padLeft(2, '0')}/'
+                      '${uAt.day.toString().padLeft(2, '0')} '
+                      '${uAt.hour}:${uAt.minute.toString().padLeft(2, '0')}';
+
                   return DataRow(
                     color: WidgetStateProperty.resolveWith<Color?>((states) {
                       return index.isEven
@@ -153,31 +164,28 @@ class ClientTable extends StatelessWidget {
                         ConstrainedBox(
                           constraints: const BoxConstraints(maxWidth: 200),
                           child: InkWell(
-                            onTap: () {
-                              // 🌟 استخدام unawaited مع Future غير المنتظر
-                              unawaited(
-                                Navigator.push<void>(
-                                  context,
-                                  MaterialPageRoute<void>(
-                                    builder: (_) => MultiBlocProvider(
-                                      providers: [
-                                        BlocProvider.value(
-                                          value: context.read<DashboardCubit>(),
-                                        ),
-                                        BlocProvider.value(
-                                          value: context.read<PaymentsCubit>(),
-                                        ),
-                                        BlocProvider.value(
-                                          value: context.read<ScheduleCubit>(),
-                                        ),
-                                        BlocProvider(
-                                          create: (_) => ClientProfileCubit(
-                                            context.read<ErpRepository>(),
-                                          )..fetchClientData(client),
-                                        ),
-                                      ],
-                                      child: ClientProfilePage(client: client),
-                                    ),
+                            onTap: () async {
+                              await Navigator.push<void>(
+                                context,
+                                MaterialPageRoute<void>(
+                                  builder: (_) => MultiBlocProvider(
+                                    providers: [
+                                      BlocProvider.value(
+                                        value: context.read<DashboardCubit>(),
+                                      ),
+                                      BlocProvider.value(
+                                        value: context.read<PaymentsCubit>(),
+                                      ),
+                                      BlocProvider.value(
+                                        value: context.read<ScheduleCubit>(),
+                                      ),
+                                      BlocProvider(
+                                        create: (_) => ClientProfileCubit(
+                                          context.read<ErpRepository>(),
+                                        )..fetchClientData(client),
+                                      ),
+                                    ],
+                                    child: ClientProfilePage(client: client),
                                   ),
                                 ),
                               );
@@ -253,9 +261,7 @@ class ClientTable extends StatelessWidget {
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(
-                            '${client.createdAt.year}/'
-                            '${client.createdAt.month.toString().padLeft(2, '0')}/'
-                            '${client.createdAt.day.toString().padLeft(2, '0')}',
+                            dateAdded,
                             style: TextStyle(
                               color: Colors.blue.shade700,
                               fontWeight: FontWeight.bold,
@@ -299,11 +305,7 @@ class ClientTable extends StatelessWidget {
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
-                                  '${client.updatedAt.year}/'
-                                  '${client.updatedAt.month.toString().padLeft(2, '0')}/'
-                                  '${client.updatedAt.day.toString().padLeft(2, '0')} '
-                                  '${client.updatedAt.hour}:'
-                                  '${client.updatedAt.minute.toString().padLeft(2, '0')}',
+                                  dateUpdated,
                                   style: const TextStyle(
                                     fontSize: 11,
                                     color: Colors.grey,
@@ -321,9 +323,7 @@ class ClientTable extends StatelessWidget {
                             color: canEdit ? Colors.blue : Colors.grey.shade400,
                             size: 22,
                           ),
-                          tooltip: canEdit
-                              ? 'تعديل بيانات العميل'
-                              : 'لا تملك صلاحية التعديل',
+                          tooltip: canEdit ? 'تعديل بيانات' : 'لا تملك الصلاحية',
                           onPressed: canEdit
                               ? () => showEditClientDialog(context, client)
                               : null,

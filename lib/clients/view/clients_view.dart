@@ -1,5 +1,5 @@
 // مسار الملف: lib/clients/view/clients_view.dart
-// ignore_for_file: always_use_package_imports
+// ignore_for_file: always_use_package_imports, simple_directive_paths
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';

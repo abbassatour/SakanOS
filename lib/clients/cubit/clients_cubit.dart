@@ -1,14 +1,13 @@
 // مسار الملف: lib/clients/cubit/clients_cubit.dart
+// Reason: Needed to interact with companion objects and values safely.
+// ignore_for_file: depend_on_referenced_packages
 
 import 'package:bloc/bloc.dart';
+import 'package:drift/drift.dart' show Value;
 import 'package:equatable/equatable.dart';
 import 'package:erp_repository/erp_repository.dart';
-
-// تجاهل تحذير الاستيراد المباشر للحفاظ على استقرار الحزم الأخرى
-// ignore: depend_on_referenced_packages
-import 'package:drift/drift.dart' show Value;
-// ignore: depend_on_referenced_packages
-import 'package:local_storage_api/local_storage_api.dart' show Client, ClientsCompanion;
+import 'package:local_storage_api/local_storage_api.dart'
+    show Client, ClientsCompanion;
 
 part 'clients_state.dart';
 
@@ -20,7 +19,6 @@ class ClientsCubit extends Cubit<ClientsState> {
 
   final ErpRepository _erpRepository;
 
-  /// جلب جميع العملاء (النشطين غير المحذوفين)
   Future<void> fetchClients() async {
     if (state.status == ClientsStatus.initial) {
       emit(state.copyWith(status: ClientsStatus.loading));
@@ -28,9 +26,10 @@ class ClientsCubit extends Cubit<ClientsState> {
     try {
       final clients = await _erpRepository.getClients();
       final allUsers = await _erpRepository.getAllUsers();
-      
+
       final namesMap = <String, String>{
-        for (final user in allUsers) user.id: user.fullName ?? 'مدير النظام',
+        for (final user in allUsers)
+          user.id: user.fullName ?? 'مدير النظام',
       };
 
       emit(
@@ -50,19 +49,17 @@ class ClientsCubit extends Cubit<ClientsState> {
     }
   }
 
-  /// إضافة عميل جديد
   Future<void> addClient({
     required String name,
     required String phone,
     String? nationalId,
   }) async {
     try {
-      // عدنا لاستخدام الطريقة الأصلية التي تدعمها نسختك الحالية من ErpRepository
       final newClient = ClientsCompanion.insert(
         name: name,
         phone: phone,
         nationalId: Value(nationalId),
-        userId: '', 
+        userId: '',
       );
 
       await _erpRepository.addClient(newClient);
@@ -77,7 +74,6 @@ class ClientsCubit extends Cubit<ClientsState> {
     }
   }
 
-  /// تعديل بيانات العميل
   Future<void> updateClient({
     required String id,
     required String name,
@@ -103,7 +99,6 @@ class ClientsCubit extends Cubit<ClientsState> {
     }
   }
 
-  /// جلب قائمة المحذوفات
   Future<void> fetchDeletedClients() async {
     try {
       final deleted = await _erpRepository.getDeletedClients();
@@ -118,7 +113,6 @@ class ClientsCubit extends Cubit<ClientsState> {
     }
   }
 
-  /// استعادة عميل
   Future<void> restoreClient(String clientId) async {
     try {
       await _erpRepository.restoreClient(clientId);
@@ -134,7 +128,6 @@ class ClientsCubit extends Cubit<ClientsState> {
     }
   }
 
-  /// حذف نهائي يدوي
   Future<void> forceHardDelete(String clientId) async {
     try {
       await _erpRepository.forceHardDeleteClient(clientId);
@@ -149,7 +142,6 @@ class ClientsCubit extends Cubit<ClientsState> {
     }
   }
 
-  /// حذف العميل للـ (Soft Delete)
   Future<void> deleteClient(String clientId) async {
     try {
       final clientContracts = await _erpRepository.getContractsForClient(
