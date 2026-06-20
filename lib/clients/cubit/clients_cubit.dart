@@ -1,13 +1,10 @@
-// مسار الملف: lib/clients/cubit/clients_cubit.dart
-// Reason: Needed to interact with companion objects and values safely.
+// lib/clients/cubit/clients_cubit.dart
 // ignore_for_file: depend_on_referenced_packages
 
 import 'package:bloc/bloc.dart';
-import 'package:drift/drift.dart' show Value;
 import 'package:equatable/equatable.dart';
 import 'package:erp_repository/erp_repository.dart';
-import 'package:local_storage_api/local_storage_api.dart'
-    show Client, ClientsCompanion;
+import 'package:local_storage_api/local_storage_api.dart' show Client;
 
 part 'clients_state.dart';
 
@@ -55,14 +52,13 @@ class ClientsCubit extends Cubit<ClientsState> {
     String? nationalId,
   }) async {
     try {
-      final newClient = ClientsCompanion.insert(
+      // 🌟 السحر النظيف: تمرير النصوص فقط! 
+      await _erpRepository.addClient(
         name: name,
         phone: phone,
-        nationalId: Value(nationalId),
-        userId: '',
+        nationalId: nationalId,
       );
 
-      await _erpRepository.addClient(newClient);
       await fetchClients();
     } on Exception catch (e) {
       emit(

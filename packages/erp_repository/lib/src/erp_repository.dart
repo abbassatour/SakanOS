@@ -10,6 +10,7 @@ import 'package:path_provider/path_provider.dart';
 import 'repositories/auth_repository.dart';
 import 'repositories/backup_repository.dart';
 import 'repositories/sync_repository.dart';
+import 'repositories/clients_repository.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'repositories/sync_repository.dart';
@@ -21,6 +22,7 @@ class ErpRepository {
   late final AuthRepository _authRepo;
   late final BackupRepository _backupRepo;
   late final SyncRepository _syncRepo;
+  late final ClientsRepository _clientsRepo;
 
   final LocalStorageApi _localApi;
   final CloudStorageClient _cloudApi;
@@ -35,6 +37,13 @@ class ErpRepository {
     _authRepo = AuthRepository(cloudApi: _cloudApi, localApi: _localApi);
     _backupRepo = BackupRepository(localApi: _localApi);
     _syncRepo = SyncRepository(localApi: _localApi, cloudApi: _cloudApi); 
+
+    // 🌟 هيئه هنا ومرر له دالة جلب الـ ID
+    _clientsRepo = ClientsRepository(
+      localApi: _localApi,
+      syncRepo: _syncRepo,
+      getCurrentUserId: () => currentUserId,
+    );
 
     if (currentUserId != null) {
       _startCloudListener();
@@ -97,73 +106,50 @@ class ErpRepository {
   Future<String> restoreDatabase() => _backupRepo.restoreDatabase();
 
   // ==========================================
-// 🔄 المزامنة (Sync Facade)
-// ==========================================
-Future<String> forceSyncWithCloud() => _syncRepo.forceSyncWithCloud();
-Future<void> pullDataFromCloud() => _syncRepo.pullDataFromCloud();
-Future<void> syncPendingData() => _syncRepo.syncPendingData();
+  // 🔄 المزامنة (Sync Facade)
+  // ==========================================
+  Future<String> forceSyncWithCloud() => _syncRepo.forceSyncWithCloud();
+  Future<void> pullDataFromCloud() => _syncRepo.pullDataFromCloud();
+  Future<void> syncPendingData() => _syncRepo.syncPendingData();
 
   
 
   // ==========================================
-  // 👥 العملاء 
+  // 👥 العملاء (Clients Facade)
   // ==========================================
-  Future<List<Client>> getClients() => _localApi.getClients();
+  Future<List<Client>> getClients() => _clientsRepo.getClients();
 
-  Future<void> addClient(ClientsCompanion clientCompanion) async {
-    if (currentUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
-    final companionWithUser = clientCompanion.copyWith(userId: drift.Value(currentUserId!));
-    await _localApi.addClient(companionWithUser); 
-    syncPendingData(); 
-  }
-
-  Future<void> deleteClient(String clientId) async { 
-    final String? safeUserId = currentUserId;
-    if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
-    
-    await _localApi.deleteClient(clientId, safeUserId);
-    syncPendingData();
-  }
+  Future<void> addClient({
+    required String name,
+    required String phone,
+    String? nationalId,
+  }) =>
+      _clientsRepo.addClient(name: name, phone: phone, nationalId: nationalId);
 
   Future<void> updateClient({
     required String id,
     required String name,
     required String phone,
     String? nationalId,
-  }) async {
-    final db = _localApi.database;
-    final String? safeUserId = currentUserId;
-    if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
+  }) =>
+      _clientsRepo.updateClient(
+        id: id,
+        name: name,
+        phone: phone,
+        nationalId: nationalId,
+      );
 
-    await (db.update(db.clients)..where((t) => t.id.equals(id))).write(
-      ClientsCompanion(
-        name: drift.Value(name),
-        phone: drift.Value(phone),
-        nationalId: drift.Value(nationalId),
-        userId: drift.Value(safeUserId), 
-        updatedAt: drift.Value(DateTime.now().toUtc()),
-        isSynced: const drift.Value(false), 
-      )
-    );
-    await syncPendingData();
-  }
+  Future<void> deleteClient(String clientId) =>
+      _clientsRepo.deleteClient(clientId);
 
-  // ==========================================
-  // 🗑️ إدارة سلة المحذوفات للعملاء
-  // ==========================================
-  Future<List<Client>> getDeletedClients() => _localApi.getDeletedClients();
+  Future<List<Client>> getDeletedClients() =>
+      _clientsRepo.getDeletedClients();
 
-  Future<void> restoreClient(String clientId) async {
-    final String? safeUserId = currentUserId;
-    if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
+  Future<void> restoreClient(String clientId) =>
+      _clientsRepo.restoreClient(clientId);
 
-    await _localApi.restoreClient(clientId, safeUserId);
-    await syncPendingData(); 
-  }
-
-  Future<void> forceHardDeleteClient(String clientId) async {
-    await _localApi.hardDeleteClientLocal(clientId);
-  }
+  Future<void> forceHardDeleteClient(String clientId) =>
+      _clientsRepo.forceHardDeleteClient(clientId);
 
   // ==========================================
   // 📄 العقود والتوليد الآلي للاستحقاقات
