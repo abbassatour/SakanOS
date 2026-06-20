@@ -1,5 +1,4 @@
 // مسار الملف: lib/clients/cubit/clients_state.dart
-// المسؤولية: تمثيل حالات شاشة العملاء (حالة التحميل، النجاح، الفشل، قوائم العملاء وقاموس الأسماء).
 
 part of 'clients_cubit.dart';
 
