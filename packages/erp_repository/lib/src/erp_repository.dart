@@ -7,79 +7,93 @@ import 'package:drift/drift.dart' as drift;
 import 'package:uuid/uuid.dart'; 
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
+import 'repositories/auth_repository.dart';
+import 'repositories/backup_repository.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// المدير الذكي بنظام (Offline-First) والمزامنة الشبحية ثنائية الاتجاه (Push & Pull)
 class ErpRepository {
   // ==========================================
-  // 🏗️ الدالة البانية (Constructor)
+  // 🏗️ الدالة البانية والمستودعات الفرعية (Facade Setup)
   // ==========================================
+  late final AuthRepository _authRepo;
+  late final BackupRepository _backupRepo;
+  
+  final LocalStorageApi _localApi;
+  final CloudStorageClient _cloudApi;
+
   ErpRepository({
     required LocalStorageApi localStorageApi,
     required CloudStorageClient cloudStorageClient,
   })  : _localApi = localStorageApi,
         _cloudApi = cloudStorageClient {
-    // 🌟 السحر هنا: بمجرد بناء الـ Repository عند فتح التطبيق
-    // نتحقق إذا كان المستخدم مسجلاً للدخول مسبقاً، نشغل الاستماع للسحابة فوراً!
+    
+    // تهيئة المستودعات الفرعية
+    _authRepo = AuthRepository(cloudApi: _cloudApi, localApi: _localApi);
+    _backupRepo = BackupRepository(localApi: _localApi);
+
     if (currentUserId != null) {
       _startCloudListener();
+      _backupRepo.autoBackupSilent(); // 🌟 توجيه النداء للمستودع الفرعي
 
-      // 2. 🌟 نشغل النسخ الاحتياطي التلقائي الصامت
-      autoBackupSilent();
-
-      // 🌟 السطر الجديد: تنظيف قاعدة البيانات المحلية من المهملات القديمة
-      _localApi.autoCleanOldDeletedClients(); 
-      _localApi.autoCleanOldDeletedContracts(); 
+      _localApi.autoCleanOldDeletedClients();
+      _localApi.autoCleanOldDeletedContracts();
       _localApi.autoCleanOldDeletedLedgerEntries();
-      
-      _localApi.database.autoCleanOldDeletedBuildingsAndApartments(); 
+      _localApi.database.autoCleanOldDeletedBuildingsAndApartments();
     }
   }
+  
+  // ==========================================
+  // 🔐 المصادقة (Authentication Facade)
+  // ==========================================
+  String? get currentUserId => _authRepo.currentUserId;
 
-  // 🌟 فصلنا كود تشغيل المستمع في دالة خاصة لترتيب الكود
+  Future<void> signIn({required String email, required String password}) async {
+    await _authRepo.signIn(email: email, password: password);
+    // الربط الذكي: السحب والاستماع يتم إدارته من الـ Facade
+    await pullDataFromCloud();
+    _startCloudListener();
+  }
+
+  // ==========================================
+  // 🌟 المتغيرات والدوال الداخلية (Internal State)
+  // ==========================================
+  bool _isSyncing = false;
+  
+  // ignore: depend_on_referenced_packages
+  RealtimeChannel? _pricesChannel;
+
   void _startCloudListener() {
     _cloudApi.startListeningToCloudChanges(
       onDataChanged: () {
+        // ignore: avoid_print
         print('🔄 جاري سحب الأسعار الجديدة من السحابة بسبب تحديث حي...');
         pullDataFromCloud(); 
       },
     );
   }
 
-  RealtimeChannel? _pricesChannel;
-
-  final LocalStorageApi _localApi;
-  final CloudStorageClient _cloudApi;
-
-  bool _isSyncing = false;
-
-  // ==========================================
-  // 🔐 المصادقة (Authentication)
-  // ==========================================
-  String? get currentUserId => _cloudApi.currentUserId;
-
-  Future<void> signIn({required String email, required String password}) async {
-    await _cloudApi.signIn(email: email, password: password);
-    // 1. سحب كل بيانات الشركة فور تسجيل الدخول بنجاح!
-    await pullDataFromCloud();
-    
-    // تشغيل المستمع بعد تسجيل الدخول لأول مرة
-    _startCloudListener(); 
-  }
-
-  // 🌟 الدالة الجديدة المضافة هنا
-  Future<void> signUp({required String fullName, required String email, required String password}) async {
-    await _cloudApi.signUp(fullName: fullName, email: email, password: password);
-    // لن نقوم بسحب البيانات هنا لأن الموظف الجديد لا يملك صلاحيات بعد
+  Future<void> signUp({
+    required String fullName,
+    required String email,
+    required String password,
+  }) async {
+    await _authRepo.signUp(fullName: fullName, email: email, password: password);
   }
 
   Future<void> signOut() async {
-    await _cloudApi.signOut();
-    // حماية قصوى: مسح قاعدة البيانات المحلية
-    await _localApi.formatDatabase();
+    await _authRepo.signOut();
   }
 
+  // ==========================================
+  // 🛡️ النسخ الاحتياطي والاستعادة (Backup Facade)
+  // ==========================================
+  Future<void> autoBackupSilent() => _backupRepo.autoBackupSilent();
+  
+  Future<String> backupDatabaseManually() => _backupRepo.backupDatabaseManually();
+  
+  Future<String> restoreDatabase() => _backupRepo.restoreDatabase();
   // ==========================================
   // 🔄 المزامنة اليدوية (زر المزامنة الأخضر في لوحة التحكم)
   // ==========================================
@@ -1160,88 +1174,7 @@ class ErpRepository {
   }
 
 
-  // ==========================================
-  // 🛡️ قسم النسخ الاحتياطي والاستعادة (Backup & Restore)
-  // ==========================================
-  final String _dbFileName = 'our_home_erp_v10_uuidv7.sqlite';
-
-  Future<void> autoBackupSilent() async {
-    try {
-      final supportDir = await getApplicationSupportDirectory();
-      final dbFile = File(p.join(supportDir.path, _dbFileName));
-
-      if (!await dbFile.exists()) return; 
-
-      final docsDir = await getApplicationDocumentsDirectory();
-      final backupFolder = Directory(p.join(docsDir.path, 'OurHomeERP_AutoBackups'));
-      
-      if (!await backupFolder.exists()) {
-        await backupFolder.create(recursive: true);
-      }
-
-      final String dateOnly = DateTime.now().toIso8601String().split('T')[0];
-      final String backupPath = p.join(backupFolder.path, 'AutoBackup_$dateOnly.sqlite');
-
-      await dbFile.copy(backupPath);
-      print('🛡️[Auto-Backup]: تم أخذ نسخة احتياطية بنجاح ليوم $dateOnly');
-      
-    } catch (e) {
-      print('⚠️ [Auto-Backup] فشل النسخ التلقائي: $e');
-    }
-  }
-
-  Future<String> backupDatabaseManually() async {
-    try {
-      final supportDir = await getApplicationSupportDirectory();
-      final dbFile = File(p.join(supportDir.path, _dbFileName));
-
-      if (!await dbFile.exists()) {
-        return '❌ لا توجد قاعدة بيانات لنسخها بعد.';
-      }
-
-      String? selectedDirectory = await FilePicker.platform.getDirectoryPath(
-        dialogTitle: 'اختر مجلداً لحفظ النسخة الاحتياطية',
-      );
-
-      if (selectedDirectory == null) {
-        return '⚠️ تم إلغاء العملية.';
-      }
-
-      final timestamp = DateTime.now().toIso8601String().replaceAll(':', '-').split('.')[0];
-      final backupPath = p.join(selectedDirectory, 'ERP_ManualBackup_$timestamp.sqlite');
-
-      await dbFile.copy(backupPath);
-      return '✅ تم الحفظ بنجاح في:\n$backupPath';
-    } catch (e) {
-      return '❌ حدث خطأ أثناء النسخ: $e';
-    }
-  }
-
-  Future<String> restoreDatabase() async {
-    try {
-      FilePickerResult? result = await FilePicker.platform.pickFiles(
-        dialogTitle: 'اختر ملف النسخة الاحتياطية (sqlite)',
-        type: FileType.custom,
-        allowedExtensions:['sqlite', 'db'],
-      );
-
-      if (result == null || result.files.single.path == null) {
-        return '⚠️ تم إلغاء الاستعادة.';
-      }
-
-      File backupFile = File(result.files.single.path!);
-      final supportDir = await getApplicationSupportDirectory();
-      final targetDbPath = p.join(supportDir.path, _dbFileName);
-
-      await _localApi.database.close();
-      await backupFile.copy(targetDbPath);
-
-      return '✅ تمت استعادة البيانات بنجاح!\n\n🚨 يرجى إغلاق البرنامج بالكامل وإعادة فتحه لتطبيق التغييرات.';
-    } catch (e) {
-      return '❌ فشلت الاستعادة: $e';
-    }
-  }
-
+  
   // ==========================================
   // 🗑️ إدارة حذف المحاضر والشقق (مع طبقة الحماية)
   // ==========================================
