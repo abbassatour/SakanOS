@@ -130,7 +130,6 @@ class ClientTable extends StatelessWidget {
                   final index = mapEntry.key;
                   final client = mapEntry.value;
 
-                  // 🌟 تجهيز التواريخ لتقليل طول الأسطر داخل الشجرة
                   final cAt = client.createdAt;
                   final uAt = client.updatedAt;
 
@@ -164,28 +163,31 @@ class ClientTable extends StatelessWidget {
                         ConstrainedBox(
                           constraints: const BoxConstraints(maxWidth: 200),
                           child: InkWell(
-                            onTap: () async {
-                              await Navigator.push<void>(
-                                context,
-                                MaterialPageRoute<void>(
-                                  builder: (_) => MultiBlocProvider(
-                                    providers: [
-                                      BlocProvider.value(
-                                        value: context.read<DashboardCubit>(),
-                                      ),
-                                      BlocProvider.value(
-                                        value: context.read<PaymentsCubit>(),
-                                      ),
-                                      BlocProvider.value(
-                                        value: context.read<ScheduleCubit>(),
-                                      ),
-                                      BlocProvider(
-                                        create: (_) => ClientProfileCubit(
-                                          context.read<ErpRepository>(),
-                                        )..fetchClientData(client),
-                                      ),
-                                    ],
-                                    child: ClientProfilePage(client: client),
+                            // 🌟 حل مشكلة المستقبل المتجاهل واستخدام dart:async
+                            onTap: () {
+                              unawaited(
+                                Navigator.push<void>(
+                                  context,
+                                  MaterialPageRoute<void>(
+                                    builder: (_) => MultiBlocProvider(
+                                      providers: [
+                                        BlocProvider.value(
+                                          value: context.read<DashboardCubit>(),
+                                        ),
+                                        BlocProvider.value(
+                                          value: context.read<PaymentsCubit>(),
+                                        ),
+                                        BlocProvider.value(
+                                          value: context.read<ScheduleCubit>(),
+                                        ),
+                                        BlocProvider(
+                                          create: (_) => ClientProfileCubit(
+                                            context.read<ErpRepository>(),
+                                          )..fetchClientData(client),
+                                        ),
+                                      ],
+                                      child: ClientProfilePage(client: client),
+                                    ),
                                   ),
                                 ),
                               );
@@ -323,7 +325,9 @@ class ClientTable extends StatelessWidget {
                             color: canEdit ? Colors.blue : Colors.grey.shade400,
                             size: 22,
                           ),
-                          tooltip: canEdit ? 'تعديل بيانات' : 'لا تملك الصلاحية',
+                          tooltip:
+                              canEdit ? 'تعديل بيانات' : 'لا تملك الصلاحية',
+                          // 🌟 حل مشكلة السطر الطويل بالنزول للأسفل
                           onPressed: canEdit
                               ? () => showEditClientDialog(context, client)
                               : null,
