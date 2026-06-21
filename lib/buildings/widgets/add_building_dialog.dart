@@ -6,7 +6,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../cubit/buildings_cubit.dart';
+import '../cubit/buildings_cubit.dart';
 
 String _getArabicFloorName(int floorNumber) {
   if (floorNumber == 0) return 'الطابق الأرضي';
