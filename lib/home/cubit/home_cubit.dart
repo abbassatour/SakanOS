@@ -1,70 +1,115 @@
 // lib/home/cubit/home_cubit.dart
+// ignore_for_file: depend_on_referenced_packages
+
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:erp_repository/erp_repository.dart';
-import 'package:intl/intl.dart';
-// 🌟 أضفنا استيراد DollarPricesHistoryData
-import 'package:local_storage_api/local_storage_api.dart' show PaymentsLedgerData, Contract, MaterialPricesHistoryData, Apartment, DollarPricesHistoryData; 
+import 'package:local_storage_api/local_storage_api.dart'
+    show PaymentsLedgerData;
 
 part 'home_state.dart';
 
 class HomeCubit extends Cubit<HomeState> {
-  HomeCubit(this._erpRepository) : super(HomeState(referenceDate: DateTime.now()));
+  HomeCubit(this._erpRepository)
+      : super(HomeState(referenceDate: DateTime.now()));
 
   final ErpRepository _erpRepository;
 
-  List<Contract> _cachedContracts = [];
-  List<PaymentsLedgerData> _cachedPayments = [];
-  List<MaterialPricesHistoryData> _cachedPrices = []; 
-  List<ActivityItem> _cachedActivities = []; 
-  List<Apartment> _cachedApartments = [];
-  List<DollarPricesHistoryData> _cachedDollarPrices = []; // 🌟 مخبأ الدولار
+  // 🌟 دالة مساعدة لتحويل TimeFilter الخاص بالـ State إلى DashboardTimeFilter الخاص بالـ Repo
+  DashboardTimeFilter _mapTimeFilter(TimeFilter filter) {
+    switch (filter) {
+      case TimeFilter.daily:
+        return DashboardTimeFilter.daily;
+      case TimeFilter.weekly:
+        return DashboardTimeFilter.weekly;
+      case TimeFilter.monthly:
+        return DashboardTimeFilter.monthly;
+      case TimeFilter.yearly:
+        return DashboardTimeFilter.yearly;
+    }
+  }
 
   Future<void> fetchDashboardData() async {
-    emit(state.copyWith(status: HomeStatus.loading)); 
+    emit(state.copyWith(status: HomeStatus.loading));
     try {
-      _cachedContracts = await _erpRepository.getAllContracts();
-      _cachedPayments = await _erpRepository.getAllPayments(); 
-      _cachedPrices = await _erpRepository.getAllMaterialPricesHistory(); 
-      _cachedActivities = await _erpRepository.getRecentActivities(limitPerType: 10, finalLimit: 20); 
-      _cachedApartments = await _erpRepository.getAllApartments();
-      
-      // 🌟 جلب سجل الدولار
-      _cachedDollarPrices = await _erpRepository.getAllDollarPricesHistory();
+      final metrics = await _erpRepository.getDashboardMetrics(
+        timeFilter: _mapTimeFilter(state.timeFilter),
+        refDate: state.referenceDate,
+      );
 
-      _processAndEmitData();
-    } catch (e) {
-      emit(state.copyWith(status: HomeStatus.failure, errorMessage: e.toString()));
+      emit(
+        state.copyWith(
+          status: HomeStatus.success,
+          totalRevenue: metrics.totalRevenue,
+          totalAreaSold: metrics.totalAreaSold,
+          totalPaidMeters: metrics.totalPaidMeters,
+          totalOverdueDebts: metrics.totalOverdueDebts,
+          totalUndeliveredMeters: metrics.totalUndeliveredMeters,
+          inventoryStatus: metrics.inventoryStatus,
+          activeContractsCount: metrics.activeContractsCount,
+          latestPayments: metrics.latestPayments,
+          groupedRevenue: metrics.groupedRevenue,
+          dollarTrend: metrics.dollarTrend,
+          costTrend: metrics.costTrend,
+          contractsByType: metrics.contractsByType,
+          recentActivities: metrics.recentActivities,
+        ),
+      );
+    } on Exception catch (e) {
+      emit(
+        state.copyWith(
+          status: HomeStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
     }
   }
 
   void changeTimeFilter(TimeFilter newFilter) {
-    emit(state.copyWith(timeFilter: newFilter, referenceDate: DateTime.now()));
-    _processAndEmitData(); 
+    emit(
+      state.copyWith(timeFilter: newFilter, referenceDate: DateTime.now()),
+    );
+    fetchDashboardData(); // جلب البيانات الجديدة من المستودع
   }
 
   void navigatePrevious() {
-    DateTime newDate = state.referenceDate;
+    var newDate = state.referenceDate;
     switch (state.timeFilter) {
-      case TimeFilter.daily: newDate = newDate.subtract(const Duration(days: 7)); break;
-      case TimeFilter.weekly: newDate = DateTime(newDate.year, newDate.month - 1, 1); break;
-      case TimeFilter.monthly: newDate = DateTime(newDate.year - 1, newDate.month, 1); break;
-      case TimeFilter.yearly: newDate = DateTime(newDate.year - 5, newDate.month, 1); break;
+      case TimeFilter.daily:
+        newDate = newDate.subtract(const Duration(days: 7));
+        break;
+      case TimeFilter.weekly:
+        newDate = DateTime(newDate.year, newDate.month - 1);
+        break;
+      case TimeFilter.monthly:
+        newDate = DateTime(newDate.year - 1, newDate.month);
+        break;
+      case TimeFilter.yearly:
+        newDate = DateTime(newDate.year - 5, newDate.month);
+        break;
     }
     emit(state.copyWith(referenceDate: newDate));
-    _processAndEmitData(); 
+    fetchDashboardData();
   }
 
   void navigateNext() {
-    DateTime newDate = state.referenceDate;
+    var newDate = state.referenceDate;
     switch (state.timeFilter) {
-      case TimeFilter.daily: newDate = newDate.add(const Duration(days: 7)); break;
-      case TimeFilter.weekly: newDate = DateTime(newDate.year, newDate.month + 1, 1); break;
-      case TimeFilter.monthly: newDate = DateTime(newDate.year + 1, newDate.month, 1); break;
-      case TimeFilter.yearly: newDate = DateTime(newDate.year + 5, newDate.month, 1); break;
+      case TimeFilter.daily:
+        newDate = newDate.add(const Duration(days: 7));
+        break;
+      case TimeFilter.weekly:
+        newDate = DateTime(newDate.year, newDate.month + 1);
+        break;
+      case TimeFilter.monthly:
+        newDate = DateTime(newDate.year + 1, newDate.month);
+        break;
+      case TimeFilter.yearly:
+        newDate = DateTime(newDate.year + 5, newDate.month);
+        break;
     }
     if (newDate.isAfter(DateTime.now())) newDate = DateTime.now();
-    
+
     emit(state.copyWith(referenceDate: newDate));
     _processAndEmitData(); 
   }
@@ -93,7 +138,6 @@ class HomeCubit extends Cubit<HomeState> {
 
     final refDate = state.referenceDate;
     final now = DateTime.now().toUtc();
-    
     
     // تهيئة الخرائط الزمنية
     if (state.timeFilter == TimeFilter.daily) {
