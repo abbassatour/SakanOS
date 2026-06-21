@@ -20,6 +20,7 @@ import 'repositories/sync_repository.dart';
 import 'repositories/schedules_repository.dart';
 import 'repositories/payments_repository.dart';
 import 'repositories/settings_repository.dart';
+import 'repositories/admin_repository.dart';
 /// المدير الذكي بنظام (Offline-First) والمزامنة الشبحية ثنائية الاتجاه (Push & Pull)
 class ErpRepository {
   // ==========================================
@@ -37,6 +38,7 @@ class ErpRepository {
   late final SchedulesRepository _schedulesRepo;
   late final PaymentsRepository _paymentsRepo; 
   late final SettingsRepository _settingsRepo; 
+  late final AdminRepository _adminRepo;
   ErpRepository({
     required LocalStorageApi localStorageApi,
     required CloudStorageClient cloudStorageClient,
@@ -91,6 +93,11 @@ class ErpRepository {
       localApi: _localApi,
       syncRepo: _syncRepo,
       getCurrentUserId: () => currentUserId,
+    );
+
+    _adminRepo = AdminRepository(
+      localApi: _localApi,
+      syncRepo: _syncRepo,
     );
 
     if (currentUserId != null) {
@@ -496,50 +503,28 @@ class ErpRepository {
 
 
   
-
-
+// ==========================================
+  // 🛡️ الإدارة والمستخدمين (Admin Facade)
   // ==========================================
-  // 🛡️ إدارة الصلاحيات والمستخدمين (لوحة تحكم الأدمن)
-  // ==========================================
-  Future<List<AppRole>> getAllRoles() => _localApi.getAllRoles();
-  Future<List<LocalUser>> getAllLocalUsers() => _localApi.getAllLocalUsers();
+  Future<List<AppRole>> getAllRoles() => _adminRepo.getAllRoles();
+  Future<List<LocalUser>> getAllUsers() => _adminRepo.getAllUsers();
+  Future<LocalUser?> getLocalUserById(String id) => _adminRepo.getLocalUserById(id);
+  Future<AppRole?> getRoleById(String id) => _adminRepo.getRoleById(id);
 
-  Future<List<LocalUser>> getAllUsers() => _localApi.getAllLocalUsers();
+  Future<void> createRole({required String name, required List<String> permissions}) => 
+      _adminRepo.createRole(name: name, permissions: permissions);
 
-  Future<void> createRole({required String name, required String permissionsJson}) async {
-    final companion = AppRolesCompanion.insert(
-      name: name,
-      permissionsJson: drift.Value(permissionsJson),
-      isSynced: const drift.Value(false), 
-    );
-    await _localApi.addRole(companion);
-    await syncPendingData(); 
-  }
-
-  Future<void> updateRolePermissions({required String roleId, required String permissionsJson}) async {
-    await _localApi.updateRolePermissions(roleId, permissionsJson);
-    await syncPendingData();
-  }
+  Future<void> updateRolePermissions({required String roleId, required List<String> permissions}) => 
+      _adminRepo.updateRolePermissions(roleId: roleId, permissions: permissions);
 
   Future<void> updateUserRoleAndPermissions({
-    required String userId,
-    required String roleId,
-    String? extraPermissionsJson,
-    String? revokedPermissionsJson,
-    bool? isActive,
-  }) async {
-    await _localApi.updateUserRoleAndPermissions(
-      userId: userId,
-      roleId: roleId,
-      extraPermissionsJson: extraPermissionsJson,
-      revokedPermissionsJson: revokedPermissionsJson,
-      isActive: isActive,
-    );
-    await syncPendingData();
-  }
+    required String userId, required String roleId,
+    List<String>? extraPermissions, List<String>? revokedPermissions, bool? isActive,
+  }) => _adminRepo.updateUserRoleAndPermissions(
+        userId: userId, roleId: roleId, extraPermissions: extraPermissions,
+        revokedPermissions: revokedPermissions, isActive: isActive,
+      );
 
-  Future<LocalUser?> getLocalUserById(String id) => _localApi.getLocalUserById(id);
-  Future<AppRole?> getRoleById(String id) => _localApi.getRoleById(id);
 
   // ==========================================
   // 🕒 نظام تتبع النشاطات (Activity Log)

@@ -1,9 +1,11 @@
-//lib\admin\cubit\admin_cubit.dart
-import 'dart:convert';
+// lib/admin/cubit/admin_cubit.dart
+// ignore_for_file: depend_on_referenced_packages
+
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:erp_repository/erp_repository.dart';
-import 'package:local_storage_api/local_storage_api.dart'; // لجلب أنواع LocalUser و AppRole
+import 'package:local_storage_api/local_storage_api.dart'
+    show AppRole, LocalUser;
 
 part 'admin_state.dart';
 
@@ -12,51 +14,84 @@ class AdminCubit extends Cubit<AdminState> {
 
   final ErpRepository _erpRepository;
 
-  // 🌟 جلب كل المستخدمين والأدوار من الداتابيز
   Future<void> loadAdminData() async {
     emit(state.copyWith(status: AdminStatus.loading));
     try {
       final users = await _erpRepository.getAllUsers();
       final roles = await _erpRepository.getAllRoles();
-      emit(state.copyWith(status: AdminStatus.success, users: users, roles: roles));
-    } catch (e) {
-      emit(state.copyWith(status: AdminStatus.failure, errorMessage: e.toString()));
+
+      emit(
+        state.copyWith(
+          status: AdminStatus.success,
+          users: users,
+          roles: roles,
+        ),
+      );
+    } on Exception catch (e) {
+      emit(
+        state.copyWith(
+          status: AdminStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
     }
   }
 
-  // 🌟 إنشاء قالب دور جديد
-  Future<void> createNewRole(String roleName, List<String> selectedPermissions) async {
+  Future<void> createNewRole(
+    String roleName,
+    List<String> selectedPermissions,
+  ) async {
     try {
-      final jsonPerms = jsonEncode(selectedPermissions);
-      await _erpRepository.createRole(name: roleName, permissionsJson: jsonPerms);
-      await loadAdminData(); // تحديث القائمة بعد الإضافة
-    } catch (e) {
-      emit(state.copyWith(status: AdminStatus.failure, errorMessage: e.toString()));
-    }
-  }
-
-  // 🌟 تحديث صلاحيات قالب موجود
-  Future<void> updateRole(String roleId, List<String> selectedPermissions) async {
-    try {
-      final jsonPerms = jsonEncode(selectedPermissions);
-      await _erpRepository.updateRolePermissions(roleId: roleId, permissionsJson: jsonPerms);
+      await _erpRepository.createRole(
+        name: roleName,
+        permissions: selectedPermissions,
+      );
       await loadAdminData();
-    } catch (e) {
-      emit(state.copyWith(status: AdminStatus.failure, errorMessage: e.toString()));
+    } on Exception catch (e) {
+      emit(
+        state.copyWith(
+          status: AdminStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
     }
   }
 
-  // 🌟 تعيين دور للمستخدم أو إيقاف حسابه
+  Future<void> updateRole(
+    String roleId,
+    List<String> selectedPermissions,
+  ) async {
+    try {
+      await _erpRepository.updateRolePermissions(
+        roleId: roleId,
+        permissions: selectedPermissions,
+      );
+      await loadAdminData();
+    } on Exception catch (e) {
+      emit(
+        state.copyWith(
+          status: AdminStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
+    }
+  }
+
   Future<void> updateUser(String userId, String? roleId, bool isActive) async {
     try {
       await _erpRepository.updateUserRoleAndPermissions(
-        userId: userId, 
-        roleId: roleId ?? '', 
+        userId: userId,
+        roleId: roleId ?? '',
         isActive: isActive,
       );
       await loadAdminData();
-    } catch (e) {
-      emit(state.copyWith(status: AdminStatus.failure, errorMessage: e.toString()));
+    } on Exception catch (e) {
+      emit(
+        state.copyWith(
+          status: AdminStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
     }
   }
 }
