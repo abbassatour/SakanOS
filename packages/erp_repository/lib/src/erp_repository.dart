@@ -19,6 +19,7 @@ import 'repositories/clients_repository.dart';
 import 'repositories/sync_repository.dart';
 import 'repositories/schedules_repository.dart';
 import 'repositories/payments_repository.dart';
+import 'repositories/settings_repository.dart';
 /// المدير الذكي بنظام (Offline-First) والمزامنة الشبحية ثنائية الاتجاه (Push & Pull)
 class ErpRepository {
   // ==========================================
@@ -35,6 +36,7 @@ class ErpRepository {
   late final LegalRepository _legalRepo; 
   late final SchedulesRepository _schedulesRepo;
   late final PaymentsRepository _paymentsRepo; 
+  late final SettingsRepository _settingsRepo; 
   ErpRepository({
     required LocalStorageApi localStorageApi,
     required CloudStorageClient cloudStorageClient,
@@ -80,6 +82,12 @@ class ErpRepository {
     );
 
      _paymentsRepo = PaymentsRepository(
+      localApi: _localApi,
+      syncRepo: _syncRepo,
+      getCurrentUserId: () => currentUserId,
+    );
+
+    _settingsRepo = SettingsRepository(
       localApi: _localApi,
       syncRepo: _syncRepo,
       getCurrentUserId: () => currentUserId,
@@ -327,44 +335,27 @@ class ErpRepository {
   Future<void> markWhatsAppAsSent(String entryId) => _paymentsRepo.markWhatsAppAsSent(entryId);
 
   // ==========================================
-  // ⚙️ الإعدادات (Material Prices)
+  // ⚙️ الإعدادات والأسعار (Settings & Prices Facade)
   // ==========================================
-  Future<MaterialPricesHistoryData?> getLatestPrices() => _localApi.getLatestPrices();
-  Stream<MaterialPricesHistoryData?> watchLatestPrices() => _localApi.watchLatestPrices();
-  
-  Future<void> savePrices(MaterialPricesHistoryCompanion pricesCompanion) async {
-    final String? safeUserId = currentUserId;
-    if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً');
+  Stream<MaterialPricesHistoryData?> watchLatestPrices() => _settingsRepo.watchLatestPrices();
+  Future<List<MaterialPricesHistoryData>> getAllMaterialPricesHistory() => _settingsRepo.getAllMaterialPricesHistory();
 
-    final String newId = const Uuid().v7();
+  Future<void> saveMaterialPrices({
+    required double iron, required double cement, required double block15,
+    required double formwork, required double aggregates, required double worker, DateTime? effectiveDate,
+  }) => _settingsRepo.saveMaterialPrices(iron: iron, cement: cement, block15: block15, formwork: formwork, aggregates: aggregates, worker: worker, effectiveDate: effectiveDate);
 
-    final companionReadyToSave = pricesCompanion.copyWith(
-      id: drift.Value(newId),
-      userId: drift.Value(safeUserId),
-      isSynced: const drift.Value(false),
-    );
+  Future<void> softDeleteMaterialPrice(String priceId) => _settingsRepo.softDeleteMaterialPrice(priceId);
 
-    await _localApi.savePrices(companionReadyToSave);
-    await syncPendingData(); 
-  }
-  
-  Future<List<MaterialPricesHistoryData>> getAllMaterialPricesHistory() => _localApi.getAllMaterialPricesHistory();
-  
-  Future<void> softDeleteMaterialPrice(String priceId) async {
-    final db = _localApi.database;
-    final String? safeUserId = currentUserId;
-    if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
+  Stream<DollarPricesHistoryData?> watchLatestDollarPrice() => _settingsRepo.watchLatestDollarPrice();
+  Future<List<DollarPricesHistoryData>> getAllDollarPricesHistory() => _settingsRepo.getAllDollarPricesHistory();
 
-    await (db.update(db.materialPricesHistory)..where((t) => t.id.equals(priceId))).write(
-      MaterialPricesHistoryCompanion(
-        isDeleted: const drift.Value(true),
-        userId: drift.Value(safeUserId), 
-        updatedAt: drift.Value(DateTime.now().toUtc()),
-        isSynced: const drift.Value(false), 
-      )
-    );
-    await syncPendingData();
-  }
+  Future<void> saveDollarPrice({required double exchangeRate, DateTime? effectiveDate}) => 
+      _settingsRepo.saveDollarPrice(exchangeRate: exchangeRate, effectiveDate: effectiveDate);
+
+  Future<void> softDeleteDollarPrice(String id) => _settingsRepo.softDeleteDollarPrice(id);
+
+  Future<MaterialPricesHistoryData?> getLatestPrices() => _settingsRepo.getLatestPrices();
 
   // ==========================================
   // 🏢 إدارة المحاضر والشقق (Buildings Facade)
@@ -686,63 +677,6 @@ class ErpRepository {
       _legalRepo.deleteLegalActionAttachment(attachmentId);
   
 
-// ==========================================
-  // 💵 Mappers (Dollar Prices)
-  // ==========================================
-  Map<String, dynamic> _mapDollarPriceToCloud(DollarPricesHistoryData localData) {
-    return {
-      'id': localData.id,
-      'effective_date': localData.effectiveDate.toUtc().toIso8601String(),
-      'exchange_rate': localData.exchangeRate,
-      'user_id': localData.userId,
-      'created_at': localData.createdAt.toUtc().toIso8601String(),
-      'updated_at': localData.updatedAt.toUtc().toIso8601String(),
-      'is_deleted': localData.isDeleted,
-    };
-  }
-
-  DollarPricesHistoryCompanion _mapCloudToDollarPrice(Map<String, dynamic> cloudData) {
-    return DollarPricesHistoryCompanion(
-      id: drift.Value(cloudData['id']),
-      effectiveDate: drift.Value(DateTime.parse(cloudData['effective_date']).toUtc()),
-      exchangeRate: drift.Value((cloudData['exchange_rate'] as num).toDouble()),
-      userId: drift.Value(cloudData['user_id']),
-      createdAt: drift.Value(DateTime.parse(cloudData['created_at']).toUtc()),
-      updatedAt: drift.Value(DateTime.parse(cloudData['updated_at']).toUtc()),
-      isDeleted: drift.Value(cloudData['is_deleted'] == true),
-      isSynced: const drift.Value(true),
-    );
-  }
-
-  // ==========================================
-  // 💵 دوال الدولار (Dollar Prices) للواجهات
-  // ==========================================
-  
-  Stream<DollarPricesHistoryData?> watchLatestDollarPrice() => 
-      _localApi.watchLatestDollarPrice();
-
-  Future<List<DollarPricesHistoryData>> getAllDollarPricesHistory() => 
-      _localApi.getAllDollarPricesHistory();
-
-  Future<void> saveDollarPrice(DollarPricesHistoryCompanion prices) async {
-    final newId = await _localApi.saveDollarPrice(prices);
-    try {
-      // 🌟 تم تصحيح استعلام Drift والمتغيرات هنا لتطابق ملفك
-      final savedData = await (_localApi.database.select(_localApi.database.dollarPricesHistory)
-          ..where((t) => t.id.equals(newId))).getSingle();
-          
-      await _cloudApi.upsertDollarPrice(_mapDollarPriceToCloud(savedData));
-      
-      await _localApi.syncDollarPrice(savedData.copyWith(isSynced: true).toCompanion(true));
-    } catch (e) {
-      print('⚠️ الحفظ المحلي تم، لكن الرفع السحابي فشل (بدون إنترنت). سُيرفع لاحقاً.');
-    }
-  }
-
-  Future<void> softDeleteDollarPrice(String id) async {
-    await _localApi.softDeleteDollarPrice(id);
-    forceSyncWithCloud();
-  }
 
 } // <--- نهاية كلاس ErpRepository
 
