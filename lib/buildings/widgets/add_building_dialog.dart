@@ -1,5 +1,5 @@
 // lib/buildings/widgets/add_building_dialog.dart
-// ignore_for_file: depend_on_referenced_packages
+// ignore_for_file: always_use_package_imports
 
 import 'dart:async';
 

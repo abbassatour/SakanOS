@@ -1,5 +1,5 @@
 // lib/buildings/widgets/copy_floor_dialog.dart
-// ignore_for_file: depend_on_referenced_packages
+// ignore_for_file: always_use_package_imports, depend_on_referenced_packages
 
 import 'dart:async';
 import 'dart:convert';
@@ -281,7 +281,12 @@ class _CopyFloorDialogContentState extends State<_CopyFloorDialogContent> {
                         ),
                       ),
                       items: widget.targetFloors
-                          .map((f) => DropdownMenuItem(value: f, child: Text(f)))
+                          .map(
+                            (f) => DropdownMenuItem(
+                              value: f,
+                              child: Text(f),
+                            ),
+                          )
                           .toList(),
                       onChanged: (val) {
                         setState(() => _selectedTargetFloor = val);

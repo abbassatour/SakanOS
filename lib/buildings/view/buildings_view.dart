@@ -1,5 +1,5 @@
 // lib/buildings/view/buildings_view.dart
-// ignore_for_file: always_use_package_imports, depend_on_referenced_packages
+// ignore_for_file: always_use_package_imports
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';

@@ -95,10 +95,12 @@ class _EditBuildingDialogContentState
                 backgroundColor: Colors.red,
                 foregroundColor: Colors.white,
               ),
-              onPressed: () {
-                context
-                    .read<BuildingsCubit>()
-                    .deleteBuilding(widget.building.id);
+             onPressed: () {
+                unawaited(
+                  context
+                      .read<BuildingsCubit>()
+                      .deleteBuilding(widget.building.id),
+                );
 
                 Navigator.pop(confirmCtx);
                 if (mounted) {
@@ -118,11 +120,13 @@ class _EditBuildingDialogContentState
 
   void _handleSave() {
     if (_nameCtrl.text.trim().isNotEmpty) {
-      context.read<BuildingsCubit>().updateBuilding(
-            id: widget.building.id,
-            name: _nameCtrl.text.trim(),
-            location: _locCtrl.text.trim(),
-          );
+      unawaited(
+        context.read<BuildingsCubit>().updateBuilding(
+              id: widget.building.id,
+              name: _nameCtrl.text.trim(),
+              location: _locCtrl.text.trim(),
+            ),
+      );
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -211,7 +215,7 @@ class _EditBuildingDialogContentState
                     Expanded(
                       child: Text(
                         'يمكنك تعديل اسم المحضر وموقعه بحرية. '
-                        'لن يؤثر ذلك على العقود أو الحسابات المالية المرتبطة به.',
+                        'لن يؤثر ذلك على العقود أو الحسابات المالية.',
                         style: TextStyle(
                           color: Colors.blue.shade900,
                           fontWeight: FontWeight.w600,
