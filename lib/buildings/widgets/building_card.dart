@@ -1,5 +1,5 @@
 // lib/buildings/widgets/building_card.dart
-// ignore_for_file: always_use_package_imports, depend_on_referenced_packages
+// ignore_for_file: depend_on_referenced_packages
 
 import 'dart:convert';
 
@@ -130,7 +130,7 @@ class BuildingCard extends StatelessWidget {
         ),
         DataCell(
           Text(
-            apt.directionName ?? '-',
+            apt.directionName,
             style: TextStyle(color: Colors.grey.shade700),
           ),
         ),
@@ -226,16 +226,22 @@ class BuildingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 🌟 السحر هنا: نراقب الشقق الخاصة بهذا المحضر فقط
     final allUnits = context.select<BuildingsCubit, List<Apartment>>(
-      (c) => c.state.apartments.where((a) => a.buildingId == building.id).toList(),
+      (c) => c.state.apartments
+          .where((a) => a.buildingId == building.id)
+          .toList(),
     );
     final userNamesMap = context.select<BuildingsCubit, Map<String, String>>(
       (c) => c.state.userNamesMap,
     );
 
-    final bldApartments = allUnits.where((a) => a.unitType == 'apartment').toList();
-    final bldShops = allUnits.where((a) => a.unitType == 'shop').toList();
+    final bldApartments = allUnits
+        .where((a) => a.unitType == 'apartment')
+        .toList();
+        
+    final bldShops = allUnits
+        .where((a) => a.unitType == 'shop')
+        .toList();
 
     var availableFloors = <String, dynamic>{};
     try {
@@ -439,7 +445,12 @@ class BuildingCard extends StatelessWidget {
                               SingleChildScrollView(
                                 scrollDirection: Axis.horizontal,
                                 physics: const BouncingScrollPhysics(),
-                                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                                padding: const EdgeInsets.fromLTRB(
+                                  16,
+                                  0,
+                                  16,
+                                  16,
+                                ),
                                 child: Container(
                                   decoration: _tableDecoration(
                                     Colors.indigo.shade50,
@@ -740,7 +751,8 @@ class BuildingCard extends StatelessWidget {
                             padding: const EdgeInsets.all(12),
                             width: double.infinity,
                             decoration: BoxDecoration(
-                              color: Colors.orange.shade50.withValues(alpha: 0.5),
+                              color: Colors.orange.shade50
+                                  .withValues(alpha: 0.5),
                               borderRadius: const BorderRadius.vertical(
                                 bottom: Radius.circular(12),
                               ),

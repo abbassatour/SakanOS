@@ -1,5 +1,5 @@
 // lib/buildings/widgets/add_shop_dialog.dart
-// ignore_for_file: always_use_package_imports, depend_on_referenced_packages
+// ignore_for_file: depend_on_referenced_packages
 
 import 'dart:async';
 
@@ -45,7 +45,7 @@ class _AddShopDialogContentState extends State<_AddShopDialogContent> {
   late final TextEditingController _yardCoeffCtrl;
   late final TextEditingController _profitCoeffCtrl;
 
-  double _calculatedTotalArea = 0.0;
+  double _calculatedTotalArea = 0;
 
   @override
   void initState() {
@@ -160,15 +160,17 @@ class _AddShopDialogContentState extends State<_AddShopDialogContent> {
     addVal('معامل التميز للوجيبة', _yardCoeffCtrl.text);
     addVal('هامش الربح', _profitCoeffCtrl.text);
 
-    context.read<BuildingsCubit>().addApartment(
-          buildingId: widget.building.id,
-          unitType: 'shop',
-          aptNumber: _numCtrl.text.trim(),
-          area: _calculatedTotalArea,
-          floorName: 'تجاري',
-          directionName: 'واجهة تجارية',
-          customCoeffs: aptCoeffs,
-        );
+    unawaited(
+      context.read<BuildingsCubit>().addApartment(
+            buildingId: widget.building.id,
+            unitType: 'shop',
+            aptNumber: _numCtrl.text.trim(),
+            area: _calculatedTotalArea,
+            floorName: 'تجاري',
+            directionName: 'واجهة تجارية',
+            customCoeffs: aptCoeffs,
+          ),
+    );
 
     Navigator.pop(context);
   }

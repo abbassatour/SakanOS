@@ -1,5 +1,5 @@
 // lib/buildings/widgets/edit_apartment_dialog.dart
-// ignore_for_file: always_use_package_imports, depend_on_referenced_packages
+// ignore_for_file: depend_on_referenced_packages
 
 import 'dart:async';
 
@@ -118,9 +118,11 @@ class _EditApartmentDialogContentState
                 foregroundColor: Colors.white,
               ),
               onPressed: () {
-                context
-                    .read<BuildingsCubit>()
-                    .deleteApartment(widget.apt.id);
+                unawaited(
+                  context
+                      .read<BuildingsCubit>()
+                      .deleteApartment(widget.apt.id),
+                );
 
                 Navigator.pop(confirmCtx);
                 if (mounted) {
@@ -146,12 +148,14 @@ class _EditApartmentDialogContentState
 
   void _handleSave() {
     if (_numberController.text.trim().isNotEmpty) {
-      context.read<BuildingsCubit>().updateApartment(
-            id: widget.apt.id,
-            apartmentNumber: _numberController.text.trim(),
-            area: widget.apt.area,
-            directionName: widget.apt.directionName ?? 'غير محدد',
-          );
+      unawaited(
+        context.read<BuildingsCubit>().updateApartment(
+              id: widget.apt.id,
+              apartmentNumber: _numberController.text.trim(),
+              area: widget.apt.area,
+              directionName: widget.apt.directionName,
+            ),
+      );
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -361,7 +365,7 @@ class _EditApartmentDialogContentState
                   Expanded(
                     child: _buildReadOnlyField(
                       'الاتجاه / الواجهة',
-                      widget.apt.directionName ?? 'غير محدد',
+                      widget.apt.directionName,
                       Icons.explore,
                     ),
                   ),

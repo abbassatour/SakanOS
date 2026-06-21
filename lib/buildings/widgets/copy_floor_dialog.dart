@@ -1,5 +1,5 @@
 // lib/buildings/widgets/copy_floor_dialog.dart
-// ignore_for_file: always_use_package_imports, depend_on_referenced_packages
+// ignore_for_file: depend_on_referenced_packages
 
 import 'dart:async';
 import 'dart:convert';
@@ -106,9 +106,9 @@ class _CopyFloorDialogContentState extends State<_CopyFloorDialogContent> {
 
     for (final apt in widget.sourceApartments) {
       final copiedCoeffs =
-          jsonDecode(apt.customCoefficients) as Map<String, dynamic>;
-
-      copiedCoeffs.removeWhere((key, value) => key.startsWith('الطابق'));
+          jsonDecode(apt.customCoefficients) as Map<String, dynamic>
+            ..removeWhere((key, value) => key.startsWith('الطابق'));
+            
       if (targetFloorPercentage != 0.0) {
         copiedCoeffs['الطابق ($_selectedTargetFloor)'] = targetFloorPercentage;
       }
@@ -116,13 +116,15 @@ class _CopyFloorDialogContentState extends State<_CopyFloorDialogContent> {
       final finalCoeffs = <String, double>{};
       copiedCoeffs.forEach((k, v) => finalCoeffs[k] = (v as num).toDouble());
 
-      cubit.addApartment(
-        buildingId: widget.building.id,
-        aptNumber: _newNumberControllers[apt.id]!.text.trim(),
-        area: apt.area,
-        floorName: _selectedTargetFloor!,
-        directionName: apt.directionName ?? '',
-        customCoeffs: finalCoeffs,
+      unawaited(
+        cubit.addApartment(
+          buildingId: widget.building.id,
+          aptNumber: _newNumberControllers[apt.id]!.text.trim(),
+          area: apt.area,
+          floorName: _selectedTargetFloor!,
+          directionName: apt.directionName,
+          customCoeffs: finalCoeffs,
+        ),
       );
     }
 
@@ -194,7 +196,8 @@ class _CopyFloorDialogContentState extends State<_CopyFloorDialogContent> {
                     Expanded(
                       child: Text(
                         'سيتم نسخ المساحات، الاتجاهات، ومعاملات الربح والوجيبة '
-                        'بدقة تامة. (سيتم تحديث النسبة المالية للطابق الجديد آلياً).',
+                        'بدقة تامة. (سيتم تحديث النسبة المالية للطابق '
+                        'الجديد آلياً).',
                         style: TextStyle(
                           color: Colors.blue.shade900,
                           fontWeight: FontWeight.w600,
@@ -242,7 +245,7 @@ class _CopyFloorDialogContentState extends State<_CopyFloorDialogContent> {
                     ),
                     const SizedBox(height: 16),
                     DropdownButtonFormField<String>(
-                      value: _selectedTargetFloor,
+                      initialValue: _selectedTargetFloor,
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 15,

@@ -1,5 +1,5 @@
 // lib/buildings/widgets/apartment_details_dialog.dart
-// ignore_for_file: always_use_package_imports, depend_on_referenced_packages
+// ignore_for_file: depend_on_referenced_packages
 
 import 'dart:async';
 import 'dart:convert';
@@ -84,6 +84,7 @@ class _ApartmentDetailsDialogContent extends StatelessWidget {
         }
       });
     } on Exception catch (e) {
+      // Reason: Dev logging
       // ignore: avoid_print
       print('Error decoding: $e');
     }
@@ -204,7 +205,7 @@ class _ApartmentDetailsDialogContent extends StatelessWidget {
                   Expanded(
                     child: _buildInfoCard(
                       'الاتجاه / الواجهة',
-                      apt.directionName ?? '-',
+                      apt.directionName,
                       Icons.explore,
                       Colors.teal,
                     ),

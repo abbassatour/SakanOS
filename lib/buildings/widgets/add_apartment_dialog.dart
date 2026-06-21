@@ -1,5 +1,5 @@
 // lib/buildings/widgets/add_apartment_dialog.dart
-// ignore_for_file: always_use_package_imports, depend_on_referenced_packages
+// ignore_for_file: depend_on_referenced_packages
 
 import 'dart:async';
 import 'dart:convert';
@@ -58,7 +58,7 @@ class _AddApartmentDialogContentState
   late final Map<String, dynamic> _generalCoeffs;
 
   String? _selectedFloorName;
-  double _calculatedTotalArea = 0.0;
+  double _calculatedTotalArea = 0;
 
   final List<String> _mainDirections = ['شمالي', 'جنوبي', 'شرقي', 'غربي'];
   final Map<String, bool> _selectedDirections = {
@@ -87,6 +87,7 @@ class _AddApartmentDialogContentState
       parsedGeneral = jsonDecode(widget.building.directionCoefficients)
           as Map<String, dynamic>;
     } on Exception catch (e) {
+      // Reason: Debugging info
       // ignore: avoid_print
       print('Error decoding coeffs: $e');
     }
@@ -239,14 +240,16 @@ class _AddApartmentDialogContentState
     addVal('معامل التميز للوجيبة', _yardCoeffCtrl.text);
     addVal('هامش الربح', _profitCoeffCtrl.text);
 
-    context.read<BuildingsCubit>().addApartment(
-          buildingId: widget.building.id,
-          aptNumber: _numCtrl.text.trim(),
-          area: _calculatedTotalArea,
-          floorName: _selectedFloorName!,
-          directionName: finalDirectionName,
-          customCoeffs: aptCoeffs,
-        );
+    unawaited(
+      context.read<BuildingsCubit>().addApartment(
+            buildingId: widget.building.id,
+            aptNumber: _numCtrl.text.trim(),
+            area: _calculatedTotalArea,
+            floorName: _selectedFloorName!,
+            directionName: finalDirectionName,
+            customCoeffs: aptCoeffs,
+          ),
+    );
 
     Navigator.pop(context);
   }
@@ -303,7 +306,7 @@ class _AddApartmentDialogContentState
                   const SizedBox(width: 12),
                   Expanded(
                     child: DropdownButtonFormField<String>(
-                      value: _selectedFloorName,
+                      initialValue: _selectedFloorName,
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 15,
@@ -514,7 +517,7 @@ class _AddApartmentDialogContentState
                             borderRadius: BorderRadius.circular(8),
                             side: BorderSide(color: Colors.teal.shade100),
                           ),
-                          onSelected: (bool selected) {
+                          onSelected: (selected) {
                             setState(() {
                               _selectedDirections[dir] = selected;
                             });
@@ -606,7 +609,10 @@ class _AddApartmentDialogContentState
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.indigo.shade600,
             foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 24,
+              vertical: 12,
+            ),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10),
             ),

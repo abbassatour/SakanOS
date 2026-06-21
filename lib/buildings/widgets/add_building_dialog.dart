@@ -1,5 +1,5 @@
 // lib/buildings/widgets/add_building_dialog.dart
-// ignore_for_file: always_use_package_imports
+// ignore_for_file: depend_on_referenced_packages
 
 import 'dart:async';
 
@@ -239,12 +239,14 @@ class _AddBuildingDialogContentState extends State<_AddBuildingDialogContent> {
     addGeneralVal('شرقي', _eastCtrl.text);
     addGeneralVal('غربي', _westCtrl.text);
 
-    context.read<BuildingsCubit>().addBuilding(
-          name: _nameCtrl.text.trim(),
-          location: _locCtrl.text.trim(),
-          floorCoeffs: finalFloorCoeffs,
-          dirCoeffs: finalDirCoeffs,
-        );
+    unawaited(
+      context.read<BuildingsCubit>().addBuilding(
+            name: _nameCtrl.text.trim(),
+            location: _locCtrl.text.trim(),
+            floorCoeffs: finalFloorCoeffs,
+            dirCoeffs: finalDirCoeffs,
+          ),
+    );
 
     Navigator.pop(context);
   }
@@ -494,7 +496,7 @@ class _AddBuildingDialogContentState extends State<_AddBuildingDialogContent> {
                       children: [
                         Expanded(
                           child: DropdownButtonFormField<int>(
-                            value: _basementsCount,
+                            initialValue: _basementsCount,
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 15,
@@ -550,7 +552,7 @@ class _AddBuildingDialogContentState extends State<_AddBuildingDialogContent> {
                         const SizedBox(width: 12),
                         Expanded(
                           child: DropdownButtonFormField<int>(
-                            value: _floorsCount,
+                            initialValue: _floorsCount,
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 15,
