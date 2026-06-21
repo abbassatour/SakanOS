@@ -99,6 +99,7 @@ class ErpRepository {
       localApi: _localApi,
       syncRepo: _syncRepo,
     );
+    
 
     if (currentUserId != null) {
       _startCloudListener();
