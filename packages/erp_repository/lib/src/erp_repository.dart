@@ -4,6 +4,8 @@ import 'package:local_storage_api/local_storage_api.dart';
 import 'package:cloud_storage_api/cloud_storage_api.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:drift/drift.dart' as drift;
+import 'package:file_picker/file_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart'; 
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
@@ -14,10 +16,9 @@ import 'repositories/legal_repository.dart';
 import 'repositories/buildings_repository.dart';
 import 'repositories/contracts_repository.dart';
 import 'repositories/clients_repository.dart';
-import 'package:file_picker/file_picker.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'repositories/sync_repository.dart';
 import 'repositories/schedules_repository.dart';
+import 'repositories/payments_repository.dart';
 /// المدير الذكي بنظام (Offline-First) والمزامنة الشبحية ثنائية الاتجاه (Push & Pull)
 class ErpRepository {
   // ==========================================
@@ -33,6 +34,7 @@ class ErpRepository {
   late final ContractsRepository _contractsRepo;
   late final LegalRepository _legalRepo; 
   late final SchedulesRepository _schedulesRepo;
+  late final PaymentsRepository _paymentsRepo; 
   ErpRepository({
     required LocalStorageApi localStorageApi,
     required CloudStorageClient cloudStorageClient,
@@ -72,6 +74,12 @@ class ErpRepository {
     );
 
     _schedulesRepo = SchedulesRepository(
+      localApi: _localApi,
+      syncRepo: _syncRepo,
+      getCurrentUserId: () => currentUserId,
+    );
+
+     _paymentsRepo = PaymentsRepository(
       localApi: _localApi,
       syncRepo: _syncRepo,
       getCurrentUserId: () => currentUserId,
@@ -288,74 +296,35 @@ class ErpRepository {
   }) => _schedulesRepo.addCustomSchedule(contractId: contractId, dueDate: dueDate, notes: notes, expectedAmount: expectedAmount);
   
   // ==========================================
-  // 💰 الأقساط (Payments Ledger)
+  // 💰 المدفوعات (Payments Facade)
   // ==========================================
-  Future<List<PaymentsLedgerData>> getContractLedger(String contractId) => _localApi.getContractLedger(contractId);
-  Future<List<PaymentsLedgerData>> getAllPayments() => _localApi.getAllPayments();
+  Future<List<PaymentsLedgerData>> getContractLedger(String contractId) => _paymentsRepo.getContractLedger(contractId);
+  Future<List<PaymentsLedgerData>> getAllPayments() => _paymentsRepo.getAllPayments();
+  Future<List<PaymentsLedgerData>> getDeletedLedgerEntries() => _paymentsRepo.getDeletedLedgerEntries();
 
-  Future<void> addLedgerEntry(PaymentsLedgerCompanion entryCompanion) async {
-    final String? safeUserId = currentUserId; 
-    if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
-
-    final companionWithUser = entryCompanion.copyWith(userId: drift.Value(safeUserId));
-    await _localApi.addLedgerEntry(companionWithUser);
-    
-    if (entryCompanion.scheduleId.present && entryCompanion.scheduleId.value != null) {
-      await _localApi.updateScheduleStatus(entryCompanion.scheduleId.value!, 'paid', safeUserId);
-    }
-    await syncPendingData(); 
-  }
-
-
-
-  Future<void> markWhatsAppAsSent(String entryId) async { 
-    final String? safeUserId = currentUserId;
-    if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
-
-    await _localApi.updateWhatsAppStatus(entryId, safeUserId);
-    await syncPendingData();
-  }
+  Future<void> addLedgerEntry({
+    required String contractId, required double amountPaid, required double meterPriceAtPayment,
+    required double convertedMeters, required String pricesSnapshotJson, double discountPercentage = 0,
+    String? scheduleId, DateTime? customDate, double? histDollarRate,
+    double? histIron, double? histCement, double? histBlock,
+    double? histFormwork, double? histAggregates, double? histWorker,
+  }) => _paymentsRepo.addLedgerEntry(
+        contractId: contractId, amountPaid: amountPaid, meterPriceAtPayment: meterPriceAtPayment,
+        convertedMeters: convertedMeters, pricesSnapshotJson: pricesSnapshotJson,
+        discountPercentage: discountPercentage, scheduleId: scheduleId, customDate: customDate,
+        histDollarRate: histDollarRate, histIron: histIron, histCement: histCement,
+        histBlock: histBlock, histFormwork: histFormwork, histAggregates: histAggregates, histWorker: histWorker,
+      );
 
   Future<void> updateLedgerEntryAmount({
-    required String entryId,
-    required double newAmount,
-    required double newDiscount,
-    required double newConvertedMeters,
-  }) async {
-    final String? safeUserId = currentUserId;
-    if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
+    required String entryId, required double newAmount,
+    required double newDiscount, required double newConvertedMeters,
+  }) => _paymentsRepo.updateLedgerEntryAmount(entryId: entryId, newAmount: newAmount, newDiscount: newDiscount, newConvertedMeters: newConvertedMeters);
 
-    await _localApi.updateLedgerEntryAmount(
-      entryId: entryId, 
-      newAmount: newAmount, 
-      newDiscount: newDiscount, 
-      newConvertedMeters: newConvertedMeters,
-      userId: safeUserId, 
-    );
-    await syncPendingData(); 
-  }
-
-  Future<void> softDeleteLedgerEntry(String entryId) async {
-    final String? safeUserId = currentUserId;
-    if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
-
-    await _localApi.softDeleteLedgerEntry(entryId, safeUserId);
-    await syncPendingData();
-  }
-
-  Future<List<PaymentsLedgerData>> getDeletedLedgerEntries() => _localApi.getDeletedLedgerEntries();
-
-  Future<void> restoreLedgerEntry(String entryId) async {
-    final String? safeUserId = currentUserId;
-    if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
-
-    await _localApi.restoreLedgerEntry(entryId, safeUserId);
-    await syncPendingData(); 
-  }
-
-  Future<void> forceHardDeleteLedgerEntry(String entryId) async {
-    await _localApi.forceHardDeleteLedgerEntry(entryId);
-  }
+  Future<void> softDeleteLedgerEntry(String entryId) => _paymentsRepo.softDeleteLedgerEntry(entryId);
+  Future<void> restoreLedgerEntry(String entryId) => _paymentsRepo.restoreLedgerEntry(entryId);
+  Future<void> forceHardDeleteLedgerEntry(String entryId) => _paymentsRepo.forceHardDeleteLedgerEntry(entryId);
+  Future<void> markWhatsAppAsSent(String entryId) => _paymentsRepo.markWhatsAppAsSent(entryId);
 
   // ==========================================
   // ⚙️ الإعدادات (Material Prices)
