@@ -21,6 +21,9 @@ import 'repositories/schedules_repository.dart';
 import 'repositories/payments_repository.dart';
 import 'repositories/settings_repository.dart';
 import 'repositories/admin_repository.dart';
+import 'repositories/dashboard_repository.dart';
+// تأكد من تصدير النماذج لكي تراها الواجهات:
+export 'repositories/dashboard_repository.dart' show DashboardMetrics, ActivityItem, ActivityType, DashboardTimeFilter;
 /// المدير الذكي بنظام (Offline-First) والمزامنة الشبحية ثنائية الاتجاه (Push & Pull)
 class ErpRepository {
   // ==========================================
@@ -39,6 +42,7 @@ class ErpRepository {
   late final PaymentsRepository _paymentsRepo; 
   late final SettingsRepository _settingsRepo; 
   late final AdminRepository _adminRepo;
+  late final DashboardRepository _dashboardRepo;
   ErpRepository({
     required LocalStorageApi localStorageApi,
     required CloudStorageClient cloudStorageClient,
@@ -99,7 +103,8 @@ class ErpRepository {
       localApi: _localApi,
       syncRepo: _syncRepo,
     );
-    
+
+    _dashboardRepo = DashboardRepository(localApi: _localApi);
 
     if (currentUserId != null) {
       _startCloudListener();
@@ -527,79 +532,6 @@ class ErpRepository {
       );
 
 
-  // ==========================================
-  // 🕒 نظام تتبع النشاطات (Activity Log)
-  // ==========================================
-  Future<List<ActivityItem>> getRecentActivities({int limitPerType = 20, int finalLimit = 30}) async {
-    final List<ActivityItem> allActivities =[];
-
-    final recentPayments = await _localApi.getRecentPayments(limitPerType);
-    final recentContracts = await _localApi.getRecentContracts(limitPerType);
-    final recentClients = await _localApi.getRecentClients(limitPerType);
-
-    for (var p in recentPayments) {
-      allActivities.add(ActivityItem(
-        entityId: p.id,
-        type: ActivityType.payment,
-        title: 'حركة مالية (دفعة/تعديل)',
-        description: 'دفعة بقيمة ${p.amountPaid} للعقد ${p.contractId.substring(0, 5)}...', 
-        timestamp: p.updatedAt,
-        userId: p.userId,
-      ));
-    }
-
-    for (var c in recentContracts) {
-      if (c.lastActionDate != null && c.lastActionDate!.difference(c.updatedAt).inMinutes.abs() < 5) {
-        allActivities.add(ActivityItem(
-          entityId: c.id,
-          type: ActivityType.adminAction,
-          title: 'إجراء إداري (ملاحظة)',
-          description: c.lastActionNote ?? 'تم تسجيل ملاحظة على العقد',
-          timestamp: c.updatedAt,
-          userId: c.userId,
-        ));
-      } else {
-        allActivities.add(ActivityItem(
-          entityId: c.id,
-          type: ActivityType.contract,
-          title: 'إضافة/تعديل عقد',
-          description: 'عقد جديد أو معدل للعميل ${c.clientId.substring(0, 5)}...',
-          timestamp: c.updatedAt,
-          userId: c.userId,
-        ));
-      }
-    }
-
-    for (var c in recentClients) {
-      allActivities.add(ActivityItem(
-        entityId: c.id,
-        type: ActivityType.client,
-        title: 'إضافة/تعديل عميل',
-        description: 'العميل: ${c.name}',
-        timestamp: c.updatedAt,
-        userId: c.userId,
-      ));
-    }
-
-    allActivities.sort((a, b) => b.timestamp.compareTo(a.timestamp));
-
-    final trimmedActivities = allActivities.length > finalLimit 
-        ? allActivities.sublist(0, finalLimit) 
-        : allActivities;
-
-    final allUsers = await _localApi.getAllLocalUsers();
-    final Map<String, String> userNamesMap = {
-      for (var user in allUsers) user.id: user.fullName ?? 'مدير النظام'
-    };
-
-    for (var activity in trimmedActivities) {
-      if (userNamesMap.containsKey(activity.userId)) {
-        activity.userName = userNamesMap[activity.userId]!;
-      }
-    }
-
-    return trimmedActivities;
-  }
   
 
 
@@ -662,29 +594,12 @@ class ErpRepository {
   Future<void> deleteLegalActionAttachment(String attachmentId) =>
       _legalRepo.deleteLegalActionAttachment(attachmentId);
   
-
+  // ==========================================
+// 📊 لوحة التحكم والإحصائيات (Dashboard Facade)
+// ==========================================
+Future<DashboardMetrics> getDashboardMetrics({
+  required DashboardTimeFilter timeFilter,
+  required DateTime refDate,
+}) => _dashboardRepo.getDashboardMetrics(timeFilter: timeFilter, refDate: refDate);
 
 } // <--- نهاية كلاس ErpRepository
-
-// نموذج يمثل حركة أو نشاط واحد في النظام
-enum ActivityType { payment, contract, client, adminAction }
-
-class ActivityItem {
-  final String entityId; 
-  final ActivityType type; 
-  final String title; 
-  final String description; 
-  final DateTime timestamp; 
-  final String userId; 
-  String userName; 
-
-  ActivityItem({
-    required this.entityId,
-    required this.type,
-    required this.title,
-    required this.description,
-    required this.timestamp,
-    required this.userId,
-    this.userName = 'مستخدم غير معروف',
-  });
-}
