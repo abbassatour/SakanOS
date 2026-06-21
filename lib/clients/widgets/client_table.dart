@@ -348,5 +348,3 @@ class ClientTable extends StatelessWidget {
     );
   }
 }
-
-

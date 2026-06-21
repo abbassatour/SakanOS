@@ -1,10 +1,8 @@
 // lib/clients/cubit/clients_cubit.dart
-// ignore_for_file: depend_on_referenced_packages
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:erp_repository/erp_repository.dart';
-import 'package:local_storage_api/local_storage_api.dart' show Client;
 
 part 'clients_state.dart';
 
