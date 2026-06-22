@@ -1,5 +1,5 @@
 // lib/buildings/widgets/apartment_details_dialog.dart
-// ignore_for_file: always_use_package_imports, depend_on_referenced_packages, cascade_invocations
+// ignore_for_file: depend_on_referenced_packages, cascade_invocations
 
 import 'dart:async';
 import 'dart:convert';
