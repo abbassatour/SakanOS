@@ -1,17 +1,12 @@
-//lib\contracts\view\widgets\add_contract\property_section.dart
+// lib/contracts/view/widgets/add_contract/property_section.dart
+// ignore_for_file: always_use_package_imports
+
 import 'package:flutter/material.dart';
+import 'package:local_storage_api/local_storage_api.dart'
+    show Apartment, Building;
 
 class PropertySection extends StatelessWidget {
-  final bool isAllocated;
-  final List<dynamic> buildings;
-  final List<dynamic> availableApartments;
-  final String? selectedBuildingId;
-  final String? selectedApartmentId;
-  final ValueChanged<String?> onBuildingChanged;
-  final ValueChanged<String?> onApartmentChanged;
-
   const PropertySection({
-    super.key,
     required this.isAllocated,
     required this.buildings,
     required this.availableApartments,
@@ -19,24 +14,43 @@ class PropertySection extends StatelessWidget {
     required this.selectedApartmentId,
     required this.onBuildingChanged,
     required this.onApartmentChanged,
+    super.key,
   });
+
+  final bool isAllocated;
+  final List<Building> buildings;
+  final List<Apartment> availableApartments;
+  final String? selectedBuildingId;
+  final String? selectedApartmentId;
+  final ValueChanged<String?> onBuildingChanged;
+  final ValueChanged<String?> onApartmentChanged;
 
   @override
   Widget build(BuildContext context) {
-    // إذا كان لاحق التخصص، نعرض رسالة فقط ولا نطلب أي بيانات عقارية
     if (!isAllocated) {
       return Card(
-        elevation: 2, color: Colors.blue.shade50,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: Colors.blue.shade200)),
+        elevation: 2,
+        color: Colors.blue.shade50,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: Colors.blue.shade200),
+        ),
         child: const Padding(
-          padding: EdgeInsets.all(16.0),
+          padding: EdgeInsets.all(16),
           child: Row(
-            children:[
+            children: [
               Icon(Icons.info_outline, color: Colors.blue, size: 24),
               SizedBox(width: 8),
               Expanded(
-                child: Text('عقد محفظة (لاحق التخصص): سيتم تخصيص العقار لاحقاً بناءً على الرصيد المتراكم.', 
-                style: TextStyle(color: Colors.blueGrey, fontSize: 14, fontWeight: FontWeight.bold)),
+                child: Text(
+                  'عقد محفظة (لاحق التخصص): سيتم تخصيص العقار لاحقاً بناءً '
+                  'على الرصيد المتراكم.',
+                  style: TextStyle(
+                    color: Colors.blueGrey,
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
             ],
           ),
@@ -44,30 +58,70 @@ class PropertySection extends StatelessWidget {
       );
     }
 
-    // إذا كان متخصص، نعرض اختيار المحضر والشقة
     return Card(
-      elevation: 2, color: Colors.amber.shade50,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: Colors.amber.shade200)),
+      elevation: 2,
+      color: Colors.amber.shade50,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Colors.amber.shade200),
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children:[
-            const Text('🏠 اختيار العقار من الكتالوج', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey, fontSize: 16)),
+          children: [
+            const Text(
+              '🏠 اختيار العقار من الكتالوج',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.blueGrey,
+                fontSize: 16,
+              ),
+            ),
             const SizedBox(height: 16),
             DropdownButtonFormField<String>(
-              value: selectedBuildingId,
-              decoration: const InputDecoration(labelText: 'اختر المحضر', border: OutlineInputBorder(), filled: true, fillColor: Colors.white),
-              items: buildings.map((b) => DropdownMenuItem<String>(value: b.id, child: Text('${b.name} (${b.location ?? ''})'))).toList(),
+              initialValue: selectedBuildingId,
+              decoration: const InputDecoration(
+                labelText: 'اختر المحضر',
+                border: OutlineInputBorder(),
+                filled: true,
+                fillColor: Colors.white,
+              ),
+              items: buildings
+                  .map(
+                    (b) => DropdownMenuItem<String>(
+                      value: b.id,
+                      child: Text('${b.name} (${b.location ?? ''})'),
+                    ),
+                  )
+                  .toList(),
               onChanged: onBuildingChanged,
             ),
             const SizedBox(height: 16),
             DropdownButtonFormField<String>(
-              value: selectedApartmentId,
-              decoration: const InputDecoration(labelText: 'اختر الشقة المتاحة', border: OutlineInputBorder(), filled: true, fillColor: Colors.white),
-              items: availableApartments.map((apt) => DropdownMenuItem<String>(value: apt.id, child: Text('شقة: ${apt.apartmentNumber} | طابق: ${apt.floorName}'))).toList(),
-              onChanged: onBuildingChanged == null ? null : onApartmentChanged,
-              disabledHint: Text(selectedBuildingId == null ? 'يرجى اختيار المحضر أولاً' : 'لا يوجد شقق متاحة!'),
+              initialValue: selectedApartmentId,
+              decoration: const InputDecoration(
+                labelText: 'اختر الشقة المتاحة',
+                border: OutlineInputBorder(),
+                filled: true,
+                fillColor: Colors.white,
+              ),
+              items: availableApartments
+                  .map(
+                    (apt) => DropdownMenuItem<String>(
+                      value: apt.id,
+                      child: Text(
+                        'شقة: ${apt.apartmentNumber} | طابق: ${apt.floorName}',
+                      ),
+                    ),
+                  )
+                  .toList(),
+              onChanged: selectedBuildingId == null ? null : onApartmentChanged,
+              disabledHint: Text(
+                selectedBuildingId == null
+                    ? 'يرجى اختيار المحضر أولاً'
+                    : 'لا يوجد شقق متاحة!',
+              ),
             ),
           ],
         ),

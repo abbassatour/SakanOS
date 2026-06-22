@@ -1,34 +1,55 @@
+// lib/contracts/view/widgets/add_contract/auto_coefficients_section.dart
+// ignore_for_file: always_use_package_imports
+
 import 'package:flutter/material.dart';
 
 class AutoCoefficientsSection extends StatelessWidget {
-  final Map<String, double> coefficients;
+  const AutoCoefficientsSection({
+    required this.coefficients,
+    super.key,
+  });
 
-  const AutoCoefficientsSection({super.key, required this.coefficients});
+  final Map<String, double> coefficients;
 
   @override
   Widget build(BuildContext context) {
     if (coefficients.isEmpty) return const SizedBox.shrink();
 
     return Column(
-      children:[
+      children: [
         Container(
           padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(color: Colors.teal.shade50, borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.teal.shade200)),
+          decoration: BoxDecoration(
+            color: Colors.teal.shade50,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.teal.shade200),
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children:[
+            children: [
               const Row(
-                children:[
+                children: [
                   Icon(Icons.auto_awesome, color: Colors.teal),
                   SizedBox(width: 8),
-                  Text('تم سحب معاملات التميز آلياً:', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.teal)),
+                  Text(
+                    'تم سحب معاملات التميز آلياً:',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.teal,
+                    ),
+                  ),
                 ],
               ),
               const SizedBox(height: 12),
               Wrap(
-                spacing: 8, runSpacing: 8,
+                spacing: 8,
+                runSpacing: 8,
                 children: coefficients.entries.map((e) {
-                  return Chip(label: Text('${e.key}: ${e.value}%'), backgroundColor: Colors.white, side: const BorderSide(color: Colors.teal));
+                  return Chip(
+                    label: Text('${e.key}: ${e.value}%'),
+                    backgroundColor: Colors.white,
+                    side: const BorderSide(color: Colors.teal),
+                  );
                 }).toList(),
               ),
             ],
