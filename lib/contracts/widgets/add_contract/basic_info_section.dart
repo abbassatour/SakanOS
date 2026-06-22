@@ -1,4 +1,4 @@
-// lib/contracts/view/widgets/add_contract/basic_info_section.dart
+// lib\contracts\widgets\add_contract\basic_info_section.dart
 // ignore_for_file: always_use_package_imports
 
 import 'package:flutter/material.dart';
