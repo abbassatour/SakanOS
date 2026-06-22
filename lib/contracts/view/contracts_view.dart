@@ -1,0 +1,329 @@
+// lib/contracts/view/contracts_view.dart
+// ignore_for_file: always_use_package_imports, depend_on_referenced_packages
+
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:local_storage_api/local_storage_api.dart'
+    show Client, Contract;
+
+import '../../auth/cubit/auth_cubit.dart';
+import '../../core/constants/app_permissions.dart';
+import '../cubit/contracts_cubit.dart';
+import 'add_contract_page.dart';
+import 'widgets/widgets.dart';
+
+class ContractsView extends StatefulWidget {
+  const ContractsView({super.key});
+
+  @override
+  State<ContractsView> createState() => _ContractsViewState();
+}
+
+class _ContractsViewState extends State<ContractsView> {
+  String _searchQuery = '';
+  String _statusFilter = 'active';
+  String _typeFilter = 'all';
+  String _handoverFilter = 'all';
+
+  String _getStatusName(String f) {
+    if (f == 'active') return 'عقود جارية';
+    if (f == 'completed') return 'عقود مكتملة';
+    return 'جميع الحالات';
+  }
+
+  String _getTypeName(String f) {
+    if (f == 'allocated') return 'متخصص';
+    if (f == 'unallocated') return 'لاحق التخصص';
+    return 'جميع الأنواع';
+  }
+
+  String _getHandoverName(String f) {
+    if (f == 'delivered') return 'مُسلّمة';
+    if (f == 'pending') return 'بانتظار التسليم';
+    return 'الكل';
+  }
+
+  void _showFilterSheet() {
+    unawaited(
+      () async {
+        final result = await showFilterBottomSheet(
+          context: context,
+          currentStatus: _statusFilter,
+          currentType: _typeFilter,
+          currentHandover: _handoverFilter,
+        );
+
+        if (result != null && mounted) {
+          setState(() {
+            _statusFilter = result.status;
+            _typeFilter = result.type;
+            _handoverFilter = result.handover;
+          });
+        }
+      }(),
+    );
+  }
+
+  void _navigateToAddContract() {
+    unawaited(
+      Navigator.push<void>(
+        context,
+        MaterialPageRoute<void>(
+          builder: (_) => MultiBlocProvider(
+            providers: [
+              BlocProvider.value(value: context.read<ContractsCubit>()),
+            ],
+            child: const AddContractPage(),
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // 🌟 الأداء الخارق: نراقب الصلاحيات بـ select فقط
+    final canCreate = context.select<AuthCubit, bool>(
+      (cubit) => cubit.state.hasPermission(AppPermissions.createContracts),
+    );
+
+    return Scaffold(
+      backgroundColor: Colors.grey.shade50,
+      floatingActionButton: FloatingActionButton.extended(
+        heroTag: null,
+        onPressed: canCreate ? _navigateToAddContract : null,
+        icon: const Icon(Icons.add_home_work),
+        label: const Text(
+          'عقد جديد',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        backgroundColor:
+            canCreate ? Colors.teal.shade600 : Colors.grey.shade300,
+        foregroundColor: canCreate ? Colors.white : Colors.grey.shade600,
+        elevation: canCreate ? 6 : 0,
+        tooltip: canCreate ? 'إنشاء عقد جديد' : 'لا تملك صلاحية إنشاء عقود',
+      ),
+      body: SafeArea(
+        child: BlocListener<ContractsCubit, ContractsState>(
+          listenWhen: (previous, current) => previous.status != current.status,
+          listener: (context, state) {
+            if (state.status == ContractsStatus.failure) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(state.errorMessage ?? 'خطأ'),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            }
+          },
+          child: BlocBuilder<ContractsCubit, ContractsState>(
+            builder: (context, state) {
+              if (state.status == ContractsStatus.loading &&
+                  state.contracts.isEmpty) {
+                return const Center(
+                  child: CircularProgressIndicator(color: Colors.teal),
+                );
+              }
+
+              if (state.clients.isEmpty) {
+                return const EmptyContractsView(
+                  message: 'يرجى إضافة عميل أولاً من قسم العملاء.',
+                  icon: Icons.group_add,
+                  iconColor: Colors.grey,
+                );
+              }
+
+              if (state.contracts.isEmpty) {
+                return const EmptyContractsView(
+                  message: 'لم يتم توقيع أي عقود بعد.',
+                  icon: Icons.real_estate_agent,
+                  iconColor: Colors.teal,
+                );
+              }
+
+              final filteredContracts = state.contracts.where((contract) {
+                final passStatus = _statusFilter == 'all' ||
+                    (_statusFilter == 'active' && !contract.isCompleted) ||
+                    (_statusFilter == 'completed' && contract.isCompleted);
+
+                final passType = _typeFilter == 'all' ||
+                    (_typeFilter == 'allocated' &&
+                        contract.contractType == 'متخصص') ||
+                    (_typeFilter == 'unallocated' &&
+                        contract.contractType == 'لاحق التخصص');
+
+                final passHandover = _handoverFilter == 'all' ||
+                    (_handoverFilter == 'delivered' &&
+                        contract.isHandedOver == true) ||
+                    (_handoverFilter == 'pending' &&
+                        contract.isHandedOver != true);
+
+                var passSearch = true;
+                if (_searchQuery.isNotEmpty) {
+                  final clientIdx = state.clients.indexWhere(
+                    (c) => c.id == contract.clientId,
+                  );
+                  final clientName = clientIdx >= 0
+                      ? state.clients[clientIdx].name.toLowerCase()
+                      : '';
+
+                  final searchLower = _searchQuery.toLowerCase();
+                  passSearch = clientName.contains(searchLower) ||
+                      contract.apartmentDetails
+                          .toLowerCase()
+                          .contains(searchLower) ||
+                      contract.id.contains(searchLower);
+                }
+
+                return passStatus && passType && passHandover && passSearch;
+              }).toList();
+
+              final hasActiveFilters = _statusFilter != 'all' ||
+                  _typeFilter != 'all' ||
+                  _handoverFilter != 'all';
+
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ContractsSearchBar(
+                    searchQuery: _searchQuery,
+                    resultCount: filteredContracts.length,
+                    onChanged: (val) => setState(() => _searchQuery = val),
+                  ),
+                  Container(
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.teal.shade50,
+                      border: Border.all(color: Colors.teal.shade200),
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.05),
+                          blurRadius: 8,
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.tune, color: Colors.teal, size: 28),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                hasActiveFilters
+                                    ? 'الفلاتر النشطة حالياً:'
+                                    : 'عرض جميع العقود (بدون فلترة)',
+                                style: const TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 12,
+                                ),
+                              ),
+                              if (hasActiveFilters)
+                                Text(
+                                  '${_getStatusName(_statusFilter)} | '
+                                  '${_getTypeName(_typeFilter)} | '
+                                  '${_getHandoverName(_handoverFilter)}',
+                                  style: const TextStyle(
+                                    color: Colors.teal,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 13,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.teal,
+                            foregroundColor: Colors.white,
+                            elevation: 2,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          onPressed: _showFilterSheet,
+                          icon: const Icon(Icons.filter_alt, size: 18),
+                          label: const Text(
+                            'تصفية',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        if (hasActiveFilters) ...[
+                          const SizedBox(width: 8),
+                          IconButton(
+                            icon: const Icon(Icons.clear, color: Colors.red),
+                            tooltip: 'إلغاء الفلاتر',
+                            style: IconButton.styleFrom(
+                              backgroundColor: Colors.red.shade50,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _statusFilter = 'all';
+                                _typeFilter = 'all';
+                                _handoverFilter = 'all';
+                              });
+                            },
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Expanded(
+                    child: filteredContracts.isEmpty
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.search_off,
+                                  size: 60,
+                                  color: Colors.grey.shade400,
+                                ),
+                                const SizedBox(height: 16),
+                                const Text(
+                                  'لا يوجد عقود تطابق الفلاتر المحددة',
+                                  style: TextStyle(
+                                    color: Colors.grey,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        : ListView(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                            ).copyWith(bottom: 80),
+                            children: [
+                              ContractsDataTable(
+                                contracts: filteredContracts,
+                                clients: state.clients,
+                                userNamesMap: state.userNamesMap,
+                              ),
+                            ],
+                          ),
+                  ),
+                ],
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+}

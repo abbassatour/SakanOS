@@ -1,17 +1,19 @@
-//lib\contracts\view\widgets\empty_contracts_view.dart
+// lib/contracts/view/widgets/empty_contracts_view.dart
+// ignore_for_file: always_use_package_imports
+
 import 'package:flutter/material.dart';
 
 class EmptyContractsView extends StatelessWidget {
-  final String message;
-  final IconData icon;
-  final Color iconColor;
-
   const EmptyContractsView({
-    super.key,
     required this.message,
     required this.icon,
     required this.iconColor,
+    super.key,
   });
+
+  final String message;
+  final IconData icon;
+  final Color iconColor;
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +23,10 @@ class EmptyContractsView extends StatelessWidget {
         children: [
           Icon(icon, size: 80, color: iconColor),
           const SizedBox(height: 16),
-          Text(message, style: const TextStyle(fontSize: 18, color: Colors.blueGrey)),
+          Text(
+            message,
+            style: const TextStyle(fontSize: 18, color: Colors.blueGrey),
+          ),
         ],
       ),
     );
