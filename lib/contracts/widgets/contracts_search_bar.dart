@@ -1,4 +1,4 @@
-// lib/contracts/view/widgets/contracts_search_bar.dart
+// lib\contracts\widgets\contracts_search_bar.dart
 // ignore_for_file: always_use_package_imports
 
 import 'package:flutter/material.dart';

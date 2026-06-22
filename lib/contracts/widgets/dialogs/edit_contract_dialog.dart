@@ -1,4 +1,4 @@
-// lib/contracts/view/dialogs/edit_contract_dialog.dart
+// lib\contracts\widgets\dialogs\edit_contract_dialog.dart
 // ignore_for_file: depend_on_referenced_packages
 
 import 'dart:async';

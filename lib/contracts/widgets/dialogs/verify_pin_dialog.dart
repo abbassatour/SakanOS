@@ -1,4 +1,4 @@
-// lib/contracts/view/widgets/verify_pin_dialog.dart
+// lib\contracts\widgets\dialogs\verify_pin_dialog.dart
 // ignore_for_file: always_use_package_imports
 
 import 'package:flutter/material.dart';

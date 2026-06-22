@@ -1,4 +1,4 @@
-// lib/contracts/view/widgets/filter_bottom_sheet.dart
+// lib\contracts\widgets\filter_bottom_sheet.dart
 // ignore_for_file: always_use_package_imports
 
 import 'package:flutter/material.dart';

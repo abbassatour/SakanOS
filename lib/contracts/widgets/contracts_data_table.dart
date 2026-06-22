@@ -1,4 +1,4 @@
-// lib/contracts/view/widgets/contracts_data_table.dart
+// lib\contracts\widgets\contracts_data_table.dart
 // ignore_for_file: always_use_package_imports, depend_on_referenced_packages
 
 import 'dart:async';

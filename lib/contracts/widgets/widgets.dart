@@ -1,4 +1,4 @@
-// lib/contracts/widgets/widgets.dart
+// lib\contracts\widgets\widgets.dart
 
 export 'add_contract_sections/auto_coefficients_section.dart';
 export 'add_contract_sections/basic_info_section.dart';
