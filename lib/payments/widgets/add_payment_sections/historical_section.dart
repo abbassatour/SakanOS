@@ -166,7 +166,7 @@ class HistoricalSection extends StatelessWidget {
                         onTap: () => onDetailedModeToggle(false),
                         child: Row(
                           children: [
-                            Radio<bool>(
+                            Radio<bool>.adaptive(
                               value: false,
                               groupValue: isDetailedMode,
                               activeColor: Colors.blue,
@@ -198,7 +198,7 @@ class HistoricalSection extends StatelessWidget {
                         onTap: () => onDetailedModeToggle(true),
                         child: Row(
                           children: [
-                            Radio<bool>(
+                            Radio<bool>.adaptive(
                               value: true,
                               groupValue: isDetailedMode,
                               activeColor: Colors.blue,

@@ -30,7 +30,7 @@ class PaymentTypeSection extends StatelessWidget {
               onTap: onDepositTapped,
               child: Row(
                 children: [
-                  Radio<bool>(
+                  Radio<bool>.adaptive(
                     value: true,
                     groupValue: isDeposit,
                     activeColor: Colors.deepOrange,
@@ -52,7 +52,7 @@ class PaymentTypeSection extends StatelessWidget {
               onTap: onWithdrawTapped,
               child: Row(
                 children: [
-                  Radio<bool>(
+                  Radio<bool>.adaptive(
                     value: false,
                     groupValue: isDeposit,
                     activeColor: Colors.red,

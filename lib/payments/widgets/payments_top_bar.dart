@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 // ignore: depend_on_referenced_packages
+// reason: Needed for Apartment and Building models
 import 'package:local_storage_api/local_storage_api.dart'
     show Apartment, Building;
 

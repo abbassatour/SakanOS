@@ -93,6 +93,12 @@ class _AddPaymentDialogContentState extends State<_AddPaymentDialogContent> {
 
   void _onInputChanged(String _) => setState(() {});
 
+  void _showErrorSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.red),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final contract = context.read<PaymentsCubit>().state.contracts.firstWhere(
@@ -368,33 +374,18 @@ class _AddPaymentDialogContentState extends State<_AddPaymentDialogContent> {
                       if (isHistoricalPayment) {
                         if (isDollarPayment &&
                             histDollarRateCtrl.text.isEmpty) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('الرجاء إدخال السعر التاريخي!'),
-                              backgroundColor: Colors.red,
-                            ),
-                          );
+                          _showErrorSnackBar('الرجاء إدخال السعر التاريخي!');
                           return;
                         }
                         if (!isDetailedMode && meterPriceCtrl.text.isEmpty) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('الرجاء إدخال سعر المتر!'),
-                              backgroundColor: Colors.red,
-                            ),
-                          );
+                          _showErrorSnackBar('الرجاء إدخال سعر المتر!');
                           return;
                         }
                         if (isDetailedMode &&
                             (histIronCtrl.text.isEmpty ||
                                 histCementCtrl.text.isEmpty ||
                                 histWorkerCtrl.text.isEmpty)) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('الرجاء إدخال أسعار المواد!'),
-                              backgroundColor: Colors.red,
-                            ),
-                          );
+                          _showErrorSnackBar('الرجاء إدخال أسعار المواد!');
                           return;
                         }
                       }

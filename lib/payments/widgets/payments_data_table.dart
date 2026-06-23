@@ -349,9 +349,9 @@ class PaymentsDataTable extends StatelessWidget {
                                       context,
                                       MaterialPageRoute<void>(
                                         builder: (_) => PdfPreviewPage(
-                                          pdfBytes: pdfBytes,
-                                          title: '${isRefundCall ? "سند_استرداد" : "إيصال_دفع"}_'
-                                              '${client.name}',
+                                        pdfBytes: pdfBytes,
+                                        title: '${isRefundCall ? "سند_استرداد" : "إيصال_دفع"}_'
+                                            '${client.name}',
                                         ),
                                       ),
                                     ),
