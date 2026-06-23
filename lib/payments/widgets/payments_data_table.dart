@@ -344,14 +344,16 @@ class PaymentsDataTable extends StatelessWidget {
                                 }();
 
                                 if (context.mounted) {
+                                  final titleStr = isRefundCall
+                                      ? 'سند_استرداد_${client.name}'
+                                      : 'إيصال_دفع_${client.name}';
                                   unawaited(
                                     Navigator.push<void>(
                                       context,
                                       MaterialPageRoute<void>(
                                         builder: (_) => PdfPreviewPage(
-                                        pdfBytes: pdfBytes,
-                                        title: '${isRefundCall ? "سند_استرداد" : "إيصال_دفع"}_'
-                                            '${client.name}',
+                                          pdfBytes: pdfBytes,
+                                          title: titleStr,
                                         ),
                                       ),
                                     ),

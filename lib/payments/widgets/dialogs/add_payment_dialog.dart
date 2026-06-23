@@ -94,6 +94,7 @@ class _AddPaymentDialogContentState extends State<_AddPaymentDialogContent> {
   void _onInputChanged(String _) => setState(() {});
 
   void _showErrorSnackBar(String message) {
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message), backgroundColor: Colors.red),
     );
@@ -238,7 +239,8 @@ class _AddPaymentDialogContentState extends State<_AddPaymentDialogContent> {
                       final authorized = await showVerifyPinDialog(
                         context: widget.parentContext,
                       );
-                      if (authorized && mounted) {
+                      if (!mounted) return;
+                      if (authorized) {
                         setState(() => isDeposit = false);
                       }
                     },
@@ -273,7 +275,8 @@ class _AddPaymentDialogContentState extends State<_AddPaymentDialogContent> {
                         final authorized = await showVerifyPinDialog(
                           context: widget.parentContext,
                         );
-                        if (authorized && mounted) {
+                        if (!mounted) return;
+                        if (authorized) {
                           setState(() => isHistoricalPayment = true);
                           final pickedDate = await showDatePicker(
                             context: context,
@@ -281,7 +284,8 @@ class _AddPaymentDialogContentState extends State<_AddPaymentDialogContent> {
                             firstDate: DateTime(2000),
                             lastDate: DateTime.now(),
                           );
-                          if (pickedDate != null && mounted) {
+                          if (!mounted) return;
+                          if (pickedDate != null) {
                             setState(
                               () => selectedHistoricalDate = pickedDate,
                             );
@@ -450,31 +454,31 @@ class _AddPaymentDialogContentState extends State<_AddPaymentDialogContent> {
                                       : null,
                             );
 
-                        if (mounted) {
-                          Navigator.pop(context);
-                          ScaffoldMessenger.of(widget.parentContext)
-                              .showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                isDeposit
-                                    ? 'تمت إضافة الدفعة بنجاح! ✅'
-                                    : 'تم خصم المبلغ بنجاح! ✅',
-                              ),
-                              backgroundColor: Colors.green,
+                        if (!mounted) return;
+                        if (!widget.parentContext.mounted) return;
+
+                        Navigator.pop(context);
+                        ScaffoldMessenger.of(widget.parentContext).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              isDeposit
+                                  ? 'تمت إضافة الدفعة بنجاح! ✅'
+                                  : 'تم خصم المبلغ بنجاح! ✅',
                             ),
-                          );
-                        }
+                            backgroundColor: Colors.green,
+                          ),
+                        );
                       } on Exception catch (e) {
-                        if (mounted) {
-                          setState(() => _isSaving = false);
-                          ScaffoldMessenger.of(widget.parentContext)
-                              .showSnackBar(
-                            SnackBar(
-                              content: Text('حدث خطأ: $e'),
-                              backgroundColor: Colors.red,
-                            ),
-                          );
-                        }
+                        if (!mounted) return;
+                        setState(() => _isSaving = false);
+
+                        if (!widget.parentContext.mounted) return;
+                        ScaffoldMessenger.of(widget.parentContext).showSnackBar(
+                          SnackBar(
+                            content: Text('حدث خطأ: $e'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
                       }
                     },
             ),
