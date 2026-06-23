@@ -1,12 +1,10 @@
 // lib/payments/cubit/payments_cubit.dart
-
+// ignore_for_file: depend_on_referenced_packages
 import 'dart:async';
 import 'dart:convert';
-
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:erp_repository/erp_repository.dart';
-
 import 'package:local_storage_api/local_storage_api.dart'
     show
         Apartment,
@@ -15,7 +13,6 @@ import 'package:local_storage_api/local_storage_api.dart'
         Contract,
         MaterialPricesHistoryData,
         PaymentsLedgerData;
-
 import 'package:our_home_erp_app/core/utils/calculator_helper.dart';
 
 part 'payments_state.dart';
