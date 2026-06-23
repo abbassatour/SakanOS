@@ -1,10 +1,8 @@
-// contracts/cubit/contracts_cubit.dart
+// lib/contracts/cubit/contracts_cubit.dart
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:erp_repository/erp_repository.dart';
-import 'package:local_storage_api/local_storage_api.dart'
-    show Client, Contract;
 
 part 'contracts_state.dart';
 
