@@ -1,0 +1,453 @@
+// lib/payments/widgets/payments_data_table.dart
+
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import 'package:our_home_erp_app/core/utils/deposit_pdf_generator.dart';
+import 'package:our_home_erp_app/core/utils/formatters.dart';
+import 'package:our_home_erp_app/core/utils/pdf_preview_page.dart';
+import 'package:our_home_erp_app/core/utils/refund_pdf_generator.dart';
+import 'package:our_home_erp_app/core/utils/whatsapp_helper.dart';
+import 'package:our_home_erp_app/payments/cubit/payments_cubit.dart';
+import 'package:our_home_erp_app/payments/widgets/widgets.dart';
+
+class PaymentsDataTable extends StatelessWidget {
+  const PaymentsDataTable({
+    required this.state,
+    required this.canEdit,
+    required this.canDelete,
+    super.key,
+  });
+
+  final PaymentsState state;
+  final bool canEdit;
+  final bool canDelete;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        Card(
+          elevation: 2,
+          margin: EdgeInsets.zero,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(color: Colors.grey.shade200),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                minWidth: MediaQuery.of(context).size.width - 32,
+              ),
+              child: DataTable(
+                headingRowColor: WidgetStateProperty.all(
+                  Colors.deepOrange.shade50,
+                ),
+                dataRowMinHeight: 55,
+                dataRowMaxHeight: 70,
+                columns: const [
+                  DataColumn(
+                    label: Text(
+                      'رقم الإيصال',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.deepOrange,
+                      ),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Text(
+                      'المبلغ (إيداع / سحب)',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.deepOrange,
+                      ),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Text(
+                      'سعر المتر',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.deepOrange,
+                      ),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Text(
+                      'الأمتار المحولة',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.deepOrange,
+                      ),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Text(
+                      'تاريخ الدفع',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.deepOrange,
+                      ),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Text(
+                      'آخر تعديل بواسطة',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.deepOrange,
+                      ),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Text(
+                      'إجراءات',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.deepOrange,
+                      ),
+                    ),
+                  ),
+                ],
+                rows: state.ledgerEntries.asMap().entries.map((mapEntry) {
+                  final index = mapEntry.key;
+                  final entry = mapEntry.value;
+                  final isLatestEntry = index == 0;
+                  final isRefund = entry.amountPaid < 0;
+
+                  return DataRow(
+                    color: WidgetStateProperty.resolveWith<Color?>(
+                      (Set<WidgetState> states) {
+                        if (index.isEven) {
+                          return Colors.grey.withValues(alpha: 0.03);
+                        }
+                        return null;
+                      },
+                    ),
+                    cells: [
+                      DataCell(
+                        Text(
+                          entry.id.split('-').first.toUpperCase(),
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey.shade600,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+                      DataCell(
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              isRefund
+                                  ? Icons.remove_circle_outline
+                                  : Icons.add_circle_outline,
+                              color: isRefund ? Colors.red : Colors.green,
+                              size: 18,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              '${NumberFormatters.formatWithCommas(
+                                entry.amountPaid.abs(),
+                              )} ل.س',
+                              style: TextStyle(
+                                color: isRefund ? Colors.red : Colors.green,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      DataCell(
+                        Text(
+                          '${NumberFormatters.formatWithCommas(
+                            entry.meterPriceAtPayment,
+                          )} ل.س',
+                          style: const TextStyle(color: Colors.black87),
+                        ),
+                      ),
+                      DataCell(
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isRefund
+                                ? Colors.red.shade50
+                                : Colors.deepOrange.shade50,
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(
+                              color: isRefund
+                                  ? Colors.red.shade100
+                                  : Colors.transparent,
+                            ),
+                          ),
+                          child: Text(
+                            '${isRefund ? "-" : "+"}'
+                            '${entry.convertedMeters.abs().toStringAsFixed(3)} '
+                            'م²',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: isRefund
+                                  ? Colors.red.shade700
+                                  : Colors.deepOrange.shade700,
+                              fontSize: 15,
+                            ),
+                          ),
+                        ),
+                      ),
+                      DataCell(
+                        Text(
+                          '${entry.paymentDate.year}/'
+                          '${entry.paymentDate.month}/'
+                          '${entry.paymentDate.day}',
+                          style: const TextStyle(color: Colors.black87),
+                        ),
+                      ),
+                      DataCell(
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.person_outline,
+                                  size: 14,
+                                  color: Colors.orange.shade700,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  state.userNamesMap[entry.userId] ?? 'مجهول',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 13,
+                                    color: Colors.orange.shade800,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 2),
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(
+                                  Icons.access_time,
+                                  size: 12,
+                                  color: Colors.grey,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  '${entry.updatedAt.year}/'
+                                  '${entry.updatedAt.month.toString().padLeft(
+                                        2,
+                                        '0',
+                                      )}/'
+                                  '${entry.updatedAt.day.toString().padLeft(
+                                        2,
+                                        '0',
+                                      )} '
+                                  '${entry.updatedAt.hour}:'
+                                  '${entry.updatedAt.minute.toString().padLeft(
+                                        2,
+                                        '0',
+                                      )}',
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      DataCell(
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.print, color: Colors.blue),
+                              tooltip: 'معاينة وطباعة الفاتورة',
+                              onPressed: () async {
+                                final contractIdx = state.contracts.indexWhere(
+                                  (c) => c.id == entry.contractId,
+                                );
+                                if (contractIdx == -1) return;
+                                final contract = state.contracts[contractIdx];
+
+                                final clientIdx = state.clients.indexWhere(
+                                  (c) => c.id == contract.clientId,
+                                );
+                                if (clientIdx == -1) return;
+                                final client = state.clients[clientIdx];
+
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('جاري تجهيز الفاتورة...'),
+                                  ),
+                                );
+
+                                final isRefundCall = entry.amountPaid < 0;
+                                final pdfBytes = await () async {
+                                  if (!isRefundCall) {
+                                    final bonusPct = entry.fees;
+                                    double? originalInst;
+                                    double? meterPriceBonus;
+
+                                    if (bonusPct != 0) {
+                                      originalInst = entry.amountPaid +
+                                          (entry.amountPaid *
+                                              (bonusPct.abs() / 100));
+                                      meterPriceBonus = entry.amountPaid /
+                                          entry.convertedMeters;
+                                    }
+                                    return DepositPdfGenerator.generate(
+                                      entry: entry,
+                                      contract: contract,
+                                      client: client,
+                                      originalInstallment: originalInst,
+                                      bonusPercentage:
+                                          bonusPct != 0 ? bonusPct : null,
+                                      meterPriceAfterBonus: meterPriceBonus,
+                                    );
+                                  } else {
+                                    final penaltyPct = entry.fees;
+                                    double? meterPricePenalty;
+
+                                    if (penaltyPct != 0) {
+                                      meterPricePenalty =
+                                          entry.amountPaid.abs() /
+                                              entry.convertedMeters.abs();
+                                    }
+                                    return RefundPdfGenerator.generate(
+                                      entry: entry,
+                                      contract: contract,
+                                      client: client,
+                                      penaltyPercentage: penaltyPct != 0
+                                          ? penaltyPct
+                                          : null,
+                                      meterPriceAfterPenalty:
+                                          meterPricePenalty,
+                                    );
+                                  }
+                                }();
+
+                                if (context.mounted) {
+                                  unawaited(
+                                    Navigator.push<void>(
+                                      context,
+                                      MaterialPageRoute<void>(
+                                        builder: (_) => PdfPreviewPage(
+                                          pdfBytes: pdfBytes,
+                                          title: '${isRefundCall ? "سند_استرداد" : "إيصال_دفع"}_'
+                                              '${client.name}',
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                }
+                              },
+                            ),
+                            IconButton(
+                              icon: Icon(
+                                Icons.chat,
+                                color: entry.isWhatsAppSent
+                                    ? Colors.grey
+                                    : Colors.green,
+                              ),
+                              tooltip: entry.isWhatsAppSent
+                                  ? 'تم الإرسال (إعادة إرسال)'
+                                  : 'إرسال الفاتورة عبر واتساب',
+                              onPressed: () async {
+                                final cIdx = state.contracts.indexWhere(
+                                  (c) => c.id == entry.contractId,
+                                );
+                                if (cIdx == -1) return;
+                                final contract = state.contracts[cIdx];
+
+                                final clIdx = state.clients.indexWhere(
+                                  (c) => c.id == contract.clientId,
+                                );
+                                if (clIdx == -1) return;
+                                final client = state.clients[clIdx];
+
+                                final success =
+                                    await WhatsAppHelper.sendReceiptMessage(
+                                  entry: entry,
+                                  contract: contract,
+                                  client: client,
+                                );
+
+                                if (context.mounted && success) {
+                                  unawaited(
+                                    context.read<PaymentsCubit>().markAsSent(
+                                          entry.id,
+                                          contract.id,
+                                        ),
+                                  );
+                                }
+                              },
+                            ),
+                            Container(
+                              width: 1,
+                              height: 24,
+                              color: Colors.grey.shade300,
+                              margin: const EdgeInsets.symmetric(horizontal: 4),
+                            ),
+                            IconButton(
+                              icon: Icon(
+                                Icons.edit_note,
+                                color: canEdit
+                                    ? Colors.orange
+                                    : Colors.grey.shade300,
+                              ),
+                              tooltip: canEdit
+                                  ? 'تعديل قيمة الدفعة (للإدارة فقط)'
+                                  : 'لا تملك صلاحية تعديل الدفعات',
+                              onPressed: canEdit
+                                  ? () => showEditPaymentDialog(context, entry)
+                                  : null,
+                            ),
+                            if (canDelete)
+                              IconButton(
+                                icon: Icon(
+                                  Icons.delete_forever,
+                                  color: isLatestEntry
+                                      ? Colors.red
+                                      : Colors.grey.shade300,
+                                ),
+                                tooltip: isLatestEntry
+                                    ? 'إلغاء آخر دفعة'
+                                    : 'لا يمكن حذف الدفعات القديمة',
+                                onPressed: isLatestEntry
+                                    ? () => showDeletePaymentDialog(
+                                          context,
+                                          entry,
+                                        )
+                                    : null,
+                              ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  );
+                }).toList(),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
