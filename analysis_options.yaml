@@ -1,3 +1,5 @@
+# analysis_options.yaml
+
 include:
   - package:very_good_analysis/analysis_options.yaml
   - package:bloc_lint/recommended.yaml
@@ -9,47 +11,51 @@ analyzer:
     - "**/*.freezed.dart"
     - "lib/generated_plugin_registrant.dart"
   errors:
-    # تجاهل الأخطاء التي تظهر بسبب استيراد حزم داخلية (مثل local_storage_api)
-    depend_on_referenced_packages: ignore
+    # تم إرجاع هذه القاعدة لأن استيراد حزم غير مسجلة في الـ pubspec يؤدي لانهيار المشروع عند البناء (Build Failure) في البيئات الأخرى.
+    depend_on_referenced_packages: error
     
-    # تجاهل تحذيرات العناصر القديمة (التي تظهر مع Radio و Switch وغيرها من تحديثات فلاتر)
+    # تم تركها مستثناة بناءً على رغبتك لتسهيل التعامل مع تحديثات Flutter UI المؤقتة.
     deprecated_member_use: ignore
 
 linter:
   rules:
     # --------------------------------------------------------
-    # 🛑 القواعد الشكلية المزعجة التي تم إيقافها (لا تؤثر على الجودة)
+    # ✅ القواعد الأمنية والمنطقية (تم تفعيلها لأن تعطيلها خطير)
+    # --------------------------------------------------------
+    
+    # تم تفعيلها: منع الوصول الديناميكي. تعطيلها هو السبب الأول لـ NoSuchMethodError عند التعامل مع JSON.
+    avoid_dynamic_calls: true
+
+    # --------------------------------------------------------
+    # 🛑 القواعد الشكلية المزعجة (مستثناة - لا تؤثر على جودة الكود)
     # --------------------------------------------------------
     
     # إيقاف إجبار إضافة سطر فارغ في نهاية كل ملف
     eol_at_end_of_file: false
 
-    # إيقاف إجبار كتابة التوثيق (موقوفة مسبقاً من قبلك)
+    # إيقاف إجبار كتابة التوثيق (Comments) لكل الكلاسات
     public_member_api_docs: false
     
-    # إيقاف التقييد بـ 80 حرف للسطر (أكثر قاعدة مزعجة في Flutter)
+    # إيقاف التقييد بـ 80 حرف للسطر (لحرية التنسيق البصري)
     lines_longer_than_80_chars: false
     
-    # إيقاف إجبار استخدام النقاط المتتابعة (..) لأنها تقلل المقروئية أحياناً
+    # إيقاف إجبار استخدام النقاط المتتابعة (..) لزيادة المقروئية
     cascade_invocations: false
     
     # إيقاف الإجبار على ترتيب الاستيرادات أبجدياً
     directives_ordering: false
     
-    # إيقاف إجبار حذف القيم الافتراضية إذا كنت تريد كتابتها للتوضيح
+    # إيقاف إجبار حذف القيم الافتراضية
     avoid_redundant_argument_values: false
     
-    # السماح بكتابة أنواع المتغيرات (var مقابل String) لزيادة المقروئية
+    # السماح بكتابة أنواع المتغيرات (String x =) بدلاً من (var x =)
     omit_local_variable_types: false
     
     # إيقاف التحذير عند استخدام نصوص خام (Raw Strings)
     unnecessary_raw_strings: false
     
-    # السماح بمقارنة المتغيرات بـ == true (مفيدة جداً للمتغيرات التي تقبل Null)
+    # السماح بمقارنة المتغيرات بـ == true (مفيدة للـ Nullable Bools)
     no_literal_bool_comparisons: false
     
-    # السماح باستخدام catch (e) بدون تحديد نوع الخطأ on Exception
+    # السماح باستخدام catch (e) بشكل عام
     avoid_catches_without_on_clauses: false
-    
-    # السماح بالوصول الديناميكي (مهم جداً عند التعامل مع JSON)
-    avoid_dynamic_calls: false

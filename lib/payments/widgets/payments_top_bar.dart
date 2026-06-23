@@ -222,7 +222,10 @@ class PaymentsTopBar extends StatelessWidget {
                         : null,
                     onSelected: (val) {
                       if (val != null) {
-                        context.read<PaymentsCubit>().selectContract(val);
+                        // تم حل المشكلة هنا: إضافة unawaited لاستدعاء الـ Cubit
+                        unawaited(
+                          context.read<PaymentsCubit>().selectContract(val),
+                        );
                       }
                     },
                     dropdownMenuEntries: state.contracts.map((contract) {
@@ -247,7 +250,7 @@ class PaymentsTopBar extends StatelessWidget {
             SizedBox(
               height: 48,
               child: ElevatedButton.icon(
-                onPressed: () => _exportExcel(context),
+                onPressed: () => unawaited(_exportExcel(context)),
                 icon: const Icon(Icons.table_view, size: 20),
                 label: const Text(
                   'Excel',
@@ -268,7 +271,7 @@ class PaymentsTopBar extends StatelessWidget {
             SizedBox(
               height: 48,
               child: ElevatedButton.icon(
-                onPressed: () => _exportPdf(context),
+                onPressed: () => unawaited(_exportPdf(context)),
                 icon: const Icon(Icons.picture_as_pdf, size: 20),
                 label: const Text(
                   'PDF',
@@ -294,7 +297,7 @@ class PaymentsTopBar extends StatelessWidget {
                 height: 48,
                 child: ElevatedButton.icon(
                   onPressed: canAdd
-                      ? () => showAddPaymentDialog(
+                      ? () => showAddPaymentDialog( // تم إزالة unawaited من هنا
                             context,
                             state.selectedContractId!,
                           )

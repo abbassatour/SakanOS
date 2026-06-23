@@ -5,7 +5,6 @@ import 'dart:convert';
 
 import 'package:erp_repository/erp_repository.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:our_home_erp_app/core/utils/calculator_helper.dart';
@@ -94,7 +93,7 @@ class _AddPaymentDialogContentState extends State<_AddPaymentDialogContent> {
   void _onInputChanged(String _) => setState(() {});
 
   void _showErrorSnackBar(String message) {
-    if (!mounted) return;
+    if (!context.mounted) return; // تم التعديل هنا
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message), backgroundColor: Colors.red),
     );
@@ -239,7 +238,7 @@ class _AddPaymentDialogContentState extends State<_AddPaymentDialogContent> {
                       final authorized = await showVerifyPinDialog(
                         context: widget.parentContext,
                       );
-                      if (!mounted) return;
+                      if (!context.mounted) return; // تم التعديل هنا
                       if (!widget.parentContext.mounted) return;
                       if (authorized) {
                         setState(() => isDeposit = false);
@@ -276,7 +275,7 @@ class _AddPaymentDialogContentState extends State<_AddPaymentDialogContent> {
                         final authorized = await showVerifyPinDialog(
                           context: widget.parentContext,
                         );
-                        if (!mounted) return;
+                        if (!context.mounted) return; // تم التعديل هنا
                         if (authorized) {
                           setState(() => isHistoricalPayment = true);
                           final pickedDate = await showDatePicker(
@@ -285,7 +284,7 @@ class _AddPaymentDialogContentState extends State<_AddPaymentDialogContent> {
                             firstDate: DateTime(2000),
                             lastDate: DateTime.now(),
                           );
-                          if (!mounted) return;
+                          if (!context.mounted) return; // تم التعديل هنا
                           if (pickedDate != null) {
                             setState(
                               () => selectedHistoricalDate = pickedDate,
@@ -455,7 +454,7 @@ class _AddPaymentDialogContentState extends State<_AddPaymentDialogContent> {
                                       : null,
                             );
 
-                        if (!mounted) return;
+                        if (!context.mounted) return; // تم التعديل هنا
                         if (!widget.parentContext.mounted) return;
 
                         Navigator.pop(context);
@@ -470,7 +469,7 @@ class _AddPaymentDialogContentState extends State<_AddPaymentDialogContent> {
                           ),
                         );
                       } on Exception catch (e) {
-                        if (!mounted) return;
+                        if (!context.mounted) return; // تم التعديل هنا
                         setState(() => _isSaving = false);
 
                         if (!widget.parentContext.mounted) return;
