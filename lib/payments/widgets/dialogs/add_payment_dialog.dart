@@ -1,11 +1,11 @@
 // lib/payments/widgets/dialogs/add_payment_dialog.dart
-// ignore_for_file: cascade_invocations
 
 import 'dart:async';
 import 'dart:convert';
 
 import 'package:erp_repository/erp_repository.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:our_home_erp_app/core/utils/calculator_helper.dart';
@@ -240,6 +240,7 @@ class _AddPaymentDialogContentState extends State<_AddPaymentDialogContent> {
                         context: widget.parentContext,
                       );
                       if (!mounted) return;
+                      if (!widget.parentContext.mounted) return;
                       if (authorized) {
                         setState(() => isDeposit = false);
                       }
