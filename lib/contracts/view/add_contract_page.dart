@@ -833,5 +833,3 @@ class _AddContractPageState extends State<AddContractPage> {
     );
   }
 }
-
-

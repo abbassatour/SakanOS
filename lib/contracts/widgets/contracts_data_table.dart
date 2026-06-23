@@ -372,4 +372,3 @@ class ContractsDataTable extends StatelessWidget {
     );
   }
 }
-

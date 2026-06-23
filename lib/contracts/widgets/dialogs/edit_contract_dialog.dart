@@ -985,4 +985,3 @@ class _EditContractDialogContentState
     );
   }
 }
-
