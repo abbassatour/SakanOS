@@ -7,6 +7,16 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:erp_repository/erp_repository.dart';
 
+// 🌟 استيراد النماذج لحل مشكلة الأنواع المفقودة في State و UI
+import 'package:local_storage_api/local_storage_api.dart'
+    show
+        Apartment,
+        Building,
+        Client,
+        Contract,
+        MaterialPricesHistoryData,
+        PaymentsLedgerData;
+
 import 'package:our_home_erp_app/core/utils/calculator_helper.dart';
 
 part 'payments_state.dart';
