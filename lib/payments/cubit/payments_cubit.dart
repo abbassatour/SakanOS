@@ -7,7 +7,8 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:erp_repository/erp_repository.dart';
 
-// 🌟 استيراد النماذج لحل مشكلة الأنواع المفقودة في State و UI
+// ignore: depend_on_referenced_packages
+// reason: Needed for model types in state
 import 'package:local_storage_api/local_storage_api.dart'
     show
         Apartment,
@@ -118,9 +119,11 @@ class PaymentsCubit extends Cubit<PaymentsState> {
       if (contract.coefficients.isNotEmpty && contract.coefficients != '{}') {
         final decodedMap =
             jsonDecode(contract.coefficients) as Map<String, dynamic>;
-        decodedMap.forEach((key, dynamic value) {
-          contractCoefficients[key] = (value as num).toDouble();
-        });
+        
+        // تم حل مشكلة cascade_invocations باستخدام for loop عادية
+        for (final entry in decodedMap.entries) {
+          contractCoefficients[entry.key] = (entry.value as num).toDouble();
+        }
       }
 
       final safeAreaForCalculation =
@@ -224,6 +227,7 @@ class PaymentsCubit extends Cubit<PaymentsState> {
 
       unawaited(
         _erpRepository.forceSyncWithCloud().catchError((Object e) {
+          // reason: Logging background sync failures
           // ignore: avoid_print
           print('Sync Error: $e');
           return '';
@@ -263,6 +267,7 @@ class PaymentsCubit extends Cubit<PaymentsState> {
 
       unawaited(
         _erpRepository.forceSyncWithCloud().catchError((Object e) {
+          // reason: Logging background sync failures
           // ignore: avoid_print
           print('Sync Error: $e');
           return '';
@@ -298,6 +303,7 @@ class PaymentsCubit extends Cubit<PaymentsState> {
 
       unawaited(
         _erpRepository.forceSyncWithCloud().catchError((Object e) {
+          // reason: Logging background sync failures
           // ignore: avoid_print
           print('Sync Error: $e');
           return '';
