@@ -1,20 +1,19 @@
-// contracts/widgets/dialogs/edit_contract_dialog.dart
-// ignore_for_file: depend_on_referenced_packages
+// lib/contracts/widgets/dialogs/edit_contract_dialog.dart
 
 import 'dart:async';
 
+import 'package:erp_repository/erp_repository.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:local_storage_api/local_storage_api.dart' show Contract;
 
-import '../../../auth/cubit/auth_cubit.dart';
-import '../../../buildings/cubit/buildings_cubit.dart';
-import '../../../core/constants/app_permissions.dart';
-import '../../../core/utils/handover_pledge_pdf_helper.dart';
-import '../../../core/utils/pdf_preview_page.dart';
-import '../../cubit/contracts_cubit.dart';
+import 'package:our_home_erp_app/auth/cubit/auth_cubit.dart';
+import 'package:our_home_erp_app/buildings/cubit/buildings_cubit.dart';
+import 'package:our_home_erp_app/contracts/cubit/contracts_cubit.dart';
 import 'package:our_home_erp_app/contracts/widgets/dialogs/verify_pin_dialog.dart';
+import 'package:our_home_erp_app/core/constants/app_permissions.dart';
+import 'package:our_home_erp_app/core/utils/handover_pledge_pdf_helper.dart';
+import 'package:our_home_erp_app/core/utils/pdf_preview_page.dart';
 
 void showEditContractDialog(BuildContext parentContext, Contract contract) {
   unawaited(
@@ -65,10 +64,8 @@ class _EditContractDialogContentState
     super.initState();
     final contract = widget.contract;
 
-    detailsController =
-        TextEditingController(text: contract.apartmentDetails);
-    guarantorController =
-        TextEditingController(text: contract.guarantorName);
+    detailsController = TextEditingController(text: contract.apartmentDetails);
+    guarantorController = TextEditingController(text: contract.guarantorName);
     monthsController =
         TextEditingController(text: contract.installmentsCount.toString());
     monthlyAmountController =
@@ -79,15 +76,15 @@ class _EditContractDialogContentState
     handoverNotesController =
         TextEditingController(text: contract.handoverNotes ?? '');
     actualHandoverDate = contract.actualHandoverDate?.toLocal();
-    isHandoverFormVisible = contract.isHandedOver == true;
+    isHandoverFormVisible = contract.isHandedOver;
     isAllocated = contract.contractType == 'متخصص';
 
-    isPenaltyActive = contract.isPenaltyActive == true;
+    isPenaltyActive = contract.isPenaltyActive;
     penaltyPctCtrl = TextEditingController(
-      text: (contract.penaltyPercentage ?? 0).toString(),
+      text: contract.penaltyPercentage.toString(),
     );
     penaltyIntervalCtrl = TextEditingController(
-      text: (contract.penaltyIntervalMonths ?? 1).toString(),
+      text: contract.penaltyIntervalMonths.toString(),
     );
   }
 
@@ -110,10 +107,13 @@ class _EditContractDialogContentState
 
     final isCompleted = contract.isCompleted;
 
-    final authState = parentCtx.read<AuthCubit>().state;
-    final isSuperAdmin = authState.isSystemAdmin;
-    final canEdit =
-        authState.hasPermission(AppPermissions.createContracts) && !isCompleted;
+    final isSuperAdmin = parentCtx.select<AuthCubit, bool>(
+      (c) => c.state.isSystemAdmin,
+    );
+    final canEdit = parentCtx.select<AuthCubit, bool>(
+          (c) => c.state.hasPermission(AppPermissions.createContracts),
+        ) &&
+        !isCompleted;
 
     return AlertDialog(
       title: Row(
@@ -192,8 +192,7 @@ class _EditContractDialogContentState
                       Expanded(
                         child: Text(
                           'لا يمكن تغيير العميل، العقار، أو سعر المتر '
-                          'بعد التوقيع. يمكنك فقط تحديث التفاصيل '
-                          'الإدارية أو ملف العقد.',
+                          'بعد التوقيع. يمكنك فقط تحديث التفاصيل الإدارية.',
                           style: TextStyle(color: Colors.brown, fontSize: 13),
                         ),
                       ),
@@ -304,11 +303,11 @@ class _EditContractDialogContentState
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: contract.isHandedOver == true
+                    color: contract.isHandedOver
                         ? Colors.teal.shade50
                         : Colors.blueGrey.shade50,
                     border: Border.all(
-                      color: contract.isHandedOver == true
+                      color: contract.isHandedOver
                           ? Colors.teal.shade300
                           : Colors.blueGrey.shade200,
                       width: 2,
@@ -325,19 +324,19 @@ class _EditContractDialogContentState
                             children: [
                               Icon(
                                 Icons.vpn_key,
-                                color: contract.isHandedOver == true
+                                color: contract.isHandedOver
                                     ? Colors.teal
                                     : Colors.blueGrey.shade700,
                               ),
                               const SizedBox(width: 8),
                               Text(
-                                contract.isHandedOver == true
+                                contract.isHandedOver
                                     ? '✅ الشقة مُسلّمة للعميل'
                                     : 'إدارة تسليم العقار',
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 16,
-                                  color: contract.isHandedOver == true
+                                  color: contract.isHandedOver
                                       ? Colors.teal.shade800
                                       : Colors.blueGrey.shade800,
                                 ),
@@ -455,7 +454,7 @@ class _EditContractDialogContentState
                             width: double.infinity,
                             child: ElevatedButton(
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: contract.isHandedOver == true
+                                backgroundColor: contract.isHandedOver
                                     ? Colors.orange
                                     : Colors.teal,
                                 foregroundColor: Colors.white,
@@ -480,8 +479,8 @@ class _EditContractDialogContentState
                                   parentCtx,
                                 );
                                 if (!isAuth) return;
-
                                 if (!parentCtx.mounted) return;
+
                                 ScaffoldMessenger.of(parentCtx).showSnackBar(
                                   const SnackBar(
                                     content: Text('جاري توثيق التسليم... ⏳'),
@@ -514,13 +513,13 @@ class _EditContractDialogContentState
                                 }
                               },
                               child: Text(
-                                contract.isHandedOver == true
+                                contract.isHandedOver
                                     ? 'تحديث بيانات الاستلام'
                                     : 'تأكيد وحفظ الاستلام',
                               ),
                             ),
                           ),
-                        if (contract.isHandedOver == true && canEdit) ...[
+                        if (contract.isHandedOver && canEdit) ...[
                           const SizedBox(height: 8),
                           SizedBox(
                             width: double.infinity,
@@ -542,6 +541,7 @@ class _EditContractDialogContentState
                                 );
                                 if (!isAuth) return;
                                 if (!parentCtx.mounted) return;
+
                                 ScaffoldMessenger.of(parentCtx).showSnackBar(
                                   const SnackBar(
                                     content: Text('جاري إلغاء التسليم... ⏳'),
@@ -666,7 +666,7 @@ class _EditContractDialogContentState
                           'بعد استلام الشقة.',
                         ),
                         value: isPenaltyActive,
-                        activeColor: Colors.deepOrange,
+                        activeThumbColor: Colors.deepOrange,
                         onChanged: canEdit
                             ? (val) => setState(() => isPenaltyActive = val)
                             : null,
@@ -954,8 +954,7 @@ class _EditContractDialogContentState
                                 monthlyAmountController.text,
                               ),
                               contractDate: selectedDate,
-                              isPenaltyActive:
-                                  isAllocated ? isPenaltyActive : false,
+                              isPenaltyActive: isAllocated && isPenaltyActive,
                               penaltyPercentage: isAllocated && isPenaltyActive
                                   ? (double.tryParse(penaltyPctCtrl.text) ??
                                       0.0)

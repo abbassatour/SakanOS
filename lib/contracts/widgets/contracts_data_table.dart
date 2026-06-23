@@ -1,13 +1,10 @@
-// contracts/widgets/contracts_data_table.dart
+// lib/contracts/widgets/contracts_data_table.dart
 
 import 'dart:async';
 
+import 'package:erp_repository/erp_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
-// ignore: depend_on_referenced_packages, reason: Needed for displaying data
-import 'package:local_storage_api/local_storage_api.dart'
-    show Client, Contract;
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:our_home_erp_app/core/utils/formatters.dart';
@@ -173,7 +170,7 @@ class ContractsDataTable extends StatelessWidget {
                   actualClient != null ? actualClient.name : 'عميل محذوف';
 
               final isAllocated = contract.contractType == 'متخصص';
-              final isHandedOver = contract.isHandedOver == true;
+              final isHandedOver = contract.isHandedOver;
 
               return DataRow(
                 color: WidgetStateProperty.resolveWith<Color?>(
@@ -301,10 +298,19 @@ class ContractsDataTable extends StatelessWidget {
                             const SizedBox(width: 4),
                             Text(
                               '${contract.updatedAt.year}/'
-                              '${contract.updatedAt.month.toString().padLeft(2, '0')}/'
-                              '${contract.updatedAt.day.toString().padLeft(2, '0')} '
+                              '${contract.updatedAt.month.toString().padLeft(
+                                    2,
+                                    '0',
+                                  )}/'
+                              '${contract.updatedAt.day.toString().padLeft(
+                                    2,
+                                    '0',
+                                  )} '
                               '${contract.updatedAt.hour}:'
-                              '${contract.updatedAt.minute.toString().padLeft(2, '0')}',
+                              '${contract.updatedAt.minute.toString().padLeft(
+                                    2,
+                                    '0',
+                                  )}',
                               style: const TextStyle(
                                 fontSize: 11,
                                 color: Colors.grey,
