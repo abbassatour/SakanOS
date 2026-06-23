@@ -1,5 +1,4 @@
 // lib/payments/cubit/payments_cubit.dart
-// ignore_for_file: depend_on_referenced_packages
 
 import 'dart:async';
 import 'dart:convert';
@@ -7,10 +6,8 @@ import 'dart:convert';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:erp_repository/erp_repository.dart';
-import 'package:local_storage_api/local_storage_api.dart'
-    show Apartment, Building, Client, Contract, MaterialPricesHistoryData, PaymentsLedgerData;
 
-import '../../core/utils/calculator_helper.dart';
+import 'package:our_home_erp_app/core/utils/calculator_helper.dart';
 
 part 'payments_state.dart';
 
@@ -20,7 +17,7 @@ class PaymentsCubit extends Cubit<PaymentsState> {
   final ErpRepository _erpRepository;
 
   double _roundTo10(double val) => (val / 10).round() * 10.0;
-  
+
   double _roundConvertedMeters(double val) =>
       double.parse(val.toStringAsFixed(6));
 
@@ -102,14 +99,16 @@ class PaymentsCubit extends Cubit<PaymentsState> {
   }) async {
     emit(state.copyWith(status: PaymentsStatus.loading));
     try {
-      final contractIndex = state.contracts.indexWhere((c) => c.id == contractId);
+      final contractIndex =
+          state.contracts.indexWhere((c) => c.id == contractId);
       if (contractIndex == -1) throw Exception('هذا العقد غير موجود.');
       final contract = state.contracts[contractIndex];
 
       final contractCoefficients = <String, double>{};
       if (contract.coefficients.isNotEmpty && contract.coefficients != '{}') {
-        final decodedMap = jsonDecode(contract.coefficients) as Map<String, dynamic>;
-        decodedMap.forEach((key, value) {
+        final decodedMap =
+            jsonDecode(contract.coefficients) as Map<String, dynamic>;
+        decodedMap.forEach((key, dynamic value) {
           contractCoefficients[key] = (value as num).toDouble();
         });
       }
@@ -212,8 +211,7 @@ class PaymentsCubit extends Cubit<PaymentsState> {
       );
 
       await selectContract(contractId);
-      
-      // 🌟 استخدام unawaited لمنع الخطأ
+
       unawaited(
         _erpRepository.forceSyncWithCloud().catchError((Object e) {
           // ignore: avoid_print
@@ -252,7 +250,7 @@ class PaymentsCubit extends Cubit<PaymentsState> {
       );
 
       await selectContract(entryToEdit.contractId);
-      
+
       unawaited(
         _erpRepository.forceSyncWithCloud().catchError((Object e) {
           // ignore: avoid_print
@@ -287,7 +285,7 @@ class PaymentsCubit extends Cubit<PaymentsState> {
       await _erpRepository.softDeleteLedgerEntry(entryToDelete.id);
 
       await selectContract(entryToDelete.contractId);
-      
+
       unawaited(
         _erpRepository.forceSyncWithCloud().catchError((Object e) {
           // ignore: avoid_print
