@@ -7,8 +7,6 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:erp_repository/erp_repository.dart';
 
-// ignore: depend_on_referenced_packages
-// reason: Needed for model types in state
 import 'package:local_storage_api/local_storage_api.dart'
     show
         Apartment,
