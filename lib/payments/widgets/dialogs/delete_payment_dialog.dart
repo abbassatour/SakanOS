@@ -15,7 +15,6 @@ Future<void> showDeletePaymentDialog(
 ) async {
   final isAuthorized = await showVerifyPinDialog(
     context: parentContext,
-    correctPin: '0000',
     message: 'حذف الإيصال الأخير يتطلب رمز المحاسب',
   );
   if (!isAuthorized) return;

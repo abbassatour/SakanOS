@@ -5,8 +5,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-// ignore: depend_on_referenced_packages
 // reason: Needed for Apartment and Building models
+// ignore: depend_on_referenced_packages
 import 'package:local_storage_api/local_storage_api.dart'
     show Apartment, Building;
 
@@ -188,8 +188,6 @@ class PaymentsTopBar extends StatelessWidget {
                 builder: (context, constraints) {
                   return DropdownMenu<String>(
                     width: constraints.maxWidth,
-                    enableSearch: true,
-                    enableFilter: true,
                     hintText: '🔍 ابحث واختر العقد...',
                     textStyle: const TextStyle(
                       fontWeight: FontWeight.bold,

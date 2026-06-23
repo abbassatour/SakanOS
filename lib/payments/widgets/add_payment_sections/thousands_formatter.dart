@@ -9,7 +9,7 @@ class ThousandsFormatter extends TextInputFormatter {
     TextEditingValue newValue,
   ) {
     if (newValue.text.isEmpty) return TextEditingValue.empty;
-    final digitsOnly = newValue.text.replaceAll(RegExp(r'[^0-9]'), '');
+    final digitsOnly = newValue.text.replaceAll(RegExp('[^0-9]'), '');
     if (digitsOnly.isEmpty) return TextEditingValue.empty;
 
     var formatted = '';
