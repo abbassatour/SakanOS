@@ -1,18 +1,17 @@
-// lib/contracts/view/contracts_view.dart
-// ignore_for_file: always_use_package_imports, depend_on_referenced_packages
+// contracts/view/contracts_view.dart
 
 import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:local_storage_api/local_storage_api.dart'
-    show Client, Contract;
 
-import '../../auth/cubit/auth_cubit.dart';
-import '../../core/constants/app_permissions.dart';
-import '../cubit/contracts_cubit.dart';
-import 'add_contract_page.dart';
-import 'widgets/widgets.dart';
+import 'package:our_home_erp_app/auth/cubit/auth_cubit.dart';
+import 'package:our_home_erp_app/buildings/cubit/buildings_cubit.dart';
+import 'package:our_home_erp_app/contracts/cubit/contracts_cubit.dart';
+import 'package:our_home_erp_app/contracts/view/add_contract_page.dart';
+import 'package:our_home_erp_app/contracts/widgets/widgets.dart';
+import 'package:our_home_erp_app/core/constants/app_permissions.dart';
+import 'package:our_home_erp_app/settings/cubit/settings_cubit.dart';
 
 class ContractsView extends StatefulWidget {
   const ContractsView({super.key});
@@ -74,6 +73,8 @@ class _ContractsViewState extends State<ContractsView> {
           builder: (_) => MultiBlocProvider(
             providers: [
               BlocProvider.value(value: context.read<ContractsCubit>()),
+              BlocProvider.value(value: context.read<BuildingsCubit>()),
+              BlocProvider.value(value: context.read<SettingsCubit>()),
             ],
             child: const AddContractPage(),
           ),
@@ -84,7 +85,6 @@ class _ContractsViewState extends State<ContractsView> {
 
   @override
   Widget build(BuildContext context) {
-    // 🌟 الأداء الخارق: نراقب الصلاحيات بـ select فقط
     final canCreate = context.select<AuthCubit, bool>(
       (cubit) => cubit.state.hasPermission(AppPermissions.createContracts),
     );

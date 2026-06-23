@@ -1,4 +1,4 @@
-// lib\contracts\widgets\dialogs\edit_contract_dialog.dart
+// contracts/widgets/dialogs/edit_contract_dialog.dart
 // ignore_for_file: depend_on_referenced_packages
 
 import 'dart:async';
@@ -14,7 +14,7 @@ import '../../../core/constants/app_permissions.dart';
 import '../../../core/utils/handover_pledge_pdf_helper.dart';
 import '../../../core/utils/pdf_preview_page.dart';
 import '../../cubit/contracts_cubit.dart';
-import '../widgets/verify_pin_dialog.dart';
+import 'package:our_home_erp_app/contracts/widgets/dialogs/verify_pin_dialog.dart';
 
 void showEditContractDialog(BuildContext parentContext, Contract contract) {
   unawaited(

@@ -1,7 +1,8 @@
-// lib\contracts\widgets\add_contract\property_section.dart
-// ignore_for_file: always_use_package_imports
+// contracts/widgets/add_contract/property_section.dart
 
 import 'package:flutter/material.dart';
+
+// ignore: depend_on_referenced_packages, reason: Needed for apartment model
 import 'package:local_storage_api/local_storage_api.dart'
     show Apartment, Building;
 
@@ -43,7 +44,7 @@ class PropertySection extends StatelessWidget {
               SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'عقد محفظة (لاحق التخصص): سيتم تخصيص العقار لاحقاً بناءً '
+                  'عقد محفظة: سيتم تخصيص العقار لاحقاً بناءً '
                   'على الرصيد المتراكم.',
                   style: TextStyle(
                     color: Colors.blueGrey,

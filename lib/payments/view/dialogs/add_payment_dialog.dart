@@ -6,7 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:local_storage_api/local_storage_api.dart';
 
 import '../../cubit/payments_cubit.dart';
-import '../../../contracts/view/dialogs/verify_pin_dialog.dart';
+import 'package:our_home_erp_app/contracts/widgets/dialogs/verify_pin_dialog.dart';
 import '../../../settings/cubit/settings_cubit.dart';
 import 'package:our_home_erp_app/core/utils/calculator_helper.dart';
 

@@ -1,5 +1,4 @@
-// lib\contracts\widgets\add_contract\auto_coefficients_section.dart
-// ignore_for_file: always_use_package_imports
+// contracts/widgets/add_contract/auto_coefficients_section.dart
 
 import 'package:flutter/material.dart';
 

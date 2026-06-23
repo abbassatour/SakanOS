@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:local_storage_api/local_storage_api.dart' show InstallmentsScheduleData;
 import '../../cubit/schedule_cubit.dart';
-import '../../../contracts/view/dialogs/verify_pin_dialog.dart';
+import 'package:our_home_erp_app/contracts/widgets/dialogs/verify_pin_dialog.dart';
 
 void showEditSingleScheduleDialog(BuildContext parentContext, InstallmentsScheduleData schedule) {
   final notesController = TextEditingController(text: schedule.notes ?? '');

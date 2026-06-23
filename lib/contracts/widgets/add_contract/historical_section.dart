@@ -1,9 +1,8 @@
-// lib\contracts\widgets\add_contract\historical_section.dart
-// ignore_for_file: always_use_package_imports
+// contracts/widgets/add_contract/historical_section.dart
 
 import 'package:flutter/material.dart';
 
-import '../../../../core/utils/formatters.dart';
+import 'package:our_home_erp_app/core/utils/formatters.dart';
 
 class HistoricalSection extends StatelessWidget {
   const HistoricalSection({

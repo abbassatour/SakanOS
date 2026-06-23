@@ -1,11 +1,7 @@
-// lib\contracts\widgets\filter_bottom_sheet.dart
-// ignore_for_file: always_use_package_imports
+// contracts/widgets/filter_bottom_sheet.dart
 
 import 'package:flutter/material.dart';
 
-// ==========================================
-// 🌟 كلاس مساعد لتخزين نتائج الفلترة وإرجاعها
-// ==========================================
 class ContractFilters {
   const ContractFilters({
     required this.status,
@@ -133,8 +129,6 @@ class _FilterBottomSheetContentState extends State<_FilterBottomSheetContent> {
             ],
           ),
           const SizedBox(height: 24),
-
-          // 1. حالة العقد
           const Text(
             '1. حالة العقد (أرشفة):',
             style: TextStyle(
@@ -147,18 +141,30 @@ class _FilterBottomSheetContentState extends State<_FilterBottomSheetContent> {
             spacing: 8,
             runSpacing: 8,
             children: [
-              _buildChipRadio('all', '🌐 الكل', _tempStatus, Colors.blueGrey,
-                  (v) => setState(() => _tempStatus = v)),
-              _buildChipRadio('active', '📈 عقود جارية', _tempStatus,
-                  Colors.teal, (v) => setState(() => _tempStatus = v)),
-              _buildChipRadio('completed', '🔒 عقود مكتملة', _tempStatus,
-                  Colors.green, (v) => setState(() => _tempStatus = v)),
+              _buildChipRadio(
+                'all',
+                '🌐 الكل',
+                _tempStatus,
+                Colors.blueGrey,
+                (v) => setState(() => _tempStatus = v),
+              ),
+              _buildChipRadio(
+                'active',
+                '📈 عقود جارية',
+                _tempStatus,
+                Colors.teal,
+                (v) => setState(() => _tempStatus = v),
+              ),
+              _buildChipRadio(
+                'completed',
+                '🔒 عقود مكتملة',
+                _tempStatus,
+                Colors.green,
+                (v) => setState(() => _tempStatus = v),
+              ),
             ],
           ),
-
           const Divider(height: 32, thickness: 1.5),
-
-          // 2. نوع العقد
           const Text(
             '2. نوع العقد:',
             style: TextStyle(
@@ -171,18 +177,30 @@ class _FilterBottomSheetContentState extends State<_FilterBottomSheetContent> {
             spacing: 8,
             runSpacing: 8,
             children: [
-              _buildChipRadio('all', '🌐 الكل', _tempType, Colors.blueGrey,
-                  (v) => setState(() => _tempType = v)),
-              _buildChipRadio('allocated', '🏢 متخصص (شقة محددة)', _tempType,
-                  Colors.indigo, (v) => setState(() => _tempType = v)),
-              _buildChipRadio('unallocated', '📊 لاحق التخصص (أسهم)', _tempType,
-                  Colors.deepOrange, (v) => setState(() => _tempType = v)),
+              _buildChipRadio(
+                'all',
+                '🌐 الكل',
+                _tempType,
+                Colors.blueGrey,
+                (v) => setState(() => _tempType = v),
+              ),
+              _buildChipRadio(
+                'allocated',
+                '🏢 متخصص (شقة محددة)',
+                _tempType,
+                Colors.indigo,
+                (v) => setState(() => _tempType = v),
+              ),
+              _buildChipRadio(
+                'unallocated',
+                '📊 لاحق التخصص',
+                _tempType,
+                Colors.deepOrange,
+                (v) => setState(() => _tempType = v),
+              ),
             ],
           ),
-
           const Divider(height: 32, thickness: 1.5),
-
-          // 3. حالة التسليم
           const Text(
             '3. حالة التسليم الفعلي للشقة:',
             style: TextStyle(
@@ -195,18 +213,30 @@ class _FilterBottomSheetContentState extends State<_FilterBottomSheetContent> {
             spacing: 8,
             runSpacing: 8,
             children: [
-              _buildChipRadio('all', '🌐 الكل', _tempHandover, Colors.blueGrey,
-                  (v) => setState(() => _tempHandover = v)),
-              _buildChipRadio('delivered', '🔑 تم تسليم الشقة', _tempHandover,
-                  Colors.green, (v) => setState(() => _tempHandover = v)),
-              _buildChipRadio('pending', '⏳ بانتظار التسليم', _tempHandover,
-                  Colors.orange, (v) => setState(() => _tempHandover = v)),
+              _buildChipRadio(
+                'all',
+                '🌐 الكل',
+                _tempHandover,
+                Colors.blueGrey,
+                (v) => setState(() => _tempHandover = v),
+              ),
+              _buildChipRadio(
+                'delivered',
+                '🔑 تم تسليم الشقة',
+                _tempHandover,
+                Colors.green,
+                (v) => setState(() => _tempHandover = v),
+              ),
+              _buildChipRadio(
+                'pending',
+                '⏳ بانتظار التسليم',
+                _tempHandover,
+                Colors.orange,
+                (v) => setState(() => _tempHandover = v),
+              ),
             ],
           ),
-
           const SizedBox(height: 32),
-
-          // زر التطبيق
           SizedBox(
             width: double.infinity,
             height: 50,

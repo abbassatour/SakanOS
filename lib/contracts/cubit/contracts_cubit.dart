@@ -1,15 +1,14 @@
-// lib/contracts/cubit/contracts_cubit.dart
-// ignore_for_file: depend_on_referenced_packages
+// contracts/cubit/contracts_cubit.dart
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:erp_repository/erp_repository.dart';
-import 'package:local_storage_api/local_storage_api.dart' show Client, Contract;
+import 'package:local_storage_api/local_storage_api.dart'
+    show Client, Contract;
 
 part 'contracts_state.dart';
 
 class ContractsCubit extends Cubit<ContractsState> {
-  // 🌟 تم الحفاظ على الـ Positional Constructor
   ContractsCubit(this._erpRepository) : super(const ContractsState());
 
   final ErpRepository _erpRepository;
@@ -88,7 +87,6 @@ class ContractsCubit extends Cubit<ContractsState> {
   }) async {
     emit(state.copyWith(status: ContractsStatus.loading));
     try {
-      // تمرير البيانات فقط، المستودع سيتكفل بالباقي 🪄
       await _erpRepository.addContract(
         clientId: clientId,
         contractType: contractType,
@@ -129,14 +127,11 @@ class ContractsCubit extends Cubit<ContractsState> {
 
   Future<void> attachContractFile({
     required String contractId,
-    required String filePath, // نرسل المسار فقط، والمستودع يتعامل مع الـ File
+    required String filePath,
     required String extension,
   }) async {
     emit(state.copyWith(status: ContractsStatus.loading));
     try {
-      // لقد قمنا بتعديل الواجهة لكي لا تستخدم dart:io في الـ Cubit
-      // ولكن لضمان التوافق المؤقت، الـ View الخاص بك هو من سينشئ الـ File ويرسله.
-      // (يفضل تحديث الـ View لاحقاً)
       throw UnimplementedError('يرجى تحديث استدعاء هذه الدالة في الـ View');
     } on Exception catch (e) {
       emit(
@@ -152,10 +147,9 @@ class ContractsCubit extends Cubit<ContractsState> {
     emit(state.copyWith(status: ContractsStatus.loading));
     try {
       final contractToCancel = state.contracts.firstWhere((c) => c.id == id);
-      
-      // نرسل رقم الشقة مع العقد للمستودع ليتصرف
+
       await _erpRepository.deleteContract(id, contractToCancel.apartmentId);
-      
+
       await fetchData();
     } on Exception catch (e) {
       emit(
@@ -243,7 +237,7 @@ class ContractsCubit extends Cubit<ContractsState> {
     emit(state.copyWith(status: ContractsStatus.loading));
     try {
       final contract = state.contracts.firstWhere((c) => c.id == contractId);
-      
+
       await _erpRepository.markContractAsHandedOver(
         contractId: contractId,
         apartmentId: contract.apartmentId,
@@ -266,7 +260,7 @@ class ContractsCubit extends Cubit<ContractsState> {
     emit(state.copyWith(status: ContractsStatus.loading));
     try {
       final contract = state.contracts.firstWhere((c) => c.id == contractId);
-      
+
       await _erpRepository.cancelContractHandover(
         contractId: contractId,
         apartmentId: contract.apartmentId,

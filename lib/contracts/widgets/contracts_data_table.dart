@@ -1,21 +1,20 @@
-// lib\contracts\widgets\contracts_data_table.dart
-// ignore_for_file: always_use_package_imports, depend_on_referenced_packages
+// contracts/widgets/contracts_data_table.dart
 
 import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
+// ignore: depend_on_referenced_packages, reason: Needed for displaying data
 import 'package:local_storage_api/local_storage_api.dart'
     show Client, Contract;
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../../core/utils/formatters.dart';
-import '../../../dashboard/cubit/dashboard_cubit.dart';
-import '../../../payments/cubit/payments_cubit.dart';
-import '../../../profile/cubit/client_profile_cubit.dart';
-import '../../../profile/view/contract_details_page.dart';
-import '../../../schedule/cubit/schedule_cubit.dart';
-import '../../cubit/contracts_cubit.dart';
+import 'package:our_home_erp_app/core/utils/formatters.dart';
+import 'package:our_home_erp_app/dashboard/cubit/dashboard_cubit.dart';
+import 'package:our_home_erp_app/payments/cubit/payments_cubit.dart';
+import 'package:our_home_erp_app/profile/view/contract_details_page.dart';
+import 'package:our_home_erp_app/schedule/cubit/schedule_cubit.dart';
 
 class ContractsDataTable extends StatelessWidget {
   const ContractsDataTable({

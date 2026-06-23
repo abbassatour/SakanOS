@@ -1,5 +1,4 @@
-// lib\contracts\widgets\contracts_search_bar.dart
-// ignore_for_file: always_use_package_imports
+// contracts/widgets/contracts_search_bar.dart
 
 import 'package:flutter/material.dart';
 
@@ -54,7 +53,8 @@ class ContractsSearchBar extends StatelessWidget {
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide(color: Colors.teal.shade400, width: 2),
+                    borderSide:
+                        BorderSide(color: Colors.teal.shade400, width: 2),
                   ),
                   suffixIcon: searchQuery.isNotEmpty
                       ? IconButton(

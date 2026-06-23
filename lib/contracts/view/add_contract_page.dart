@@ -1,22 +1,21 @@
-// lib/contracts/view/add_contract_page.dart
+// contracts/view/add_contract_page.dart
 
+import 'dart:async';
 import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:local_storage_api/local_storage_api.dart'; 
-import '../../core/utils/calculator_helper.dart';
-import '../../core/utils/formatters.dart';
-import '../../settings/cubit/settings_cubit.dart';
-import '../../buildings/cubit/buildings_cubit.dart';
-import '../cubit/contracts_cubit.dart';
-import 'dialogs/verify_pin_dialog.dart';
 
-import 'widgets/add_contract/historical_section.dart';
-import 'widgets/add_contract/basic_info_section.dart';
-import 'widgets/add_contract/auto_coefficients_section.dart';
-import 'widgets/add_contract/shared_coefficients_section.dart';
-import 'widgets/add_contract/property_section.dart';
-import 'widgets/add_contract/financial_section.dart';
+// ignore: depend_on_referenced_packages, reason: Needed for calculation models
+import 'package:local_storage_api/local_storage_api.dart'
+    show MaterialPricesHistoryData;
+
+import 'package:our_home_erp_app/buildings/cubit/buildings_cubit.dart';
+import 'package:our_home_erp_app/contracts/contracts.dart';
+import 'package:our_home_erp_app/contracts/widgets/widgets.dart';
+import 'package:our_home_erp_app/core/utils/calculator_helper.dart';
+import 'package:our_home_erp_app/core/utils/formatters.dart';
+import 'package:our_home_erp_app/settings/cubit/settings_cubit.dart';
 
 class AddContractPage extends StatefulWidget {
   const AddContractPage({super.key});
@@ -28,28 +27,25 @@ class AddContractPage extends StatefulWidget {
 class _AddContractPageState extends State<AddContractPage> {
   bool _isSaving = false;
   String? selectedClientId;
-  String selectedContractType = 'متخصص'; 
+  String selectedContractType = 'متخصص';
   String? selectedBuildingId;
   String? selectedApartmentId;
 
   final areaController = TextEditingController();
   final priceController = TextEditingController();
-  final monthsController = TextEditingController(text: '48'); 
-  final durationCoefficientCtrl = TextEditingController(text: '0'); 
-  final guarantorController = TextEditingController(); 
-  final monthlyAmountCtrl = TextEditingController(); 
-  final downPaymentCtrl = TextEditingController(text: '0'); 
+  final monthsController = TextEditingController(text: '48');
+  final durationCoefficientCtrl = TextEditingController(text: '0');
+  final guarantorController = TextEditingController();
+  final monthlyAmountCtrl = TextEditingController();
+  final downPaymentCtrl = TextEditingController(text: '0');
 
-  // متغيرات الاستلام
-  DateTime? agreedHandoverDate; 
+  DateTime? agreedHandoverDate;
   final gracePeriodCtrl = TextEditingController(text: '0');
 
-  // متحكمات غرامة التأخير 
   bool isPenaltyActive = false;
-  final penaltyPctCtrl = TextEditingController(text: '2'); 
-  final penaltyIntervalCtrl = TextEditingController(text: '1'); 
+  final penaltyPctCtrl = TextEditingController(text: '2');
+  final penaltyIntervalCtrl = TextEditingController(text: '1');
 
-  // معاملات إضافية للتجهيزات المشتركة
   final blockCoeffCtrl = TextEditingController(text: '0');
   final coloredPlasterCoeffCtrl = TextEditingController(text: '0');
   final marbleStairsCoeffCtrl = TextEditingController(text: '0');
@@ -57,7 +53,6 @@ class _AddContractPageState extends State<AddContractPage> {
   final plumbingCoeffCtrl = TextEditingController(text: '0');
   final chimneysCoeffCtrl = TextEditingController(text: '0');
 
-  // معاملات التاريخ
   final histIronCtrl = TextEditingController();
   final histCementCtrl = TextEditingController();
   final histBlockCtrl = TextEditingController();
@@ -65,7 +60,6 @@ class _AddContractPageState extends State<AddContractPage> {
   final histAggregatesCtrl = TextEditingController();
   final histWorkerCtrl = TextEditingController();
 
-  // 🌟 [إضافة الدولار]: المتغيرات الجديدة
   bool isDollarContract = false;
   final histDollarRateCtrl = TextEditingController();
 
@@ -73,28 +67,41 @@ class _AddContractPageState extends State<AddContractPage> {
   bool isHistoricalContract = false;
   DateTime selectedHistoricalDate = DateTime.now();
 
-  // 🌟 [الدرع المالي]: متغير لحفظ السعر الخام (غير المقرب) في الخلفية
   double _rawCalculatedPricePerSqm = 0.0;
 
   @override
   void initState() {
     super.initState();
-    context.read<BuildingsCubit>().loadData();
+    unawaited(context.read<BuildingsCubit>().loadData());
     final clients = context.read<ContractsCubit>().state.clients;
     if (clients.isNotEmpty) selectedClientId = clients.first.id;
   }
 
   @override
   void dispose() {
-    areaController.dispose(); priceController.dispose(); monthsController.dispose();
-    durationCoefficientCtrl.dispose(); guarantorController.dispose(); monthlyAmountCtrl.dispose();
-    downPaymentCtrl.dispose(); gracePeriodCtrl.dispose(); 
-    penaltyPctCtrl.dispose(); penaltyIntervalCtrl.dispose(); 
-    blockCoeffCtrl.dispose(); coloredPlasterCoeffCtrl.dispose(); marbleStairsCoeffCtrl.dispose();
-    marbleFinsCoeffCtrl.dispose(); plumbingCoeffCtrl.dispose(); chimneysCoeffCtrl.dispose();
-    histIronCtrl.dispose(); histCementCtrl.dispose(); histBlockCtrl.dispose();
-    histFormworkCtrl.dispose(); histAggregatesCtrl.dispose(); histWorkerCtrl.dispose();
-    histDollarRateCtrl.dispose(); // 🌟 تنظيف متحكم الدولار
+    areaController.dispose();
+    priceController.dispose();
+    monthsController.dispose();
+    durationCoefficientCtrl.dispose();
+    guarantorController.dispose();
+    monthlyAmountCtrl.dispose();
+    downPaymentCtrl.dispose();
+    gracePeriodCtrl.dispose();
+    penaltyPctCtrl.dispose();
+    penaltyIntervalCtrl.dispose();
+    blockCoeffCtrl.dispose();
+    coloredPlasterCoeffCtrl.dispose();
+    marbleStairsCoeffCtrl.dispose();
+    marbleFinsCoeffCtrl.dispose();
+    plumbingCoeffCtrl.dispose();
+    chimneysCoeffCtrl.dispose();
+    histIronCtrl.dispose();
+    histCementCtrl.dispose();
+    histBlockCtrl.dispose();
+    histFormworkCtrl.dispose();
+    histAggregatesCtrl.dispose();
+    histWorkerCtrl.dispose();
+    histDollarRateCtrl.dispose();
     super.dispose();
   }
 
@@ -108,7 +115,11 @@ class _AddContractPageState extends State<AddContractPage> {
     return int.tryParse(ctrl.text.replaceAll(',', '')) ?? defaultValue;
   }
 
-  void _onApartmentSelected(String? aptId, List<dynamic> availableApartments, List<dynamic> buildings) {
+  void _onApartmentSelected(
+    String? aptId,
+    List<dynamic> availableApartments,
+    List<dynamic> buildings,
+  ) {
     setState(() {
       selectedApartmentId = aptId;
       if (aptId != null) {
@@ -117,37 +128,49 @@ class _AddContractPageState extends State<AddContractPage> {
         areaController.text = apt.area.toString();
         autoImportedCoefficients.clear();
         try {
-          final Map<String, dynamic> bldGeneralMap = jsonDecode(bld.directionCoefficients);
-          bldGeneralMap.forEach((k, v) {
-            if (k != 'شمالي' && k != 'جنوبي' && k != 'شرقي' && k != 'غربي' && k != 'المصعد') {
+          final bldGeneralMap = jsonDecode(
+            bld.directionCoefficients as String,
+          ) as Map<String, dynamic>;
+          bldGeneralMap.forEach((k, dynamic v) {
+            if (k != 'شمالي' &&
+                k != 'جنوبي' &&
+                k != 'شرقي' &&
+                k != 'غربي' &&
+                k != 'المصعد') {
               autoImportedCoefficients[k] = (v as num).toDouble();
             }
           });
-          
-          final Map<String, dynamic> aptMap = jsonDecode(apt.customCoefficients);
-          aptMap.forEach((k, v) {
-            if (!k.startsWith('مساحة') && !k.contains('(متر)') && !k.contains('(م2)')) {
+
+          final aptMap = jsonDecode(
+            apt.customCoefficients as String,
+          ) as Map<String, dynamic>;
+          aptMap.forEach((k, dynamic v) {
+            if (!k.startsWith('مساحة') &&
+                !k.contains('(متر)') &&
+                !k.contains('(م2)')) {
               autoImportedCoefficients[k] = (v as num).toDouble();
             }
           });
-        } catch (e) { 
-          debugPrint('خطأ في قراءة المعاملات: $e'); 
+        } catch (e) {
+          debugPrint('خطأ في قراءة المعاملات: $e');
         }
       }
     });
   }
 
   Map<String, double> _buildFinalCoefficients(bool isAllocated) {
-    Map<String, double> finalCoeffs = {};
-    if (!isAllocated) return finalCoeffs; 
+    final finalCoeffs = <String, double>{};
+    if (!isAllocated) return finalCoeffs;
 
-    autoImportedCoefficients.forEach((key, value) => finalCoeffs[key] = value / 100.0);
+    autoImportedCoefficients.forEach((key, value) {
+      finalCoeffs[key] = value / 100.0;
+    });
 
-    double durVal = _safeParseDouble(durationCoefficientCtrl);
+    final durVal = _safeParseDouble(durationCoefficientCtrl);
     if (durVal != 0.0) finalCoeffs['نسبة التقسيط'] = durVal / 100.0;
 
     void addSharedCoeff(String key, TextEditingController ctrl) {
-      double val = _safeParseDouble(ctrl);
+      final val = _safeParseDouble(ctrl);
       if (val != 0.0) finalCoeffs[key] = val / 100.0;
     }
 
@@ -162,116 +185,203 @@ class _AddContractPageState extends State<AddContractPage> {
   }
 
   void _calculatePrice(MaterialPricesHistoryData? currentPrices) {
-    bool isAllocated = selectedContractType == 'متخصص';
+    final isAllocated = selectedContractType == 'متخصص';
 
     if (isAllocated && areaController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('البيانات غير مكتملة! أدخل المساحة.'), backgroundColor: Colors.red));
+      _showError('البيانات غير مكتملة! أدخل المساحة.');
       return;
     }
 
     MaterialPricesHistoryData targetPrices;
     if (isHistoricalContract) {
-      if (_safeParseDouble(histIronCtrl) == 0 || _safeParseDouble(histCementCtrl) == 0 || _safeParseDouble(histWorkerCtrl) == 0) {
-         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('الرجاء تعبئة أسعار المواد التاريخية الأساسية بشكل صحيح!'), backgroundColor: Colors.red));
-         return;
+      if (_safeParseDouble(histIronCtrl) == 0 ||
+          _safeParseDouble(histCementCtrl) == 0 ||
+          _safeParseDouble(histWorkerCtrl) == 0) {
+        _showError('الرجاء تعبئة أسعار المواد التاريخية الأساسية بشكل صحيح!');
+        return;
       }
       targetPrices = MaterialPricesHistoryData(
-        id: 'dummy', effectiveDate: selectedHistoricalDate, userId: 'dummy', createdAt: DateTime.now(), updatedAt: DateTime.now(), isDeleted: false, isSynced: false,
-        ironPrice: _safeParseDouble(histIronCtrl), cementPrice: _safeParseDouble(histCementCtrl), block15Price: _safeParseDouble(histBlockCtrl), 
-        formworkAndPouringWages: _safeParseDouble(histFormworkCtrl), aggregateMaterialsPrice: _safeParseDouble(histAggregatesCtrl), ordinaryWorkerWage: _safeParseDouble(histWorkerCtrl),
+        id: 'dummy',
+        effectiveDate: selectedHistoricalDate,
+        userId: 'dummy',
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+        isDeleted: false,
+        isSynced: false,
+        ironPrice: _safeParseDouble(histIronCtrl),
+        cementPrice: _safeParseDouble(histCementCtrl),
+        block15Price: _safeParseDouble(histBlockCtrl),
+        formworkAndPouringWages: _safeParseDouble(histFormworkCtrl),
+        aggregateMaterialsPrice: _safeParseDouble(histAggregatesCtrl),
+        ordinaryWorkerWage: _safeParseDouble(histWorkerCtrl),
       );
     } else {
       if (currentPrices == null) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('يرجى ضبط أسعار المواد في الإعدادات أولاً.'), backgroundColor: Colors.red));
+        _showError('يرجى ضبط أسعار المواد في الإعدادات أولاً.');
         return;
       }
       targetPrices = currentPrices;
     }
 
-    Map<String, double> finalCoeffs = _buildFinalCoefficients(isAllocated);
-    double dummyAreaForCalculation = isAllocated ? _safeParseDouble(areaController) : 1.0;
-    if (dummyAreaForCalculation == 0.0) dummyAreaForCalculation = 1.0; 
+    final finalCoeffs = _buildFinalCoefficients(isAllocated);
+    var dummyArea = isAllocated ? _safeParseDouble(areaController) : 1.0;
+    if (dummyArea == 0.0) dummyArea = 1.0;
 
     final calculations = CalculatorHelper.calculateContractValues(
-      area: dummyAreaForCalculation, currentPrices: targetPrices, coefficients: finalCoeffs, 
+      area: dummyArea,
+      currentPrices: targetPrices,
+      coefficients: finalCoeffs,
     );
 
-    // 🌟 [الدرع المالي]: الاحتفاظ بالسعر الخام في الذاكرة لضمان عدم ضياع الدقة
-    _rawCalculatedPricePerSqm = calculations['pricePerSqmRaw'] ?? calculations['pricePerSqm']!;
+    _rawCalculatedPricePerSqm =
+        calculations['pricePerSqmRaw'] ?? calculations['pricePerSqm']!;
 
-    // عرض السعر المقرب للمستخدم
-    priceController.text = NumberFormatters.formatWithCommas(calculations['pricePerSqm']!);
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(isHistoricalContract ? 'تم الحساب بناءً على المواد التاريخية ✅' : 'تم الحساب بناءً على أسعار اليوم ✅'), backgroundColor: Colors.green));
+    priceController.text =
+        NumberFormatters.formatWithCommas(calculations['pricePerSqm']!);
+
+    _showSuccess(
+      isHistoricalContract
+          ? 'تم الحساب بناءً على المواد التاريخية ✅'
+          : 'تم الحساب بناءً على أسعار اليوم ✅',
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
-      appBar: AppBar(title: const Text('توقيع عقد جديد', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)), backgroundColor: Colors.teal.shade600, centerTitle: true),
+      appBar: AppBar(
+        title: const Text(
+          'توقيع عقد جديد',
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+        ),
+        backgroundColor: Colors.teal.shade600,
+        centerTitle: true,
+      ),
       bottomNavigationBar: _buildBottomBar(context),
-      
       body: BlocBuilder<ContractsCubit, ContractsState>(
         builder: (context, state) {
           return BlocBuilder<BuildingsCubit, BuildingsState>(
             builder: (context, buildingsState) {
               return BlocBuilder<SettingsCubit, SettingsState>(
                 builder: (context, settingsState) {
-                  if (state.clients.isEmpty) return const Center(child: Text('يرجى إضافة عميل أولاً.', style: TextStyle(fontSize: 18)));
+                  if (state.clients.isEmpty) {
+                    return const Center(
+                      child: Text(
+                        'يرجى إضافة عميل أولاً.',
+                        style: TextStyle(fontSize: 18),
+                      ),
+                    );
+                  }
 
-                  bool isAllocated = selectedContractType == 'متخصص'; 
-                  final availableApartments = buildingsState.apartments.where((apt) => apt.buildingId == selectedBuildingId && apt.status == 'available').toList();
+                  final isAllocated = selectedContractType == 'متخصص';
+                  final availableApartments = buildingsState.apartments
+                      .where(
+                        (apt) =>
+                            apt.buildingId == selectedBuildingId &&
+                            apt.status == 'available',
+                      )
+                      .toList();
 
                   return Center(
                     child: SizedBox(
                       width: 800,
                       child: ListView(
-                        padding: const EdgeInsets.all(24.0),
-                        children:[
+                        padding: const EdgeInsets.all(24),
+                        children: [
                           HistoricalSection(
-                            isHistorical: isHistoricalContract, selectedDate: selectedHistoricalDate,
-                            histIronCtrl: histIronCtrl, histCementCtrl: histCementCtrl, histBlockCtrl: histBlockCtrl,
-                            histFormworkCtrl: histFormworkCtrl, histAggregatesCtrl: histAggregatesCtrl, histWorkerCtrl: histWorkerCtrl,
+                            isHistorical: isHistoricalContract,
+                            selectedDate: selectedHistoricalDate,
+                            histIronCtrl: histIronCtrl,
+                            histCementCtrl: histCementCtrl,
+                            histBlockCtrl: histBlockCtrl,
+                            histFormworkCtrl: histFormworkCtrl,
+                            histAggregatesCtrl: histAggregatesCtrl,
+                            histWorkerCtrl: histWorkerCtrl,
                             onToggle: (val) async {
                               if (val) {
-                                if (await showVerifyPinDialog(context)) {
-                                  final pickedDate = await showDatePicker(context: context, initialDate: selectedHistoricalDate, firstDate: DateTime(2000), lastDate: DateTime.now());
-                                  setState(() { isHistoricalContract = true; if (pickedDate != null) selectedHistoricalDate = pickedDate; });
+                                final isAuth =
+                                    await showVerifyPinDialog(context);
+                                if (isAuth && context.mounted) {
+                                  final pickedDate = await showDatePicker(
+                                    context: context,
+                                    initialDate: selectedHistoricalDate,
+                                    firstDate: DateTime(2000),
+                                    lastDate: DateTime.now(),
+                                  );
+                                  setState(() {
+                                    isHistoricalContract = true;
+                                    if (pickedDate != null) {
+                                      selectedHistoricalDate = pickedDate;
+                                    }
+                                  });
                                 }
                               } else {
-                                setState(() { isHistoricalContract = false; priceController.clear(); _rawCalculatedPricePerSqm = 0.0; });
+                                setState(() {
+                                  isHistoricalContract = false;
+                                  priceController.clear();
+                                  _rawCalculatedPricePerSqm = 0.0;
+                                });
                               }
                             },
                             onDateTap: () async {
-                              final pickedDate = await showDatePicker(context: context, initialDate: selectedHistoricalDate, firstDate: DateTime(2000), lastDate: DateTime.now());
-                              if (pickedDate != null) setState(() => selectedHistoricalDate = pickedDate);
+                              final pickedDate = await showDatePicker(
+                                context: context,
+                                initialDate: selectedHistoricalDate,
+                                firstDate: DateTime(2000),
+                                lastDate: DateTime.now(),
+                              );
+                              if (pickedDate != null) {
+                                setState(
+                                  () => selectedHistoricalDate = pickedDate,
+                                );
+                              }
                             },
                           ),
                           const SizedBox(height: 16),
-                          
                           BasicInfoSection(
-                            clients: state.clients, selectedClientId: selectedClientId,
-                            guarantorController: guarantorController, selectedContractType: selectedContractType,
-                            onClientChanged: (val) => setState(() => selectedClientId = val),
+                            clients: state.clients,
+                            selectedClientId: selectedClientId,
+                            guarantorController: guarantorController,
+                            selectedContractType: selectedContractType,
+                            onClientChanged: (val) {
+                              setState(() => selectedClientId = val);
+                            },
                             onTypeChanged: (val) {
                               setState(() {
                                 selectedContractType = val ?? 'متخصص';
-                                if (!isAllocated) { 
-                                  autoImportedCoefficients.clear(); selectedBuildingId = null; selectedApartmentId = null; 
-                                  areaController.clear(); agreedHandoverDate = null; isPenaltyActive = false;
+                                if (!isAllocated) {
+                                  autoImportedCoefficients.clear();
+                                  selectedBuildingId = null;
+                                  selectedApartmentId = null;
+                                  areaController.clear();
+                                  agreedHandoverDate = null;
+                                  isPenaltyActive = false;
                                 }
                               });
                             },
                           ),
                           const SizedBox(height: 16),
-
                           PropertySection(
-                            isAllocated: isAllocated, buildings: buildingsState.buildings,
-                            availableApartments: availableApartments, selectedBuildingId: selectedBuildingId, selectedApartmentId: selectedApartmentId,
-                            onBuildingChanged: (val) => setState(() { selectedBuildingId = val; selectedApartmentId = null; areaController.clear(); autoImportedCoefficients.clear(); }),
-                            onApartmentChanged: (val) => _onApartmentSelected(val, availableApartments, buildingsState.buildings),
+                            isAllocated: isAllocated,
+                            buildings: buildingsState.buildings,
+                            availableApartments: availableApartments,
+                            selectedBuildingId: selectedBuildingId,
+                            selectedApartmentId: selectedApartmentId,
+                            onBuildingChanged: (val) {
+                              setState(() {
+                                selectedBuildingId = val;
+                                selectedApartmentId = null;
+                                areaController.clear();
+                                autoImportedCoefficients.clear();
+                              });
+                            },
+                            onApartmentChanged: (val) => _onApartmentSelected(
+                              val,
+                              availableApartments,
+                              buildingsState.buildings,
+                            ),
                           ),
-                          
                           if (isAllocated) ...[
                             const SizedBox(height: 16),
                             Container(
@@ -279,105 +389,197 @@ class _AddContractPageState extends State<AddContractPage> {
                               decoration: BoxDecoration(
                                 color: Colors.blue.shade50,
                                 borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: Colors.blue.shade200, width: 2),
+                                border: Border.all(
+                                  color: Colors.blue.shade200,
+                                  width: 2,
+                                ),
                               ),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Row(
-                                    children:[
-                                      Icon(Icons.key, color: Colors.blue.shade700),
+                                    children: [
+                                      Icon(Icons.key,
+                                          color: Colors.blue.shade700),
                                       const SizedBox(width: 8),
-                                      Text('تفاصيل تسليم الشقة', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.blue.shade800)),
+                                      Text(
+                                        'تفاصيل تسليم الشقة',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 18,
+                                          color: Colors.blue.shade800,
+                                        ),
+                                      ),
                                     ],
                                   ),
                                   const SizedBox(height: 16),
                                   Row(
-                                    children:[
+                                    children: [
                                       Expanded(
                                         flex: 2,
                                         child: InkWell(
                                           onTap: () async {
                                             final date = await showDatePicker(
-                                              context: context, initialDate: DateTime.now().add(const Duration(days: 365)), 
-                                              firstDate: DateTime.now(), lastDate: DateTime(2050), helpText: 'حدد الموعد المتفق عليه لتسليم الشقة',
+                                              context: context,
+                                              initialDate: DateTime.now().add(
+                                                const Duration(days: 365),
+                                              ),
+                                              firstDate: DateTime.now(),
+                                              lastDate: DateTime(2050),
+                                              helpText: 'حدد الموعد للتسليم',
                                             );
-                                            if (date != null) setState(() => agreedHandoverDate = date);
+                                            if (date != null) {
+                                              setState(() {
+                                                agreedHandoverDate = date;
+                                              });
+                                            }
                                           },
                                           child: InputDecorator(
                                             decoration: InputDecoration(
-                                              labelText: 'الموعد المتفق عليه للتسليم *', border: const OutlineInputBorder(), filled: true, fillColor: Colors.white,
-                                              prefixIcon: const Icon(Icons.edit_calendar, color: Colors.blue), errorText: agreedHandoverDate == null ? 'مطلوب للإحصائيات' : null,
+                                              labelText: 'تاريخ التسليم *',
+                                              border:
+                                                  const OutlineInputBorder(),
+                                              filled: true,
+                                              fillColor: Colors.white,
+                                              prefixIcon: const Icon(
+                                                Icons.edit_calendar,
+                                                color: Colors.blue,
+                                              ),
+                                              errorText:
+                                                  agreedHandoverDate == null
+                                                      ? 'مطلوب للإحصائيات'
+                                                      : null,
                                             ),
                                             child: Text(
-                                              agreedHandoverDate != null ? '${agreedHandoverDate!.year}/${agreedHandoverDate!.month}/${agreedHandoverDate!.day}' : 'اضغط لاختيار التاريخ',
-                                              style: TextStyle(color: agreedHandoverDate != null ? Colors.black : Colors.red, fontWeight: FontWeight.bold),
+                                              agreedHandoverDate != null
+                                                  ? '${agreedHandoverDate!.year}/'
+                                                      '${agreedHandoverDate!.month}/'
+                                                      '${agreedHandoverDate!.day}'
+                                                  : 'اضغط لاختيار التاريخ',
+                                              style: TextStyle(
+                                                color:
+                                                    agreedHandoverDate != null
+                                                        ? Colors.black
+                                                        : Colors.red,
+                                                fontWeight: FontWeight.bold,
+                                              ),
                                             ),
                                           ),
                                         ),
                                       ),
                                       const SizedBox(width: 16),
                                       Expanded(
-                                        flex: 1,
                                         child: TextFormField(
-                                          controller: gracePeriodCtrl, keyboardType: TextInputType.number,
-                                          decoration: const InputDecoration(labelText: 'فترة السماح', suffixText: 'أشهر', border: OutlineInputBorder(), filled: true, fillColor: Colors.white, prefixIcon: Icon(Icons.hourglass_empty, color: Colors.blue)),
+                                          controller: gracePeriodCtrl,
+                                          keyboardType: TextInputType.number,
+                                          decoration: const InputDecoration(
+                                            labelText: 'فترة السماح',
+                                            suffixText: 'أشهر',
+                                            border: OutlineInputBorder(),
+                                            filled: true,
+                                            fillColor: Colors.white,
+                                            prefixIcon: Icon(
+                                              Icons.hourglass_empty,
+                                              color: Colors.blue,
+                                            ),
+                                          ),
                                         ),
                                       ),
                                     ],
                                   ),
-                                  
-                                  const Padding(padding: EdgeInsets.symmetric(vertical: 16), child: Divider(color: Colors.blueGrey)),
+                                  const Padding(
+                                    padding: EdgeInsets.symmetric(vertical: 16),
+                                    child: Divider(color: Colors.blueGrey),
+                                  ),
                                   SwitchListTile(
-                                    title: const Text('تفعيل غرامة التأخير (بعد تسليم المفتاح)', style: TextStyle(color: Colors.deepOrange, fontWeight: FontWeight.bold)),
-                                    subtitle: const Text('في حال استلم العميل الشقة وبقي في ذمته مبالغ غير مدفوعة، يتم فرض نسبة مئوية تتراكم مع الزمن.'),
+                                    title: const Text(
+                                      'تفعيل غرامة التأخير (بعد الاستلام)',
+                                      style: TextStyle(
+                                        color: Colors.deepOrange,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    subtitle: const Text(
+                                      'يتم فرض نسبة مئوية تتراكم مع الزمن '
+                                      'في حال بقاء ذمم مالية.',
+                                    ),
                                     value: isPenaltyActive,
                                     activeColor: Colors.deepOrange,
-                                    onChanged: (val) => setState(() => isPenaltyActive = val),
+                                    onChanged: (val) {
+                                      setState(() => isPenaltyActive = val);
+                                    },
                                     contentPadding: EdgeInsets.zero,
                                   ),
-                                  
                                   if (isPenaltyActive) ...[
                                     const SizedBox(height: 12),
                                     Row(
-                                      children:[
+                                      children: [
                                         Expanded(
                                           child: TextFormField(
-                                            controller: penaltyPctCtrl, keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                                            decoration: const InputDecoration(labelText: 'نسبة الغرامة', suffixText: '%', border: OutlineInputBorder(), filled: true, fillColor: Colors.white, prefixIcon: Icon(Icons.percent, color: Colors.deepOrange)),
+                                            controller: penaltyPctCtrl,
+                                            keyboardType: const TextInputType
+                                                .numberWithOptions(
+                                              decimal: true,
+                                            ),
+                                            decoration: const InputDecoration(
+                                              labelText: 'نسبة الغرامة',
+                                              suffixText: '%',
+                                              border: OutlineInputBorder(),
+                                              filled: true,
+                                              fillColor: Colors.white,
+                                              prefixIcon: Icon(
+                                                Icons.percent,
+                                                color: Colors.deepOrange,
+                                              ),
+                                            ),
                                           ),
                                         ),
                                         const SizedBox(width: 16),
                                         Expanded(
                                           child: TextFormField(
-                                            controller: penaltyIntervalCtrl, keyboardType: TextInputType.number,
-                                            decoration: const InputDecoration(labelText: 'تُطبق كل', suffixText: 'أشهر', border: OutlineInputBorder(), filled: true, fillColor: Colors.white, prefixIcon: Icon(Icons.update, color: Colors.deepOrange)),
+                                            controller: penaltyIntervalCtrl,
+                                            keyboardType: TextInputType.number,
+                                            decoration: const InputDecoration(
+                                              labelText: 'تُطبق كل',
+                                              suffixText: 'أشهر',
+                                              border: OutlineInputBorder(),
+                                              filled: true,
+                                              fillColor: Colors.white,
+                                              prefixIcon: Icon(
+                                                Icons.update,
+                                                color: Colors.deepOrange,
+                                              ),
+                                            ),
                                           ),
                                         ),
                                       ],
                                     ),
-                                  ]
+                                  ],
                                 ],
                               ),
                             ),
                           ],
-
                           const SizedBox(height: 16),
-
-                          if (isAllocated) AutoCoefficientsSection(coefficients: autoImportedCoefficients),
-                          if (isAllocated) SharedCoefficientsSection(
-                              blockCoeffCtrl: blockCoeffCtrl, coloredPlasterCoeffCtrl: coloredPlasterCoeffCtrl,
-                              marbleStairsCoeffCtrl: marbleStairsCoeffCtrl, marbleFinsCoeffCtrl: marbleFinsCoeffCtrl,
-                              plumbingCoeffCtrl: plumbingCoeffCtrl, chimneysCoeffCtrl: chimneysCoeffCtrl,
+                          if (isAllocated)
+                            AutoCoefficientsSection(
+                              coefficients: autoImportedCoefficients,
                             ),
-                          
-                          // 🌟 تمرير متغيرات الدولار إلى قسم الماليات
+                          if (isAllocated)
+                            SharedCoefficientsSection(
+                              blockCoeffCtrl: blockCoeffCtrl,
+                              coloredPlasterCoeffCtrl: coloredPlasterCoeffCtrl,
+                              marbleStairsCoeffCtrl: marbleStairsCoeffCtrl,
+                              marbleFinsCoeffCtrl: marbleFinsCoeffCtrl,
+                              plumbingCoeffCtrl: plumbingCoeffCtrl,
+                              chimneysCoeffCtrl: chimneysCoeffCtrl,
+                            ),
                           FinancialSection(
-                            isAllocated: isAllocated, 
+                            isAllocated: isAllocated,
                             isHistoricalContract: isHistoricalContract,
                             isDollarContract: isDollarContract,
                             histDollarRateCtrl: histDollarRateCtrl,
-                            currentDollarRate: settingsState.currentDollarPrice?.exchangeRate,
+                            currentDollarRate:
+                                settingsState.currentDollarPrice?.exchangeRate,
                             onDollarToggle: (val) {
                               setState(() {
                                 isDollarContract = val;
@@ -385,56 +587,75 @@ class _AddContractPageState extends State<AddContractPage> {
                                 monthlyAmountCtrl.clear();
                               });
                             },
-                            onInputChanged: (val) => setState(() {}), // لإنعاش المعاينة الحية
-
-                            areaController: areaController, monthsController: monthsController,
-                            durationCoefficientCtrl: durationCoefficientCtrl, priceController: priceController,
-                            monthlyAmountCtrl: monthlyAmountCtrl, downPaymentCtrl: downPaymentCtrl, 
-                            onCalculate: () => _calculatePrice(settingsState.currentPrices),
+                            onInputChanged: (_) => setState(() {}),
+                            areaController: areaController,
+                            monthsController: monthsController,
+                            durationCoefficientCtrl: durationCoefficientCtrl,
+                            priceController: priceController,
+                            monthlyAmountCtrl: monthlyAmountCtrl,
+                            downPaymentCtrl: downPaymentCtrl,
+                            onCalculate: () {
+                              _calculatePrice(settingsState.currentPrices);
+                            },
                           ),
-                          const SizedBox(height: 100), 
+                          const SizedBox(height: 100),
                         ],
                       ),
                     ),
                   );
-                }
+                },
               );
-            }
+            },
           );
-        }
+        },
       ),
     );
   }
 
-  // 2. استبدل دالة _buildBottomBar بهذه:
   Widget _buildBottomBar(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       decoration: const BoxDecoration(
-          color: Colors.white,
-          boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, -2))]),
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black12,
+            blurRadius: 10,
+            offset: Offset(0, -2),
+          ),
+        ],
+      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
           TextButton(
-            // 🌟 تعطيل الزر إذا كان قيد الحفظ
             onPressed: _isSaving ? null : () => Navigator.pop(context),
-            child: const Text('إلغاء والتراجع', style: TextStyle(fontSize: 16, color: Colors.grey)),
+            child: const Text(
+              'إلغاء والتراجع',
+              style: TextStyle(fontSize: 16, color: Colors.grey),
+            ),
           ),
           const SizedBox(width: 16),
           ElevatedButton.icon(
             style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.teal,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 18)),
-            // 🌟 إظهار دائرة تحميل عند الحفظ
+              backgroundColor: Colors.teal,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 18),
+            ),
             icon: _isSaving
-                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                      strokeWidth: 2,
+                    ),
+                  )
                 : const Icon(Icons.check_circle),
-            // 🌟 تغيير النص
-            label: Text(_isSaving ? 'جاري الحفظ...' : 'اعتماد وتوقيع العقد',
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            // 🌟 منع تكرار الضغط
+            label: Text(
+              _isSaving ? 'جاري الحفظ...' : 'اعتماد وتوقيع العقد',
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
             onPressed: _isSaving ? null : _saveContract,
           ),
         ],
@@ -442,122 +663,166 @@ class _AddContractPageState extends State<AddContractPage> {
     );
   }
 
-  // 3. استبدل دالة _saveContract بهذه:
   Future<void> _saveContract() async {
-    // 🌟 حماية أمان إضافية
     if (_isSaving) return;
 
-    bool isAllocated = selectedContractType == 'متخصص'; 
-    
-    if (isAllocated && selectedApartmentId == null) return _showError('يرجى اختيار شقة من الكتالوج!');
-    if (isAllocated && areaController.text.isEmpty) return _showError('يرجى تعبئة المساحة!');
-    if (isAllocated && agreedHandoverDate == null) return _showError('يرجى تحديد الموعد المتفق عليه لتسليم الشقة!');
-    
-    if (isAllocated && isPenaltyActive) {
-      if (_safeParseDouble(penaltyPctCtrl) <= 0) return _showError('نسبة الغرامة يجب أن تكون أكبر من صفر!');
-      if (_safeParseInt(penaltyIntervalCtrl) <= 0) return _showError('مدة تطبيق الغرامة غير صالحة!');
+    final isAllocated = selectedContractType == 'متخصص';
+
+    if (isAllocated && selectedApartmentId == null) {
+      return _showError('يرجى اختيار شقة من الكتالوج!');
+    }
+    if (isAllocated && areaController.text.isEmpty) {
+      return _showError('يرجى تعبئة المساحة!');
+    }
+    if (isAllocated && agreedHandoverDate == null) {
+      return _showError('يرجى تحديد الموعد المتفق عليه لتسليم الشقة!');
     }
 
-    if (priceController.text.isEmpty) return _showError('يرجى حساب السعر أولاً!');
-    if (monthlyAmountCtrl.text.isEmpty) return _showError('يرجى إدخال المبلغ المتفق عليه شهرياً!');
+    if (isAllocated && isPenaltyActive) {
+      if (_safeParseDouble(penaltyPctCtrl) <= 0) {
+        return _showError('نسبة الغرامة يجب أن تكون أكبر من صفر!');
+      }
+      if (_safeParseInt(penaltyIntervalCtrl) <= 0) {
+        return _showError('مدة تطبيق الغرامة غير صالحة!');
+      }
+    }
 
-    if (isDollarContract && isHistoricalContract && histDollarRateCtrl.text.isEmpty) {
+    if (priceController.text.isEmpty) {
+      return _showError('يرجى حساب السعر أولاً!');
+    }
+    if (monthlyAmountCtrl.text.isEmpty) {
+      return _showError('يرجى إدخال المبلغ المتفق عليه شهرياً!');
+    }
+
+    if (isDollarContract &&
+        isHistoricalContract &&
+        histDollarRateCtrl.text.isEmpty) {
       return _showError('الرجاء إدخال سعر صرف الدولار القديم!');
     }
 
-    double exchangeRate = 1.0;
+    var exchangeRate = 1.0;
     if (isDollarContract) {
       if (isHistoricalContract) {
         exchangeRate = _safeParseDouble(histDollarRateCtrl);
       } else {
-        final currentDollar = context.read<SettingsCubit>().state.currentDollarPrice;
-        if (currentDollar == null) return _showError('سعر الدولار غير متوفر حالياً! يرجى إضافته من الإعدادات.');
+        final currentDollar =
+            context.read<SettingsCubit>().state.currentDollarPrice;
+        if (currentDollar == null) {
+          return _showError('سعر الدولار غير متوفر! يرجى إضافته.');
+        }
         exchangeRate = currentDollar.exchangeRate;
       }
     }
 
-    final double agreedAmountSYP = _safeParseDouble(monthlyAmountCtrl) * exchangeRate;
-    final double finalDownPaymentSYP = _safeParseDouble(downPaymentCtrl) * exchangeRate;
+    final agreedAmountSYP = _safeParseDouble(monthlyAmountCtrl) * exchangeRate;
+    final finalDownPaymentSYP = _safeParseDouble(downPaymentCtrl) * exchangeRate;
 
-    if (agreedAmountSYP <= 0) return _showError('المبلغ الشهري يجب أن يكون أكبر من صفر!');
+    if (agreedAmountSYP <= 0) {
+      return _showError('المبلغ الشهري يجب أن يكون أكبر من صفر!');
+    }
 
-    // 🌟 [الدرع المالي]: الذكاء المالي للتحقق من السعر المعتمد
-    double uiDisplayedPrice = _safeParseDouble(priceController);
-    double finalBasePriceToSend = uiDisplayedPrice;
-    
-    // إذا كان السعر في المربع هو نفس السعر المحسوب تقريباً (الفرق أقل من 20 ليرة)
-    // نعتمد السعر الدقيق (الخام) لضمان الدقة الرياضية للدفعة الأولى.
-    if (_rawCalculatedPricePerSqm > 0 && (uiDisplayedPrice - _rawCalculatedPricePerSqm).abs() < 20) {
+    final uiDisplayedPrice = _safeParseDouble(priceController);
+    var finalBasePriceToSend = uiDisplayedPrice;
+
+    if (_rawCalculatedPricePerSqm > 0 &&
+        (uiDisplayedPrice - _rawCalculatedPricePerSqm).abs() < 20) {
       finalBasePriceToSend = _rawCalculatedPricePerSqm;
     }
 
-    // 🌟 بدء عملية الحفظ (قفل الشاشة)
-    setState(() {
-      _isSaving = true;
-    });
+    setState(() => _isSaving = true);
 
     try {
-      Map<String, double> finalCoeffs = _buildFinalCoefficients(isAllocated);
+      final finalCoeffs = _buildFinalCoefficients(isAllocated);
 
-      String generatedDetails = '';
+      var generatedDetails = '';
       if (isAllocated) {
         final allApartments = context.read<BuildingsCubit>().state.apartments;
         final buildings = context.read<BuildingsCubit>().state.buildings;
-        final apt = allApartments.firstWhere((a) => a.id == selectedApartmentId);
+        final apt =
+            allApartments.firstWhere((a) => a.id == selectedApartmentId);
         final bld = buildings.firstWhere((b) => b.id == selectedBuildingId);
-        generatedDetails = 'محضر: ${bld.name} | شقة: ${apt.apartmentNumber} | طابق: ${apt.floorName}';
+        generatedDetails =
+            'محضر: ${bld.name} | شقة: ${apt.apartmentNumber} | '
+            'طابق: ${apt.floorName}';
       } else {
         generatedDetails = 'محفظة استثمارية (عقد لاحق التخصص)';
       }
 
-      final double finalArea = isAllocated ? _safeParseDouble(areaController) : 0.0;
-      final int finalMonths = isAllocated ? _safeParseInt(monthsController, defaultValue: 48) : 48; 
+      final finalArea = isAllocated ? _safeParseDouble(areaController) : 0.0;
+      final finalMonths =
+          isAllocated ? _safeParseInt(monthsController, defaultValue: 48) : 48;
 
       ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('جاري الحفظ وتوقيع العقد... ⏳'), backgroundColor: Colors.teal));
-      
-      await context.read<ContractsCubit>().addContract(
-        clientId: selectedClientId!, 
-        contractType: selectedContractType, 
-        details: generatedDetails, 
-        apartmentId: isAllocated ? selectedApartmentId : null,
-        area: finalArea, 
-        basePrice: finalBasePriceToSend, // 🌟 إرسال السعر بدقة متناهية (الخام)
-        downPayment: finalDownPaymentSYP, 
-        installmentsCount: finalMonths, 
-        guarantorName: guarantorController.text.trim(),
-        agreedMonthlyAmount: agreedAmountSYP, 
-        coefficients: finalCoeffs, 
-        customDate: isHistoricalContract ? selectedHistoricalDate : null, 
-        agreedHandoverDate: isAllocated ? agreedHandoverDate : null,
-        gracePeriodMonths: isAllocated ? _safeParseInt(gracePeriodCtrl, defaultValue: 0) : null,
-        isPenaltyActive: isAllocated ? isPenaltyActive : false,
-        penaltyPercentage: isAllocated && isPenaltyActive ? _safeParseDouble(penaltyPctCtrl) : 0.0,
-        penaltyIntervalMonths: isAllocated && isPenaltyActive ? _safeParseInt(penaltyIntervalCtrl, defaultValue: 1) : 1,
-        histIron: isHistoricalContract ? _safeParseDouble(histIronCtrl) : null, 
-        histCement: isHistoricalContract ? _safeParseDouble(histCementCtrl) : null,
-        histBlock: isHistoricalContract ? _safeParseDouble(histBlockCtrl) : null,
-        histFormwork: isHistoricalContract ? _safeParseDouble(histFormworkCtrl) : null,
-        histAggregates: isHistoricalContract ? _safeParseDouble(histAggregatesCtrl) : null,
-        histWorker: isHistoricalContract ? _safeParseDouble(histWorkerCtrl) : null,
-        histDollarRate: (isHistoricalContract && isDollarContract) ? exchangeRate : null,
+        const SnackBar(
+          content: Text('جاري الحفظ وتوقيع العقد... ⏳'),
+          backgroundColor: Colors.teal,
+        ),
       );
 
-      if (mounted) { 
-        Navigator.pop(context); 
-        _showSuccess('تم توقيع العقد بنجاح! ✅'); 
+      await context.read<ContractsCubit>().addContract(
+            clientId: selectedClientId!,
+            contractType: selectedContractType,
+            details: generatedDetails,
+            apartmentId: isAllocated ? selectedApartmentId : null,
+            area: finalArea,
+            basePrice: finalBasePriceToSend,
+            downPayment: finalDownPaymentSYP,
+            installmentsCount: finalMonths,
+            guarantorName: guarantorController.text.trim(),
+            agreedMonthlyAmount: agreedAmountSYP,
+            coefficients: finalCoeffs,
+            customDate: isHistoricalContract ? selectedHistoricalDate : null,
+            agreedHandoverDate: isAllocated ? agreedHandoverDate : null,
+            gracePeriodMonths:
+                isAllocated ? _safeParseInt(gracePeriodCtrl) : null,
+            isPenaltyActive: isAllocated ? isPenaltyActive : false,
+            penaltyPercentage: isAllocated && isPenaltyActive
+                ? _safeParseDouble(penaltyPctCtrl)
+                : 0.0,
+            penaltyIntervalMonths: isAllocated && isPenaltyActive
+                ? _safeParseInt(penaltyIntervalCtrl, defaultValue: 1)
+                : 1,
+            histIron:
+                isHistoricalContract ? _safeParseDouble(histIronCtrl) : null,
+            histCement:
+                isHistoricalContract ? _safeParseDouble(histCementCtrl) : null,
+            histBlock:
+                isHistoricalContract ? _safeParseDouble(histBlockCtrl) : null,
+            histFormwork: isHistoricalContract
+                ? _safeParseDouble(histFormworkCtrl)
+                : null,
+            histAggregates: isHistoricalContract
+                ? _safeParseDouble(histAggregatesCtrl)
+                : null,
+            histWorker:
+                isHistoricalContract ? _safeParseDouble(histWorkerCtrl) : null,
+            histDollarRate:
+                (isHistoricalContract && isDollarContract) ? exchangeRate : null,
+          );
+
+      if (mounted) {
+        Navigator.pop(context);
+        _showSuccess('تم توقيع العقد بنجاح! ✅');
       }
     } catch (e) {
-      // 🌟 فك القفل إذا حدث خطأ برمجي ليتمكن من المحاولة مجدداً
       if (mounted) {
-        setState(() {
-          _isSaving = false;
-        });
-        _showError('حدث خطأ أثناء الحفظ: ${e.toString()}');
+        setState(() => _isSaving = false);
+        _showError('حدث خطأ أثناء الحفظ: $e');
       }
     }
   }
 
-  void _showError(String msg) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg), backgroundColor: Colors.red));
-  void _showSuccess(String msg) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg), backgroundColor: Colors.green));
+  void _showError(String msg) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(msg), backgroundColor: Colors.red),
+    );
+  }
+
+  void _showSuccess(String msg) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(msg), backgroundColor: Colors.green),
+    );
+  }
 }

@@ -1,9 +1,8 @@
-// lib\contracts\widgets\add_contract\financial_section.dart
-// ignore_for_file: always_use_package_imports
+// contracts/widgets/add_contract/financial_section.dart
 
 import 'package:flutter/material.dart';
 
-import '../../../../core/utils/formatters.dart';
+import 'package:our_home_erp_app/core/utils/formatters.dart';
 
 class FinancialSection extends StatelessWidget {
   const FinancialSection({
@@ -105,7 +104,9 @@ class FinancialSection extends StatelessWidget {
                         : (currentDollarRate != null
                             ? Text(
                                 'سعر الصرف الحالي: '
-                                '${NumberFormatters.formatWithCommas(currentDollarRate!)} ل.س',
+                                '${NumberFormatters.formatWithCommas(
+                                  currentDollarRate!,
+                                )} ل.س',
                                 style: TextStyle(
                                   color: isDollarContract
                                       ? Colors.green.shade900
@@ -118,10 +119,10 @@ class FinancialSection extends StatelessWidget {
                               )),
                     value: isDollarContract,
                     activeColor: Colors.green,
-                    onChanged: (isHistoricalContract ||
-                            currentDollarRate != null)
-                        ? onDollarToggle
-                        : null,
+                    onChanged:
+                        (isHistoricalContract || currentDollarRate != null)
+                            ? onDollarToggle
+                            : null,
                   ),
                   if (isDollarContract && isHistoricalContract)
                     Padding(
@@ -203,9 +204,14 @@ class FinancialSection extends StatelessWidget {
                             ),
                             if (isDollarContract && downPaymentVal > 0)
                               Padding(
-                                padding: const EdgeInsets.only(top: 4, right: 4),
+                                padding: const EdgeInsets.only(
+                                  top: 4,
+                                  right: 4,
+                                ),
                                 child: Text(
-                                  '≈ ${NumberFormatters.formatWithCommas(sypDownPayment)} ل.س',
+                                  '≈ ${NumberFormatters.formatWithCommas(
+                                    sypDownPayment,
+                                  )} ل.س',
                                   style: const TextStyle(
                                     color: Colors.green,
                                     fontWeight: FontWeight.bold,
@@ -246,9 +252,14 @@ class FinancialSection extends StatelessWidget {
                             ),
                             if (isDollarContract && monthlyVal > 0)
                               Padding(
-                                padding: const EdgeInsets.only(top: 4, right: 4),
+                                padding: const EdgeInsets.only(
+                                  top: 4,
+                                  right: 4,
+                                ),
                                 child: Text(
-                                  '≈ ${NumberFormatters.formatWithCommas(sypMonthly)} ل.س',
+                                  '≈ ${NumberFormatters.formatWithCommas(
+                                    sypMonthly,
+                                  )} ل.س',
                                   style: const TextStyle(
                                     color: Colors.green,
                                     fontWeight: FontWeight.bold,
@@ -273,7 +284,7 @@ class FinancialSection extends StatelessWidget {
                     child: TextField(
                       controller: areaController,
                       decoration: const InputDecoration(
-                        labelText: 'المساحة الكلية (مجلوبة آلياً)',
+                        labelText: 'المساحة الكلية',
                         border: OutlineInputBorder(),
                         filled: true,
                         fillColor: Colors.black12,
@@ -287,7 +298,7 @@ class FinancialSection extends StatelessWidget {
                     child: TextField(
                       controller: monthsController,
                       decoration: const InputDecoration(
-                        labelText: 'المدة  (أشهر)',
+                        labelText: 'المدة (أشهر)',
                         border: OutlineInputBorder(),
                       ),
                       keyboardType: TextInputType.number,

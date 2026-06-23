@@ -1,7 +1,8 @@
-// lib\contracts\widgets\add_contract\basic_info_section.dart
-// ignore_for_file: always_use_package_imports
+// contracts/widgets/add_contract/basic_info_section.dart
 
 import 'package:flutter/material.dart';
+
+// ignore: depend_on_referenced_packages, reason: Needed for client model
 import 'package:local_storage_api/local_storage_api.dart' show Client;
 
 class BasicInfoSection extends StatelessWidget {

@@ -1,5 +1,4 @@
-// lib\contracts\widgets\dialogs\verify_pin_dialog.dart
-// ignore_for_file: always_use_package_imports
+// contracts/widgets/dialogs/verify_pin_dialog.dart
 
 import 'package:flutter/material.dart';
 
@@ -23,7 +22,7 @@ class _VerifyPinDialogContent extends StatefulWidget {
 
 class _VerifyPinDialogContentState extends State<_VerifyPinDialogContent> {
   late final TextEditingController _pinController;
-  static const String _correctPin = '0000'; // 🌟 الرمز الافتراضي للإدارة
+  static const String _correctPin = '0000';
 
   @override
   void initState() {
