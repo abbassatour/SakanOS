@@ -1,4 +1,4 @@
-// contracts/view/contracts_view.dart
+// lib/contracts/view/contracts_view.dart
 
 import 'dart:async';
 
@@ -154,11 +154,10 @@ class _ContractsViewState extends State<ContractsView> {
                     (_typeFilter == 'unallocated' &&
                         contract.contractType == 'لاحق التخصص');
 
+                // تم الإصلاح هنا (بدون == true)
                 final passHandover = _handoverFilter == 'all' ||
-                    (_handoverFilter == 'delivered' &&
-                        contract.isHandedOver == true) ||
-                    (_handoverFilter == 'pending' &&
-                        contract.isHandedOver != true);
+                    (_handoverFilter == 'delivered' && contract.isHandedOver) ||
+                    (_handoverFilter == 'pending' && !contract.isHandedOver);
 
                 var passSearch = true;
                 if (_searchQuery.isNotEmpty) {

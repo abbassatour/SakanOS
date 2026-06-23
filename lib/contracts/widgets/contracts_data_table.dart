@@ -5,13 +5,12 @@ import 'dart:async';
 import 'package:erp_repository/erp_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:url_launcher/url_launcher.dart';
-
 import 'package:our_home_erp_app/core/utils/formatters.dart';
 import 'package:our_home_erp_app/dashboard/cubit/dashboard_cubit.dart';
 import 'package:our_home_erp_app/payments/cubit/payments_cubit.dart';
 import 'package:our_home_erp_app/profile/view/contract_details_page.dart';
 import 'package:our_home_erp_app/schedule/cubit/schedule_cubit.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ContractsDataTable extends StatelessWidget {
   const ContractsDataTable({
@@ -373,3 +372,4 @@ class ContractsDataTable extends StatelessWidget {
     );
   }
 }
+

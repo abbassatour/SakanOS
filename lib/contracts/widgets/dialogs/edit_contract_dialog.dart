@@ -347,8 +347,9 @@ class _EditContractDialogContentState
                             Tooltip(
                               message: 'الموعد المتفق عليه في العقد الأساسي',
                               child: Text(
-                                'المتفق عليه: ${contract.agreedHandoverDate!.year}'
-                                '/${contract.agreedHandoverDate!.month}',
+                                'المتفق عليه: '
+                                '${contract.agreedHandoverDate!.year}/'
+                                '${contract.agreedHandoverDate!.month}',
                                 style: const TextStyle(
                                   fontSize: 12,
                                   color: Colors.grey,
@@ -984,3 +985,4 @@ class _EditContractDialogContentState
     );
   }
 }
+

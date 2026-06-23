@@ -1,10 +1,8 @@
 // lib/contracts/view/add_contract_page.dart
-// ignore_for_file: cascade_invocations
 
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:erp_repository/erp_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -454,16 +452,16 @@ class _AddContractPageState extends State<AddContractPage> {
                                                 Icons.edit_calendar,
                                                 color: Colors.blue,
                                               ),
-                                              errorText:
-                                                  agreedHandoverDate == null
-                                                      ? 'مطلوب للإحصائيات'
-                                                      : null,
+                                              errorText: agreedHandoverDate ==
+                                                      null
+                                                  ? 'مطلوب للإحصائيات'
+                                                  : null,
                                             ),
                                             child: Text(
                                               agreedHandoverDate != null
                                                   ? '${agreedHandoverDate!.year}/'
-                                                      '${agreedHandoverDate!.month}/'
-                                                      '${agreedHandoverDate!.day}'
+                                                    '${agreedHandoverDate!.month}/'
+                                                    '${agreedHandoverDate!.day}'
                                                   : 'اضغط لاختيار التاريخ',
                                               style: TextStyle(
                                                 color:
@@ -835,4 +833,5 @@ class _AddContractPageState extends State<AddContractPage> {
     );
   }
 }
+
 
