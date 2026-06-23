@@ -123,7 +123,7 @@ class PaymentsDataTable extends StatelessWidget {
 
                   return DataRow(
                     color: WidgetStateProperty.resolveWith<Color?>(
-                      (Set<WidgetState> states) {
+                      (states) {
                         if (index.isEven) {
                           return Colors.grey.withValues(alpha: 0.03);
                         }
