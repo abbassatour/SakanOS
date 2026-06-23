@@ -1,4 +1,4 @@
-// contracts/widgets/add_contract/financial_section.dart
+// lib/contracts/widgets/add_contract/financial_section.dart
 
 import 'package:flutter/material.dart';
 
@@ -118,7 +118,7 @@ class FinancialSection extends StatelessWidget {
                                 style: TextStyle(color: Colors.red),
                               )),
                     value: isDollarContract,
-                    activeColor: Colors.green,
+                    activeThumbColor: Colors.green,
                     onChanged:
                         (isHistoricalContract || currentDollarRate != null)
                             ? onDollarToggle

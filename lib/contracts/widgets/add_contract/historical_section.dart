@@ -1,4 +1,4 @@
-// contracts/widgets/add_contract/historical_section.dart
+// lib/contracts/widgets/add_contract/historical_section.dart
 
 import 'package:flutter/material.dart';
 
@@ -67,7 +67,7 @@ class HistoricalSection extends StatelessWidget {
                 'في ذلك الوقت.',
               ),
               value: isHistorical,
-              activeColor: Colors.red,
+              activeThumbColor: Colors.red,
               onChanged: onToggle,
             ),
             if (isHistorical) ...[
