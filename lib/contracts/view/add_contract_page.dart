@@ -1,8 +1,10 @@
-// contracts/view/add_contract_page.dart
+// lib/contracts/view/add_contract_page.dart
+// ignore_for_file: cascade_invocations
 
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:erp_repository/erp_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -67,7 +69,7 @@ class _AddContractPageState extends State<AddContractPage> {
   bool isHistoricalContract = false;
   DateTime selectedHistoricalDate = DateTime.now();
 
-  double _rawCalculatedPricePerSqm = 0.0;
+  double _rawCalculatedPricePerSqm = 0;
 
   @override
   void initState() {
@@ -106,8 +108,8 @@ class _AddContractPageState extends State<AddContractPage> {
   }
 
   double _safeParseDouble(TextEditingController ctrl) {
-    if (ctrl.text.trim().isEmpty) return 0.0;
-    return double.tryParse(ctrl.text.replaceAll(',', '')) ?? 0.0;
+    if (ctrl.text.trim().isEmpty) return 0;
+    return double.tryParse(ctrl.text.replaceAll(',', '')) ?? 0;
   }
 
   int _safeParseInt(TextEditingController ctrl, {int defaultValue = 0}) {
@@ -117,43 +119,49 @@ class _AddContractPageState extends State<AddContractPage> {
 
   void _onApartmentSelected(
     String? aptId,
-    List<dynamic> availableApartments,
-    List<dynamic> buildings,
+    List<Apartment> availableApartments,
+    List<Building> buildings,
   ) {
     setState(() {
       selectedApartmentId = aptId;
-      if (aptId != null) {
-        final apt = availableApartments.firstWhere((a) => a.id == aptId);
-        final bld = buildings.firstWhere((b) => b.id == apt.buildingId);
-        areaController.text = apt.area.toString();
-        autoImportedCoefficients.clear();
-        try {
-          final bldGeneralMap = jsonDecode(
-            bld.directionCoefficients as String,
-          ) as Map<String, dynamic>;
-          bldGeneralMap.forEach((k, dynamic v) {
-            if (k != 'شمالي' &&
-                k != 'جنوبي' &&
-                k != 'شرقي' &&
-                k != 'غربي' &&
-                k != 'المصعد') {
-              autoImportedCoefficients[k] = (v as num).toDouble();
-            }
-          });
+      if (aptId == null) return;
 
-          final aptMap = jsonDecode(
-            apt.customCoefficients as String,
-          ) as Map<String, dynamic>;
-          aptMap.forEach((k, dynamic v) {
-            if (!k.startsWith('مساحة') &&
-                !k.contains('(متر)') &&
-                !k.contains('(م2)')) {
-              autoImportedCoefficients[k] = (v as num).toDouble();
-            }
-          });
-        } catch (e) {
-          debugPrint('خطأ في قراءة المعاملات: $e');
+      final apt = availableApartments.firstWhere((a) => a.id == aptId);
+      final bld = buildings.firstWhere((b) => b.id == apt.buildingId);
+
+      areaController.text = apt.area.toString();
+      autoImportedCoefficients.clear();
+
+      try {
+        final bldMap = jsonDecode(
+          bld.directionCoefficients,
+        ) as Map<String, dynamic>;
+
+        for (final entry in bldMap.entries) {
+          final k = entry.key;
+          if (k != 'شمالي' &&
+              k != 'جنوبي' &&
+              k != 'شرقي' &&
+              k != 'غربي' &&
+              k != 'المصعد') {
+            autoImportedCoefficients[k] = (entry.value as num).toDouble();
+          }
         }
+
+        final aptMap = jsonDecode(
+          apt.customCoefficients,
+        ) as Map<String, dynamic>;
+
+        for (final entry in aptMap.entries) {
+          final k = entry.key;
+          if (!k.startsWith('مساحة') &&
+              !k.contains('(متر)') &&
+              !k.contains('(م2)')) {
+            autoImportedCoefficients[k] = (entry.value as num).toDouble();
+          }
+        }
+      } on Object catch (e) {
+        debugPrint('خطأ في قراءة المعاملات: $e');
       }
     });
   }
@@ -162,16 +170,16 @@ class _AddContractPageState extends State<AddContractPage> {
     final finalCoeffs = <String, double>{};
     if (!isAllocated) return finalCoeffs;
 
-    autoImportedCoefficients.forEach((key, value) {
-      finalCoeffs[key] = value / 100.0;
-    });
+    for (final entry in autoImportedCoefficients.entries) {
+      finalCoeffs[entry.key] = entry.value / 100.0;
+    }
 
     final durVal = _safeParseDouble(durationCoefficientCtrl);
-    if (durVal != 0.0) finalCoeffs['نسبة التقسيط'] = durVal / 100.0;
+    if (durVal != 0) finalCoeffs['نسبة التقسيط'] = durVal / 100.0;
 
     void addSharedCoeff(String key, TextEditingController ctrl) {
       final val = _safeParseDouble(ctrl);
-      if (val != 0.0) finalCoeffs[key] = val / 100.0;
+      if (val != 0) finalCoeffs[key] = val / 100.0;
     }
 
     addSharedCoeff('بلوك معزول', blockCoeffCtrl);
@@ -225,7 +233,7 @@ class _AddContractPageState extends State<AddContractPage> {
 
     final finalCoeffs = _buildFinalCoefficients(isAllocated);
     var dummyArea = isAllocated ? _safeParseDouble(areaController) : 1.0;
-    if (dummyArea == 0.0) dummyArea = 1.0;
+    if (dummyArea == 0) dummyArea = 1.0;
 
     final calculations = CalculatorHelper.calculateContractValues(
       area: dummyArea,
@@ -320,7 +328,7 @@ class _AddContractPageState extends State<AddContractPage> {
                                 setState(() {
                                   isHistoricalContract = false;
                                   priceController.clear();
-                                  _rawCalculatedPricePerSqm = 0.0;
+                                  _rawCalculatedPricePerSqm = 0;
                                 });
                               }
                             },
@@ -419,12 +427,13 @@ class _AddContractPageState extends State<AddContractPage> {
                                         flex: 2,
                                         child: InkWell(
                                           onTap: () async {
+                                            final now = DateTime.now();
                                             final date = await showDatePicker(
                                               context: context,
-                                              initialDate: DateTime.now().add(
+                                              initialDate: now.add(
                                                 const Duration(days: 365),
                                               ),
-                                              firstDate: DateTime.now(),
+                                              firstDate: now,
                                               lastDate: DateTime(2050),
                                               helpText: 'حدد الموعد للتسليم',
                                             );
@@ -504,7 +513,7 @@ class _AddContractPageState extends State<AddContractPage> {
                                       'في حال بقاء ذمم مالية.',
                                     ),
                                     value: isPenaltyActive,
-                                    activeColor: Colors.deepOrange,
+                                    activeThumbColor: Colors.deepOrange,
                                     onChanged: (val) {
                                       setState(() => isPenaltyActive = val);
                                     },
@@ -517,10 +526,7 @@ class _AddContractPageState extends State<AddContractPage> {
                                         Expanded(
                                           child: TextFormField(
                                             controller: penaltyPctCtrl,
-                                            keyboardType: const TextInputType
-                                                .numberWithOptions(
-                                              decimal: true,
-                                            ),
+                                            keyboardType: TextInputType.number,
                                             decoration: const InputDecoration(
                                               labelText: 'نسبة الغرامة',
                                               suffixText: '%',
@@ -715,7 +721,8 @@ class _AddContractPageState extends State<AddContractPage> {
     }
 
     final agreedAmountSYP = _safeParseDouble(monthlyAmountCtrl) * exchangeRate;
-    final finalDownPaymentSYP = _safeParseDouble(downPaymentCtrl) * exchangeRate;
+    final finalDownPaymentSYP =
+        _safeParseDouble(downPaymentCtrl) * exchangeRate;
 
     if (agreedAmountSYP <= 0) {
       return _showError('المبلغ الشهري يجب أن يكون أكبر من صفر!');
@@ -759,6 +766,10 @@ class _AddContractPageState extends State<AddContractPage> {
         ),
       );
 
+      final applyPenalty = isAllocated && isPenaltyActive;
+      final histDollar =
+          (isHistoricalContract && isDollarContract) ? exchangeRate : null;
+
       await context.read<ContractsCubit>().addContract(
             clientId: selectedClientId!,
             contractType: selectedContractType,
@@ -775,11 +786,10 @@ class _AddContractPageState extends State<AddContractPage> {
             agreedHandoverDate: isAllocated ? agreedHandoverDate : null,
             gracePeriodMonths:
                 isAllocated ? _safeParseInt(gracePeriodCtrl) : null,
-            isPenaltyActive: isAllocated ? isPenaltyActive : false,
-            penaltyPercentage: isAllocated && isPenaltyActive
-                ? _safeParseDouble(penaltyPctCtrl)
-                : 0.0,
-            penaltyIntervalMonths: isAllocated && isPenaltyActive
+            isPenaltyActive: applyPenalty,
+            penaltyPercentage:
+                applyPenalty ? _safeParseDouble(penaltyPctCtrl) : 0.0,
+            penaltyIntervalMonths: applyPenalty
                 ? _safeParseInt(penaltyIntervalCtrl, defaultValue: 1)
                 : 1,
             histIron:
@@ -796,15 +806,14 @@ class _AddContractPageState extends State<AddContractPage> {
                 : null,
             histWorker:
                 isHistoricalContract ? _safeParseDouble(histWorkerCtrl) : null,
-            histDollarRate:
-                (isHistoricalContract && isDollarContract) ? exchangeRate : null,
+            histDollarRate: histDollar,
           );
 
       if (mounted) {
         Navigator.pop(context);
         _showSuccess('تم توقيع العقد بنجاح! ✅');
       }
-    } catch (e) {
+    } on Object catch (e) {
       if (mounted) {
         setState(() => _isSaving = false);
         _showError('حدث خطأ أثناء الحفظ: $e');
