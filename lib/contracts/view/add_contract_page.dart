@@ -10,7 +10,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 // ignore: depend_on_referenced_packages, reason: Needed for calculation models
 import 'package:local_storage_api/local_storage_api.dart'
-    show MaterialPricesHistoryData;
+    show Apartment, Building, MaterialPricesHistoryData;
 
 import 'package:our_home_erp_app/buildings/cubit/buildings_cubit.dart';
 import 'package:our_home_erp_app/contracts/contracts.dart';
