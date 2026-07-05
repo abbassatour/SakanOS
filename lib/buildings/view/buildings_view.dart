@@ -1,53 +1,11 @@
 // lib/buildings/view/buildings_view.dart
-// ignore_for_file: always_use_package_imports
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
-import '../cubit/buildings_cubit.dart';
-import '../widgets/widgets.dart';
+import 'package:our_home_erp_app/buildings/cubit/buildings_cubit.dart';
+import 'package:our_home_erp_app/buildings/widgets/widgets.dart';
 
 class BuildingsView extends StatelessWidget {
   const BuildingsView({super.key});
-
-  Widget _buildHeader(int count) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
-      child: Row(
-        children: [
-          const Icon(Icons.domain, color: Colors.indigo, size: 30),
-          const SizedBox(width: 12),
-          const Expanded(
-            child: Text(
-              'كتالوج المشاريع والوحدات',
-              style: TextStyle(
-                fontSize: 26,
-                fontWeight: FontWeight.bold,
-                color: Colors.blueGrey,
-              ),
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(
-              color: Colors.indigo.shade50,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.indigo.shade100),
-            ),
-            child: Text(
-              'الإجمالي: $count',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: Colors.indigo.shade700,
-                fontSize: 14,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -104,7 +62,7 @@ class BuildingsView extends StatelessWidget {
               if (state.buildings.isEmpty) {
                 return Column(
                   children: [
-                    _buildHeader(0),
+                    const _BuildingsHeader(count: 0),
                     Expanded(
                       child: Center(
                         child: Column(
@@ -136,7 +94,7 @@ class BuildingsView extends StatelessWidget {
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildHeader(buildings.length),
+                  _BuildingsHeader(count: buildings.length),
                   Expanded(
                     child: ListView.builder(
                       padding: const EdgeInsets.fromLTRB(24, 8, 24, 100),
@@ -155,6 +113,53 @@ class BuildingsView extends StatelessWidget {
             },
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// 🌟 تم استخراج دالة الهيدر إلى كلاس مستقل لتحسين الأداء والمقروئية
+class _BuildingsHeader extends StatelessWidget {
+  const _BuildingsHeader({required this.count});
+
+  final int count;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+      child: Row(
+        children: [
+          const Icon(Icons.domain, color: Colors.indigo, size: 30),
+          const SizedBox(width: 12),
+          const Expanded(
+            child: Text(
+              'كتالوج المشاريع والوحدات',
+              style: TextStyle(
+                fontSize: 26,
+                fontWeight: FontWeight.bold,
+                color: Colors.blueGrey,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.indigo.shade50,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.indigo.shade100),
+            ),
+            child: Text(
+              'الإجمالي: $count',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.indigo.shade700,
+                fontSize: 14,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
