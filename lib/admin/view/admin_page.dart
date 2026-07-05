@@ -1,13 +1,14 @@
 //lib\admin\view\admin_page.dart
+import 'dart:async';
 import 'dart:convert';
+
+import 'package:erp_repository/erp_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:erp_repository/erp_repository.dart';
-import 'package:local_storage_api/local_storage_api.dart';
-
-import '../cubit/admin_cubit.dart';
+import 'package:local_storage_api/local_storage_api.dart' show AppRole;
+import 'package:our_home_erp_app/admin/cubit/admin_cubit.dart';
 import 'package:our_home_erp_app/auth/cubit/auth_cubit.dart';
-import '../../core/constants/app_permissions.dart';
+import 'package:our_home_erp_app/core/constants/app_permissions.dart';
 
 class AdminPage extends StatelessWidget {
   const AdminPage({super.key});
@@ -15,7 +16,8 @@ class AdminPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => AdminCubit(context.read<ErpRepository>())..loadAdminData(),
+      create: (context) =>
+          AdminCubit(context.read<ErpRepository>())..loadAdminData(),
       child: const AdminView(),
     );
   }
@@ -28,10 +30,9 @@ class AdminView extends StatefulWidget {
   State<AdminView> createState() => _AdminViewState();
 }
 
-class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMixin {
+class _AdminViewState extends State<AdminView>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
-
-  // داخل كلاس _AdminViewState في ملف lib/admin/view/admin_page.dart
 
   final Map<String, String> permissionNames = {
     AppPermissions.viewClients: 'عرض العملاء',
@@ -51,11 +52,9 @@ class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMix
     AppPermissions.viewRecycleBin: 'رؤية سلة المحذوفات',
     AppPermissions.restoreItems: 'استعادة المحذوفات',
     AppPermissions.hardDeleteItems: 'الحذف النهائي المدمر',
-    
-    // 🌟 الصلاحيات القانونية الجديدة
     AppPermissions.viewLegalAffairs: 'عرض الأرشيف القانوني',
     AppPermissions.addLegalAction: 'إضافة إجراء قانوني جديد',
-    AppPermissions.editLegalAction: 'تعديل إجراء قانوني', // 🌟 أضف هذا السطر
+    AppPermissions.editLegalAction: 'تعديل إجراء قانوني',
     AppPermissions.deleteLegalAction: 'حذف إجراء قانوني',
     AppPermissions.manageLegalAttachments: 'إدارة المرفقات القانونية (رفع/حذف)',
   };
@@ -64,6 +63,12 @@ class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMix
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
   }
 
   @override
@@ -79,7 +84,7 @@ class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMix
           labelColor: Colors.amber,
           unselectedLabelColor: Colors.white70,
           indicatorColor: Colors.amber,
-          tabs: const[
+          tabs: const [
             Tab(icon: Icon(Icons.group), text: 'الموظفين (تعيين الأدوار)'),
             Tab(icon: Icon(Icons.security), text: 'قوالب الصلاحيات (الأدوار)'),
           ],
@@ -88,7 +93,12 @@ class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMix
       body: BlocConsumer<AdminCubit, AdminState>(
         listener: (context, state) {
           if (state.status == AdminStatus.failure) {
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.errorMessage ?? 'خطأ'), backgroundColor: Colors.red));
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.errorMessage ?? 'خطأ'),
+                backgroundColor: Colors.red,
+              ),
+            );
           }
         },
         builder: (context, state) {
@@ -98,7 +108,7 @@ class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMix
 
           return TabBarView(
             controller: _tabController,
-            children:[
+            children: [
               _buildUsersTab(context, state),
               _buildRolesTab(context, state),
             ],
@@ -108,25 +118,27 @@ class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMix
     );
   }
 
-  // =====================================
-  // 👥 التبويب الأول: إدارة الموظفين (مقسم إلى قسمين)
-  // =====================================
   Widget _buildUsersTab(BuildContext context, AdminState state) {
     final myUserId = context.watch<AuthCubit>().state.userId;
 
     return CustomScrollView(
-      slivers:[
-        // --- 1. قسم الطلبات المعلقة ---
+      slivers: [
         if (state.pendingUsers.isNotEmpty) ...[
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
               child: Row(
-                children:[
+                children: [
                   Icon(Icons.hourglass_top, color: Colors.orange.shade700),
                   const SizedBox(width: 8),
-                  Text('طلبات انضمام بانتظار الموافقة (${state.pendingUsers.length})', 
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.orange.shade800)),
+                  Text(
+                    'طلبات انضمام بانتظار الموافقة (${state.pendingUsers.length})',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.orange.shade800,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -138,50 +150,96 @@ class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMix
                 return Card(
                   elevation: 0,
                   color: Colors.orange.shade50,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: Colors.orange.shade200)),
-                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    side: BorderSide(color: Colors.orange.shade200),
+                  ),
+                  margin: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 6,
+                  ),
                   child: Padding(
                     padding: const EdgeInsets.all(12.0),
                     child: Row(
-                      children:[
-                        CircleAvatar(backgroundColor: Colors.orange.shade200, child: const Icon(Icons.person_add, color: Colors.deepOrange)),
+                      children: [
+                        CircleAvatar(
+                          backgroundColor: Colors.orange.shade200,
+                          child: const Icon(
+                            Icons.person_add,
+                            color: Colors.deepOrange,
+                          ),
+                        ),
                         const SizedBox(width: 16),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
-                            children:[
-                              Text(user.fullName ?? 'بدون اسم', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                              Text(user.email, style: TextStyle(color: Colors.grey.shade700)),
+                            children: [
+                              Text(
+                                user.fullName ?? 'بدون اسم',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                              ),
+                              Text(
+                                user.email,
+                                style: TextStyle(color: Colors.grey.shade700),
+                              ),
                             ],
                           ),
                         ),
-                        // اختيار الدور
                         SizedBox(
                           width: 150,
                           child: DropdownButtonFormField<String>(
                             isExpanded: true,
-                            decoration: const InputDecoration(border: OutlineInputBorder(), contentPadding: EdgeInsets.symmetric(horizontal: 10), fillColor: Colors.white, filled: true),
+                            decoration: const InputDecoration(
+                              border: OutlineInputBorder(),
+                              contentPadding:
+                                  EdgeInsets.symmetric(horizontal: 10),
+                              fillColor: Colors.white,
+                              filled: true,
+                            ),
                             hint: const Text('حدد الدور أولاً'),
-                            value: user.roleId?.isNotEmpty == true ? user.roleId : null,
+                            value: user.roleId?.isNotEmpty == true
+                                ? user.roleId
+                                : null,
                             items: state.roles.map((role) {
-                              return DropdownMenuItem(value: role.id, child: Text(role.name));
+                              return DropdownMenuItem(
+                                value: role.id,
+                                child: Text(role.name),
+                              );
                             }).toList(),
                             onChanged: (newRoleId) {
-                              // نعطيه الدور، لكن لا نفعله بعد حتى يضغط قبول
-                              context.read<AdminCubit>().updateUser(user.id, newRoleId, false);
+                              context.read<AdminCubit>().updateUser(
+                                    user.id,
+                                    newRoleId,
+                                    false,
+                                  );
                             },
                           ),
                         ),
                         const SizedBox(width: 12),
-                        // زر القبول والتفعيل
                         ElevatedButton.icon(
-                          style: ElevatedButton.styleFrom(backgroundColor: Colors.green, foregroundColor: Colors.white),
-                          onPressed: user.roleId == null || user.roleId!.isEmpty 
-                            ? null // يجب تحديد الدور أولاً
-                            : () {
-                                context.read<AdminCubit>().updateUser(user.id, user.roleId, true);
-                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم قبول الموظف بنجاح!'), backgroundColor: Colors.green));
-                              },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green,
+                            foregroundColor: Colors.white,
+                          ),
+                          onPressed: user.roleId == null ||
+                                  user.roleId!.isEmpty
+                              ? null
+                              : () {
+                                  context.read<AdminCubit>().updateUser(
+                                        user.id,
+                                        user.roleId,
+                                        true,
+                                      );
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('تم قبول الموظف بنجاح!'),
+                                      backgroundColor: Colors.green,
+                                    ),
+                                  );
+                                },
                           icon: const Icon(Icons.check),
                           label: const Text('قبول وتفعيل'),
                         ),
@@ -194,17 +252,21 @@ class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMix
             ),
           ),
         ],
-
-        // --- 2. قسم الموظفين النشطين ---
         SliverToBoxAdapter(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(16, 32, 16, 8),
             child: Row(
-              children:[
+              children: [
                 const Icon(Icons.verified_user, color: Colors.blueGrey),
                 const SizedBox(width: 8),
-                Text('الموظفون الحاليون (${state.activeUsers.length})', 
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blueGrey)),
+                Text(
+                  'الموظفون الحاليون (${state.activeUsers.length})',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blueGrey,
+                  ),
+                ),
               ],
             ),
           ),
@@ -219,16 +281,34 @@ class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMix
                 elevation: 2,
                 margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                 child: ListTile(
-                  leading: const CircleAvatar(backgroundColor: Colors.green, child: Icon(Icons.person, color: Colors.white)),
+                  leading: const CircleAvatar(
+                    backgroundColor: Colors.green,
+                    child: Icon(Icons.person, color: Colors.white),
+                  ),
                   title: Row(
-                    children:[
-                      Text(user.fullName ?? user.email, style: const TextStyle(fontWeight: FontWeight.bold)),
+                    children: [
+                      Text(
+                        user.fullName ?? user.email,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
                       if (isMe) ...[
                         const SizedBox(width: 8),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                          decoration: BoxDecoration(color: Colors.amber, borderRadius: BorderRadius.circular(8)),
-                          child: const Text('أنت', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.amber,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Text(
+                            'أنت',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         )
                       ]
                     ],
@@ -238,26 +318,41 @@ class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMix
                     width: 250,
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.end,
-                      children:[
+                      children: [
                         Expanded(
                           child: DropdownButton<String>(
                             isExpanded: true,
                             value: user.roleId,
                             items: state.roles.map((role) {
-                              return DropdownMenuItem(value: role.id, child: Text(role.name));
+                              return DropdownMenuItem(
+                                value: role.id,
+                                child: Text(role.name),
+                              );
                             }).toList(),
-                            onChanged: isMe ? null : (newRoleId) {
-                              context.read<AdminCubit>().updateUser(user.id, newRoleId, user.isActive);
-                            },
+                            onChanged: isMe
+                                ? null
+                                : (newRoleId) {
+                                    context.read<AdminCubit>().updateUser(
+                                          user.id,
+                                          newRoleId,
+                                          user.isActive,
+                                        );
+                                  },
                           ),
                         ),
                         const SizedBox(width: 8),
                         Switch(
                           value: user.isActive,
                           activeColor: Colors.green,
-                          onChanged: isMe ? null : (val) {
-                            context.read<AdminCubit>().updateUser(user.id, user.roleId, val);
-                          },
+                          onChanged: isMe
+                              ? null
+                              : (val) {
+                                  context.read<AdminCubit>().updateUser(
+                                        user.id,
+                                        user.roleId,
+                                        val,
+                                      );
+                                },
                         )
                       ],
                     ),
@@ -273,18 +368,18 @@ class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMix
     );
   }
 
-  // =====================================
-  // 🛡️ التبويب الثاني: إدارة القوالب (كما هو)
-  // =====================================
   Widget _buildRolesTab(BuildContext context, AdminState state) {
     return Column(
-      children:[
+      children: [
         Padding(
           padding: const EdgeInsets.all(16.0),
           child: ElevatedButton.icon(
             icon: const Icon(Icons.add),
             label: const Text('إنشاء قالب دور جديد'),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.blueGrey.shade800, foregroundColor: Colors.white),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blueGrey.shade800,
+              foregroundColor: Colors.white,
+            ),
             onPressed: () => _showRoleDialog(context, null),
           ),
         ),
@@ -298,9 +393,18 @@ class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMix
                 elevation: 2,
                 margin: const EdgeInsets.only(bottom: 12),
                 child: ListTile(
-                  leading: const Icon(Icons.shield, color: Colors.amber, size: 36),
-                  title: Text(role.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-                  subtitle: Text(role.isSystemRole ? 'دور أساسي في النظام' : 'دور مخصص'),
+                  leading: const Icon(Icons.shield,
+                      color: Colors.amber, size: 36),
+                  title: Text(
+                    role.name,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                    ),
+                  ),
+                  subtitle: Text(
+                    role.isSystemRole ? 'دور أساسي في النظام' : 'دور مخصص',
+                  ),
                   trailing: IconButton(
                     icon: const Icon(Icons.edit_square, color: Colors.blue),
                     onPressed: () => _showRoleDialog(context, role),
@@ -316,83 +420,109 @@ class _AdminViewState extends State<AdminView> with SingleTickerProviderStateMix
 
   void _showRoleDialog(BuildContext parentContext, AppRole? role) {
     final nameController = TextEditingController(text: role?.name ?? '');
-    List<String> currentPerms =[];
+    var currentPerms = <String>[];
+
     if (role != null && role.permissionsJson.isNotEmpty) {
       try {
-        currentPerms = List<String>.from(jsonDecode(role.permissionsJson));
-      } catch (_) {}
+        final decoded = jsonDecode(role.permissionsJson) as Iterable<dynamic>;
+        currentPerms = List<String>.from(decoded);
+      } catch (_) {
+        // إذا فشل فك التشفير، نبقي القائمة فارغة
+      }
     }
 
-    showDialog(
-      context: parentContext,
-      barrierDismissible: false,
-      builder: (ctx) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
-              title: Text(role == null ? 'دور جديد' : 'تعديل: ${role.name}'),
-              content: SizedBox(
-                width: double.maxFinite,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children:[
-                    if (role == null) 
-                      TextField(
-                        controller: nameController,
-                        decoration: const InputDecoration(labelText: 'اسم الدور (مثال: محاسب فرع)', border: OutlineInputBorder()),
+    unawaited(
+      showDialog<void>(
+        context: parentContext,
+        barrierDismissible: false,
+        builder: (ctx) {
+          return StatefulBuilder(
+            builder: (context, setState) {
+              return AlertDialog(
+                title: Text(role == null ? 'دور جديد' : 'تعديل: ${role.name}'),
+                content: SizedBox(
+                  width: double.maxFinite,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (role == null)
+                        TextField(
+                          controller: nameController,
+                          decoration: const InputDecoration(
+                            labelText: 'اسم الدور (مثال: محاسب فرع)',
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                      const SizedBox(height: 16),
+                      const Text(
+                        'الصلاحيات الممنوحة:',
+                        style: TextStyle(fontWeight: FontWeight.bold),
                       ),
-                    const SizedBox(height: 16),
-                    const Text('الصلاحيات الممنوحة:', style: TextStyle(fontWeight: FontWeight.bold)),
-                    const Divider(),
-                    Expanded(
-                      child: ListView(
-                        shrinkWrap: true,
-                        children: AppPermissions.all.map((permCode) {
-                          final bool hasPerm = currentPerms.contains(permCode);
-                          return CheckboxListTile(
-                            title: Text(permissionNames[permCode] ?? permCode),
-                            value: hasPerm,
-                            activeColor: Colors.blueGrey.shade900,
-                            onChanged: role?.isSystemRole == true 
-                              ? null 
-                              : (bool? val) {
-                                  setState(() {
-                                    if (val == true) {
-                                      currentPerms.add(permCode);
-                                    } else {
-                                      currentPerms.remove(permCode);
-                                    }
-                                  });
-                                },
-                          );
-                        }).toList(),
+                      const Divider(),
+                      Expanded(
+                        child: ListView(
+                          shrinkWrap: true,
+                          children: AppPermissions.all.map((permCode) {
+                            final hasPerm = currentPerms.contains(permCode);
+                            return CheckboxListTile(
+                              title: Text(
+                                permissionNames[permCode] ?? permCode,
+                              ),
+                              value: hasPerm,
+                              activeColor: Colors.blueGrey.shade900,
+                              onChanged: role?.isSystemRole == true
+                                  ? null
+                                  : (bool? val) {
+                                      setState(() {
+                                        if (val == true) {
+                                          currentPerms.add(permCode);
+                                        } else {
+                                          currentPerms.remove(permCode);
+                                        }
+                                      });
+                                    },
+                            );
+                          }).toList(),
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-              actions:[
-                TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('إلغاء', style: TextStyle(color: Colors.red))),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.blueGrey.shade900, foregroundColor: Colors.white),
-                  onPressed: () {
-                    if (role == null) {
-                      if (nameController.text.trim().isNotEmpty) {
-                        parentContext.read<AdminCubit>().createNewRole(nameController.text.trim(), currentPerms);
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(ctx),
+                    child: const Text('إلغاء', style: TextStyle(color: Colors.red)),
+                  ),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blueGrey.shade900,
+                      foregroundColor: Colors.white,
+                    ),
+                    onPressed: () {
+                      if (role == null) {
+                        if (nameController.text.trim().isNotEmpty) {
+                          parentContext.read<AdminCubit>().createNewRole(
+                                nameController.text.trim(),
+                                currentPerms,
+                              );
+                          Navigator.pop(ctx);
+                        }
+                      } else {
+                        parentContext.read<AdminCubit>().updateRole(
+                              role.id,
+                              currentPerms,
+                            );
                         Navigator.pop(ctx);
                       }
-                    } else {
-                      parentContext.read<AdminCubit>().updateRole(role.id, currentPerms);
-                      Navigator.pop(ctx);
-                    }
-                  },
-                  child: const Text('حفظ'),
-                ),
-              ],
-            );
-          }
-        );
-      }
+                    },
+                    child: const Text('حفظ'),
+                  ),
+                ],
+              );
+            },
+          );
+        },
+      ),
     );
   }
 }
