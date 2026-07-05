@@ -1,0 +1,41 @@
+{
+  "output": {
+    "filePath": "repomix-output.xml",
+    "style": "xml"
+  },
+  "ignore": {
+    "customPatterns": [
+      "**/*.g.dart",
+      "**/*.freezed.dart",
+      "android/**",
+      "ios/**",
+      "web/**",
+      "macos/**",
+      "windows/**",
+      "linux/**",
+      "**/pubspec.lock",
+      "Redist/**",
+      "ourhomesetup.iss",
+      "**/test/**",
+      ".github/**",
+      "**/*.svg",
+      "**/*.png",
+      "**/*.jpg",
+      "**/*.jpeg",
+      "**/*.webp",
+      "**/*.gif",
+      "**/*.ico",
+      "**/README.md",
+      "**/CHANGELOG.md",
+      "LICENSE",
+      ".dart_tool/**",
+      "build/**",
+      ".idea/**",
+      ".vscode/**",
+      ".flutter-plugins",
+      ".flutter-plugins-dependencies",
+      ".metadata",
+      "repomix-output.xml"
+    ]
+  }
+}

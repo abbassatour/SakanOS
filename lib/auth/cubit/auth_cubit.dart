@@ -1,16 +1,24 @@
 import 'dart:convert';
+import 'dart:developer';
+
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:erp_repository/erp_repository.dart';
+import 'package:local_storage_api/local_storage_api.dart' show LocalUser;
 
 part 'auth_state.dart';
 
 class AuthCubit extends Cubit<AuthState> {
   AuthCubit(this._erpRepository) : super(const AuthState()) {
-    checkSession(); // التحقق التلقائي بمجرد تشغيل التطبيق
+    _init();
   }
 
   final ErpRepository _erpRepository;
+
+  void _init() {
+    // نستخدم دالة فرعية لبدء التحقق وتجنب الاستدعاء العشوائي المعلق داخل المشيّد (Constructor)
+    checkSession();
+  }
 
   Future<void> checkSession() async {
     emit(state.copyWith(status: AuthStatus.loading));
@@ -28,58 +36,69 @@ class AuthCubit extends Cubit<AuthState> {
       final localUser = await _erpRepository.getLocalUserById(userId);
 
       if (localUser == null) {
-        // إذا كان مسجل دخول لكن بياناته لم تنزل بعد محلياً (مثلاً أول مرة يفتح التطبيق)
+        // إذا كان مسجل دخول لكن بياناته لم تنزل بعد محلياً (أول مرة يفتح التطبيق)
         // نقوم بإجبار مزامنة سريعة لجلب بياناته فوراً
         await _erpRepository.pullDataFromCloud();
         final retryUser = await _erpRepository.getLocalUserById(userId);
-        
+
         if (retryUser == null) {
-          emit(state.copyWith(
-            status: AuthStatus.error, 
-            errorMessage: 'بيانات المستخدم غير موجودة في النظام. تواصل مع الإدارة.'
-          ));
+          emit(
+            state.copyWith(
+              status: AuthStatus.error,
+              errorMessage:
+                  'بيانات المستخدم غير موجودة في النظام. تواصل مع الإدارة.',
+            ),
+          );
           return;
         }
-        _processUserPermissions(retryUser);
+        await _processUserPermissions(retryUser);
       } else {
-        _processUserPermissions(localUser);
+        await _processUserPermissions(localUser);
       }
-
-    } catch (e) {
-      emit(state.copyWith(status: AuthStatus.error, errorMessage: e.toString()));
+    } catch (e, stackTrace) {
+      log('خطأ أثناء التحقق من جلسة المستخدم', error: e, stackTrace: stackTrace);
+      emit(
+        state.copyWith(
+          status: AuthStatus.error,
+          errorMessage: e.toString(),
+        ),
+      );
     }
   }
 
   // 🌟 محرك دمج الصلاحيات (الرياضيات الذكية والمحمية)
-  Future<void> _processUserPermissions(dynamic localUser) async {
+  Future<void> _processUserPermissions(LocalUser localUser) async {
     // 1. التحقق من حالة الحساب
     if (localUser.isActive == false) {
-      emit(state.copyWith(
-        status: AuthStatus.error, 
-        errorMessage: 'هذا الحساب تم إيقافه من قبل الإدارة.'
-      ));
+      emit(
+        state.copyWith(
+          status: AuthStatus.error,
+          errorMessage: 'هذا الحساب تم إيقافه من قبل الإدارة.',
+        ),
+      );
       return;
     }
 
-    String roleName = 'بدون دور';
-    bool isSystemAdmin = false;
-    Set<String> finalPermissions = {}; // نستخدم Set لمنع التكرار
+    var roleName = 'بدون دور';
+    var isSystemAdmin = false;
+    final finalPermissions = <String>{}; // نستخدم Set لمنع التكرار
 
     // 2. جلب قالب الدور (Role)
-    if (localUser.roleId != null) {
+    if (localUser.roleId != null && localUser.roleId!.isNotEmpty) {
       final role = await _erpRepository.getRoleById(localUser.roleId!);
       if (role != null) {
         roleName = role.name;
         isSystemAdmin = role.isSystemRole;
 
         // 🛡️ حماية فك تشفير صلاحيات الدور
-        final String rolePermsStr = role.permissionsJson?.trim() ?? '';
+        final rolePermsStr = role.permissionsJson.trim();
         if (rolePermsStr.isNotEmpty && rolePermsStr != 'null') {
           try {
-            List<dynamic> rolePerms = jsonDecode(rolePermsStr);
+            final rolePerms = jsonDecode(rolePermsStr) as List<dynamic>;
             finalPermissions.addAll(rolePerms.cast<String>());
-          } catch (e) {
-            print('⚠️ خطأ في فك تشفير صلاحيات الدور: $e');
+          } catch (e, stackTrace) {
+            log('⚠️ خطأ في فك تشفير صلاحيات الدور',
+                error: e, stackTrace: stackTrace);
           }
         }
       }
@@ -87,37 +106,41 @@ class AuthCubit extends Cubit<AuthState> {
 
     // 3. إضافة الاستثناءات (Extra)
     // 🛡️ حماية فك تشفير الاستثناءات
-    final String extraPermsStr = localUser.extraPermissionsJson?.trim() ?? '';
+    final extraPermsStr = localUser.extraPermissionsJson.trim();
     if (extraPermsStr.isNotEmpty && extraPermsStr != 'null') {
       try {
-        List<dynamic> extraPerms = jsonDecode(extraPermsStr);
+        final extraPerms = jsonDecode(extraPermsStr) as List<dynamic>;
         finalPermissions.addAll(extraPerms.cast<String>());
-      } catch (e) {
-        print('⚠️ خطأ في فك تشفير الاستثناءات المضافة: $e');
+      } catch (e, stackTrace) {
+        log('⚠️ خطأ في فك تشفير الاستثناءات المضافة',
+            error: e, stackTrace: stackTrace);
       }
     }
 
     // 4. طرح الصلاحيات المسحوبة (Revoked)
     // 🛡️ حماية فك تشفير الممنوعات
-    final String revokedPermsStr = localUser.revokedPermissionsJson?.trim() ?? '';
+    final revokedPermsStr = localUser.revokedPermissionsJson.trim();
     if (revokedPermsStr.isNotEmpty && revokedPermsStr != 'null') {
       try {
-        List<dynamic> revokedPerms = jsonDecode(revokedPermsStr);
+        final revokedPerms = jsonDecode(revokedPermsStr) as List<dynamic>;
         finalPermissions.removeAll(revokedPerms.cast<String>());
-      } catch (e) {
-        print('⚠️ خطأ في فك تشفير الاستثناءات المسحوبة: $e');
+      } catch (e, stackTrace) {
+        log('⚠️ خطأ في فك تشفير الاستثناءات المسحوبة',
+            error: e, stackTrace: stackTrace);
       }
     }
 
     // 5. حفظ النتيجة النهائية النظيفة في الحالة (State)
-    emit(state.copyWith(
-      status: AuthStatus.authenticated,
-      userId: localUser.id,
-      userName: localUser.fullName ?? localUser.email,
-      roleName: roleName,
-      isSystemAdmin: isSystemAdmin,
-      permissions: finalPermissions.toList(),
-    ));
+    emit(
+      state.copyWith(
+        status: AuthStatus.authenticated,
+        userId: localUser.id,
+        userName: localUser.fullName ?? localUser.email,
+        roleName: roleName,
+        isSystemAdmin: isSystemAdmin,
+        permissions: finalPermissions.toList(),
+      ),
+    );
   }
 
   // دالة لتسجيل الخروج يدوياً
