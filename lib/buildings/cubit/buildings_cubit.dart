@@ -1,6 +1,8 @@
 // lib/buildings/cubit/buildings_cubit.dart
 // ignore_for_file: depend_on_referenced_packages
 
+import 'dart:developer';
+
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:erp_repository/erp_repository.dart';
@@ -10,7 +12,6 @@ import 'package:local_storage_api/local_storage_api.dart'
 part 'buildings_state.dart';
 
 class BuildingsCubit extends Cubit<BuildingsState> {
-  // 🌟 تم الحفاظ على نوع المعامل الموضعي (Positional) لضمان التوافقية
   BuildingsCubit(this._erpRepository) : super(const BuildingsState());
 
   final ErpRepository _erpRepository;
@@ -23,8 +24,7 @@ class BuildingsCubit extends Cubit<BuildingsState> {
 
       final allUsers = await _erpRepository.getAllUsers();
       final namesMap = <String, String>{
-        for (final user in allUsers)
-          user.id: user.fullName ?? 'مدير النظام',
+        for (final user in allUsers) user.id: user.fullName ?? 'مدير النظام',
       };
 
       emit(
@@ -35,7 +35,8 @@ class BuildingsCubit extends Cubit<BuildingsState> {
           userNamesMap: namesMap,
         ),
       );
-    } on Exception catch (e) {
+    } catch (e, stackTrace) {
+      log('خطأ في تحميل بيانات المحاضر', error: e, stackTrace: stackTrace);
       emit(
         state.copyWith(
           status: BuildingsStatus.failure,
@@ -59,7 +60,8 @@ class BuildingsCubit extends Cubit<BuildingsState> {
         dirCoeffs: dirCoeffs,
       );
       await loadData();
-    } on Exception catch (e) {
+    } catch (e, stackTrace) {
+      log('خطأ في إضافة محضر جديد', error: e, stackTrace: stackTrace);
       emit(
         state.copyWith(
           status: BuildingsStatus.failure,
@@ -89,7 +91,8 @@ class BuildingsCubit extends Cubit<BuildingsState> {
         customCoeffs: customCoeffs,
       );
       await loadData();
-    } on Exception catch (e) {
+    } catch (e, stackTrace) {
+      log('خطأ في إضافة شقة جديدة', error: e, stackTrace: stackTrace);
       emit(
         state.copyWith(
           status: BuildingsStatus.failure,
@@ -111,7 +114,8 @@ class BuildingsCubit extends Cubit<BuildingsState> {
         location: location,
       );
       await loadData();
-    } on Exception catch (e) {
+    } catch (e, stackTrace) {
+      log('خطأ في تحديث المحضر', error: e, stackTrace: stackTrace);
       emit(
         state.copyWith(
           status: BuildingsStatus.failure,
@@ -135,7 +139,8 @@ class BuildingsCubit extends Cubit<BuildingsState> {
         directionName: directionName,
       );
       await loadData();
-    } on Exception catch (e) {
+    } catch (e, stackTrace) {
+      log('خطأ في تحديث الشقة', error: e, stackTrace: stackTrace);
       emit(
         state.copyWith(
           status: BuildingsStatus.failure,
@@ -149,7 +154,8 @@ class BuildingsCubit extends Cubit<BuildingsState> {
     try {
       await _erpRepository.softDeleteBuilding(buildingId);
       await loadData();
-    } on Exception catch (e) {
+    } catch (e, stackTrace) {
+      log('خطأ في حذف المحضر', error: e, stackTrace: stackTrace);
       emit(
         state.copyWith(
           status: BuildingsStatus.failure,
@@ -163,7 +169,8 @@ class BuildingsCubit extends Cubit<BuildingsState> {
     try {
       await _erpRepository.softDeleteApartment(apartmentId);
       await loadData();
-    } on Exception catch (e) {
+    } catch (e, stackTrace) {
+      log('خطأ في حذف الشقة', error: e, stackTrace: stackTrace);
       emit(
         state.copyWith(
           status: BuildingsStatus.failure,
