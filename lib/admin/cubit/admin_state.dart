@@ -7,7 +7,7 @@ class AdminState extends Equatable {
   const AdminState({
     this.status = AdminStatus.initial,
     this.users = const [],
-    this.roles = const[],
+    this.roles = const [],
     this.errorMessage,
   });
 
@@ -17,11 +17,11 @@ class AdminState extends Equatable {
   final String? errorMessage;
 
   // 🌟 فلتر 1: الطلبات المعلقة (المستخدم ليس لديه دور، أو حسابه غير مفعل)
-  List<LocalUser> get pendingUsers => 
+  List<LocalUser> get pendingUsers =>
       users.where((u) => u.roleId == null || u.roleId!.isEmpty || !u.isActive).toList();
 
   // 🌟 فلتر 2: الموظفون النشطون (لديهم دور وحسابهم مفعل)
-  List<LocalUser> get activeUsers => 
+  List<LocalUser> get activeUsers =>
       users.where((u) => u.roleId != null && u.roleId!.isNotEmpty && u.isActive).toList();
 
   AdminState copyWith({

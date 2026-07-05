@@ -1,11 +1,12 @@
 // lib/admin/cubit/admin_cubit.dart
 // ignore_for_file: depend_on_referenced_packages
 
+import 'dart:developer';
+
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:erp_repository/erp_repository.dart';
-import 'package:local_storage_api/local_storage_api.dart'
-    show AppRole, LocalUser;
+import 'package:local_storage_api/local_storage_api.dart' show AppRole, LocalUser;
 
 part 'admin_state.dart';
 
@@ -27,7 +28,8 @@ class AdminCubit extends Cubit<AdminState> {
           roles: roles,
         ),
       );
-    } on Exception catch (e) {
+    } catch (e, stackTrace) {
+      log('خطأ في جلب بيانات الإدارة', error: e, stackTrace: stackTrace);
       emit(
         state.copyWith(
           status: AdminStatus.failure,
@@ -47,7 +49,8 @@ class AdminCubit extends Cubit<AdminState> {
         permissions: selectedPermissions,
       );
       await loadAdminData();
-    } on Exception catch (e) {
+    } catch (e, stackTrace) {
+      log('خطأ في إنشاء دور جديد', error: e, stackTrace: stackTrace);
       emit(
         state.copyWith(
           status: AdminStatus.failure,
@@ -67,7 +70,8 @@ class AdminCubit extends Cubit<AdminState> {
         permissions: selectedPermissions,
       );
       await loadAdminData();
-    } on Exception catch (e) {
+    } catch (e, stackTrace) {
+      log('خطأ في تحديث الصلاحيات', error: e, stackTrace: stackTrace);
       emit(
         state.copyWith(
           status: AdminStatus.failure,
@@ -85,7 +89,8 @@ class AdminCubit extends Cubit<AdminState> {
         isActive: isActive,
       );
       await loadAdminData();
-    } on Exception catch (e) {
+    } catch (e, stackTrace) {
+      log('خطأ في تحديث بيانات المستخدم', error: e, stackTrace: stackTrace);
       emit(
         state.copyWith(
           status: AdminStatus.failure,
