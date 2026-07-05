@@ -1,19 +1,16 @@
 // مسار الملف: lib/clients/widgets/client_table.dart
-// ignore_for_file: always_use_package_imports
-
 import 'dart:async';
 
 import 'package:erp_repository/erp_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
-import '../../dashboard/cubit/dashboard_cubit.dart';
-import '../../payments/cubit/payments_cubit.dart';
-import '../../profile/cubit/client_profile_cubit.dart';
-import '../../profile/view/client_profile_page.dart';
-import '../../schedule/cubit/schedule_cubit.dart';
-import '../cubit/clients_cubit.dart';
-import 'widgets.dart';
+import 'package:our_home_erp_app/clients/cubit/clients_cubit.dart';
+import 'package:our_home_erp_app/clients/widgets/widgets.dart';
+import 'package:our_home_erp_app/dashboard/cubit/dashboard_cubit.dart';
+import 'package:our_home_erp_app/payments/cubit/payments_cubit.dart';
+import 'package:our_home_erp_app/profile/cubit/client_profile_cubit.dart';
+import 'package:our_home_erp_app/profile/view/client_profile_page.dart';
+import 'package:our_home_erp_app/schedule/cubit/schedule_cubit.dart';
 
 class ClientTable extends StatelessWidget {
   const ClientTable({

@@ -1,12 +1,9 @@
 // مسار الملف: lib/clients/widgets/add_client_dialog.dart
-// ignore_for_file: always_use_package_imports
-
 import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
-import '../cubit/clients_cubit.dart';
+import 'package:our_home_erp_app/clients/cubit/clients_cubit.dart';
 
 void showAddClientDialog(BuildContext parentContext) {
   final clientsCubit = parentContext.read<ClientsCubit>();
@@ -129,7 +126,7 @@ class _AddClientDialogState extends State<_AddClientDialogContent> {
           ),
         );
       }
-    } on Exception catch (e) {
+    } catch (e) {
       if (mounted && widget.parentContext.mounted) {
         setState(() => _isSaving = false);
         ScaffoldMessenger.of(widget.parentContext).showSnackBar(

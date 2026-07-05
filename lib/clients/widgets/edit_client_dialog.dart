@@ -1,18 +1,13 @@
-// مسار الملف: lib/clients/widgets/edit_client_dialog.dart
-// ignore_for_file: always_use_package_imports
-// ignore_for_file: depend_on_referenced_packages
-// ignore_for_file: simple_directive_paths
-
+//lib/clients/widgets/edit_client_dialog.dart
 import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:local_storage_api/local_storage_api.dart' show Client;
-
-import '../../../auth/cubit/auth_cubit.dart';
-import '../../../core/constants/app_permissions.dart';
-import '../cubit/clients_cubit.dart';
-import 'verify_pin_dialog.dart';
+import 'package:our_home_erp_app/auth/cubit/auth_cubit.dart';
+import 'package:our_home_erp_app/clients/cubit/clients_cubit.dart';
+import 'package:our_home_erp_app/clients/widgets/verify_pin_dialog.dart';
+import 'package:our_home_erp_app/core/constants/app_permissions.dart';
 
 void showEditClientDialog(BuildContext parentContext, Client client) {
   final authState = parentContext.read<AuthCubit>().state;
