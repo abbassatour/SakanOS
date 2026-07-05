@@ -1,15 +1,12 @@
 // lib/buildings/widgets/building_card.dart
-// ignore_for_file: always_use_package_imports, depend_on_referenced_packages
-
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:local_storage_api/local_storage_api.dart'
     show Apartment, Building;
-
-import '../cubit/buildings_cubit.dart';
-import 'widgets.dart';
+import 'package:our_home_erp_app/buildings/cubit/buildings_cubit.dart';
+import 'package:our_home_erp_app/buildings/widgets/widgets.dart';
 
 int _getFloorLevel(String name) {
   if (name.contains('الأرضي')) return 0;
@@ -247,7 +244,7 @@ class BuildingCard extends StatelessWidget {
     try {
       availableFloors = jsonDecode(building.floorCoefficients)
           as Map<String, dynamic>;
-    } on Exception catch (_) {}
+    } catch (_) {}
 
     final sortedFloorNames = availableFloors.keys.toList()
       ..sort((a, b) => _getFloorLevel(a).compareTo(_getFloorLevel(b)));

@@ -1,6 +1,4 @@
 // lib/buildings/widgets/building_details_dialog.dart
-// ignore_for_file: depend_on_referenced_packages
-
 import 'dart:async';
 import 'dart:convert';
 
@@ -31,10 +29,8 @@ class _BuildingDetailsDialogContent extends StatelessWidget {
           as Map<String, dynamic>;
       generalCoeffs = jsonDecode(building.directionCoefficients)
           as Map<String, dynamic>;
-    } on Exception catch (e) {
-      // Reason: Dev logging
-      // ignore: avoid_print
-      print('Error decoding building coeffs: $e');
+    } catch (_) {
+      // تم تجاهل الخطأ بصمت لتفادي الانهيار إذا كانت القيمة فارغة أو تالفة
     }
 
     return AlertDialog(
