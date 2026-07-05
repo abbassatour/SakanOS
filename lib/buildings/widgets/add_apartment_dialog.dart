@@ -1,14 +1,12 @@
 // lib/buildings/widgets/add_apartment_dialog.dart
-// ignore_for_file: always_use_package_imports, depend_on_referenced_packages
-
 import 'dart:async';
 import 'dart:convert';
+import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:local_storage_api/local_storage_api.dart' show Building;
-
-import '../cubit/buildings_cubit.dart';
+import 'package:our_home_erp_app/buildings/cubit/buildings_cubit.dart';
 
 void showAddApartmentDialog(
   BuildContext parentContext,
@@ -86,10 +84,8 @@ class _AddApartmentDialogContentState
           as Map<String, dynamic>;
       parsedGeneral = jsonDecode(widget.building.directionCoefficients)
           as Map<String, dynamic>;
-    } on Exception catch (e) {
-      // Reason: Debugging info
-      // ignore: avoid_print
-      print('Error decoding coeffs: $e');
+    } catch (e, stackTrace) {
+      log('خطأ في فك تشفير المعاملات', error: e, stackTrace: stackTrace);
     }
 
     _availableFloors = parsedFloors;

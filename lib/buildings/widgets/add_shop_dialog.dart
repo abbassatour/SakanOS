@@ -1,13 +1,10 @@
 // lib/buildings/widgets/add_shop_dialog.dart
-// ignore_for_file: always_use_package_imports, depend_on_referenced_packages
-
 import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:local_storage_api/local_storage_api.dart' show Building;
-
-import '../cubit/buildings_cubit.dart';
+import 'package:our_home_erp_app/buildings/cubit/buildings_cubit.dart';
 
 void showAddShopDialog(BuildContext parentContext, Building building) {
   final cubit = parentContext.read<BuildingsCubit>();

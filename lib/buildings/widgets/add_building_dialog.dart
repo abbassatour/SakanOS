@@ -1,21 +1,30 @@
 // lib/buildings/widgets/add_building_dialog.dart
-// ignore_for_file: always_use_package_imports
-
 import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
-import '../cubit/buildings_cubit.dart';
+import 'package:our_home_erp_app/buildings/cubit/buildings_cubit.dart';
 
 String _getArabicFloorName(int floorNumber) {
   if (floorNumber == 0) return 'الطابق الأرضي';
 
   if (floorNumber > 0) {
     const names = [
-      'الأول', 'الثاني', 'الثالث', 'الرابع', 'الخامس',
-      'السادس', 'السابع', 'الثامن', 'التاسع', 'العاشر',
-      'الحادي عشر', 'الثاني عشر', 'الثالث عشر', 'الرابع عشر', 'الخامس عشر'
+      'الأول',
+      'الثاني',
+      'الثالث',
+      'الرابع',
+      'الخامس',
+      'السادس',
+      'السابع',
+      'الثامن',
+      'التاسع',
+      'العاشر',
+      'الحادي عشر',
+      'الثاني عشر',
+      'الثالث عشر',
+      'الرابع عشر',
+      'الخامس عشر'
     ];
     if (floorNumber <= names.length) {
       return 'الطابق ${names[floorNumber - 1]}';
