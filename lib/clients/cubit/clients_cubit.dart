@@ -1,5 +1,7 @@
 // lib/clients/cubit/clients_cubit.dart
 
+import 'dart:developer';
+
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:erp_repository/erp_repository.dart';
@@ -23,8 +25,7 @@ class ClientsCubit extends Cubit<ClientsState> {
       final allUsers = await _erpRepository.getAllUsers();
 
       final namesMap = <String, String>{
-        for (final user in allUsers)
-          user.id: user.fullName ?? 'مدير النظام',
+        for (final user in allUsers) user.id: user.fullName ?? 'مدير النظام',
       };
 
       emit(
@@ -34,7 +35,8 @@ class ClientsCubit extends Cubit<ClientsState> {
           userNamesMap: namesMap,
         ),
       );
-    } on Exception catch (e) {
+    } catch (e, stackTrace) {
+      log('خطأ في جلب بيانات العملاء', error: e, stackTrace: stackTrace);
       emit(
         state.copyWith(
           status: ClientsStatus.failure,
@@ -50,7 +52,6 @@ class ClientsCubit extends Cubit<ClientsState> {
     String? nationalId,
   }) async {
     try {
-      // 🌟 السحر النظيف: تمرير النصوص فقط! 
       await _erpRepository.addClient(
         name: name,
         phone: phone,
@@ -58,7 +59,8 @@ class ClientsCubit extends Cubit<ClientsState> {
       );
 
       await fetchClients();
-    } on Exception catch (e) {
+    } catch (e, stackTrace) {
+      log('خطأ في إضافة عميل جديد', error: e, stackTrace: stackTrace);
       emit(
         state.copyWith(
           status: ClientsStatus.failure,
@@ -83,7 +85,8 @@ class ClientsCubit extends Cubit<ClientsState> {
       );
 
       await fetchClients();
-    } on Exception catch (e) {
+    } catch (e, stackTrace) {
+      log('خطأ في تحديث بيانات العميل', error: e, stackTrace: stackTrace);
       emit(
         state.copyWith(
           status: ClientsStatus.failure,
@@ -97,7 +100,8 @@ class ClientsCubit extends Cubit<ClientsState> {
     try {
       final deleted = await _erpRepository.getDeletedClients();
       emit(state.copyWith(deletedClients: deleted));
-    } on Exception catch (e) {
+    } catch (e, stackTrace) {
+      log('خطأ في جلب العملاء المحذوفين', error: e, stackTrace: stackTrace);
       emit(
         state.copyWith(
           status: ClientsStatus.failure,
@@ -112,7 +116,8 @@ class ClientsCubit extends Cubit<ClientsState> {
       await _erpRepository.restoreClient(clientId);
       await fetchDeletedClients();
       await fetchClients();
-    } on Exception catch (e) {
+    } catch (e, stackTrace) {
+      log('خطأ في استعادة العميل', error: e, stackTrace: stackTrace);
       emit(
         state.copyWith(
           status: ClientsStatus.failure,
@@ -126,7 +131,8 @@ class ClientsCubit extends Cubit<ClientsState> {
     try {
       await _erpRepository.forceHardDeleteClient(clientId);
       await fetchDeletedClients();
-    } on Exception catch (e) {
+    } catch (e, stackTrace) {
+      log('خطأ في الحذف النهائي للعميل', error: e, stackTrace: stackTrace);
       emit(
         state.copyWith(
           status: ClientsStatus.failure,
@@ -146,7 +152,8 @@ class ClientsCubit extends Cubit<ClientsState> {
         emit(
           state.copyWith(
             status: ClientsStatus.failure,
-            errorMessage: 'تحذير أمني: لا يمكن حذف العميل لأن لديه عقود مسجلة. '
+            errorMessage:
+                'تحذير أمني: لا يمكن حذف العميل لأن لديه عقود مسجلة. '
                 'الرجاء إلغاء عقوده أولاً لكي تعود الشقق للكتالوج.',
           ),
         );
@@ -155,7 +162,8 @@ class ClientsCubit extends Cubit<ClientsState> {
 
       await _erpRepository.deleteClient(clientId);
       await fetchClients();
-    } on Exception catch (e) {
+    } catch (e, stackTrace) {
+      log('خطأ في نقل العميل لسلة المحذوفات', error: e, stackTrace: stackTrace);
       emit(
         state.copyWith(
           status: ClientsStatus.failure,

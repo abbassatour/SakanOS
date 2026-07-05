@@ -1,13 +1,10 @@
 // مسار الملف: lib/clients/view/clients_view.dart
-// ignore_for_file: always_use_package_imports, simple_directive_paths
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
-import '../../../auth/cubit/auth_cubit.dart';
-import '../../../core/constants/app_permissions.dart';
-import '../cubit/clients_cubit.dart';
-import '../widgets/widgets.dart';
+import 'package:our_home_erp_app/auth/cubit/auth_cubit.dart';
+import 'package:our_home_erp_app/clients/cubit/clients_cubit.dart';
+import 'package:our_home_erp_app/clients/widgets/widgets.dart';
+import 'package:our_home_erp_app/core/constants/app_permissions.dart';
 
 class ClientsView extends StatefulWidget {
   const ClientsView({super.key});
@@ -21,7 +18,6 @@ class _ClientsViewState extends State<ClientsView> {
 
   @override
   Widget build(BuildContext context) {
-    // 🌟 تم إضافة النوع الصريح AuthCubit, bool للـ select
     final canCreate = context.select<AuthCubit, bool>(
       (cubit) => cubit.state.hasPermission(AppPermissions.createClients),
     );
