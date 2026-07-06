@@ -5,7 +5,7 @@ import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
-import 'package:uuid/uuid.dart'; 
+import 'package:uuid/uuid.dart';
 // استيراد الجداول المفصولة
 import 'tables/apartments.dart';
 import 'tables/app_roles.dart';
@@ -22,20 +22,22 @@ import 'tables/payments_ledger.dart';
 
 part 'database.g.dart';
 
-@DriftDatabase(tables: [
-  Clients,
-  Contracts,
-  Buildings,
-  Apartments,
-  MaterialPricesHistory,
-  DollarPricesHistory,
-  InstallmentsSchedule,
-  PaymentsLedger,
-  AppRoles,
-  LocalUsers,
-  LegalActions,
-  LegalActionAttachments
-])
+@DriftDatabase(
+  tables: [
+    Clients,
+    Contracts,
+    Buildings,
+    Apartments,
+    MaterialPricesHistory,
+    DollarPricesHistory,
+    InstallmentsSchedule,
+    PaymentsLedger,
+    AppRoles,
+    LocalUsers,
+    LegalActions,
+    LegalActionAttachments,
+  ],
+)
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
@@ -64,41 +66,44 @@ class AppDatabase extends _$AppDatabase {
 
       await (update(clients)..where((t) => t.id.equals(clientId))).write(
         ClientsCompanion(
+          isDeleted: const Value(true),
+          userId: Value(userId),
+          updatedAt: nowUtc,
+          isSynced: const Value(false),
+        ),
+      );
+
+      final clientContracts = await (select(
+        contracts,
+      )..where((t) => t.clientId.equals(clientId))).get();
+      for (final contract in clientContracts) {
+        await (update(contracts)..where((t) => t.id.equals(contract.id))).write(
+          ContractsCompanion(
             isDeleted: const Value(true),
             userId: Value(userId),
             updatedAt: nowUtc,
-            isSynced: const Value(false)),
-      );
-
-      final clientContracts = await (select(contracts)
-            ..where((t) => t.clientId.equals(clientId)))
-          .get();
-      for (final contract in clientContracts) {
-        await (update(contracts)..where((t) => t.id.equals(contract.id)))
-            .write(
-          ContractsCompanion(
-              isDeleted: const Value(true),
-              userId: Value(userId),
-              updatedAt: nowUtc,
-              isSynced: const Value(false)),
+            isSynced: const Value(false),
+          ),
         );
-        await (update(installmentsSchedule)
-              ..where((t) => t.contractId.equals(contract.id)))
-            .write(
+        await (update(
+          installmentsSchedule,
+        )..where((t) => t.contractId.equals(contract.id))).write(
           InstallmentsScheduleCompanion(
-              isDeleted: const Value(true),
-              userId: Value(userId),
-              updatedAt: nowUtc,
-              isSynced: const Value(false)),
+            isDeleted: const Value(true),
+            userId: Value(userId),
+            updatedAt: nowUtc,
+            isSynced: const Value(false),
+          ),
         );
-        await (update(paymentsLedger)
-              ..where((t) => t.contractId.equals(contract.id)))
-            .write(
+        await (update(
+          paymentsLedger,
+        )..where((t) => t.contractId.equals(contract.id))).write(
           PaymentsLedgerCompanion(
-              isDeleted: const Value(true),
-              userId: Value(userId),
-              updatedAt: nowUtc,
-              isSynced: const Value(false)),
+            isDeleted: const Value(true),
+            userId: Value(userId),
+            updatedAt: nowUtc,
+            isSynced: const Value(false),
+          ),
         );
       }
     });
@@ -109,8 +114,10 @@ class AppDatabase extends _$AppDatabase {
   // ==========================================
   Future<List<LegalAction>> getLegalActionsForContract(String contractId) =>
       (select(legalActions)
-            ..where((t) =>
-                t.contractId.equals(contractId) & t.isDeleted.equals(false))
+            ..where(
+              (t) =>
+                  t.contractId.equals(contractId) & t.isDeleted.equals(false),
+            )
             ..orderBy([(t) => OrderingTerm.desc(t.actionDate)]))
           .get();
 
@@ -121,16 +128,19 @@ class AppDatabase extends _$AppDatabase {
 
   Future<int> softDeleteLegalAction(String actionId, String userId) {
     return (update(legalActions)..where((t) => t.id.equals(actionId))).write(
-        LegalActionsCompanion(
-            isDeleted: const Value(true),
-            userId: Value(userId),
-            updatedAt: Value(DateTime.now().toUtc()),
-            isSynced: const Value(false)));
+      LegalActionsCompanion(
+        isDeleted: const Value(true),
+        userId: Value(userId),
+        updatedAt: Value(DateTime.now().toUtc()),
+        isSynced: const Value(false),
+      ),
+    );
   }
 
   Future<void> updateLegalAction(LegalActionsCompanion action) async {
-    await (update(legalActions)..where((t) => t.id.equals(action.id.value)))
-        .write(
+    await (update(
+      legalActions,
+    )..where((t) => t.id.equals(action.id.value))).write(
       action.copyWith(
         updatedAt: Value(DateTime.now().toUtc()),
         isSynced: const Value(false),
@@ -141,50 +151,65 @@ class AppDatabase extends _$AppDatabase {
   Future<List<LegalAction>> getAllLegalActions() =>
       (select(legalActions)..where((t) => t.isDeleted.equals(false))).get();
 
-  Future<List<LegalActionAttachment>> getAllLegalActionAttachments() =>
-      (select(legalActionAttachments)..where((t) => t.isDeleted.equals(false)))
-          .get();
+  Future<List<LegalActionAttachment>> getAllLegalActionAttachments() => (select(
+    legalActionAttachments,
+  )..where((t) => t.isDeleted.equals(false))).get();
 
   // ==========================================
   // 🎯 تسجيل إجراء إداري على العقد
   // ==========================================
   Future<int> markContractActionTaken(
-      String contractId, String note, String userId) {
+    String contractId,
+    String note,
+    String userId,
+  ) {
     final nowUtc = DateTime.now().toUtc();
     return (update(contracts)..where((t) => t.id.equals(contractId))).write(
-        ContractsCompanion(
-            lastActionDate: Value(nowUtc),
-            lastActionNote: Value(note),
-            userId: Value(userId),
-            updatedAt: Value(nowUtc),
-            isSynced: const Value(false)));
+      ContractsCompanion(
+        lastActionDate: Value(nowUtc),
+        lastActionNote: Value(note),
+        userId: Value(userId),
+        updatedAt: Value(nowUtc),
+        isSynced: const Value(false),
+      ),
+    );
   }
 
   // ==========================================
   // 🎯 تسجيل تسليم الشقة للعميل
   // ==========================================
-  Future<void> markContractAsHandedOver(String contractId, String? apartmentId,
-      DateTime actualDate, String? notes, String userId) async {
+  Future<void> markContractAsHandedOver(
+    String contractId,
+    String? apartmentId,
+    DateTime actualDate,
+    String? notes,
+    String userId,
+  ) async {
     return transaction(() async {
       final nowUtc = DateTime.now().toUtc();
 
       await (update(contracts)..where((t) => t.id.equals(contractId))).write(
-          ContractsCompanion(
-              isHandedOver: const Value(true),
-              actualHandoverDate: Value(actualDate.toUtc()),
-              handoverNotes: Value(notes),
-              userId: Value(userId),
-              updatedAt: Value(nowUtc),
-              isSynced: const Value(false)));
-
-      if (apartmentId != null && apartmentId.isNotEmpty) {
-        await (update(apartments)..where((t) => t.id.equals(apartmentId)))
-            .write(ApartmentsCompanion(
-          status: const Value('delivered'),
+        ContractsCompanion(
+          isHandedOver: const Value(true),
+          actualHandoverDate: Value(actualDate.toUtc()),
+          handoverNotes: Value(notes),
           userId: Value(userId),
           updatedAt: Value(nowUtc),
           isSynced: const Value(false),
-        ));
+        ),
+      );
+
+      if (apartmentId != null && apartmentId.isNotEmpty) {
+        await (update(
+          apartments,
+        )..where((t) => t.id.equals(apartmentId))).write(
+          ApartmentsCompanion(
+            status: const Value('delivered'),
+            userId: Value(userId),
+            updatedAt: Value(nowUtc),
+            isSynced: const Value(false),
+          ),
+        );
       }
     });
   }
@@ -193,27 +218,35 @@ class AppDatabase extends _$AppDatabase {
   // ⏪ التراجع عن تسليم الشقة
   // ==========================================
   Future<void> cancelContractHandover(
-      String contractId, String? apartmentId, String userId) async {
+    String contractId,
+    String? apartmentId,
+    String userId,
+  ) async {
     return transaction(() async {
       final nowUtc = DateTime.now().toUtc();
 
       await (update(contracts)..where((t) => t.id.equals(contractId))).write(
-          ContractsCompanion(
-              isHandedOver: const Value(false),
-              actualHandoverDate: const Value(null),
-              handoverNotes: const Value(null),
-              userId: Value(userId),
-              updatedAt: Value(nowUtc),
-              isSynced: const Value(false)));
-
-      if (apartmentId != null && apartmentId.isNotEmpty) {
-        await (update(apartments)..where((t) => t.id.equals(apartmentId)))
-            .write(ApartmentsCompanion(
-          status: const Value('sold'),
+        ContractsCompanion(
+          isHandedOver: const Value(false),
+          actualHandoverDate: const Value(null),
+          handoverNotes: const Value(null),
           userId: Value(userId),
           updatedAt: Value(nowUtc),
           isSynced: const Value(false),
-        ));
+        ),
+      );
+
+      if (apartmentId != null && apartmentId.isNotEmpty) {
+        await (update(
+          apartments,
+        )..where((t) => t.id.equals(apartmentId))).write(
+          ApartmentsCompanion(
+            status: const Value('sold'),
+            userId: Value(userId),
+            updatedAt: Value(nowUtc),
+            isSynced: const Value(false),
+          ),
+        );
       }
     });
   }
@@ -235,8 +268,11 @@ class AppDatabase extends _$AppDatabase {
       final int loopCount = 1;
 
       for (int i = 1; i <= loopCount; i++) {
-        final dueDate =
-            DateTime.utc(startDate.year, startDate.month + i, startDate.day);
+        final dueDate = DateTime.utc(
+          startDate.year,
+          startDate.month + i,
+          startDate.day,
+        );
 
         final entry = InstallmentsScheduleCompanion.insert(
           contractId: newContractId,
@@ -258,28 +294,31 @@ class AppDatabase extends _$AppDatabase {
       final nowUtc = Value(DateTime.now().toUtc());
       await (update(contracts)..where((t) => t.id.equals(contractId))).write(
         ContractsCompanion(
-            isDeleted: const Value(true),
-            userId: Value(userId),
-            updatedAt: nowUtc,
-            isSynced: const Value(false)),
+          isDeleted: const Value(true),
+          userId: Value(userId),
+          updatedAt: nowUtc,
+          isSynced: const Value(false),
+        ),
       );
-      await (update(installmentsSchedule)
-            ..where((t) => t.contractId.equals(contractId)))
-          .write(
+      await (update(
+        installmentsSchedule,
+      )..where((t) => t.contractId.equals(contractId))).write(
         InstallmentsScheduleCompanion(
-            isDeleted: const Value(true),
-            userId: Value(userId),
-            updatedAt: nowUtc,
-            isSynced: const Value(false)),
+          isDeleted: const Value(true),
+          userId: Value(userId),
+          updatedAt: nowUtc,
+          isSynced: const Value(false),
+        ),
       );
-      await (update(paymentsLedger)
-            ..where((t) => t.contractId.equals(contractId)))
-          .write(
+      await (update(
+        paymentsLedger,
+      )..where((t) => t.contractId.equals(contractId))).write(
         PaymentsLedgerCompanion(
-            isDeleted: const Value(true),
-            userId: Value(userId),
-            updatedAt: nowUtc,
-            isSynced: const Value(false)),
+          isDeleted: const Value(true),
+          userId: Value(userId),
+          updatedAt: nowUtc,
+          isSynced: const Value(false),
+        ),
       );
     });
   }
@@ -289,8 +328,10 @@ class AppDatabase extends _$AppDatabase {
   // ==========================================
   Future<List<PaymentsLedgerData>> getLedgerForContract(String contractId) =>
       (select(paymentsLedger)
-            ..where((t) =>
-                t.contractId.equals(contractId) & t.isDeleted.equals(false))
+            ..where(
+              (t) =>
+                  t.contractId.equals(contractId) & t.isDeleted.equals(false),
+            )
             ..orderBy([(t) => OrderingTerm.desc(t.paymentDate)]))
           .get();
 
@@ -305,10 +346,11 @@ class AppDatabase extends _$AppDatabase {
   Future<int> markWhatsAppAsSent(String entryId, String userId) {
     return (update(paymentsLedger)..where((t) => t.id.equals(entryId))).write(
       PaymentsLedgerCompanion(
-          isWhatsAppSent: const Value(true),
-          userId: Value(userId),
-          updatedAt: Value(DateTime.now().toUtc()),
-          isSynced: const Value(false)),
+        isWhatsAppSent: const Value(true),
+        userId: Value(userId),
+        updatedAt: Value(DateTime.now().toUtc()),
+        isSynced: const Value(false),
+      ),
     );
   }
 
@@ -316,8 +358,9 @@ class AppDatabase extends _$AppDatabase {
   // --- استعلامات سجل أسعار المواد ---
   // ==========================================
   Future<List<MaterialPricesHistoryData>> getAllMaterialPricesHistory() =>
-      (select(materialPricesHistory)..where((t) => t.isDeleted.equals(false)))
-          .get();
+      (select(
+        materialPricesHistory,
+      )..where((t) => t.isDeleted.equals(false))).get();
 
   Future<MaterialPricesHistoryData?> getLatestPrices() {
     return (select(materialPricesHistory)
@@ -331,7 +374,8 @@ class AppDatabase extends _$AppDatabase {
   }
 
   Future<String> insertMaterialPriceRecord(
-      MaterialPricesHistoryCompanion prices) async {
+    MaterialPricesHistoryCompanion prices,
+  ) async {
     final row = await into(materialPricesHistory).insertReturning(prices);
     return row.id;
   }
@@ -340,43 +384,53 @@ class AppDatabase extends _$AppDatabase {
   // --- استعلامات الأقساط (جدول الاستحقاقات) ---
   // ==========================================
   Future<List<InstallmentsScheduleData>> getScheduleForContract(
-          String contractId) =>
+    String contractId,
+  ) =>
       (select(installmentsSchedule)
-            ..where((t) =>
-                t.contractId.equals(contractId) & t.isDeleted.equals(false))
+            ..where(
+              (t) =>
+                  t.contractId.equals(contractId) & t.isDeleted.equals(false),
+            )
             ..orderBy([(t) => OrderingTerm.asc(t.dueDate)]))
           .get();
 
   Future<String> insertCustomSchedule(
-      InstallmentsScheduleCompanion entry) async {
+    InstallmentsScheduleCompanion entry,
+  ) async {
     final row = await into(installmentsSchedule).insertReturning(entry);
     return row.id;
   }
 
   Future<int> updateScheduleStatus(String id, String status, String userId) {
     return (update(installmentsSchedule)..where((t) => t.id.equals(id))).write(
-        InstallmentsScheduleCompanion(
-            status: Value(status),
-            userId: Value(userId),
-            updatedAt: Value(DateTime.now().toUtc()),
-            isSynced: const Value(false)));
+      InstallmentsScheduleCompanion(
+        status: Value(status),
+        userId: Value(userId),
+        updatedAt: Value(DateTime.now().toUtc()),
+        isSynced: const Value(false),
+      ),
+    );
   }
 
   Future<int> softDeleteScheduleEntry(String id) {
     return (update(installmentsSchedule)..where((t) => t.id.equals(id))).write(
-        InstallmentsScheduleCompanion(
-            isDeleted: const Value(true),
-            updatedAt: Value(DateTime.now().toUtc()),
-            isSynced: const Value(false)));
+      InstallmentsScheduleCompanion(
+        isDeleted: const Value(true),
+        updatedAt: Value(DateTime.now().toUtc()),
+        isSynced: const Value(false),
+      ),
+    );
   }
 
   Future<List<InstallmentsScheduleData>> getAllOverdueSchedules() {
     final nowUtc = DateTime.now().toUtc();
     return (select(installmentsSchedule)
-          ..where((t) =>
-              t.isDeleted.equals(false) &
-              t.status.equals('pending') &
-              t.dueDate.isSmallerThanValue(nowUtc))
+          ..where(
+            (t) =>
+                t.isDeleted.equals(false) &
+                t.status.equals('pending') &
+                t.dueDate.isSmallerThanValue(nowUtc),
+          )
           ..orderBy([(t) => OrderingTerm.asc(t.dueDate)]))
         .get();
   }
@@ -388,15 +442,18 @@ class AppDatabase extends _$AppDatabase {
     double? expectedAmount,
     required String userId,
   }) {
-    return (update(installmentsSchedule)
-          ..where((t) => t.id.equals(scheduleId)))
-        .write(InstallmentsScheduleCompanion(
-            dueDate: Value(newDueDate.toUtc()),
-            notes: Value(notes),
-            expectedAmount: Value(expectedAmount),
-            userId: Value(userId),
-            updatedAt: Value(DateTime.now().toUtc()),
-            isSynced: const Value(false)));
+    return (update(
+      installmentsSchedule,
+    )..where((t) => t.id.equals(scheduleId))).write(
+      InstallmentsScheduleCompanion(
+        dueDate: Value(newDueDate.toUtc()),
+        notes: Value(notes),
+        expectedAmount: Value(expectedAmount),
+        userId: Value(userId),
+        updatedAt: Value(DateTime.now().toUtc()),
+        isSynced: const Value(false),
+      ),
+    );
   }
 
   Future<void> restructureContractSchedule({
@@ -408,12 +465,14 @@ class AppDatabase extends _$AppDatabase {
     return transaction(() async {
       final nowUtc = Value(DateTime.now().toUtc());
 
-      final paidSchedules = await (select(installmentsSchedule)
-            ..where((t) =>
-                t.contractId.equals(contractId) &
-                t.status.equals('paid') &
-                t.isDeleted.equals(false)))
-          .get();
+      final paidSchedules =
+          await (select(installmentsSchedule)..where(
+                (t) =>
+                    t.contractId.equals(contractId) &
+                    t.status.equals('paid') &
+                    t.isDeleted.equals(false),
+              ))
+              .get();
 
       int lastPaidNumber = 0;
       for (var s in paidSchedules) {
@@ -422,23 +481,27 @@ class AppDatabase extends _$AppDatabase {
         }
       }
 
-      await (update(installmentsSchedule)
-            ..where((t) =>
+      await (update(installmentsSchedule)..where(
+            (t) =>
                 t.contractId.equals(contractId) &
                 t.status.equals('pending') &
                 t.isDeleted.equals(false) &
-                t.expectedAmount.isNull()))
+                t.expectedAmount.isNull(),
+          ))
           .write(
-        InstallmentsScheduleCompanion(
-          isDeleted: const Value(true),
-          updatedAt: nowUtc,
-          isSynced: const Value(false),
-        ),
-      );
+            InstallmentsScheduleCompanion(
+              isDeleted: const Value(true),
+              updatedAt: nowUtc,
+              isSynced: const Value(false),
+            ),
+          );
 
       for (int i = 1; i <= newRemainingMonths; i++) {
-        final dueDate = DateTime.utc(newStartDate.year,
-            newStartDate.month + (i - 1), newStartDate.day);
+        final dueDate = DateTime.utc(
+          newStartDate.year,
+          newStartDate.month + (i - 1),
+          newStartDate.day,
+        );
 
         final entry = InstallmentsScheduleCompanion.insert(
           contractId: contractId,
@@ -490,9 +553,9 @@ class AppDatabase extends _$AppDatabase {
       (select(apartments)..where((t) => t.isDeleted.equals(false))).get();
 
   Future<List<Apartment>> getApartmentsForBuilding(String buildingId) =>
-      (select(apartments)
-            ..where((t) =>
-                t.buildingId.equals(buildingId) & t.isDeleted.equals(false)))
+      (select(apartments)..where(
+            (t) => t.buildingId.equals(buildingId) & t.isDeleted.equals(false),
+          ))
           .get();
 
   Future<String> insertApartment(ApartmentsCompanion apartment) async {
@@ -501,13 +564,18 @@ class AppDatabase extends _$AppDatabase {
   }
 
   Future<int> updateApartmentStatus(
-      String apartmentId, String newStatus, String userId) {
+    String apartmentId,
+    String newStatus,
+    String userId,
+  ) {
     return (update(apartments)..where((t) => t.id.equals(apartmentId))).write(
-        ApartmentsCompanion(
-            status: Value(newStatus),
-            userId: Value(userId),
-            updatedAt: Value(DateTime.now().toUtc()),
-            isSynced: const Value(false)));
+      ApartmentsCompanion(
+        status: Value(newStatus),
+        userId: Value(userId),
+        updatedAt: Value(DateTime.now().toUtc()),
+        isSynced: const Value(false),
+      ),
+    );
   }
 
   Future<void> clearAllData() {
@@ -533,13 +601,13 @@ class AppDatabase extends _$AppDatabase {
   Future<void> syncContract(ContractsCompanion entity) =>
       into(contracts).insert(entity, mode: InsertMode.insertOrReplace);
 
-  Future<void> syncMaterialPrice(MaterialPricesHistoryCompanion entity) =>
-      into(materialPricesHistory)
-          .insert(entity, mode: InsertMode.insertOrReplace);
+  Future<void> syncMaterialPrice(MaterialPricesHistoryCompanion entity) => into(
+    materialPricesHistory,
+  ).insert(entity, mode: InsertMode.insertOrReplace);
 
-  Future<void> syncSchedule(InstallmentsScheduleCompanion entity) =>
-      into(installmentsSchedule)
-          .insert(entity, mode: InsertMode.insertOrReplace);
+  Future<void> syncSchedule(InstallmentsScheduleCompanion entity) => into(
+    installmentsSchedule,
+  ).insert(entity, mode: InsertMode.insertOrReplace);
 
   Future<void> syncPayment(PaymentsLedgerCompanion entity) =>
       into(paymentsLedger).insert(entity, mode: InsertMode.insertOrReplace);
@@ -561,10 +629,11 @@ class AppDatabase extends _$AppDatabase {
       final nowUtc = Value(DateTime.now().toUtc());
       await (update(clients)..where((t) => t.id.equals(clientId))).write(
         ClientsCompanion(
-            isDeleted: const Value(false),
-            userId: Value(userId),
-            updatedAt: nowUtc,
-            isSynced: const Value(false)),
+          isDeleted: const Value(false),
+          userId: Value(userId),
+          updatedAt: nowUtc,
+          isSynced: const Value(false),
+        ),
       );
     });
   }
@@ -574,12 +643,14 @@ class AppDatabase extends _$AppDatabase {
   }
 
   Future<void> autoCleanOldDeletedClients() async {
-    final sevenDaysAgo =
-        DateTime.now().toUtc().subtract(const Duration(days: 7));
-    await (delete(clients)
-          ..where((t) =>
+    final sevenDaysAgo = DateTime.now().toUtc().subtract(
+      const Duration(days: 7),
+    );
+    await (delete(clients)..where(
+          (t) =>
               t.isDeleted.equals(true) &
-              t.updatedAt.isSmallerThanValue(sevenDaysAgo)))
+              t.updatedAt.isSmallerThanValue(sevenDaysAgo),
+        ))
         .go();
   }
 
@@ -590,57 +661,65 @@ class AppDatabase extends _$AppDatabase {
       (select(contracts)..where((t) => t.isDeleted.equals(true))).get();
 
   Future<void> restoreSoftDeletedContract(
-      String contractId, String userId) async {
+    String contractId,
+    String userId,
+  ) async {
     return transaction(() async {
       final nowUtc = Value(DateTime.now().toUtc());
       await (update(contracts)..where((t) => t.id.equals(contractId))).write(
         ContractsCompanion(
-            isDeleted: const Value(false),
-            userId: Value(userId),
-            updatedAt: nowUtc,
-            isSynced: const Value(false)),
+          isDeleted: const Value(false),
+          userId: Value(userId),
+          updatedAt: nowUtc,
+          isSynced: const Value(false),
+        ),
       );
-      await (update(installmentsSchedule)
-            ..where((t) => t.contractId.equals(contractId)))
-          .write(
+      await (update(
+        installmentsSchedule,
+      )..where((t) => t.contractId.equals(contractId))).write(
         InstallmentsScheduleCompanion(
-            isDeleted: const Value(false),
-            userId: Value(userId),
-            updatedAt: nowUtc,
-            isSynced: const Value(false)),
+          isDeleted: const Value(false),
+          userId: Value(userId),
+          updatedAt: nowUtc,
+          isSynced: const Value(false),
+        ),
       );
-      await (update(paymentsLedger)
-            ..where((t) => t.contractId.equals(contractId)))
-          .write(
+      await (update(
+        paymentsLedger,
+      )..where((t) => t.contractId.equals(contractId))).write(
         PaymentsLedgerCompanion(
-            isDeleted: const Value(false),
-            userId: Value(userId),
-            updatedAt: nowUtc,
-            isSynced: const Value(false)),
+          isDeleted: const Value(false),
+          userId: Value(userId),
+          updatedAt: nowUtc,
+          isSynced: const Value(false),
+        ),
       );
     });
   }
 
   Future<void> hardDeleteContract(String contractId) async {
     return transaction(() async {
-      await (delete(paymentsLedger)
-            ..where((t) => t.contractId.equals(contractId)))
-          .go();
-      await (delete(installmentsSchedule)
-            ..where((t) => t.contractId.equals(contractId)))
-          .go();
+      await (delete(
+        paymentsLedger,
+      )..where((t) => t.contractId.equals(contractId))).go();
+      await (delete(
+        installmentsSchedule,
+      )..where((t) => t.contractId.equals(contractId))).go();
       await (delete(contracts)..where((t) => t.id.equals(contractId))).go();
     });
   }
 
   Future<void> autoCleanOldDeletedContracts() async {
-    final sevenDaysAgo =
-        DateTime.now().toUtc().subtract(const Duration(days: 7));
-    final oldContracts = await (select(contracts)
-          ..where((t) =>
-              t.isDeleted.equals(true) &
-              t.updatedAt.isSmallerThanValue(sevenDaysAgo)))
-        .get();
+    final sevenDaysAgo = DateTime.now().toUtc().subtract(
+      const Duration(days: 7),
+    );
+    final oldContracts =
+        await (select(contracts)..where(
+              (t) =>
+                  t.isDeleted.equals(true) &
+                  t.updatedAt.isSmallerThanValue(sevenDaysAgo),
+            ))
+            .get();
     for (var c in oldContracts) {
       await hardDeleteContract(c.id);
     }
@@ -698,12 +777,14 @@ class AppDatabase extends _$AppDatabase {
   }
 
   Future<void> autoCleanOldDeletedLedgerEntries() async {
-    final sevenDaysAgo =
-        DateTime.now().toUtc().subtract(const Duration(days: 7));
-    await (delete(paymentsLedger)
-          ..where((t) =>
+    final sevenDaysAgo = DateTime.now().toUtc().subtract(
+      const Duration(days: 7),
+    );
+    await (delete(paymentsLedger)..where(
+          (t) =>
               t.isDeleted.equals(true) &
-              t.updatedAt.isSmallerThanValue(sevenDaysAgo)))
+              t.updatedAt.isSmallerThanValue(sevenDaysAgo),
+        ))
         .go();
   }
 
@@ -720,17 +801,19 @@ class AppDatabase extends _$AppDatabase {
     return transaction(() async {
       final nowUtc = Value(DateTime.now().toUtc());
 
-      await (update(installmentsSchedule)
-            ..where((t) => t.id.equals(currentScheduleId)))
-          .write(InstallmentsScheduleCompanion(
-        status: Value(actionType),
-        updatedAt: nowUtc,
-        isSynced: const Value(false),
-      ));
+      await (update(
+        installmentsSchedule,
+      )..where((t) => t.id.equals(currentScheduleId))).write(
+        InstallmentsScheduleCompanion(
+          status: Value(actionType),
+          updatedAt: nowUtc,
+          isSynced: const Value(false),
+        ),
+      );
 
-      final currentSchedule = await (select(installmentsSchedule)
-            ..where((t) => t.id.equals(currentScheduleId)))
-          .getSingle();
+      final currentSchedule = await (select(
+        installmentsSchedule,
+      )..where((t) => t.id.equals(currentScheduleId))).getSingle();
       final int nextNumber = currentSchedule.installmentNumber + 1;
 
       final newEntry = InstallmentsScheduleCompanion.insert(
@@ -742,14 +825,16 @@ class AppDatabase extends _$AppDatabase {
       );
       await into(installmentsSchedule).insert(newEntry);
 
-      final contract = await (select(contracts)
-            ..where((t) => t.id.equals(contractId)))
-          .getSingle();
+      final contract = await (select(
+        contracts,
+      )..where((t) => t.id.equals(contractId))).getSingle();
       await (update(contracts)..where((t) => t.id.equals(contractId))).write(
-          ContractsCompanion(
-              installmentsCount: Value(contract.installmentsCount + 1),
-              updatedAt: nowUtc,
-              isSynced: const Value(false)));
+        ContractsCompanion(
+          installmentsCount: Value(contract.installmentsCount + 1),
+          updatedAt: nowUtc,
+          isSynced: const Value(false),
+        ),
+      );
     });
   }
 
@@ -762,41 +847,49 @@ class AppDatabase extends _$AppDatabase {
 
       await (update(buildings)..where((t) => t.id.equals(buildingId))).write(
         BuildingsCompanion(
-            isDeleted: const Value(true),
-            userId: Value(userId),
-            updatedAt: nowUtc,
-            isSynced: const Value(false)),
+          isDeleted: const Value(true),
+          userId: Value(userId),
+          updatedAt: nowUtc,
+          isSynced: const Value(false),
+        ),
       );
 
-      await (update(apartments)..where((t) => t.buildingId.equals(buildingId)))
-          .write(
+      await (update(
+        apartments,
+      )..where((t) => t.buildingId.equals(buildingId))).write(
         ApartmentsCompanion(
-            isDeleted: const Value(true),
-            userId: Value(userId),
-            updatedAt: nowUtc,
-            isSynced: const Value(false)),
+          isDeleted: const Value(true),
+          userId: Value(userId),
+          updatedAt: nowUtc,
+          isSynced: const Value(false),
+        ),
       );
     });
   }
 
   Future<void> restoreSoftDeletedBuilding(
-      String buildingId, String userId) async {
+    String buildingId,
+    String userId,
+  ) async {
     return transaction(() async {
       final nowUtc = Value(DateTime.now().toUtc());
       await (update(buildings)..where((t) => t.id.equals(buildingId))).write(
         BuildingsCompanion(
-            isDeleted: const Value(false),
-            userId: Value(userId),
-            updatedAt: nowUtc,
-            isSynced: const Value(false)),
+          isDeleted: const Value(false),
+          userId: Value(userId),
+          updatedAt: nowUtc,
+          isSynced: const Value(false),
+        ),
       );
-      await (update(apartments)..where((t) => t.buildingId.equals(buildingId)))
-          .write(
+      await (update(
+        apartments,
+      )..where((t) => t.buildingId.equals(buildingId))).write(
         ApartmentsCompanion(
-            isDeleted: const Value(false),
-            userId: Value(userId),
-            updatedAt: nowUtc,
-            isSynced: const Value(false)),
+          isDeleted: const Value(false),
+          userId: Value(userId),
+          updatedAt: nowUtc,
+          isSynced: const Value(false),
+        ),
       );
     });
   }
@@ -831,8 +924,9 @@ class AppDatabase extends _$AppDatabase {
 
   Future<void> hardDeleteBuilding(String buildingId) async {
     return transaction(() async {
-      await (delete(apartments)..where((t) => t.buildingId.equals(buildingId)))
-          .go();
+      await (delete(
+        apartments,
+      )..where((t) => t.buildingId.equals(buildingId))).go();
       await (delete(buildings)..where((t) => t.id.equals(buildingId))).go();
     });
   }
@@ -842,19 +936,22 @@ class AppDatabase extends _$AppDatabase {
   }
 
   Future<void> autoCleanOldDeletedBuildingsAndApartments() async {
-    final sevenDaysAgo =
-        DateTime.now().toUtc().subtract(const Duration(days: 7));
+    final sevenDaysAgo = DateTime.now().toUtc().subtract(
+      const Duration(days: 7),
+    );
 
-    await (delete(apartments)
-          ..where((t) =>
+    await (delete(apartments)..where(
+          (t) =>
               t.isDeleted.equals(true) &
-              t.updatedAt.isSmallerThanValue(sevenDaysAgo)))
+              t.updatedAt.isSmallerThanValue(sevenDaysAgo),
+        ))
         .go();
 
-    await (delete(buildings)
-          ..where((t) =>
+    await (delete(buildings)..where(
+          (t) =>
               t.isDeleted.equals(true) &
-              t.updatedAt.isSmallerThanValue(sevenDaysAgo)))
+              t.updatedAt.isSmallerThanValue(sevenDaysAgo),
+        ))
         .go();
   }
 
@@ -874,10 +971,12 @@ class AppDatabase extends _$AppDatabase {
 
   Future<int> updateRolePermissions(String roleId, String newPermissionsJson) {
     return (update(appRoles)..where((t) => t.id.equals(roleId))).write(
-        AppRolesCompanion(
-            permissionsJson: Value(newPermissionsJson),
-            updatedAt: Value(DateTime.now().toUtc()),
-            isSynced: const Value(false)));
+      AppRolesCompanion(
+        permissionsJson: Value(newPermissionsJson),
+        updatedAt: Value(DateTime.now().toUtc()),
+        isSynced: const Value(false),
+      ),
+    );
   }
 
   Future<int> updateUserRoleAndPermissions({
@@ -888,18 +987,19 @@ class AppDatabase extends _$AppDatabase {
     bool? isActive,
   }) {
     return (update(localUsers)..where((t) => t.id.equals(userId))).write(
-        LocalUsersCompanion(
-            roleId: Value(roleId),
-            extraPermissionsJson: extraPermissionsJson != null
-                ? Value(extraPermissionsJson)
-                : const Value.absent(),
-            revokedPermissionsJson: revokedPermissionsJson != null
-                ? Value(revokedPermissionsJson)
-                : const Value.absent(),
-            isActive:
-                isActive != null ? Value(isActive) : const Value.absent(),
-            updatedAt: Value(DateTime.now().toUtc()),
-            isSynced: const Value(false)));
+      LocalUsersCompanion(
+        roleId: Value(roleId),
+        extraPermissionsJson: extraPermissionsJson != null
+            ? Value(extraPermissionsJson)
+            : const Value.absent(),
+        revokedPermissionsJson: revokedPermissionsJson != null
+            ? Value(revokedPermissionsJson)
+            : const Value.absent(),
+        isActive: isActive != null ? Value(isActive) : const Value.absent(),
+        updatedAt: Value(DateTime.now().toUtc()),
+        isSynced: const Value(false),
+      ),
+    );
   }
 
   // ==========================================
@@ -934,61 +1034,75 @@ class AppDatabase extends _$AppDatabase {
             ..limit(limitCount))
           .get();
 
-  Future<List<Client>> getRecentClients(int limitCount) => (select(clients)
-        ..where((t) => t.isDeleted.equals(false))
-        ..orderBy([(t) => OrderingTerm.desc(t.updatedAt)])
-        ..limit(limitCount))
-      .get();
+  Future<List<Client>> getRecentClients(int limitCount) =>
+      (select(clients)
+            ..where((t) => t.isDeleted.equals(false))
+            ..orderBy([(t) => OrderingTerm.desc(t.updatedAt)])
+            ..limit(limitCount))
+          .get();
 
   // ==========================================
   // 🔒 إغلاق أو إعادة فتح العقد (Archive / Reopen)
   // ==========================================
   Future<int> toggleContractCompletion(
-      String contractId, bool isCompleted, String userId) {
+    String contractId,
+    bool isCompleted,
+    String userId,
+  ) {
     final nowUtc = DateTime.now().toUtc();
     return (update(contracts)..where((t) => t.id.equals(contractId))).write(
-        ContractsCompanion(
-      isCompleted: Value(isCompleted),
-      userId: Value(userId),
-      updatedAt: Value(nowUtc),
-      isSynced: const Value(false),
-    ));
+      ContractsCompanion(
+        isCompleted: Value(isCompleted),
+        userId: Value(userId),
+        updatedAt: Value(nowUtc),
+        isSynced: const Value(false),
+      ),
+    );
   }
 
   // ==========================================
   // 📎 استعلامات مرفقات الإجراءات القانونية
   // ==========================================
   Future<List<LegalActionAttachment>> getAttachmentsForAction(
-          String actionId) =>
+    String actionId,
+  ) =>
       (select(legalActionAttachments)
-            ..where((t) =>
-                t.legalActionId.equals(actionId) & t.isDeleted.equals(false))
+            ..where(
+              (t) =>
+                  t.legalActionId.equals(actionId) & t.isDeleted.equals(false),
+            )
             ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
           .get();
 
   Future<String> insertLegalActionAttachment(
-      LegalActionAttachmentsCompanion attachment) async {
+    LegalActionAttachmentsCompanion attachment,
+  ) async {
     final row = await into(legalActionAttachments).insertReturning(attachment);
     return row.id;
   }
 
   Future<int> softDeleteLegalActionAttachment(
-      String attachmentId, String userId) {
-    return (update(legalActionAttachments)
-          ..where((t) => t.id.equals(attachmentId)))
-        .write(LegalActionAttachmentsCompanion(
-            isDeleted: const Value(true),
-            userId: Value(userId),
-            updatedAt: Value(DateTime.now().toUtc()),
-            isSynced: const Value(false)));
+    String attachmentId,
+    String userId,
+  ) {
+    return (update(
+      legalActionAttachments,
+    )..where((t) => t.id.equals(attachmentId))).write(
+      LegalActionAttachmentsCompanion(
+        isDeleted: const Value(true),
+        userId: Value(userId),
+        updatedAt: Value(DateTime.now().toUtc()),
+        isSynced: const Value(false),
+      ),
+    );
   }
 
   // ==========================================
   // 💵 --- استعلامات أسعار الدولار ---
   // ==========================================
-  Future<List<DollarPricesHistoryData>> getAllDollarPricesHistory() =>
-      (select(dollarPricesHistory)..where((t) => t.isDeleted.equals(false)))
-          .get();
+  Future<List<DollarPricesHistoryData>> getAllDollarPricesHistory() => (select(
+    dollarPricesHistory,
+  )..where((t) => t.isDeleted.equals(false))).get();
 
   Future<DollarPricesHistoryData?> getLatestDollarPrice() {
     return (select(dollarPricesHistory)
@@ -1002,7 +1116,8 @@ class AppDatabase extends _$AppDatabase {
   }
 
   Future<String> insertDollarPriceRecord(
-      DollarPricesHistoryCompanion prices) async {
+    DollarPricesHistoryCompanion prices,
+  ) async {
     final row = await into(dollarPricesHistory).insertReturning(prices);
     return row.id;
   }
@@ -1018,16 +1133,18 @@ class AppDatabase extends _$AppDatabase {
         .watchSingleOrNull();
   }
 
-  Future<void> syncDollarPrice(DollarPricesHistoryCompanion entity) =>
-      into(dollarPricesHistory)
-          .insert(entity, mode: InsertMode.insertOrReplace);
+  Future<void> syncDollarPrice(DollarPricesHistoryCompanion entity) => into(
+    dollarPricesHistory,
+  ).insert(entity, mode: InsertMode.insertOrReplace);
 
   Future<int> softDeleteDollarPrice(String id) {
     return (update(dollarPricesHistory)..where((t) => t.id.equals(id))).write(
-        DollarPricesHistoryCompanion(
-            isDeleted: const Value(true),
-            updatedAt: Value(DateTime.now().toUtc()),
-            isSynced: const Value(false)));
+      DollarPricesHistoryCompanion(
+        isDeleted: const Value(true),
+        updatedAt: Value(DateTime.now().toUtc()),
+        isSynced: const Value(false),
+      ),
+    );
   }
 }
 
@@ -1035,7 +1152,8 @@ LazyDatabase _openConnection() {
   return LazyDatabase(() async {
     final dbFolder = await getApplicationSupportDirectory();
     final file = File(
-        p.join(dbFolder.path, 'our_home_erp_v14_legal_system.sqlite'));
+      p.join(dbFolder.path, 'our_home_erp_v14_legal_system.sqlite'),
+    );
     return NativeDatabase.createInBackground(file);
   });
 }

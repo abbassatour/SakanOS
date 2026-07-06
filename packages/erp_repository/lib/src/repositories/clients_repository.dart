@@ -11,9 +11,9 @@ class ClientsRepository {
     required LocalStorageApi localApi,
     required SyncRepository syncRepo,
     required String? Function() getCurrentUserId,
-  })  : _localApi = localApi,
-        _syncRepo = syncRepo,
-        _getCurrentUserId = getCurrentUserId;
+  }) : _localApi = localApi,
+       _syncRepo = syncRepo,
+       _getCurrentUserId = getCurrentUserId;
 
   final LocalStorageApi _localApi;
   final SyncRepository _syncRepo;

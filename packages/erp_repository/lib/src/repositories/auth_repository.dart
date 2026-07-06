@@ -7,18 +7,15 @@ class AuthRepository {
   const AuthRepository({
     required CloudStorageClient cloudApi,
     required LocalStorageApi localApi,
-  })  : _cloudApi = cloudApi,
-        _localApi = localApi;
+  }) : _cloudApi = cloudApi,
+       _localApi = localApi;
 
   final CloudStorageClient _cloudApi;
   final LocalStorageApi _localApi;
 
   String? get currentUserId => _cloudApi.currentUserId;
 
-  Future<void> signIn({
-    required String email,
-    required String password,
-  }) async {
+  Future<void> signIn({required String email, required String password}) async {
     await _cloudApi.signIn(email: email, password: password);
   }
 

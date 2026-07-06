@@ -12,9 +12,9 @@ class SettingsRepository {
     required LocalStorageApi localApi,
     required SyncRepository syncRepo,
     required String? Function() getCurrentUserId,
-  })  : _localApi = localApi,
-        _syncRepo = syncRepo,
-        _getCurrentUserId = getCurrentUserId;
+  }) : _localApi = localApi,
+       _syncRepo = syncRepo,
+       _getCurrentUserId = getCurrentUserId;
 
   final LocalStorageApi _localApi;
   final SyncRepository _syncRepo;
@@ -25,7 +25,7 @@ class SettingsRepository {
   // ==========================================
   Future<MaterialPricesHistoryData?> getLatestPrices() =>
       _localApi.getLatestPrices();
-      
+
   Stream<MaterialPricesHistoryData?> watchLatestPrices() =>
       _localApi.watchLatestPrices();
 
@@ -69,9 +69,9 @@ class SettingsRepository {
     if (userId == null) throw Exception('يجب تسجيل الدخول أولاً.');
 
     final db = _localApi.database;
-    await (db.update(db.materialPricesHistory)
-          ..where((t) => t.id.equals(priceId)))
-        .write(
+    await (db.update(
+      db.materialPricesHistory,
+    )..where((t) => t.id.equals(priceId))).write(
       MaterialPricesHistoryCompanion(
         isDeleted: const drift.Value(true),
         userId: drift.Value(userId),
@@ -118,8 +118,9 @@ class SettingsRepository {
     if (userId == null) throw Exception('يجب تسجيل الدخول أولاً.');
 
     final db = _localApi.database;
-    await (db.update(db.dollarPricesHistory)..where((t) => t.id.equals(id)))
-        .write(
+    await (db.update(
+      db.dollarPricesHistory,
+    )..where((t) => t.id.equals(id))).write(
       DollarPricesHistoryCompanion(
         isDeleted: const drift.Value(true),
         userId: drift.Value(userId), // توثيق من حذف

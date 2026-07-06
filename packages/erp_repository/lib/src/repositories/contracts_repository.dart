@@ -17,10 +17,10 @@ class ContractsRepository {
     required CloudStorageClient cloudApi,
     required SyncRepository syncRepo,
     required String? Function() getCurrentUserId,
-  })  : _localApi = localApi,
-        _cloudApi = cloudApi,
-        _syncRepo = syncRepo,
-        _getCurrentUserId = getCurrentUserId;
+  }) : _localApi = localApi,
+       _cloudApi = cloudApi,
+       _syncRepo = syncRepo,
+       _getCurrentUserId = getCurrentUserId;
 
   final LocalStorageApi _localApi;
   final CloudStorageClient _cloudApi;
@@ -162,7 +162,8 @@ class ContractsRepository {
         'note': 'الدفعة الأولى عند توقيع العقد',
       };
 
-      if (histDollarRate != null) snapshotData['dollar_rate_used'] = histDollarRate;
+      if (histDollarRate != null)
+        snapshotData['dollar_rate_used'] = histDollarRate;
 
       if (customDate != null && histIron != null) {
         snapshotData['iron'] = histIron;
@@ -252,11 +253,11 @@ class ContractsRepository {
           )
           ..where((t) => t.status.equals('pending')))
         .write(
-      const InstallmentsScheduleCompanion(
-        isDeleted: drift.Value(true),
-        isSynced: drift.Value(false),
-      ),
-    );
+          const InstallmentsScheduleCompanion(
+            isDeleted: drift.Value(true),
+            isSynced: drift.Value(false),
+          ),
+        );
 
     await _syncRepo.syncPendingData();
   }
@@ -275,7 +276,11 @@ class ContractsRepository {
     await _syncRepo.syncPendingData();
   }
 
-  Future<void> restoreContract(String contractId, String? apartmentId, bool isHandedOver) async {
+  Future<void> restoreContract(
+    String contractId,
+    String? apartmentId,
+    bool isHandedOver,
+  ) async {
     final userId = _getCurrentUserId();
     if (userId == null) throw Exception('يجب تسجيل الدخول أولاً.');
 
@@ -347,7 +352,9 @@ class ContractsRepository {
     );
 
     final db = _localApi.database;
-    await (db.update(db.contracts)..where((t) => t.id.equals(contractId))).write(
+    await (db.update(
+      db.contracts,
+    )..where((t) => t.id.equals(contractId))).write(
       ContractsCompanion(
         contractFileUrl: drift.Value(fileUrl),
         userId: drift.Value(userId),

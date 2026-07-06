@@ -65,7 +65,7 @@ class DashboardMetrics {
 
 class DashboardRepository {
   const DashboardRepository({required LocalStorageApi localApi})
-      : _localApi = localApi;
+    : _localApi = localApi;
 
   final LocalStorageApi _localApi;
 
@@ -88,7 +88,8 @@ class DashboardRepository {
           entityId: p.id,
           type: ActivityType.payment,
           title: 'حركة مالية (دفعة/تعديل)',
-          description: 'دفعة بقيمة ${p.amountPaid} '
+          description:
+              'دفعة بقيمة ${p.amountPaid} '
               'للعقد ${p.contractId.substring(0, 5)}...',
           timestamp: p.updatedAt,
           userId: p.userId,
@@ -115,7 +116,8 @@ class DashboardRepository {
             entityId: c.id,
             type: ActivityType.contract,
             title: 'إضافة/تعديل عقد',
-            description: 'عقد جديد أو معدل للعميل '
+            description:
+                'عقد جديد أو معدل للعميل '
                 '${c.clientId.substring(0, 5)}...',
             timestamp: c.updatedAt,
             userId: c.userId,
@@ -175,7 +177,10 @@ class DashboardRepository {
     final contracts = await _localApi.getAllContracts();
     final payments = await _localApi.getAllPayments();
     final prices = await _localApi.getAllMaterialPricesHistory();
-    final activities = await getRecentActivities(limitPerType: 10, finalLimit: 20);
+    final activities = await getRecentActivities(
+      limitPerType: 10,
+      finalLimit: 20,
+    );
     final apartments = await _localApi.getAllApartments();
     final dollarPrices = await _localApi.getAllDollarPricesHistory();
 
@@ -195,9 +200,9 @@ class DashboardRepository {
     // تهيئة الخرائط الزمنية
     if (timeFilter == DashboardTimeFilter.daily) {
       for (var i = 6; i >= 0; i--) {
-        final key = DateFormat('MM-dd').format(
-          refDate.subtract(Duration(days: i)),
-        );
+        final key = DateFormat(
+          'MM-dd',
+        ).format(refDate.subtract(Duration(days: i)));
         tempGroupedRev[key] = 0.0;
         tempDollarTrend[key] = [];
         tempCostTrend[key] = [];
@@ -243,7 +248,8 @@ class DashboardRepository {
             tempGroupedRev['الأسبوع $weekNum']! + p.amountPaid;
       } else if (timeFilter == DashboardTimeFilter.monthly &&
           p.paymentDate.year == refDate.year) {
-        final key = '${p.paymentDate.year}-'
+        final key =
+            '${p.paymentDate.year}-'
             '${p.paymentDate.month.toString().padLeft(2, '0')}';
         if (tempGroupedRev.containsKey(key)) {
           tempGroupedRev[key] = tempGroupedRev[key]! + p.amountPaid;
@@ -289,7 +295,10 @@ class DashboardRepository {
             c.isHandedOver &&
             c.isPenaltyActive &&
             c.actualHandoverDate != null) {
-          final handoverMonthsPassed = _monthsBetween(c.actualHandoverDate!, now);
+          final handoverMonthsPassed = _monthsBetween(
+            c.actualHandoverDate!,
+            now,
+          );
 
           if (handoverMonthsPassed > 0 && c.penaltyIntervalMonths > 0) {
             final penaltyApplications =
@@ -325,7 +334,8 @@ class DashboardRepository {
         tempDollarTrend['الأسبوع $weekNum']!.add(d.exchangeRate);
       } else if (timeFilter == DashboardTimeFilter.monthly &&
           d.effectiveDate.year == refDate.year) {
-        final key = '${d.effectiveDate.year}-'
+        final key =
+            '${d.effectiveDate.year}-'
             '${d.effectiveDate.month.toString().padLeft(2, '0')}';
         if (tempDollarTrend.containsKey(key)) {
           tempDollarTrend[key]!.add(d.exchangeRate);
@@ -351,7 +361,8 @@ class DashboardRepository {
 
     // 5. تريند التكاليف
     for (final price in prices) {
-      final baseCost = (price.ironPrice * 30.0) +
+      final baseCost =
+          (price.ironPrice * 30.0) +
           (price.cementPrice * 4.0) +
           (price.block15Price * 50.0) +
           (price.formworkAndPouringWages * 1.0) +
@@ -371,7 +382,8 @@ class DashboardRepository {
         tempCostTrend['الأسبوع $weekNum']!.add(baseCost);
       } else if (timeFilter == DashboardTimeFilter.monthly &&
           price.effectiveDate.year == refDate.year) {
-        final key = '${price.effectiveDate.year}-'
+        final key =
+            '${price.effectiveDate.year}-'
             '${price.effectiveDate.month.toString().padLeft(2, '0')}';
         if (tempCostTrend.containsKey(key)) {
           tempCostTrend[key]!.add(baseCost);
@@ -429,8 +441,9 @@ class DashboardRepository {
       totalOverdueDebts: totalOverdueDebts,
       totalUndeliveredMeters: totalUndeliveredMeters,
       inventoryStatus: inventoryStatus,
-      activeContractsCount:
-          contracts.where((c) => !c.isDeleted && !c.isCompleted).length,
+      activeContractsCount: contracts
+          .where((c) => !c.isDeleted && !c.isCompleted)
+          .length,
       latestPayments: latestFive,
       groupedRevenue: tempGroupedRev,
       dollarTrend: finalDollarTrend,

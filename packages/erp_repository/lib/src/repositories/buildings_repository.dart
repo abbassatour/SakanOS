@@ -13,16 +13,16 @@ class BuildingsRepository {
     required LocalStorageApi localApi,
     required SyncRepository syncRepo,
     required String? Function() getCurrentUserId,
-  })  : _localApi = localApi,
-        _syncRepo = syncRepo,
-        _getCurrentUserId = getCurrentUserId;
+  }) : _localApi = localApi,
+       _syncRepo = syncRepo,
+       _getCurrentUserId = getCurrentUserId;
 
   final LocalStorageApi _localApi;
   final SyncRepository _syncRepo;
   final String? Function() _getCurrentUserId;
 
   Future<List<Building>> getBuildings() => _localApi.getBuildings();
-  
+
   Future<List<Apartment>> getAllApartments() => _localApi.getAllApartments();
 
   // 🌟 الواجهة ترسل نصوصاً وقواميس (Maps) عادية فقط
@@ -132,9 +132,9 @@ class BuildingsRepository {
     if (userId == null) throw Exception('يجب تسجيل الدخول أولاً.');
 
     final db = _localApi.database;
-    final apt = await (db.select(db.apartments)
-          ..where((t) => t.id.equals(apartmentId)))
-        .getSingle();
+    final apt = await (db.select(
+      db.apartments,
+    )..where((t) => t.id.equals(apartmentId))).getSingle();
 
     if (apt.status != 'available') {
       throw Exception('⚠️ لا يمكن حذف هذه الوحدة لأن حالتها: ${apt.status}');
@@ -149,14 +149,16 @@ class BuildingsRepository {
     if (userId == null) throw Exception('يجب تسجيل الدخول أولاً.');
 
     final db = _localApi.database;
-    final buildingApartments = await (db.select(db.apartments)
-          ..where(
-            (t) => t.buildingId.equals(buildingId) & t.isDeleted.equals(false),
-          ))
-        .get();
+    final buildingApartments =
+        await (db.select(db.apartments)..where(
+              (t) =>
+                  t.buildingId.equals(buildingId) & t.isDeleted.equals(false),
+            ))
+            .get();
 
-    final hasSoldApartments =
-        buildingApartments.any((apt) => apt.status != 'available');
+    final hasSoldApartments = buildingApartments.any(
+      (apt) => apt.status != 'available',
+    );
 
     if (hasSoldApartments) {
       throw Exception(

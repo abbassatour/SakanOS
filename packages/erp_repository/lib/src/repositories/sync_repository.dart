@@ -10,8 +10,8 @@ class SyncRepository {
   SyncRepository({
     required LocalStorageApi localApi,
     required CloudStorageClient cloudApi,
-  })  : _localApi = localApi,
-        _cloudApi = cloudApi;
+  }) : _localApi = localApi,
+       _cloudApi = cloudApi;
 
   final LocalStorageApi _localApi;
   final CloudStorageClient _cloudApi;
@@ -85,7 +85,8 @@ class SyncRepository {
             c['apartment_details']?.toString() ?? '',
           ),
           totalArea: double.tryParse(c['total_area']?.toString() ?? '0') ?? 0.0,
-          baseMeterPriceAtSigning: double.tryParse(
+          baseMeterPriceAtSigning:
+              double.tryParse(
                 c['base_meter_price_at_signing']?.toString() ?? '0',
               ) ??
               0.0,
@@ -102,14 +103,16 @@ class SyncRepository {
           isHandedOver: drift.Value(c['is_handed_over'] == true),
           agreedHandoverDate: drift.Value(
             c['agreed_handover_date'] != null
-                ? DateTime.tryParse(c['agreed_handover_date'].toString())
-                    ?.toUtc()
+                ? DateTime.tryParse(
+                    c['agreed_handover_date'].toString(),
+                  )?.toUtc()
                 : null,
           ),
           actualHandoverDate: drift.Value(
             c['actual_handover_date'] != null
-                ? DateTime.tryParse(c['actual_handover_date'].toString())
-                    ?.toUtc()
+                ? DateTime.tryParse(
+                    c['actual_handover_date'].toString(),
+                  )?.toUtc()
                 : null,
           ),
           gracePeriodMonths: drift.Value(
@@ -124,7 +127,8 @@ class SyncRepository {
                 0.0,
           ),
           coefficients: drift.Value(c['coefficients']?.toString() ?? '{}'),
-          contractDate: DateTime.tryParse(
+          contractDate:
+              DateTime.tryParse(
                 c['contract_date']?.toString() ?? '',
               )?.toUtc() ??
               DateTime.now().toUtc(),
@@ -153,23 +157,23 @@ class SyncRepository {
       for (final p in cloudPrices) {
         final price = MaterialPricesHistoryCompanion.insert(
           id: drift.Value(p['id'].toString()),
-          ironPrice:
-              double.tryParse(p['iron_price']?.toString() ?? '0') ?? 0.0,
+          ironPrice: double.tryParse(p['iron_price']?.toString() ?? '0') ?? 0.0,
           cementPrice:
               double.tryParse(p['cement_price']?.toString() ?? '0') ?? 0.0,
           block15Price:
               double.tryParse(p['block15_price']?.toString() ?? '0') ?? 0.0,
-          formworkAndPouringWages: double.tryParse(
+          formworkAndPouringWages:
+              double.tryParse(
                 p['formwork_and_pouring_wages']?.toString() ?? '0',
               ) ??
               0.0,
-          aggregateMaterialsPrice: double.tryParse(
+          aggregateMaterialsPrice:
+              double.tryParse(
                 p['aggregate_materials_price']?.toString() ?? '0',
               ) ??
               0.0,
-          ordinaryWorkerWage: double.tryParse(
-                p['ordinary_worker_wage']?.toString() ?? '0',
-              ) ??
+          ordinaryWorkerWage:
+              double.tryParse(p['ordinary_worker_wage']?.toString() ?? '0') ??
               0.0,
           effectiveDate: drift.Value(
             DateTime.tryParse(p['effective_date']?.toString() ?? '')?.toUtc() ??
@@ -190,13 +194,11 @@ class SyncRepository {
         final schedule = InstallmentsScheduleCompanion.insert(
           id: drift.Value(s['id'].toString()),
           contractId: s['contract_id'].toString(),
-          installmentNumber: int.tryParse(
-                s['installment_number']?.toString() ?? '1',
-              ) ??
-              1,
+          installmentNumber:
+              int.tryParse(s['installment_number']?.toString() ?? '1') ?? 1,
           dueDate:
               DateTime.tryParse(s['due_date']?.toString() ?? '')?.toUtc() ??
-                  DateTime.now().toUtc(),
+              DateTime.now().toUtc(),
           status: drift.Value(s['status']?.toString() ?? 'pending'),
           notes: drift.Value(s['notes']?.toString()),
           expectedAmount: drift.Value(
@@ -224,12 +226,11 @@ class SyncRepository {
           scheduleId: drift.Value(p['schedule_id']?.toString()),
           paymentDate:
               DateTime.tryParse(p['payment_date']?.toString() ?? '')?.toUtc() ??
-                  DateTime.now().toUtc(),
+              DateTime.now().toUtc(),
           amountPaid:
               double.tryParse(p['amount_paid']?.toString() ?? '0') ?? 0.0,
-          meterPriceAtPayment: double.tryParse(
-                p['meter_price_at_payment']?.toString() ?? '0',
-              ) ??
+          meterPriceAtPayment:
+              double.tryParse(p['meter_price_at_payment']?.toString() ?? '0') ??
               0.0,
           convertedMeters:
               double.tryParse(p['converted_meters']?.toString() ?? '0') ?? 0.0,
@@ -360,10 +361,9 @@ class SyncRepository {
           ),
           isSynced: const drift.Value(true),
         );
-        await _localApi.database.into(_localApi.database.legalActions).insert(
-              action,
-              mode: drift.InsertMode.insertOrReplace,
-            );
+        await _localApi.database
+            .into(_localApi.database.legalActions)
+            .insert(action, mode: drift.InsertMode.insertOrReplace);
       }
 
       // 11. سحب المرفقات القانونية
@@ -414,9 +414,9 @@ class SyncRepository {
 
     // 1. مزامنة العملاء
     try {
-      final pendingClients = await (db.select(db.clients)
-            ..where((t) => t.isSynced.equals(false)))
-          .get();
+      final pendingClients = await (db.select(
+        db.clients,
+      )..where((t) => t.isSynced.equals(false))).get();
       for (final c in pendingClients) {
         await _cloudApi.upsertClient({
           'id': c.id,
@@ -425,7 +425,7 @@ class SyncRepository {
           'national_id': c.nationalId,
           'user_id': c.userId,
           'is_deleted': c.isDeleted,
-          'updated_at': c.updatedAt.toUtc().toIso8601String()
+          'updated_at': c.updatedAt.toUtc().toIso8601String(),
         });
         await (db.update(db.clients)..where((t) => t.id.equals(c.id))).write(
           const ClientsCompanion(isSynced: drift.Value(true)),
@@ -438,9 +438,9 @@ class SyncRepository {
 
     // 2. مزامنة العقود
     try {
-      final pendingContracts = await (db.select(db.contracts)
-            ..where((t) => t.isSynced.equals(false)))
-          .get();
+      final pendingContracts = await (db.select(
+        db.contracts,
+      )..where((t) => t.isSynced.equals(false))).get();
       for (final c in pendingContracts) {
         await _cloudApi.upsertContract({
           'id': c.id,
@@ -455,10 +455,12 @@ class SyncRepository {
           'penalty_percentage': safeNum(c.penaltyPercentage),
           'penalty_interval_months': c.penaltyIntervalMonths,
           'is_handed_over': c.isHandedOver,
-          'agreed_handover_date':
-              c.agreedHandoverDate?.toUtc().toIso8601String(),
-          'actual_handover_date':
-              c.actualHandoverDate?.toUtc().toIso8601String(),
+          'agreed_handover_date': c.agreedHandoverDate
+              ?.toUtc()
+              .toIso8601String(),
+          'actual_handover_date': c.actualHandoverDate
+              ?.toUtc()
+              .toIso8601String(),
           'grace_period_months': c.gracePeriodMonths,
           'handover_notes': c.handoverNotes,
           'installments_count': c.installmentsCount,
@@ -472,7 +474,7 @@ class SyncRepository {
           'last_action_date': c.lastActionDate?.toUtc().toIso8601String(),
           'last_action_note': c.lastActionNote,
           'is_deleted': c.isDeleted,
-          'updated_at': c.updatedAt.toUtc().toIso8601String()
+          'updated_at': c.updatedAt.toUtc().toIso8601String(),
         });
         await (db.update(db.contracts)..where((t) => t.id.equals(c.id))).write(
           const ContractsCompanion(isSynced: drift.Value(true)),
@@ -485,9 +487,9 @@ class SyncRepository {
 
     // 3. مزامنة جدول الاستحقاقات
     try {
-      final pendingSchedules = await (db.select(db.installmentsSchedule)
-            ..where((t) => t.isSynced.equals(false)))
-          .get();
+      final pendingSchedules = await (db.select(
+        db.installmentsSchedule,
+      )..where((t) => t.isSynced.equals(false))).get();
       if (pendingSchedules.isNotEmpty) {
         final cloudSchedules = pendingSchedules
             .map(
@@ -501,7 +503,7 @@ class SyncRepository {
                 'expected_amount': s.expectedAmount,
                 'user_id': s.userId,
                 'is_deleted': s.isDeleted,
-                'updated_at': s.updatedAt.toUtc().toIso8601String()
+                'updated_at': s.updatedAt.toUtc().toIso8601String(),
               },
             )
             .toList();
@@ -509,9 +511,9 @@ class SyncRepository {
         await _cloudApi.upsertSchedule(cloudSchedules);
 
         for (final s in pendingSchedules) {
-          await (db.update(db.installmentsSchedule)
-                ..where((t) => t.id.equals(s.id)))
-              .write(
+          await (db.update(
+            db.installmentsSchedule,
+          )..where((t) => t.id.equals(s.id))).write(
             const InstallmentsScheduleCompanion(isSynced: drift.Value(true)),
           );
         }
@@ -523,9 +525,9 @@ class SyncRepository {
 
     // 4. مزامنة الدفعات
     try {
-      final pendingPayments = await (db.select(db.paymentsLedger)
-            ..where((t) => t.isSynced.equals(false)))
-          .get();
+      final pendingPayments = await (db.select(
+        db.paymentsLedger,
+      )..where((t) => t.isSynced.equals(false))).get();
       for (final p in pendingPayments) {
         await _cloudApi.upsertPayment({
           'id': p.id,
@@ -540,12 +542,10 @@ class SyncRepository {
           'is_whatsapp_sent': p.isWhatsAppSent,
           'user_id': p.userId,
           'is_deleted': p.isDeleted,
-          'updated_at': p.updatedAt.toUtc().toIso8601String()
+          'updated_at': p.updatedAt.toUtc().toIso8601String(),
         });
         await (db.update(db.paymentsLedger)..where((t) => t.id.equals(p.id)))
-            .write(
-          const PaymentsLedgerCompanion(isSynced: drift.Value(true)),
-        );
+            .write(const PaymentsLedgerCompanion(isSynced: drift.Value(true)));
       }
     } on Exception catch (e) {
       // ignore: avoid_print
@@ -554,9 +554,9 @@ class SyncRepository {
 
     // 5. مزامنة أسعار المواد
     try {
-      final pendingPrices = await (db.select(db.materialPricesHistory)
-            ..where((t) => t.isSynced.equals(false)))
-          .get();
+      final pendingPrices = await (db.select(
+        db.materialPricesHistory,
+      )..where((t) => t.isSynced.equals(false))).get();
       for (final p in pendingPrices) {
         await _cloudApi.upsertMaterialPrices({
           'id': p.id,
@@ -571,9 +571,9 @@ class SyncRepository {
           'is_deleted': p.isDeleted,
           'updated_at': DateTime.now().toUtc().toIso8601String(),
         });
-        await (db.update(db.materialPricesHistory)
-              ..where((t) => t.id.equals(p.id)))
-            .write(
+        await (db.update(
+          db.materialPricesHistory,
+        )..where((t) => t.id.equals(p.id))).write(
           const MaterialPricesHistoryCompanion(isSynced: drift.Value(true)),
         );
       }
@@ -584,9 +584,9 @@ class SyncRepository {
 
     // 6. مزامنة المحاضر
     try {
-      final pendingBuildings = await (db.select(db.buildings)
-            ..where((t) => t.isSynced.equals(false)))
-          .get();
+      final pendingBuildings = await (db.select(
+        db.buildings,
+      )..where((t) => t.isSynced.equals(false))).get();
       for (final b in pendingBuildings) {
         await _cloudApi.upsertBuilding({
           'id': b.id,
@@ -596,7 +596,7 @@ class SyncRepository {
           'direction_coefficients': b.directionCoefficients,
           'user_id': b.userId,
           'is_deleted': b.isDeleted,
-          'updated_at': b.updatedAt.toUtc().toIso8601String()
+          'updated_at': b.updatedAt.toUtc().toIso8601String(),
         });
         await (db.update(db.buildings)..where((t) => t.id.equals(b.id))).write(
           const BuildingsCompanion(isSynced: drift.Value(true)),
@@ -609,9 +609,9 @@ class SyncRepository {
 
     // 7. مزامنة الشقق
     try {
-      final pendingApartments = await (db.select(db.apartments)
-            ..where((t) => t.isSynced.equals(false)))
-          .get();
+      final pendingApartments = await (db.select(
+        db.apartments,
+      )..where((t) => t.isSynced.equals(false))).get();
       for (final a in pendingApartments) {
         await _cloudApi.upsertApartment({
           'id': a.id,
@@ -625,7 +625,7 @@ class SyncRepository {
           'status': a.status,
           'user_id': a.userId,
           'is_deleted': a.isDeleted,
-          'updated_at': a.updatedAt.toUtc().toIso8601String()
+          'updated_at': a.updatedAt.toUtc().toIso8601String(),
         });
         await (db.update(db.apartments)..where((t) => t.id.equals(a.id))).write(
           const ApartmentsCompanion(isSynced: drift.Value(true)),
@@ -638,9 +638,9 @@ class SyncRepository {
 
     // 8. مزامنة قوالب الأدوار
     try {
-      final pendingRoles = await (db.select(db.appRoles)
-            ..where((t) => t.isSynced.equals(false)))
-          .get();
+      final pendingRoles = await (db.select(
+        db.appRoles,
+      )..where((t) => t.isSynced.equals(false))).get();
       for (final r in pendingRoles) {
         await _cloudApi.upsertAppRole({
           'id': r.id,
@@ -648,7 +648,7 @@ class SyncRepository {
           'permissions': r.permissionsJson,
           'is_system_role': r.isSystemRole,
           'is_deleted': r.isDeleted,
-          'updated_at': r.updatedAt.toUtc().toIso8601String()
+          'updated_at': r.updatedAt.toUtc().toIso8601String(),
         });
         await (db.update(db.appRoles)..where((t) => t.id.equals(r.id))).write(
           const AppRolesCompanion(isSynced: drift.Value(true)),
@@ -661,9 +661,9 @@ class SyncRepository {
 
     // 9. مزامنة المستخدمين
     try {
-      final pendingUsers = await (db.select(db.localUsers)
-            ..where((t) => t.isSynced.equals(false)))
-          .get();
+      final pendingUsers = await (db.select(
+        db.localUsers,
+      )..where((t) => t.isSynced.equals(false))).get();
       for (final u in pendingUsers) {
         await _cloudApi.upsertAppUser({
           'id': u.id,
@@ -673,7 +673,7 @@ class SyncRepository {
           'extra_permissions': u.extraPermissionsJson,
           'revoked_permissions': u.revokedPermissionsJson,
           'is_active': u.isActive,
-          'updated_at': u.updatedAt.toUtc().toIso8601String()
+          'updated_at': u.updatedAt.toUtc().toIso8601String(),
         });
         await (db.update(db.localUsers)..where((t) => t.id.equals(u.id))).write(
           const LocalUsersCompanion(isSynced: drift.Value(true)),
@@ -686,9 +686,9 @@ class SyncRepository {
 
     // 10. مزامنة الإجراءات القانونية
     try {
-      final pendingActions = await (db.select(db.legalActions)
-            ..where((t) => t.isSynced.equals(false)))
-          .get();
+      final pendingActions = await (db.select(
+        db.legalActions,
+      )..where((t) => t.isSynced.equals(false))).get();
       for (final a in pendingActions) {
         await _cloudApi.upsertLegalAction({
           'id': a.id,
@@ -698,12 +698,10 @@ class SyncRepository {
           'notes': a.notes,
           'user_id': a.userId,
           'is_deleted': a.isDeleted,
-          'updated_at': a.updatedAt.toUtc().toIso8601String()
+          'updated_at': a.updatedAt.toUtc().toIso8601String(),
         });
         await (db.update(db.legalActions)..where((t) => t.id.equals(a.id)))
-            .write(
-          const LegalActionsCompanion(isSynced: drift.Value(true)),
-        );
+            .write(const LegalActionsCompanion(isSynced: drift.Value(true)));
       }
     } on Exception catch (e) {
       // ignore: avoid_print
@@ -712,9 +710,9 @@ class SyncRepository {
 
     // 11. مزامنة المرفقات القانونية
     try {
-      final pendingAttachments = await (db.select(db.legalActionAttachments)
-            ..where((t) => t.isSynced.equals(false)))
-          .get();
+      final pendingAttachments = await (db.select(
+        db.legalActionAttachments,
+      )..where((t) => t.isSynced.equals(false))).get();
       for (final att in pendingAttachments) {
         await _cloudApi.upsertLegalActionAttachment({
           'id': att.id,
@@ -724,11 +722,11 @@ class SyncRepository {
           'file_type': att.fileType,
           'user_id': att.userId,
           'is_deleted': att.isDeleted,
-          'updated_at': att.updatedAt.toUtc().toIso8601String()
+          'updated_at': att.updatedAt.toUtc().toIso8601String(),
         });
-        await (db.update(db.legalActionAttachments)
-              ..where((t) => t.id.equals(att.id)))
-            .write(
+        await (db.update(
+          db.legalActionAttachments,
+        )..where((t) => t.id.equals(att.id))).write(
           const LegalActionAttachmentsCompanion(isSynced: drift.Value(true)),
         );
       }
@@ -739,14 +737,14 @@ class SyncRepository {
 
     // 12. مزامنة أسعار الدولار
     try {
-      final pendingDollars = await (db.select(db.dollarPricesHistory)
-            ..where((t) => t.isSynced.equals(false)))
-          .get();
+      final pendingDollars = await (db.select(
+        db.dollarPricesHistory,
+      )..where((t) => t.isSynced.equals(false))).get();
       for (final d in pendingDollars) {
         await _cloudApi.upsertDollarPrice(_mapDollarPriceToCloud(d));
-        await (db.update(db.dollarPricesHistory)
-              ..where((t) => t.id.equals(d.id)))
-            .write(
+        await (db.update(
+          db.dollarPricesHistory,
+        )..where((t) => t.id.equals(d.id))).write(
           const DollarPricesHistoryCompanion(isSynced: drift.Value(true)),
         );
       }
@@ -780,9 +778,7 @@ class SyncRepository {
       effectiveDate: drift.Value(
         DateTime.parse(cloudData['effective_date'].toString()).toUtc(),
       ),
-      exchangeRate: drift.Value(
-        (cloudData['exchange_rate'] as num).toDouble(),
-      ),
+      exchangeRate: drift.Value((cloudData['exchange_rate'] as num).toDouble()),
       userId: drift.Value(cloudData['user_id'].toString()),
       createdAt: drift.Value(
         DateTime.parse(cloudData['created_at'].toString()).toUtc(),

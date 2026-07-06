@@ -11,9 +11,9 @@ class PaymentsRepository {
     required LocalStorageApi localApi,
     required SyncRepository syncRepo,
     required String? Function() getCurrentUserId,
-  })  : _localApi = localApi,
-        _syncRepo = syncRepo,
-        _getCurrentUserId = getCurrentUserId;
+  }) : _localApi = localApi,
+       _syncRepo = syncRepo,
+       _getCurrentUserId = getCurrentUserId;
 
   final LocalStorageApi _localApi;
   final SyncRepository _syncRepo;
@@ -97,8 +97,9 @@ class PaymentsRepository {
     // 4. معالجة نقطة التفاعل (الرادار) للقسط
     if (scheduleId != null) {
       final currentSchedules = await _localApi.getContractSchedule(contractId);
-      final targetScheduleIndex =
-          currentSchedules.indexWhere((s) => s.id == scheduleId);
+      final targetScheduleIndex = currentSchedules.indexWhere(
+        (s) => s.id == scheduleId,
+      );
 
       if (targetScheduleIndex != -1) {
         final targetSchedule = currentSchedules[targetScheduleIndex];
@@ -169,7 +170,7 @@ class PaymentsRepository {
 
     // 🌟 أضفنا كلمة .database هنا
     await _localApi.database.markWhatsAppAsSent(entryId, userId);
-    
+
     await _syncRepo.syncPendingData();
   }
 }

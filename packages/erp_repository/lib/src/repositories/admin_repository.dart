@@ -12,14 +12,14 @@ class AdminRepository {
   const AdminRepository({
     required LocalStorageApi localApi,
     required SyncRepository syncRepo,
-  })  : _localApi = localApi,
-        _syncRepo = syncRepo;
+  }) : _localApi = localApi,
+       _syncRepo = syncRepo;
 
   final LocalStorageApi _localApi;
   final SyncRepository _syncRepo;
 
   Future<List<AppRole>> getAllRoles() => _localApi.getAllRoles();
-  
+
   Future<List<LocalUser>> getAllUsers() => _localApi.getAllLocalUsers();
 
   Future<LocalUser?> getLocalUserById(String id) =>
@@ -38,7 +38,7 @@ class AdminRepository {
       permissionsJson: drift.Value(permissionsJson),
       isSynced: const drift.Value(false),
     );
-    
+
     // ملاحظة: إذا كان local_storage_api يستخدم اسم دالة مختلف (مثل insertRole)
     // يرجى استبدال addRole بها إذا ظهر خطأ.
     await _localApi.addRole(companion);
@@ -62,10 +62,12 @@ class AdminRepository {
     List<String>? extraPermissions,
     List<String>? revokedPermissions,
   }) async {
-    final extraJson =
-        extraPermissions != null ? jsonEncode(extraPermissions) : null;
-    final revokedJson =
-        revokedPermissions != null ? jsonEncode(revokedPermissions) : null;
+    final extraJson = extraPermissions != null
+        ? jsonEncode(extraPermissions)
+        : null;
+    final revokedJson = revokedPermissions != null
+        ? jsonEncode(revokedPermissions)
+        : null;
 
     await _localApi.updateUserRoleAndPermissions(
       userId: userId,
