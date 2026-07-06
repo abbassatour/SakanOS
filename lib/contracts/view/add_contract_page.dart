@@ -129,9 +129,11 @@ class _AddContractPageState extends State<AddContractPage> {
       autoImportedCoefficients.clear();
 
       try {
-        final bldMap = jsonDecode(
-          bld.directionCoefficients,
-        ) as Map<String, dynamic>;
+        final bldMap =
+            jsonDecode(
+                  bld.directionCoefficients,
+                )
+                as Map<String, dynamic>;
 
         for (final entry in bldMap.entries) {
           final k = entry.key;
@@ -144,9 +146,11 @@ class _AddContractPageState extends State<AddContractPage> {
           }
         }
 
-        final aptMap = jsonDecode(
-          apt.customCoefficients,
-        ) as Map<String, dynamic>;
+        final aptMap =
+            jsonDecode(
+                  apt.customCoefficients,
+                )
+                as Map<String, dynamic>;
 
         for (final entry in aptMap.entries) {
           final k = entry.key;
@@ -240,8 +244,9 @@ class _AddContractPageState extends State<AddContractPage> {
     _rawCalculatedPricePerSqm =
         calculations['pricePerSqmRaw'] ?? calculations['pricePerSqm']!;
 
-    priceController.text =
-        NumberFormatters.formatWithCommas(calculations['pricePerSqm']!);
+    priceController.text = NumberFormatters.formatWithCommas(
+      calculations['pricePerSqm']!,
+    );
 
     _showSuccess(
       isHistoricalContract
@@ -304,8 +309,9 @@ class _AddContractPageState extends State<AddContractPage> {
                             histWorkerCtrl: histWorkerCtrl,
                             onToggle: (val) async {
                               if (val) {
-                                final isAuth =
-                                    await showVerifyPinDialog(context);
+                                final isAuth = await showVerifyPinDialog(
+                                  context,
+                                );
                                 if (isAuth && context.mounted) {
                                   final pickedDate = await showDatePicker(
                                     context: context,
@@ -403,8 +409,10 @@ class _AddContractPageState extends State<AddContractPage> {
                                 children: [
                                   Row(
                                     children: [
-                                      Icon(Icons.key,
-                                          color: Colors.blue.shade700),
+                                      Icon(
+                                        Icons.key,
+                                        color: Colors.blue.shade700,
+                                      ),
                                       const SizedBox(width: 8),
                                       Text(
                                         'تفاصيل تسليم الشقة',
@@ -450,22 +458,22 @@ class _AddContractPageState extends State<AddContractPage> {
                                                 Icons.edit_calendar,
                                                 color: Colors.blue,
                                               ),
-                                              errorText: agreedHandoverDate ==
-                                                      null
+                                              errorText:
+                                                  agreedHandoverDate == null
                                                   ? 'مطلوب للإحصائيات'
                                                   : null,
                                             ),
                                             child: Text(
                                               agreedHandoverDate != null
                                                   ? '${agreedHandoverDate!.year}/'
-                                                    '${agreedHandoverDate!.month}/'
-                                                    '${agreedHandoverDate!.day}'
+                                                        '${agreedHandoverDate!.month}/'
+                                                        '${agreedHandoverDate!.day}'
                                                   : 'اضغط لاختيار التاريخ',
                                               style: TextStyle(
                                                 color:
                                                     agreedHandoverDate != null
-                                                        ? Colors.black
-                                                        : Colors.red,
+                                                    ? Colors.black
+                                                    : Colors.red,
                                                 fontWeight: FontWeight.bold,
                                               ),
                                             ),
@@ -715,8 +723,10 @@ class _AddContractPageState extends State<AddContractPage> {
       if (isHistoricalContract) {
         exchangeRate = _safeParseDouble(histDollarRateCtrl);
       } else {
-        final currentDollar =
-            context.read<SettingsCubit>().state.currentDollarPrice;
+        final currentDollar = context
+            .read<SettingsCubit>()
+            .state
+            .currentDollarPrice;
         if (currentDollar == null) {
           _showError('سعر الدولار غير متوفر! يرجى إضافته.');
           return;
@@ -751,8 +761,9 @@ class _AddContractPageState extends State<AddContractPage> {
       if (isAllocated) {
         final allApartments = context.read<BuildingsCubit>().state.apartments;
         final buildings = context.read<BuildingsCubit>().state.buildings;
-        final apt =
-            allApartments.firstWhere((a) => a.id == selectedApartmentId);
+        final apt = allApartments.firstWhere(
+          (a) => a.id == selectedApartmentId,
+        );
         final bld = buildings.firstWhere((b) => b.id == selectedBuildingId);
         generatedDetails =
             'محضر: ${bld.name} | شقة: ${apt.apartmentNumber} | '
@@ -762,8 +773,9 @@ class _AddContractPageState extends State<AddContractPage> {
       }
 
       final finalArea = isAllocated ? _safeParseDouble(areaController) : 0.0;
-      final finalMonths =
-          isAllocated ? _safeParseInt(monthsController, defaultValue: 48) : 48;
+      final finalMonths = isAllocated
+          ? _safeParseInt(monthsController, defaultValue: 48)
+          : 48;
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -773,47 +785,50 @@ class _AddContractPageState extends State<AddContractPage> {
       );
 
       final applyPenalty = isAllocated && isPenaltyActive;
-      final histDollar =
-          (isHistoricalContract && isDollarContract) ? exchangeRate : null;
+      final histDollar = (isHistoricalContract && isDollarContract)
+          ? exchangeRate
+          : null;
 
       await context.read<ContractsCubit>().addContract(
-            clientId: selectedClientId!,
-            contractType: selectedContractType,
-            details: generatedDetails,
-            apartmentId: isAllocated ? selectedApartmentId : null,
-            area: finalArea,
-            basePrice: finalBasePriceToSend,
-            downPayment: finalDownPaymentSYP,
-            installmentsCount: finalMonths,
-            guarantorName: guarantorController.text.trim(),
-            agreedMonthlyAmount: agreedAmountSYP,
-            coefficients: finalCoeffs,
-            customDate: isHistoricalContract ? selectedHistoricalDate : null,
-            agreedHandoverDate: isAllocated ? agreedHandoverDate : null,
-            gracePeriodMonths:
-                isAllocated ? _safeParseInt(gracePeriodCtrl) : null,
-            isPenaltyActive: applyPenalty,
-            penaltyPercentage:
-                applyPenalty ? _safeParseDouble(penaltyPctCtrl) : 0.0,
-            penaltyIntervalMonths: applyPenalty
-                ? _safeParseInt(penaltyIntervalCtrl, defaultValue: 1)
-                : 1,
-            histIron:
-                isHistoricalContract ? _safeParseDouble(histIronCtrl) : null,
-            histCement:
-                isHistoricalContract ? _safeParseDouble(histCementCtrl) : null,
-            histBlock:
-                isHistoricalContract ? _safeParseDouble(histBlockCtrl) : null,
-            histFormwork: isHistoricalContract
-                ? _safeParseDouble(histFormworkCtrl)
-                : null,
-            histAggregates: isHistoricalContract
-                ? _safeParseDouble(histAggregatesCtrl)
-                : null,
-            histWorker:
-                isHistoricalContract ? _safeParseDouble(histWorkerCtrl) : null,
-            histDollarRate: histDollar,
-          );
+        clientId: selectedClientId!,
+        contractType: selectedContractType,
+        details: generatedDetails,
+        apartmentId: isAllocated ? selectedApartmentId : null,
+        area: finalArea,
+        basePrice: finalBasePriceToSend,
+        downPayment: finalDownPaymentSYP,
+        installmentsCount: finalMonths,
+        guarantorName: guarantorController.text.trim(),
+        agreedMonthlyAmount: agreedAmountSYP,
+        coefficients: finalCoeffs,
+        customDate: isHistoricalContract ? selectedHistoricalDate : null,
+        agreedHandoverDate: isAllocated ? agreedHandoverDate : null,
+        gracePeriodMonths: isAllocated ? _safeParseInt(gracePeriodCtrl) : null,
+        isPenaltyActive: applyPenalty,
+        penaltyPercentage: applyPenalty
+            ? _safeParseDouble(penaltyPctCtrl)
+            : 0.0,
+        penaltyIntervalMonths: applyPenalty
+            ? _safeParseInt(penaltyIntervalCtrl, defaultValue: 1)
+            : 1,
+        histIron: isHistoricalContract ? _safeParseDouble(histIronCtrl) : null,
+        histCement: isHistoricalContract
+            ? _safeParseDouble(histCementCtrl)
+            : null,
+        histBlock: isHistoricalContract
+            ? _safeParseDouble(histBlockCtrl)
+            : null,
+        histFormwork: isHistoricalContract
+            ? _safeParseDouble(histFormworkCtrl)
+            : null,
+        histAggregates: isHistoricalContract
+            ? _safeParseDouble(histAggregatesCtrl)
+            : null,
+        histWorker: isHistoricalContract
+            ? _safeParseDouble(histWorkerCtrl)
+            : null,
+        histDollarRate: histDollar,
+      );
 
       if (mounted) {
         Navigator.pop(context);

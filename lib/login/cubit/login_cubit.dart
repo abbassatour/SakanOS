@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:erp_repository/erp_repository.dart';
-import 'package:path_provider/path_provider.dart'; 
+import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 
 part 'login_state.dart';
@@ -18,7 +18,7 @@ class LoginCubit extends Cubit<LoginState> {
     try {
       final dir = await getApplicationSupportDirectory();
       final file = File(p.join(dir.path, 'remember_me.txt'));
-      
+
       if (file.existsSync()) {
         final savedEmail = await file.readAsString();
         if (savedEmail.isNotEmpty) {
@@ -42,21 +42,27 @@ class LoginCubit extends Cubit<LoginState> {
 
   Future<void> submit() async {
     if (state.email.isEmpty || state.password.isEmpty) {
-      emit(state.copyWith(status: LoginStatus.failure, errorMessage: 'الرجاء إدخال البريد الإلكتروني وكلمة المرور.'));
+      emit(
+        state.copyWith(
+          status: LoginStatus.failure,
+          errorMessage: 'الرجاء إدخال البريد الإلكتروني وكلمة المرور.',
+        ),
+      );
       return;
     }
 
     emit(state.copyWith(status: LoginStatus.loading));
-    
+
     try {
       // ==========================================
       // 🛡️ 1. الفحص المسبق السريع للإنترنت (Ping) - مهلة 5 ثوانٍ
       // ==========================================
       bool hasInternet = false;
       try {
-        final result = await InternetAddress.lookup('google.com')
-            .timeout(const Duration(seconds: 5)); // ⏱️ لن ينتظر أكثر من 5 ثوانٍ
-            
+        final result = await InternetAddress.lookup(
+          'google.com',
+        ).timeout(const Duration(seconds: 5)); // ⏱️ لن ينتظر أكثر من 5 ثوانٍ
+
         if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
           hasInternet = true;
         }
@@ -66,10 +72,13 @@ class LoginCubit extends Cubit<LoginState> {
 
       // ⛔ إيقاف العملية فوراً إذا لم يكن هناك إنترنت
       if (!hasInternet) {
-        emit(state.copyWith(
-          status: LoginStatus.failure,
-          errorMessage: 'لا يوجد اتصال بالإنترنت! يرجى التحقق من الشبكة والمحاولة مجدداً. 🌐❌',
-        ));
+        emit(
+          state.copyWith(
+            status: LoginStatus.failure,
+            errorMessage:
+                'لا يوجد اتصال بالإنترنت! يرجى التحقق من الشبكة والمحاولة مجدداً. 🌐❌',
+          ),
+        );
         return; // خروج لعدم استدعاء قاعدة البيانات
       }
 
@@ -80,40 +89,44 @@ class LoginCubit extends Cubit<LoginState> {
         email: state.email.trim(),
         password: state.password,
       );
-      
+
       final dir = await getApplicationSupportDirectory();
       final file = File(p.join(dir.path, 'remember_me.txt'));
-      
+
       if (state.rememberMe) {
-        await file.writeAsString(state.email.trim()); 
+        await file.writeAsString(state.email.trim());
       } else {
-        if (file.existsSync()) await file.delete(); 
+        if (file.existsSync()) await file.delete();
       }
 
       emit(state.copyWith(status: LoginStatus.success));
-      
     } catch (e) {
       // ==========================================
       // 🐛 3. التقاط الأخطاء وتخصيص الرسائل
       // ==========================================
-      String msg = 'فشل تسجيل الدخول. تأكد من صحة البيانات أو اتصالك بالإنترنت.';
+      String msg =
+          'فشل تسجيل الدخول. تأكد من صحة البيانات أو اتصالك بالإنترنت.';
       final errorString = e.toString().toLowerCase();
-      
+
       // اصطياد أخطاء Supabase
       if (errorString.contains('email not confirmed')) {
         msg = 'يرجى تأكيد بريدك الإلكتروني أولاً عبر الرابط الذي أرسلناه إليك.';
       } else if (errorString.contains('invalid login credentials')) {
         msg = 'البريد الإلكتروني أو كلمة المرور غير صحيحة.';
-      } 
+      }
       // حماية إضافية في حال انقطع الاتصال فجأة أثناء الطلب
-      else if (errorString.contains('socketexception') || errorString.contains('failed host lookup') || errorString.contains('clientexception')) {
+      else if (errorString.contains('socketexception') ||
+          errorString.contains('failed host lookup') ||
+          errorString.contains('clientexception')) {
         msg = 'انقطع الاتصال بالإنترنت أثناء تسجيل الدخول. 🌐❌';
       }
 
-      emit(state.copyWith(
-        status: LoginStatus.failure,
-        errorMessage: msg,
-      ));
+      emit(
+        state.copyWith(
+          status: LoginStatus.failure,
+          errorMessage: msg,
+        ),
+      );
     }
   }
 }

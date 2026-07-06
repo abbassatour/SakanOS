@@ -52,9 +52,9 @@ Future<void> showDeletePaymentDialog(
                   ),
                 );
                 unawaited(
-                  parentContext
-                      .read<PaymentsCubit>()
-                      .softDeleteLastEntry(entry),
+                  parentContext.read<PaymentsCubit>().softDeleteLastEntry(
+                    entry,
+                  ),
                 );
               },
               child: const Text('نعم، قم بالإلغاء'),

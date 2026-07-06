@@ -112,10 +112,10 @@ class _AddClientDialogState extends State<_AddClientDialogContent> {
 
     try {
       await context.read<ClientsCubit>().addClient(
-            name: name,
-            phone: phone,
-            nationalId: nationalId.isEmpty ? null : nationalId,
-          );
+        name: name,
+        phone: phone,
+        nationalId: nationalId.isEmpty ? null : nationalId,
+      );
 
       if (mounted && widget.parentContext.mounted) {
         Navigator.pop(context);

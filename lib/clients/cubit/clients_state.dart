@@ -37,10 +37,10 @@ class ClientsState extends Equatable {
 
   @override
   List<Object?> get props => [
-        status,
-        clients,
-        deletedClients,
-        userNamesMap,
-        errorMessage,
-      ];
+    status,
+    clients,
+    deletedClients,
+    userNamesMap,
+    errorMessage,
+  ];
 }

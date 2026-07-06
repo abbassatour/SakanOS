@@ -8,14 +8,14 @@ class MaterialsTrendState extends Equatable {
     this.status = MaterialsTrendStatus.initial,
     this.timeFilter = TimeFilter.monthly, // 🌟 استوردنا الفلتر من الداشبورد
     required this.referenceDate,
-    
+
     this.ironTrend = const {},
     this.cementTrend = const {},
     this.blockTrend = const {},
     this.formworkTrend = const {},
     this.aggregatesTrend = const {},
     this.workerTrend = const {},
-    
+
     this.errorMessage,
   });
 
@@ -29,7 +29,7 @@ class MaterialsTrendState extends Equatable {
   final Map<String, double> formworkTrend;
   final Map<String, double> aggregatesTrend;
   final Map<String, double> workerTrend;
-  
+
   final String? errorMessage;
 
   MaterialsTrendState copyWith({
@@ -59,10 +59,16 @@ class MaterialsTrendState extends Equatable {
   }
 
   @override
-  List<Object?> get props =>[
-        status, timeFilter, referenceDate,
-        ironTrend, cementTrend, blockTrend,
-        formworkTrend, aggregatesTrend, workerTrend,
-        errorMessage,
-      ];
+  List<Object?> get props => [
+    status,
+    timeFilter,
+    referenceDate,
+    ironTrend,
+    cementTrend,
+    blockTrend,
+    formworkTrend,
+    aggregatesTrend,
+    workerTrend,
+    errorMessage,
+  ];
 }

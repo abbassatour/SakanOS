@@ -27,13 +27,12 @@ class LegalAffairsCubit extends Cubit<LegalAffairsState> {
 
       final allUsers = await _erpRepository.getAllUsers();
       final namesMap = <String, String>{
-        for (final user in allUsers)
-          user.id: user.fullName ?? 'مدير النظام',
+        for (final user in allUsers) user.id: user.fullName ?? 'مدير النظام',
       };
 
       final allActions = await _erpRepository.getAllLegalActions();
-      final allAttachments =
-          await _erpRepository.getAllLegalActionAttachments();
+      final allAttachments = await _erpRepository
+          .getAllLegalActionAttachments();
 
       final attachmentsMap = <String, List<LegalActionAttachment>>{};
       for (final attachment in allAttachments) {

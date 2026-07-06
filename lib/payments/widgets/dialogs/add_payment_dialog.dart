@@ -102,20 +102,22 @@ class _AddPaymentDialogContentState extends State<_AddPaymentDialogContent> {
   @override
   Widget build(BuildContext context) {
     final contract = context.read<PaymentsCubit>().state.contracts.firstWhere(
-          (c) => c.id == widget.contractId,
-        );
+      (c) => c.id == widget.contractId,
+    );
 
     return BlocBuilder<SettingsCubit, SettingsState>(
       builder: (context, settingsState) {
         final currentPrices = settingsState.currentPrices;
         final currentDollar = settingsState.currentDollarPrice;
 
-        final enteredAmount = double.tryParse(
+        final enteredAmount =
+            double.tryParse(
               amountController.text.replaceAll(',', ''),
             ) ??
             0;
 
-        final historicalDollarRate = double.tryParse(
+        final historicalDollarRate =
+            double.tryParse(
               histDollarRateCtrl.text.replaceAll(',', ''),
             ) ??
             0;
@@ -130,13 +132,14 @@ class _AddPaymentDialogContentState extends State<_AddPaymentDialogContent> {
         }
 
         final discountPct = double.tryParse(discountController.text) ?? 0;
-        final effectiveAmount = sypEquivalentAmount +
-            (sypEquivalentAmount * (discountPct / 100));
+        final effectiveAmount =
+            sypEquivalentAmount + (sypEquivalentAmount * (discountPct / 100));
 
         var calculatedMeterPrice = 0.0;
 
         if (isHistoricalPayment && !isDetailedMode) {
-          calculatedMeterPrice = double.tryParse(
+          calculatedMeterPrice =
+              double.tryParse(
                 meterPriceCtrl.text.replaceAll(',', ''),
               ) ??
               0;
@@ -152,27 +155,33 @@ class _AddPaymentDialogContentState extends State<_AddPaymentDialogContent> {
               updatedAt: DateTime.now(),
               isDeleted: false,
               isSynced: false,
-              ironPrice: double.tryParse(
+              ironPrice:
+                  double.tryParse(
                     histIronCtrl.text.replaceAll(',', ''),
                   ) ??
                   0,
-              cementPrice: double.tryParse(
+              cementPrice:
+                  double.tryParse(
                     histCementCtrl.text.replaceAll(',', ''),
                   ) ??
                   0,
-              block15Price: double.tryParse(
+              block15Price:
+                  double.tryParse(
                     histBlockCtrl.text.replaceAll(',', ''),
                   ) ??
                   0,
-              formworkAndPouringWages: double.tryParse(
+              formworkAndPouringWages:
+                  double.tryParse(
                     histFormworkCtrl.text.replaceAll(',', ''),
                   ) ??
                   0,
-              aggregateMaterialsPrice: double.tryParse(
+              aggregateMaterialsPrice:
+                  double.tryParse(
                     histAggregatesCtrl.text.replaceAll(',', ''),
                   ) ??
                   0,
-              ordinaryWorkerWage: double.tryParse(
+              ordinaryWorkerWage:
+                  double.tryParse(
                     histWorkerCtrl.text.replaceAll(',', ''),
                   ) ??
                   0,
@@ -183,8 +192,8 @@ class _AddPaymentDialogContentState extends State<_AddPaymentDialogContent> {
 
           if (targetPrices != null) {
             try {
-              final coeffs = jsonDecode(contract.coefficients)
-                  as Map<String, dynamic>;
+              final coeffs =
+                  jsonDecode(contract.coefficients) as Map<String, dynamic>;
               final parsedCoeffs = coeffs.map(
                 (k, dynamic v) => MapEntry(k, (v as num).toDouble()),
               );
@@ -205,8 +214,9 @@ class _AddPaymentDialogContentState extends State<_AddPaymentDialogContent> {
             : 0.0;
 
         final mainColor = isDeposit ? Colors.deepOrange : Colors.red.shade800;
-        final titleText =
-            isDeposit ? 'إدخال دفعة (إيداع)' : 'سحب / استرداد مبلغ';
+        final titleText = isDeposit
+            ? 'إدخال دفعة (إيداع)'
+            : 'سحب / استرداد مبلغ';
 
         return AlertDialog(
           title: Row(
@@ -365,7 +375,8 @@ class _AddPaymentDialogContentState extends State<_AddPaymentDialogContent> {
                     : (isDeposit ? 'تأكيد وحفظ الدفعة' : 'تأكيد السحب'),
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
-              onPressed: _isSaving ||
+              onPressed:
+                  _isSaving ||
                       !(enteredAmount > 0 &&
                           calculatedMeterPrice > 0 &&
                           (!isDollarPayment ||
@@ -402,57 +413,52 @@ class _AddPaymentDialogContentState extends State<_AddPaymentDialogContent> {
                             : (sypEquivalentAmount * -1);
 
                         await context.read<PaymentsCubit>().addLedgerEntry(
-                              contractId: widget.contractId,
-                              amountPaid: finalAmountToSave,
-                              discountPercentage: discountPct,
-                              customDate: isHistoricalPayment
-                                  ? selectedHistoricalDate
-                                  : null,
-                              customMeterPrice: isHistoricalPayment &&
-                                      !isDetailedMode
-                                  ? double.parse(
-                                      meterPriceCtrl.text.replaceAll(',', ''),
-                                    )
-                                  : null,
-                              histIron: isHistoricalPayment && isDetailedMode
-                                  ? double.parse(
-                                      histIronCtrl.text.replaceAll(',', ''),
-                                    )
-                                  : null,
-                              histCement: isHistoricalPayment && isDetailedMode
-                                  ? double.parse(
-                                      histCementCtrl.text.replaceAll(',', ''),
-                                    )
-                                  : null,
-                              histBlock: isHistoricalPayment && isDetailedMode
-                                  ? double.parse(
-                                      histBlockCtrl.text.replaceAll(',', ''),
-                                    )
-                                  : null,
-                              histFormwork: isHistoricalPayment &&
-                                      isDetailedMode
-                                  ? double.parse(
-                                      histFormworkCtrl.text
-                                          .replaceAll(',', ''),
-                                    )
-                                  : null,
-                              histAggregates: isHistoricalPayment &&
-                                      isDetailedMode
-                                  ? double.parse(
-                                      histAggregatesCtrl.text
-                                          .replaceAll(',', ''),
-                                    )
-                                  : null,
-                              histWorker: isHistoricalPayment && isDetailedMode
-                                  ? double.parse(
-                                      histWorkerCtrl.text.replaceAll(',', ''),
-                                    )
-                                  : null,
-                              histDollarRate:
-                                  isHistoricalPayment && isDollarPayment
-                                      ? historicalDollarRate
-                                      : null,
-                            );
+                          contractId: widget.contractId,
+                          amountPaid: finalAmountToSave,
+                          discountPercentage: discountPct,
+                          customDate: isHistoricalPayment
+                              ? selectedHistoricalDate
+                              : null,
+                          customMeterPrice:
+                              isHistoricalPayment && !isDetailedMode
+                              ? double.parse(
+                                  meterPriceCtrl.text.replaceAll(',', ''),
+                                )
+                              : null,
+                          histIron: isHistoricalPayment && isDetailedMode
+                              ? double.parse(
+                                  histIronCtrl.text.replaceAll(',', ''),
+                                )
+                              : null,
+                          histCement: isHistoricalPayment && isDetailedMode
+                              ? double.parse(
+                                  histCementCtrl.text.replaceAll(',', ''),
+                                )
+                              : null,
+                          histBlock: isHistoricalPayment && isDetailedMode
+                              ? double.parse(
+                                  histBlockCtrl.text.replaceAll(',', ''),
+                                )
+                              : null,
+                          histFormwork: isHistoricalPayment && isDetailedMode
+                              ? double.parse(
+                                  histFormworkCtrl.text.replaceAll(',', ''),
+                                )
+                              : null,
+                          histAggregates: isHistoricalPayment && isDetailedMode
+                              ? double.parse(
+                                  histAggregatesCtrl.text.replaceAll(',', ''),
+                                )
+                              : null,
+                          histWorker: isHistoricalPayment && isDetailedMode
+                              ? double.parse(
+                                  histWorkerCtrl.text.replaceAll(',', ''),
+                                )
+                              : null,
+                          histDollarRate: isHistoricalPayment && isDollarPayment
+                              ? historicalDollarRate
+                              : null,
+                        );
 
                         if (!context.mounted) return; // تم التعديل هنا
                         if (!widget.parentContext.mounted) return;

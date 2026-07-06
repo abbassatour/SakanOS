@@ -23,11 +23,12 @@ class SectionHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children:[
+      children: [
         Row(
-          children:[
+          children: [
             Container(
-              width: 4, height: 22,
+              width: 4,
+              height: 22,
               decoration: BoxDecoration(
                 color: ChartColors.primary,
                 borderRadius: BorderRadius.circular(2),
@@ -50,29 +51,33 @@ class SectionHeader extends StatelessWidget {
           runSpacing: 12,
           alignment: WrapAlignment.spaceBetween,
           crossAxisAlignment: WrapCrossAlignment.center,
-          children:[
+          children: [
             Container(
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: Colors.indigo.shade100),
-                boxShadow:[
+                boxShadow: [
                   BoxShadow(
                     color: Colors.indigo.withOpacity(0.07),
-                    blurRadius: 8, offset: const Offset(0, 3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
                   ),
                 ],
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
-                children:[
+                children: [
                   _NavButton(
                     icon: Icons.chevron_left_rounded,
                     tooltip: 'الفترة التالية',
                     onTap: onNext,
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
                     constraints: const BoxConstraints(minWidth: 160),
                     child: Text(
                       periodLabel,
@@ -99,14 +104,20 @@ class SectionHeader extends StatelessWidget {
                 selectedForegroundColor: Colors.white,
                 selectedBackgroundColor: ChartColors.primary,
                 side: BorderSide(color: Colors.indigo.shade100),
-                textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+                textStyle: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 0,
+                ),
               ),
-              segments: const[
-                ButtonSegment(value: TimeFilter.daily,   label: Text('يومي')),
-                ButtonSegment(value: TimeFilter.weekly,  label: Text('أسبوعي')),
+              segments: const [
+                ButtonSegment(value: TimeFilter.daily, label: Text('يومي')),
+                ButtonSegment(value: TimeFilter.weekly, label: Text('أسبوعي')),
                 ButtonSegment(value: TimeFilter.monthly, label: Text('شهري')),
-                ButtonSegment(value: TimeFilter.yearly,  label: Text('سنوي')),
+                ButtonSegment(value: TimeFilter.yearly, label: Text('سنوي')),
               ],
               selected: {timeFilter},
               onSelectionChanged: (s) => onFilterChanged(s.first),
@@ -122,7 +133,11 @@ class _NavButton extends StatelessWidget {
   final IconData icon;
   final String tooltip;
   final VoidCallback onTap;
-  const _NavButton({required this.icon, required this.tooltip, required this.onTap});
+  const _NavButton({
+    required this.icon,
+    required this.tooltip,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {

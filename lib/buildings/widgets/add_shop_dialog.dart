@@ -159,14 +159,14 @@ class _AddShopDialogContentState extends State<_AddShopDialogContent> {
 
     unawaited(
       context.read<BuildingsCubit>().addApartment(
-            buildingId: widget.building.id,
-            unitType: 'shop',
-            aptNumber: _numCtrl.text.trim(),
-            area: _calculatedTotalArea,
-            floorName: 'تجاري',
-            directionName: 'واجهة تجارية',
-            customCoeffs: aptCoeffs,
-          ),
+        buildingId: widget.building.id,
+        unitType: 'shop',
+        aptNumber: _numCtrl.text.trim(),
+        area: _calculatedTotalArea,
+        floorName: 'تجاري',
+        directionName: 'واجهة تجارية',
+        customCoeffs: aptCoeffs,
+      ),
     );
 
     Navigator.pop(context);

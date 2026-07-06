@@ -9,18 +9,29 @@ class ScheduleEmptyState extends StatelessWidget {
     return Center(
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
-        children:[
+        children: [
           Icon(Icons.query_stats, size: 80, color: Colors.indigo.shade100),
           const SizedBox(width: 24),
           Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
-            children:[
-              const Text('الجدولة والمتابعة', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.indigo)),
+            children: [
+              const Text(
+                'الجدولة والمتابعة',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.indigo,
+                ),
+              ),
               const SizedBox(height: 8),
               Text(
                 'استخدم محرك البحث بالأعلى لاختيار عميل.\nيمكنك مراقبة الدفعات، وتحديد نقاط التفاعل للمستثمرين.',
-                style: TextStyle(fontSize: 13, color: Colors.grey.shade600, height: 1.5),
+                style: TextStyle(
+                  fontSize: 13,
+                  color: Colors.grey.shade600,
+                  height: 1.5,
+                ),
               ),
             ],
           ),

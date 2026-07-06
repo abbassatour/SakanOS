@@ -32,8 +32,7 @@ class RecycleBinCubit extends Cubit<RecycleBinState> {
 
       final allUsers = await _erpRepository.getAllUsers();
       final namesMap = <String, String>{
-        for (final user in allUsers)
-          user.id: user.fullName ?? 'مدير النظام',
+        for (final user in allUsers) user.id: user.fullName ?? 'مدير النظام',
       };
 
       emit(
@@ -75,7 +74,8 @@ class RecycleBinCubit extends Cubit<RecycleBinState> {
       emit(
         state.copyWith(
           status: RecycleBinStatus.failure,
-          errorMessage: '⛔ لا يمكنك استعادة هذه الشقة لأن محضرها التابعة '
+          errorMessage:
+              '⛔ لا يمكنك استعادة هذه الشقة لأن محضرها التابعة '
               'له (${building.name}) لا يزال محذوفاً.',
         ),
       );
@@ -102,7 +102,8 @@ class RecycleBinCubit extends Cubit<RecycleBinState> {
       emit(
         state.copyWith(
           status: RecycleBinStatus.failure,
-          errorMessage: '⛔ العميل (${client.name}) الخاص بهذا العقد لا '
+          errorMessage:
+              '⛔ العميل (${client.name}) الخاص بهذا العقد لا '
               'يزال محذوفاً. الرجاء استعادته أولاً.',
         ),
       );
@@ -118,7 +119,8 @@ class RecycleBinCubit extends Cubit<RecycleBinState> {
         emit(
           state.copyWith(
             status: RecycleBinStatus.failure,
-            errorMessage: '⛔ الوحدة العقارية المرتبطة بهذا العقد لا تزال '
+            errorMessage:
+                '⛔ الوحدة العقارية المرتبطة بهذا العقد لا تزال '
                 'محذوفة. الرجاء استعادتها أولاً.',
           ),
         );
@@ -146,7 +148,8 @@ class RecycleBinCubit extends Cubit<RecycleBinState> {
       emit(
         state.copyWith(
           status: RecycleBinStatus.failure,
-          errorMessage: '⛔ لا يمكنك استعادة هذه الدفعة لأن عقدها لا يزال '
+          errorMessage:
+              '⛔ لا يمكنك استعادة هذه الدفعة لأن عقدها لا يزال '
               'محذوفاً. الرجاء استعادة العقد أولاً.',
         ),
       );
@@ -171,7 +174,8 @@ class RecycleBinCubit extends Cubit<RecycleBinState> {
       emit(
         state.copyWith(
           status: RecycleBinStatus.failure,
-          errorMessage: '⛔ لا يمكن تدمير هذه الوحدة لأنها مرتبطة بعقد بيع '
+          errorMessage:
+              '⛔ لا يمكن تدمير هذه الوحدة لأنها مرتبطة بعقد بيع '
               '(سواء فعال أو محذوف). يجب تدمير العقد أولاً!',
         ),
       );
@@ -191,7 +195,8 @@ class RecycleBinCubit extends Cubit<RecycleBinState> {
       emit(
         state.copyWith(
           status: RecycleBinStatus.failure,
-          errorMessage: '⛔ لا يمكن تدمير هذا العميل لارتباطه بعقود في النظام. '
+          errorMessage:
+              '⛔ لا يمكن تدمير هذا العميل لارتباطه بعقود في النظام. '
               'الرجاء تدمير عقوده أولاً ليُسمح لك بذلك.',
         ),
       );

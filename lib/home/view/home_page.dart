@@ -33,10 +33,13 @@ class _HomePageState extends State<HomePage> {
               return const Center(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
-                  children:[
+                  children: [
                     CircularProgressIndicator(color: Color(0xFF1A237E)),
                     SizedBox(height: 16),
-                    Text('جارٍ تحميل البيانات...', style: TextStyle(color: Colors.grey)),
+                    Text(
+                      'جارٍ تحميل البيانات...',
+                      style: TextStyle(color: Colors.grey),
+                    ),
                   ],
                 ),
               );
@@ -46,8 +49,12 @@ class _HomePageState extends State<HomePage> {
               return Center(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
-                  children:[
-                    const Icon(Icons.error_outline_rounded, size: 64, color: Colors.redAccent),
+                  children: [
+                    const Icon(
+                      Icons.error_outline_rounded,
+                      size: 64,
+                      color: Colors.redAccent,
+                    ),
                     const SizedBox(height: 16),
                     Text(
                       state.errorMessage ?? 'حدث خطأ غير متوقع',
@@ -56,7 +63,8 @@ class _HomePageState extends State<HomePage> {
                     ),
                     const SizedBox(height: 24),
                     FilledButton.icon(
-                      onPressed: () => context.read<HomeCubit>().fetchDashboardData(),
+                      onPressed: () =>
+                          context.read<HomeCubit>().fetchDashboardData(),
                       icon: const Icon(Icons.refresh_rounded),
                       label: const Text('إعادة المحاولة'),
                       style: FilledButton.styleFrom(
@@ -76,25 +84,28 @@ class _HomePageState extends State<HomePage> {
                 await context.read<HomeCubit>().fetchDashboardData();
               },
               child: CustomScrollView(
-                physics: const AlwaysScrollableScrollPhysics(), // 👈 ضروري لعمل السحب للتحديث
-                slivers:[
+                physics:
+                    const AlwaysScrollableScrollPhysics(), // 👈 ضروري لعمل السحب للتحديث
+                slivers: [
                   SliverPadding(
                     // 🌟 تبدأ المؤشرات والمخططات فوراً من أعلى الشاشة
                     padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
                     sliver: SliverList(
                       delegate: SliverChildListDelegate([
                         KpiSection(state: state),
-                        
-                        const SizedBox(height: 20), 
-                        
+
+                        const SizedBox(height: 20),
+
                         ChartsSection(state: state),
 
-                        const SizedBox(height: 24), 
-                        
+                        const SizedBox(height: 24),
+
                         // ==========================================
                         // 🌟 القسم الجديد: سجل النشاطات الحديثة
                         // ==========================================
-                        RecentActivitiesSection(activities: state.recentActivities),
+                        RecentActivitiesSection(
+                          activities: state.recentActivities,
+                        ),
                       ]),
                     ),
                   ),

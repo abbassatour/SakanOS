@@ -161,4 +161,3 @@ class HistoricalSection extends StatelessWidget {
     );
   }
 }
-

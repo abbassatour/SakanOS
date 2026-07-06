@@ -36,7 +36,8 @@ class ContractsDataTable extends StatelessWidget {
   }
 
   Widget _buildFileAction(BuildContext context, Contract contract) {
-    final hasFile = contract.contractFileUrl != null &&
+    final hasFile =
+        contract.contractFileUrl != null &&
         contract.contractFileUrl!.isNotEmpty;
     return TextButton.icon(
       icon: Icon(
@@ -165,17 +166,17 @@ class ContractsDataTable extends StatelessWidget {
                 (c) => c.id == contract.clientId,
               );
               final actualClient = clientIdx >= 0 ? clients[clientIdx] : null;
-              final clientName =
-                  actualClient != null ? actualClient.name : 'عميل محذوف';
+              final clientName = actualClient != null
+                  ? actualClient.name
+                  : 'عميل محذوف';
 
               final isAllocated = contract.contractType == 'متخصص';
               final isHandedOver = contract.isHandedOver;
 
               return DataRow(
                 color: WidgetStateProperty.resolveWith<Color?>(
-                  (states) => index.isEven
-                      ? Colors.grey.withValues(alpha: 0.03)
-                      : null,
+                  (states) =>
+                      index.isEven ? Colors.grey.withValues(alpha: 0.03) : null,
                 ),
                 cells: [
                   DataCell(
@@ -298,18 +299,18 @@ class ContractsDataTable extends StatelessWidget {
                             Text(
                               '${contract.updatedAt.year}/'
                               '${contract.updatedAt.month.toString().padLeft(
-                                    2,
-                                    '0',
-                                  )}/'
+                                2,
+                                '0',
+                              )}/'
                               '${contract.updatedAt.day.toString().padLeft(
-                                    2,
-                                    '0',
-                                  )} '
+                                2,
+                                '0',
+                              )} '
                               '${contract.updatedAt.hour}:'
                               '${contract.updatedAt.minute.toString().padLeft(
-                                    2,
-                                    '0',
-                                  )}',
+                                2,
+                                '0',
+                              )}',
                               style: const TextStyle(
                                 fontSize: 11,
                                 color: Colors.grey,

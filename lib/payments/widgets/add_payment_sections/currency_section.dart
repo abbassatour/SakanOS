@@ -44,20 +44,20 @@ class CurrencySection extends StatelessWidget {
                 style: TextStyle(color: Colors.green),
               )
             : (currentDollarRate != null
-                ? Text(
-                    'سعر الصرف: '
-                    '${NumberFormatters.formatWithCommas(currentDollarRate!)} '
-                    'ل.س',
-                    style: TextStyle(
-                      color: isDollarPayment
-                          ? Colors.green.shade900
-                          : Colors.grey,
-                    ),
-                  )
-                : const Text(
-                    '⚠️ جاري تحميل التسعيرة أو لم يتم تعيينها',
-                    style: TextStyle(color: Colors.red),
-                  )),
+                  ? Text(
+                      'سعر الصرف: '
+                      '${NumberFormatters.formatWithCommas(currentDollarRate!)} '
+                      'ل.س',
+                      style: TextStyle(
+                        color: isDollarPayment
+                            ? Colors.green.shade900
+                            : Colors.grey,
+                      ),
+                    )
+                  : const Text(
+                      '⚠️ جاري تحميل التسعيرة أو لم يتم تعيينها',
+                      style: TextStyle(color: Colors.red),
+                    )),
         value: isDollarPayment,
         activeThumbColor: Colors.green,
         onChanged: (isHistoricalPayment || currentDollarRate != null)

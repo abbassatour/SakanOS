@@ -56,7 +56,11 @@ class AuthCubit extends Cubit<AuthState> {
         await _processUserPermissions(localUser);
       }
     } catch (e, stackTrace) {
-      log('خطأ أثناء التحقق من جلسة المستخدم', error: e, stackTrace: stackTrace);
+      log(
+        'خطأ أثناء التحقق من جلسة المستخدم',
+        error: e,
+        stackTrace: stackTrace,
+      );
       emit(
         state.copyWith(
           status: AuthStatus.error,
@@ -97,8 +101,11 @@ class AuthCubit extends Cubit<AuthState> {
             final rolePerms = jsonDecode(rolePermsStr) as List<dynamic>;
             finalPermissions.addAll(rolePerms.cast<String>());
           } catch (e, stackTrace) {
-            log('⚠️ خطأ في فك تشفير صلاحيات الدور',
-                error: e, stackTrace: stackTrace);
+            log(
+              '⚠️ خطأ في فك تشفير صلاحيات الدور',
+              error: e,
+              stackTrace: stackTrace,
+            );
           }
         }
       }
@@ -112,8 +119,11 @@ class AuthCubit extends Cubit<AuthState> {
         final extraPerms = jsonDecode(extraPermsStr) as List<dynamic>;
         finalPermissions.addAll(extraPerms.cast<String>());
       } catch (e, stackTrace) {
-        log('⚠️ خطأ في فك تشفير الاستثناءات المضافة',
-            error: e, stackTrace: stackTrace);
+        log(
+          '⚠️ خطأ في فك تشفير الاستثناءات المضافة',
+          error: e,
+          stackTrace: stackTrace,
+        );
       }
     }
 
@@ -125,8 +135,11 @@ class AuthCubit extends Cubit<AuthState> {
         final revokedPerms = jsonDecode(revokedPermsStr) as List<dynamic>;
         finalPermissions.removeAll(revokedPerms.cast<String>());
       } catch (e, stackTrace) {
-        log('⚠️ خطأ في فك تشفير الاستثناءات المسحوبة',
-            error: e, stackTrace: stackTrace);
+        log(
+          '⚠️ خطأ في فك تشفير الاستثناءات المسحوبة',
+          error: e,
+          stackTrace: stackTrace,
+        );
       }
     }
 

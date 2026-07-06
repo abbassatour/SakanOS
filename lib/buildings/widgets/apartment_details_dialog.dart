@@ -73,8 +73,8 @@ class _ApartmentDetailsDialogContent extends StatelessWidget {
     final financialCoeffs = <String, dynamic>{};
 
     try {
-      final allData = jsonDecode(apt.customCoefficients)
-          as Map<String, dynamic>;
+      final allData =
+          jsonDecode(apt.customCoefficients) as Map<String, dynamic>;
 
       allData.forEach((key, value) {
         if (key.startsWith('مساحة') || key.startsWith('عرض')) {
@@ -179,8 +179,8 @@ class _ApartmentDetailsDialogContent extends StatelessWidget {
                 ),
                 child: Text(
                   'الحالة الحالية: ${isAvailable ? "لم يتم توقيع أي عقد عليها "
-                      "بعد وهي متاحة للتعاقد." : "تم توقيع عقد ومربوطة بملف "
-                      "عميل مسبقاً."}',
+                            "بعد وهي متاحة للتعاقد." : "تم توقيع عقد ومربوطة بملف "
+                            "عميل مسبقاً."}',
                   style: TextStyle(
                     color: isAvailable
                         ? Colors.green.shade700

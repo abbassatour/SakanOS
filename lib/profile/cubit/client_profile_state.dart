@@ -6,14 +6,14 @@ part of 'client_profile_cubit.dart';
 // ==========================================
 class ContractProfileSummary {
   final Contract contract;
-  final double totalPaid;             // ما دفعه فعلياً
-  final double baseOverdueAmount;     // الديون المتأخرة الأساسية
-  final double penaltyAmount;         // قيمة الغرامة المتراكمة (إن وجدت)
+  final double totalPaid; // ما دفعه فعلياً
+  final double baseOverdueAmount; // الديون المتأخرة الأساسية
+  final double penaltyAmount; // قيمة الغرامة المتراكمة (إن وجدت)
   final double totalOverdueWithPenalty; // إجمالي المطلوب منه حالياً
-  final int paidSchedulesCount;       // عدد التسديدات (للمرجعية)
-  
+  final int paidSchedulesCount; // عدد التسديدات (للمرجعية)
+
   // 🌟 [الإضافة الجديدة]: قائمة الإجراءات القانونية المتخذة بحق هذا العقد
-  final List<LegalAction> legalActions; 
+  final List<LegalAction> legalActions;
 
   ContractProfileSummary({
     required this.contract,
@@ -36,15 +36,15 @@ class ClientProfileState extends Equatable {
   final Client? client;
   final List<ContractProfileSummary> contractsSummary;
   final double grandTotalPaid;
-  final double totalOverdueAcrossAll; 
+  final double totalOverdueAcrossAll;
   final String? errorMessage;
 
   const ClientProfileState({
     this.status = ClientProfileStatus.initial,
     this.client,
-    this.contractsSummary = const[],
+    this.contractsSummary = const [],
     this.grandTotalPaid = 0.0,
-    this.totalOverdueAcrossAll = 0.0, 
+    this.totalOverdueAcrossAll = 0.0,
     this.errorMessage,
   });
 
@@ -53,7 +53,7 @@ class ClientProfileState extends Equatable {
     Client? client,
     List<ContractProfileSummary>? contractsSummary,
     double? grandTotalPaid,
-    double? totalOverdueAcrossAll, 
+    double? totalOverdueAcrossAll,
     String? errorMessage,
   }) {
     return ClientProfileState(
@@ -61,11 +61,19 @@ class ClientProfileState extends Equatable {
       client: client ?? this.client,
       contractsSummary: contractsSummary ?? this.contractsSummary,
       grandTotalPaid: grandTotalPaid ?? this.grandTotalPaid,
-      totalOverdueAcrossAll: totalOverdueAcrossAll ?? this.totalOverdueAcrossAll,
+      totalOverdueAcrossAll:
+          totalOverdueAcrossAll ?? this.totalOverdueAcrossAll,
       errorMessage: errorMessage ?? this.errorMessage,
     );
   }
 
   @override
-  List<Object?> get props =>[status, client, contractsSummary, grandTotalPaid, totalOverdueAcrossAll, errorMessage];
+  List<Object?> get props => [
+    status,
+    client,
+    contractsSummary,
+    grandTotalPaid,
+    totalOverdueAcrossAll,
+    errorMessage,
+  ];
 }
