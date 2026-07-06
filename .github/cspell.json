@@ -14,7 +14,10 @@
       "description": "Forbidden VGV Spellings"
     }
   ],
-  "useGitignore": true,
+    "useGitignore": true,
+  "ignoreRegExpList": [
+    "[\\u0600-\\u06FF]+"
+  ],
   "words": [
     "Contador",
     "localizable",
@@ -23,6 +26,10 @@
     "Texto",
     "Hola",
     "Mundo",
-    "Saludo"
+    "Saludo",
+    "repomix",
+    "ourhomesetup",
+    "Redist",
+    "gifs"
   ]
 }
