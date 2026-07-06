@@ -2,7 +2,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:local_storage_api/local_storage_api.dart' show Contract, Client;
+import 'package:local_storage_api/local_storage_api.dart' show Client, Contract;
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../dashboard/cubit/dashboard_cubit.dart';
@@ -88,9 +88,7 @@ class ContractDetailsPage extends StatelessWidget {
                           gradient: LinearGradient(
                             colors: [
                               mainColor,
-                              isAllocated
-                                  ? Colors.amber.shade900
-                                  : Colors.blue.shade900,
+                              if (isAllocated) Colors.amber.shade900 else Colors.blue.shade900,
                             ],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
@@ -911,23 +909,18 @@ class ContractDetailsPage extends StatelessWidget {
       case 'إنذار':
         bgColor = Colors.orange.shade100;
         textColor = Colors.orange.shade900;
-        break;
       case 'فراغ عقاري':
         bgColor = Colors.green.shade100;
         textColor = Colors.green.shade900;
-        break;
       case 'رهن':
         bgColor = Colors.purple.shade100;
         textColor = Colors.purple.shade900;
-        break;
       case 'تسوية':
         bgColor = Colors.teal.shade100;
         textColor = Colors.teal.shade900;
-        break;
       case 'دعوى قضائية':
         bgColor = Colors.red.shade100;
         textColor = Colors.red.shade900;
-        break;
       default:
         bgColor = Colors.blue.shade100;
         textColor = Colors.blue.shade900;

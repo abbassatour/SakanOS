@@ -64,7 +64,7 @@ class RevenueChart extends StatelessWidget {
                     touchTooltipData: BarTouchTooltipData(
                       getTooltipColor: (BarChartGroupData group) =>
                           Colors.blueGrey.shade900,
-                      getTooltipItem: (group, _, rod, __) {
+                      getTooltipItem: (group, _, rod, _) {
                         final period = data.keys.elementAt(group.x);
                         // 🌟 نجلب القيمة الحقيقية (بالسالب أو الموجب) من البيانات الأصلية
                         final actualValue = data.values.elementAt(group.x);

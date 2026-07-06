@@ -1,7 +1,6 @@
 // lib/home/view/widgets/charts/meters_progress_chart.dart
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'chart_colors.dart';
 import 'chart_shared_widgets.dart';
 
 class MetersProgressChart extends StatelessWidget {

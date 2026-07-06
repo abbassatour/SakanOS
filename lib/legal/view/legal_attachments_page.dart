@@ -461,8 +461,7 @@ class _LegalAttachmentsPageState extends State<LegalAttachmentsPage> {
               ],
             ),
           ),
-        attachments.isEmpty
-            ? const Expanded(
+        if (attachments.isEmpty) const Expanded(
                 child: Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -480,8 +479,7 @@ class _LegalAttachmentsPageState extends State<LegalAttachmentsPage> {
                     ],
                   ),
                 ),
-              )
-            : Expanded(
+              ) else Expanded(
                 child: GridView.builder(
                   padding: const EdgeInsets.all(16),
                   gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
@@ -539,7 +537,7 @@ class _LegalAttachmentsPageState extends State<LegalAttachmentsPage> {
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
                                 Expanded(
-                                  child: Container(
+                                  child: ColoredBox(
                                     color: isImage
                                         ? Colors.black12
                                         : Colors.grey.shade100,

@@ -77,7 +77,7 @@ class _StorageTestPageState extends State<StorageTestPage> {
 
       // 🌟 الرابط المباشر للرفع (نستخرج الـ Project ID من رابط الـ Supabase الأساسي)
       // مشروعك هو: krdfrdzyfdcqjmnuzads
-      final projectId = 'krdfrdzyfdcqjmnuzads';
+      const projectId = 'krdfrdzyfdcqjmnuzads';
       final directUrl = Uri.parse(
         'https://$projectId.supabase.co/storage/v1/object/$bucketName/$fileName',
       );

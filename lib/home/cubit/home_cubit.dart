@@ -4,8 +4,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:erp_repository/erp_repository.dart';
-import 'package:local_storage_api/local_storage_api.dart'
-    show PaymentsLedgerData;
 
 part 'home_state.dart';
 
@@ -77,16 +75,12 @@ class HomeCubit extends Cubit<HomeState> {
     switch (state.timeFilter) {
       case TimeFilter.daily:
         newDate = newDate.subtract(const Duration(days: 7));
-        break;
       case TimeFilter.weekly:
         newDate = DateTime(newDate.year, newDate.month - 1);
-        break;
       case TimeFilter.monthly:
         newDate = DateTime(newDate.year - 1, newDate.month);
-        break;
       case TimeFilter.yearly:
         newDate = DateTime(newDate.year - 5, newDate.month);
-        break;
     }
     emit(state.copyWith(referenceDate: newDate));
     fetchDashboardData();
@@ -97,16 +91,12 @@ class HomeCubit extends Cubit<HomeState> {
     switch (state.timeFilter) {
       case TimeFilter.daily:
         newDate = newDate.add(const Duration(days: 7));
-        break;
       case TimeFilter.weekly:
         newDate = DateTime(newDate.year, newDate.month + 1);
-        break;
       case TimeFilter.monthly:
         newDate = DateTime(newDate.year + 1, newDate.month);
-        break;
       case TimeFilter.yearly:
         newDate = DateTime(newDate.year + 5, newDate.month);
-        break;
     }
     if (newDate.isAfter(DateTime.now())) newDate = DateTime.now();
 

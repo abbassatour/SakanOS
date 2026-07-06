@@ -49,7 +49,7 @@ class DepositPdfGenerator {
       final bool hasDiscount =
           originalInstallment != null && originalInstallment > absAmountPaid;
       final double discountAmount = hasDiscount
-          ? originalInstallment! - absAmountPaid
+          ? originalInstallment - absAmountPaid
           : 0.0;
 
       // 🌟 التمييز الذكي: هل هي غرامة أم بونص؟ (بناءً على إشارة الرقم)
@@ -122,7 +122,7 @@ class DepositPdfGenerator {
                       fontSize: 6,
                       color: PdfColors.white,
                     ),
-                    headerDecoration: pw.BoxDecoration(color: primaryColor),
+                    headerDecoration: const pw.BoxDecoration(color: primaryColor),
                     cellStyle: pw.TextStyle(font: arabicFont, fontSize: 6),
                     border: pw.TableBorder.all(
                       color: PdfColors.grey400,
@@ -191,7 +191,7 @@ class DepositPdfGenerator {
                             font: arabicFont,
                             boldFont: arabicBoldFont,
                             title: 'أصل القسط:',
-                            value: '${_fmtMoney(originalInstallment!)} ل.س',
+                            value: '${_fmtMoney(originalInstallment)} ل.س',
                           ),
                           _buildFinancialRow(
                             font: arabicFont,

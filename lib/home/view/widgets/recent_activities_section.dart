@@ -80,19 +80,15 @@ class RecentActivitiesSection extends StatelessWidget {
               case ActivityType.payment:
                 iconColor = Colors.green.shade600;
                 iconData = Icons.payments_outlined;
-                break;
               case ActivityType.contract:
                 iconColor = Colors.teal.shade600;
                 iconData = Icons.real_estate_agent_outlined;
-                break;
               case ActivityType.client:
                 iconColor = Colors.indigo.shade600;
                 iconData = Icons.person_add_alt_1_outlined;
-                break;
               case ActivityType.adminAction:
                 iconColor = Colors.orange.shade600;
                 iconData = Icons.admin_panel_settings_outlined;
-                break;
             }
 
             return Row(
@@ -197,7 +193,7 @@ class RecentActivitiesSection extends StatelessWidget {
                 ),
               ],
             );
-          }).toList(),
+          }),
         ],
       ),
     );

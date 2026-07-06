@@ -151,7 +151,7 @@ class ScheduleDataTable extends StatelessWidget {
                             schedule.notes!.isNotEmpty) ...[
                           const SizedBox(width: 8),
                           Tooltip(
-                            message: schedule.notes!,
+                            message: schedule.notes,
                             textStyle: const TextStyle(
                               color: Colors.white,
                               fontSize: 12,

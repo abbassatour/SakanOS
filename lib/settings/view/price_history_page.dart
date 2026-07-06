@@ -100,8 +100,8 @@ class _PriceHistoryPageState extends State<PriceHistoryPage> {
                   _selectedDateRange!.end.day,
                 );
 
-                return (date.isAfter(start.subtract(const Duration(days: 1))) &&
-                    date.isBefore(end.add(const Duration(days: 1))));
+                return date.isAfter(start.subtract(const Duration(days: 1))) &&
+                    date.isBefore(end.add(const Duration(days: 1)));
               }).toList();
             }
 

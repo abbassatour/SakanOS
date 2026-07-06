@@ -3,7 +3,6 @@ import 'dart:typed_data';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
-import 'package:erp_repository/erp_repository.dart';
 import 'package:local_storage_api/local_storage_api.dart';
 
 class AllocatedLedgerPdf {
@@ -338,7 +337,7 @@ class AllocatedLedgerPdf {
                     '${_formatWithCommas(contract.downPayment)} ل.س',
                     '${_formatWithCommas(contract.agreedMonthlyAmount)} ل.س',
                     '${contract.installmentsCount} أشهر',
-                    contract.isHandedOver ? 'مُسلّمة للعميل' : 'قيد الإنشاء',
+                    if (contract.isHandedOver) 'مُسلّمة للعميل' else 'قيد الإنشاء',
                   ],
                 ),
                 buildGridRow(
@@ -350,13 +349,9 @@ class AllocatedLedgerPdf {
                   ],
                   [
                     _formatDate(contract.agreedHandoverDate),
-                    contract.isHandedOver
-                        ? _formatDate(contract.actualHandoverDate)
-                        : 'لم تسلم بعد',
+                    if (contract.isHandedOver) _formatDate(contract.actualHandoverDate) else 'لم تسلم بعد',
                     '${contract.gracePeriodMonths} أشهر',
-                    (contract.isPenaltyActive ?? false)
-                        ? 'مفعلة (${contract.penaltyPercentage}% كل ${contract.penaltyIntervalMonths} شهر)'
-                        : 'غير مفعلة',
+                    if (contract.isPenaltyActive ?? false) 'مفعلة (${contract.penaltyPercentage}% كل ${contract.penaltyIntervalMonths} شهر)' else 'غير مفعلة',
                   ],
                 ),
               ],

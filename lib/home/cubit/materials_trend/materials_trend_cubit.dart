@@ -3,8 +3,6 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:erp_repository/erp_repository.dart';
 import 'package:intl/intl.dart';
-import 'package:local_storage_api/local_storage_api.dart'
-    show MaterialPricesHistoryData;
 import '../home_cubit.dart'; // 🌟 لاستدعاء TimeFilter
 
 part 'materials_trend_state.dart';
@@ -42,16 +40,12 @@ class MaterialsTrendCubit extends Cubit<MaterialsTrendState> {
     switch (state.timeFilter) {
       case TimeFilter.daily:
         newDate = newDate.subtract(const Duration(days: 7));
-        break;
       case TimeFilter.weekly:
         newDate = DateTime(newDate.year, newDate.month - 1, 1);
-        break;
       case TimeFilter.monthly:
         newDate = DateTime(newDate.year - 1, newDate.month, 1);
-        break;
       case TimeFilter.yearly:
         newDate = DateTime(newDate.year - 5, newDate.month, 1);
-        break;
     }
     emit(state.copyWith(referenceDate: newDate));
     _processAndEmitData();
@@ -62,16 +56,12 @@ class MaterialsTrendCubit extends Cubit<MaterialsTrendState> {
     switch (state.timeFilter) {
       case TimeFilter.daily:
         newDate = newDate.add(const Duration(days: 7));
-        break;
       case TimeFilter.weekly:
         newDate = DateTime(newDate.year, newDate.month + 1, 1);
-        break;
       case TimeFilter.monthly:
         newDate = DateTime(newDate.year + 1, newDate.month, 1);
-        break;
       case TimeFilter.yearly:
         newDate = DateTime(newDate.year + 5, newDate.month, 1);
-        break;
     }
     if (newDate.isAfter(DateTime.now())) newDate = DateTime.now();
 
@@ -120,7 +110,7 @@ class MaterialsTrendCubit extends Cubit<MaterialsTrendState> {
     }
 
     // 2. تعبئة الخرائط بالأسعار
-    for (var p in _cachedPrices) {
+    for (final p in _cachedPrices) {
       String? key;
       if (state.timeFilter == TimeFilter.daily) {
         key = DateFormat('MM-dd').format(p.effectiveDate);
@@ -157,13 +147,13 @@ class MaterialsTrendCubit extends Cubit<MaterialsTrendState> {
       );
 
       double lastKnown = 0.0;
-      for (var val in finalMap.values) {
+      for (final val in finalMap.values) {
         if (val > 0) {
           lastKnown = val;
           break;
         }
       }
-      for (var k in finalMap.keys) {
+      for (final k in finalMap.keys) {
         if (finalMap[k] == 0.0)
           finalMap[k] = lastKnown;
         else

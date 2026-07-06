@@ -122,7 +122,7 @@ class TrendLineChart extends StatelessWidget {
                       barWidth: 3,
                       dotData: FlDotData(
                         show: data.length <= 12,
-                        getDotPainter: (_, __, ___, ____) => FlDotCirclePainter(
+                        getDotPainter: (_, _, _, _) => FlDotCirclePainter(
                           radius: 4,
                           color: Colors.white,
                           strokeWidth: 2,

@@ -81,7 +81,7 @@ class PdfGenerator {
           originalInstallment > absAmountPaid &&
           isDeposit;
       final double discountAmount = hasDiscount
-          ? originalInstallment! - absAmountPaid
+          ? originalInstallment - absAmountPaid
           : 0.0;
 
       return pw.Container(
@@ -229,7 +229,7 @@ class PdfGenerator {
                             font: arabicFont,
                             boldFont: arabicBoldFont,
                             title: 'أصل القسط:',
-                            value: '${_fmtMoney(originalInstallment!)} ل.س',
+                            value: '${_fmtMoney(originalInstallment)} ل.س',
                           ),
                           _buildFinancialRow(
                             font: arabicFont,

@@ -29,7 +29,7 @@ class RefundPdfGenerator {
     final arabicFont = await PdfGoogleFonts.cairoRegular();
     final arabicBoldFont = await PdfGoogleFonts.cairoBold();
     const primaryColor = PdfColor.fromInt(0xFF1A2B3D);
-    final accentColor = PdfColors.red800;
+    const accentColor = PdfColors.red800;
 
     pw.Widget buildCompactReceipt(String copyType) {
       Map<String, dynamic> snapshot = {};
@@ -113,7 +113,7 @@ class RefundPdfGenerator {
                       fontSize: 6,
                       color: PdfColors.white,
                     ),
-                    headerDecoration: pw.BoxDecoration(color: accentColor),
+                    headerDecoration: const pw.BoxDecoration(color: accentColor),
                     cellStyle: pw.TextStyle(font: arabicFont, fontSize: 6),
                     border: pw.TableBorder.all(
                       color: PdfColors.grey400,

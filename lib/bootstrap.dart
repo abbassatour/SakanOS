@@ -43,7 +43,7 @@ Future<void> bootstrap(FutureOr<Widget> Function(ErpRepository) builder) async {
 
   // 3. 🌟 التقاط الأخطاء الخفية (Asynchronous Errors) - الطريقة الحديثة البديلة لـ runZonedGuarded
   PlatformDispatcher.instance.onError = (error, stack) {
-    log('Async Error: ${error.toString()}', stackTrace: stack);
+    log('Async Error: $error', stackTrace: stack);
     return true; // إرجاع true يعني أننا قمنا بمعالجة الخطأ ولن ينهار التطبيق
   };
 

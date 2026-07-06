@@ -6,7 +6,7 @@ import 'arabic_tafqeet.dart';
 class PdfConstants {
   static const primaryColor = PdfColor.fromInt(0xFF1A2B3D); // أزرق رسمي
   static const depositAccent = PdfColor.fromInt(0xFFE64A19); // برتقالي للدفع
-  static const refundAccent = PdfColors.red900; // أحمر للاسترداد
+  static const PdfColor refundAccent = PdfColors.red900; // أحمر للاسترداد
 
   static String fmtMoney(double amount) =>
       NumberFormat("#,###", "en_US").format(amount.abs().round());

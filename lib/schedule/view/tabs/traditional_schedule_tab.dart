@@ -94,7 +94,7 @@ class TraditionalScheduleTab extends StatelessWidget {
                       metersPerInstallment: metersPerInstallment,
                       formattedAgreedAmount: currentContract != null
                           ? formatNumberWithCommas(
-                              currentContract!.agreedMonthlyAmount,
+                              currentContract.agreedMonthlyAmount,
                             )
                           : '0',
                     ),
@@ -105,7 +105,7 @@ class TraditionalScheduleTab extends StatelessWidget {
                       isPostAllocation: isPostAllocation,
                       metersPerInstallment: metersPerInstallment,
                       formattedAgreedAmount: formatNumberWithCommas(
-                        currentContract!.agreedMonthlyAmount,
+                        currentContract.agreedMonthlyAmount,
                       ),
                     ),
                   ],

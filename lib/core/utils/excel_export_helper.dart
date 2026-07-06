@@ -32,7 +32,7 @@ class ExcelExportHelper {
       sheetObject.appendRow(headers);
 
       // 3. تعبئة البيانات (Rows) بالترتيب
-      for (var entry in ledgerEntries) {
+      for (final entry in ledgerEntries) {
         List<CellValue> row = [
           TextCellValue(
             entry.id.split('-').first,
@@ -58,7 +58,7 @@ class ExcelExportHelper {
         RegExp(r'[\\/:*?"<>|]'),
         '_',
       );
-      String fileName = 'دفتر_الأستاذ_${safeClientName}.xlsx';
+      String fileName = 'دفتر_الأستاذ_$safeClientName.xlsx';
       String fullPath = '${directory.path}\\$fileName';
 
       // 5. حفظ الملف في الكمبيوتر

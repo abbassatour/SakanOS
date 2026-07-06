@@ -7,7 +7,6 @@ import 'dart:io';
 import 'package:cloud_storage_api/cloud_storage_api.dart';
 import 'package:drift/drift.dart' as drift;
 import 'package:local_storage_api/local_storage_api.dart';
-import 'package:uuid/uuid.dart';
 
 import 'sync_repository.dart';
 

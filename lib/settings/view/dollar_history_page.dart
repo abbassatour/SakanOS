@@ -101,8 +101,8 @@ class _DollarHistoryPageState extends State<DollarHistoryPage> {
                 );
 
                 // التحقق هل يقع التاريخ ضمن الفترة
-                return (date.isAfter(start.subtract(const Duration(days: 1))) &&
-                    date.isBefore(end.add(const Duration(days: 1))));
+                return date.isAfter(start.subtract(const Duration(days: 1))) &&
+                    date.isBefore(end.add(const Duration(days: 1)));
               }).toList();
             }
 

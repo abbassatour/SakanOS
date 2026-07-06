@@ -584,19 +584,15 @@ class _LegalAffairsViewState extends State<LegalAffairsView> {
       case 'إنذار':
         bgColor = Colors.orange.shade100;
         textColor = Colors.orange.shade900;
-        break;
       case 'فراغ عقاري':
         bgColor = Colors.green.shade100;
         textColor = Colors.green.shade900;
-        break;
       case 'رهن':
         bgColor = Colors.purple.shade100;
         textColor = Colors.purple.shade900;
-        break;
       case 'دعوى قضائية':
         bgColor = Colors.red.shade100;
         textColor = Colors.red.shade900;
-        break;
       default:
         bgColor = Colors.blue.shade100;
         textColor = Colors.blue.shade900;

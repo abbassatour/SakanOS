@@ -46,7 +46,7 @@ class ClientProfileCubit extends Cubit<ClientProfileState> {
       final now = DateTime.now().toUtc();
 
       // 2. الدخول في حلقة لجلب الإحصائيات الدقيقة لكل عقد
-      for (var contract in clientContracts) {
+      for (final contract in clientContracts) {
         // أ. حساب إجمالي المدفوع لهذا العقد (وتقريبه للأمان)
         final contractPayments = allPayments
             .where((p) => p.contractId == contract.id && !p.isDeleted)

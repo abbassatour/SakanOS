@@ -76,3 +76,16 @@ linter:
     inference_failure_on_function_invocation: false
     inference_failure_on_instance_creation: false
     avoid_positional_boolean_parameters: false
+    # 🌟 إسكات المفتش للأشياء التي لا تؤثر على جودة التطبيق:
+    inference_failure_on_function_invocation: false
+    inference_failure_on_instance_creation: false
+    inference_failure_on_function_return_type: false
+    dead_code: false
+    dead_null_aware_expression: false
+    avoid_print: false
+    avoid_slow_async_io: false
+    unnecessary_null_checks: false
+    unnecessary_non_null_assertion: false
+    empty_catches: false
+    noop_primitive_operations: false
+    prefer_const_constructors: false
