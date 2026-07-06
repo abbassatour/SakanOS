@@ -1,19 +1,20 @@
-# .coderabbit.yaml
-language:
-  dart:
-    enabled: true
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+
+# لغة مراجعة الأكواد (اختر "ar" لتصلك التعليقات بالعربية، أو "en-US" للإنجليزية)
+language: "ar" 
 
 reviews:
-  profile: "assertive" # لجعل المراجعة دقيقة وصارمة
-  tools:
-    linters:
-      enabled: true
-
-# توجيهات مخصصة للذكاء الاصطناعي لفحص كود مشروعك
-instructions: |
-  This is a Flutter Desktop (Windows) application using BLoC/Cubit for state management, 
-  and Drift (SQLite) for local storage. 
-  Please ensure that:
-  - All stream subscriptions (StreamSubscription) are properly cancelled/disposed in Cubits to avoid memory leaks.
-  - All database queries or writes are correctly handled with 'await' and enclosed in transactions where needed.
-  - Financial calculations related to currency or area conversion are verified for edge cases like division by zero or precision loss.
+  # نمط مراجعة دقيق وصارم للمشاكل والأخطاء البرمجية
+  profile: "assertive" 
+  
+  # توجيهات مخصصة لملفات مشروعك الحساسة
+  path_instructions:
+    - path: "lib/core/utils/calculator_helper.dart"
+      instructions: |
+        يرجى التدقيق الرياضي والمالي الصارم في هذا الملف لتجنب أي حالات قسمة على الصفر
+        أو فقدان الدقة في حساب قيم الأمتار والتقريبات المالية.
+        
+    - path: "lib/**/*_cubit.dart"
+      instructions: |
+        تأكد بشكل صارم من إغلاق كافة اشتراكات البث المباشر (StreamSubscription)
+        أو معالجتها بأمان لمنع حدوث تسريبات في الذاكرة (Memory Leaks).
