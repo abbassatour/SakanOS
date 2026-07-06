@@ -337,7 +337,10 @@ class AllocatedLedgerPdf {
                     '${_formatWithCommas(contract.downPayment)} ل.س',
                     '${_formatWithCommas(contract.agreedMonthlyAmount)} ل.س',
                     '${contract.installmentsCount} أشهر',
-                    if (contract.isHandedOver) 'مُسلّمة للعميل' else 'قيد الإنشاء',
+                    if (contract.isHandedOver)
+                      'مُسلّمة للعميل'
+                    else
+                      'قيد الإنشاء',
                   ],
                 ),
                 buildGridRow(
@@ -349,9 +352,15 @@ class AllocatedLedgerPdf {
                   ],
                   [
                     _formatDate(contract.agreedHandoverDate),
-                    if (contract.isHandedOver) _formatDate(contract.actualHandoverDate) else 'لم تسلم بعد',
+                    if (contract.isHandedOver)
+                      _formatDate(contract.actualHandoverDate)
+                    else
+                      'لم تسلم بعد',
                     '${contract.gracePeriodMonths} أشهر',
-                    if (contract.isPenaltyActive ?? false) 'مفعلة (${contract.penaltyPercentage}% كل ${contract.penaltyIntervalMonths} شهر)' else 'غير مفعلة',
+                    if (contract.isPenaltyActive ?? false)
+                      'مفعلة (${contract.penaltyPercentage}% كل ${contract.penaltyIntervalMonths} شهر)'
+                    else
+                      'غير مفعلة',
                   ],
                 ),
               ],

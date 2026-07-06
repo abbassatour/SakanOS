@@ -122,7 +122,9 @@ class DepositPdfGenerator {
                       fontSize: 6,
                       color: PdfColors.white,
                     ),
-                    headerDecoration: const pw.BoxDecoration(color: primaryColor),
+                    headerDecoration: const pw.BoxDecoration(
+                      color: primaryColor,
+                    ),
                     cellStyle: pw.TextStyle(font: arabicFont, fontSize: 6),
                     border: pw.TableBorder.all(
                       color: PdfColors.grey400,

@@ -113,7 +113,9 @@ class RefundPdfGenerator {
                       fontSize: 6,
                       color: PdfColors.white,
                     ),
-                    headerDecoration: const pw.BoxDecoration(color: accentColor),
+                    headerDecoration: const pw.BoxDecoration(
+                      color: accentColor,
+                    ),
                     cellStyle: pw.TextStyle(font: arabicFont, fontSize: 6),
                     border: pw.TableBorder.all(
                       color: PdfColors.grey400,

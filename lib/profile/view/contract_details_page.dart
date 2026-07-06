@@ -88,7 +88,10 @@ class ContractDetailsPage extends StatelessWidget {
                           gradient: LinearGradient(
                             colors: [
                               mainColor,
-                              if (isAllocated) Colors.amber.shade900 else Colors.blue.shade900,
+                              if (isAllocated)
+                                Colors.amber.shade900
+                              else
+                                Colors.blue.shade900,
                             ],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,

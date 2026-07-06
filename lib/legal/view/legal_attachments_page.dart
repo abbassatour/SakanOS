@@ -461,188 +461,189 @@ class _LegalAttachmentsPageState extends State<LegalAttachmentsPage> {
               ],
             ),
           ),
-        if (attachments.isEmpty) const Expanded(
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+        if (attachments.isEmpty)
+          const Expanded(
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.perm_media_outlined,
+                    size: 100,
+                    color: Colors.black12,
+                  ),
+                  SizedBox(height: 16),
+                  Text(
+                    'المعرض فارغ. لا توجد مرفقات.',
+                    style: TextStyle(color: Colors.grey, fontSize: 20),
+                  ),
+                ],
+              ),
+            ),
+          )
+        else
+          Expanded(
+            child: GridView.builder(
+              padding: const EdgeInsets.all(16),
+              gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                maxCrossAxisExtent:
+                    220, // 🌟 كبرنا حجم المربعات لأننا بشاشة كاملة
+                childAspectRatio: 0.85,
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 16,
+              ),
+              itemCount: attachments.length,
+              itemBuilder: (context, index) {
+                final att = attachments[index];
+                final ext = att.fileType?.toLowerCase() ?? '';
+                final isImage = ['jpg', 'jpeg', 'png'].contains(ext);
+                final isPdf = ext == 'pdf';
+                final isExcel = ['xls', 'xlsx'].contains(ext);
+
+                IconData fileIcon = Icons.insert_drive_file;
+                Color fileColor = Colors.blueGrey;
+                if (isPdf) {
+                  fileIcon = Icons.picture_as_pdf;
+                  fileColor = Colors.red;
+                } else if (isExcel) {
+                  fileIcon = Icons.table_chart;
+                  fileColor = Colors.green;
+                } else if (['doc', 'docx'].contains(ext)) {
+                  fileIcon = Icons.description;
+                  fileColor = Colors.blue.shade800;
+                }
+
+                return Card(
+                  elevation: 4,
+                  clipBehavior: Clip.antiAlias,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    side: BorderSide(color: Colors.grey.shade200),
+                  ),
+                  child: Stack(
                     children: [
-                      Icon(
-                        Icons.perm_media_outlined,
-                        size: 100,
-                        color: Colors.black12,
-                      ),
-                      SizedBox(height: 16),
-                      Text(
-                        'المعرض فارغ. لا توجد مرفقات.',
-                        style: TextStyle(color: Colors.grey, fontSize: 20),
-                      ),
-                    ],
-                  ),
-                ),
-              ) else Expanded(
-                child: GridView.builder(
-                  padding: const EdgeInsets.all(16),
-                  gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                    maxCrossAxisExtent:
-                        220, // 🌟 كبرنا حجم المربعات لأننا بشاشة كاملة
-                    childAspectRatio: 0.85,
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: 16,
-                  ),
-                  itemCount: attachments.length,
-                  itemBuilder: (context, index) {
-                    final att = attachments[index];
-                    final ext = att.fileType?.toLowerCase() ?? '';
-                    final isImage = ['jpg', 'jpeg', 'png'].contains(ext);
-                    final isPdf = ext == 'pdf';
-                    final isExcel = ['xls', 'xlsx'].contains(ext);
-
-                    IconData fileIcon = Icons.insert_drive_file;
-                    Color fileColor = Colors.blueGrey;
-                    if (isPdf) {
-                      fileIcon = Icons.picture_as_pdf;
-                      fileColor = Colors.red;
-                    } else if (isExcel) {
-                      fileIcon = Icons.table_chart;
-                      fileColor = Colors.green;
-                    } else if (['doc', 'docx'].contains(ext)) {
-                      fileIcon = Icons.description;
-                      fileColor = Colors.blue.shade800;
-                    }
-
-                    return Card(
-                      elevation: 4,
-                      clipBehavior: Clip.antiAlias,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        side: BorderSide(color: Colors.grey.shade200),
-                      ),
-                      child: Stack(
-                        children: [
-                          InkWell(
-                            onTap: () {
-                              if (isImage) {
-                                _openImageInApp(
-                                  att.fileUrl,
-                                  att.fileName ?? 'صورة',
-                                );
-                              } else {
-                                _downloadAndOpenFile(
-                                  att.fileUrl,
-                                  att.fileName ?? 'ملف.$ext',
-                                );
-                              }
-                            },
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                Expanded(
-                                  child: ColoredBox(
-                                    color: isImage
-                                        ? Colors.black12
-                                        : Colors.grey.shade100,
-                                    child: isImage
-                                        ? Image.network(
-                                            att.fileUrl,
-                                            fit: BoxFit.cover,
-                                            errorBuilder: (c, e, s) =>
-                                                const Icon(
-                                                  Icons.broken_image,
-                                                  color: Colors.grey,
-                                                  size: 50,
-                                                ),
-                                          )
-                                        : Icon(
-                                            fileIcon,
-                                            size: 80,
-                                            color: fileColor,
-                                          ),
-                                  ),
-                                ),
-                                Container(
-                                  padding: const EdgeInsets.all(12),
-                                  color: Colors.white,
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        att.fileName ?? 'بدون اسم',
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 14,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        DateFormat(
-                                          'yyyy/MM/dd',
-                                        ).format(att.createdAt.toLocal()),
-                                        style: const TextStyle(
+                      InkWell(
+                        onTap: () {
+                          if (isImage) {
+                            _openImageInApp(
+                              att.fileUrl,
+                              att.fileName ?? 'صورة',
+                            );
+                          } else {
+                            _downloadAndOpenFile(
+                              att.fileUrl,
+                              att.fileName ?? 'ملف.$ext',
+                            );
+                          }
+                        },
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Expanded(
+                              child: ColoredBox(
+                                color: isImage
+                                    ? Colors.black12
+                                    : Colors.grey.shade100,
+                                child: isImage
+                                    ? Image.network(
+                                        att.fileUrl,
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (c, e, s) => const Icon(
+                                          Icons.broken_image,
                                           color: Colors.grey,
-                                          fontSize: 12,
+                                          size: 50,
                                         ),
+                                      )
+                                    : Icon(
+                                        fileIcon,
+                                        size: 80,
+                                        color: fileColor,
                                       ),
-                                    ],
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              color: Colors.white,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    att.fileName ?? 'بدون اسم',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14,
+                                    ),
                                   ),
-                                ),
-                              ],
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    DateFormat(
+                                      'yyyy/MM/dd',
+                                    ).format(att.createdAt.toLocal()),
+                                    style: const TextStyle(
+                                      color: Colors.grey,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (widget.canManage)
+                        Positioned(
+                          top: 8,
+                          right: 8,
+                          child: CircleAvatar(
+                            radius: 16,
+                            backgroundColor: Colors.white.withOpacity(0.9),
+                            child: IconButton(
+                              padding: EdgeInsets.zero,
+                              icon: const Icon(
+                                Icons.delete_forever,
+                                color: Colors.red,
+                                size: 20,
+                              ),
+                              tooltip: 'حذف المرفق',
+                              onPressed: () {
+                                context
+                                    .read<LegalAffairsCubit>()
+                                    .deleteAttachment(att.id);
+                              },
                             ),
                           ),
-                          if (widget.canManage)
-                            Positioned(
-                              top: 8,
-                              right: 8,
-                              child: CircleAvatar(
-                                radius: 16,
-                                backgroundColor: Colors.white.withOpacity(0.9),
-                                child: IconButton(
-                                  padding: EdgeInsets.zero,
-                                  icon: const Icon(
-                                    Icons.delete_forever,
-                                    color: Colors.red,
-                                    size: 20,
-                                  ),
-                                  tooltip: 'حذف المرفق',
-                                  onPressed: () {
-                                    context
-                                        .read<LegalAffairsCubit>()
-                                        .deleteAttachment(att.id);
-                                  },
-                                ),
+                        ),
+                      if (isImage)
+                        Positioned(
+                          top: 10,
+                          left: 10,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.black54,
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              ext.toUpperCase(),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
-                          if (isImage)
-                            Positioned(
-                              top: 10,
-                              left: 10,
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.black54,
-                                  borderRadius: BorderRadius.circular(6),
-                                ),
-                                child: Text(
-                                  ext.toUpperCase(),
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
-              ),
+                          ),
+                        ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
       ],
     );
   }
