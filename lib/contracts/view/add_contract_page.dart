@@ -2,14 +2,12 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
-// ignore: depend_on_referenced_packages, reason: Needed for calculation models
 import 'package:local_storage_api/local_storage_api.dart'
     show Apartment, Building, MaterialPricesHistoryData;
-
 import 'package:our_home_erp_app/buildings/cubit/buildings_cubit.dart';
 import 'package:our_home_erp_app/contracts/contracts.dart';
 import 'package:our_home_erp_app/contracts/widgets/widgets.dart';
@@ -158,8 +156,8 @@ class _AddContractPageState extends State<AddContractPage> {
             autoImportedCoefficients[k] = (entry.value as num).toDouble();
           }
         }
-      } on Object catch (e) {
-        debugPrint('خطأ في قراءة المعاملات: $e');
+      } catch (e, stackTrace) {
+        log('خطأ في قراءة المعاملات', error: e, stackTrace: stackTrace);
       }
     });
   }
@@ -673,35 +671,43 @@ class _AddContractPageState extends State<AddContractPage> {
     final isAllocated = selectedContractType == 'متخصص';
 
     if (isAllocated && selectedApartmentId == null) {
-      return _showError('يرجى اختيار شقة من الكتالوج!');
+      _showError('يرجى اختيار شقة من الكتالوج!');
+      return;
     }
     if (isAllocated && areaController.text.isEmpty) {
-      return _showError('يرجى تعبئة المساحة!');
+      _showError('يرجى تعبئة المساحة!');
+      return;
     }
     if (isAllocated && agreedHandoverDate == null) {
-      return _showError('يرجى تحديد الموعد المتفق عليه لتسليم الشقة!');
+      _showError('يرجى تحديد الموعد المتفق عليه لتسليم الشقة!');
+      return;
     }
 
     if (isAllocated && isPenaltyActive) {
       if (_safeParseDouble(penaltyPctCtrl) <= 0) {
-        return _showError('نسبة الغرامة يجب أن تكون أكبر من صفر!');
+        _showError('نسبة الغرامة يجب أن تكون أكبر من صفر!');
+        return;
       }
       if (_safeParseInt(penaltyIntervalCtrl) <= 0) {
-        return _showError('مدة تطبيق الغرامة غير صالحة!');
+        _showError('مدة تطبيق الغرامة غير صالحة!');
+        return;
       }
     }
 
     if (priceController.text.isEmpty) {
-      return _showError('يرجى حساب السعر أولاً!');
+      _showError('يرجى حساب السعر أولاً!');
+      return;
     }
     if (monthlyAmountCtrl.text.isEmpty) {
-      return _showError('يرجى إدخال المبلغ المتفق عليه شهرياً!');
+      _showError('يرجى إدخال المبلغ المتفق عليه شهرياً!');
+      return;
     }
 
     if (isDollarContract &&
         isHistoricalContract &&
         histDollarRateCtrl.text.isEmpty) {
-      return _showError('الرجاء إدخال سعر صرف الدولار القديم!');
+      _showError('الرجاء إدخال سعر صرف الدولار القديم!');
+      return;
     }
 
     var exchangeRate = 1.0;
@@ -712,7 +718,8 @@ class _AddContractPageState extends State<AddContractPage> {
         final currentDollar =
             context.read<SettingsCubit>().state.currentDollarPrice;
         if (currentDollar == null) {
-          return _showError('سعر الدولار غير متوفر! يرجى إضافته.');
+          _showError('سعر الدولار غير متوفر! يرجى إضافته.');
+          return;
         }
         exchangeRate = currentDollar.exchangeRate;
       }
@@ -723,7 +730,8 @@ class _AddContractPageState extends State<AddContractPage> {
         _safeParseDouble(downPaymentCtrl) * exchangeRate;
 
     if (agreedAmountSYP <= 0) {
-      return _showError('المبلغ الشهري يجب أن يكون أكبر من صفر!');
+      _showError('المبلغ الشهري يجب أن يكون أكبر من صفر!');
+      return;
     }
 
     final uiDisplayedPrice = _safeParseDouble(priceController);
@@ -811,9 +819,10 @@ class _AddContractPageState extends State<AddContractPage> {
         Navigator.pop(context);
         _showSuccess('تم توقيع العقد بنجاح! ✅');
       }
-    } on Object catch (e) {
+    } catch (e, stackTrace) {
       if (mounted) {
         setState(() => _isSaving = false);
+        log('حدث خطأ أثناء توقيع العقد', error: e, stackTrace: stackTrace);
         _showError('حدث خطأ أثناء الحفظ: $e');
       }
     }

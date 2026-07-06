@@ -1,4 +1,5 @@
 // lib/contracts/cubit/contracts_cubit.dart
+import 'dart:developer';
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
@@ -21,8 +22,7 @@ class ContractsCubit extends Cubit<ContractsState> {
 
       final allUsers = await _erpRepository.getAllUsers();
       final namesMap = <String, String>{
-        for (final user in allUsers)
-          user.id: user.fullName ?? 'مدير النظام',
+        for (final user in allUsers) user.id: user.fullName ?? 'مدير النظام',
       };
 
       emit(
@@ -33,7 +33,8 @@ class ContractsCubit extends Cubit<ContractsState> {
           userNamesMap: namesMap,
         ),
       );
-    } on Exception catch (e) {
+    } catch (e, stackTrace) {
+      log('خطأ في جلب بيانات العقود', error: e, stackTrace: stackTrace);
       emit(
         state.copyWith(
           status: ContractsStatus.failure,
@@ -47,7 +48,8 @@ class ContractsCubit extends Cubit<ContractsState> {
     try {
       final deleted = await _erpRepository.getDeletedContracts();
       emit(state.copyWith(deletedContracts: deleted));
-    } on Exception catch (e) {
+    } catch (e, stackTrace) {
+      log('خطأ في جلب العقود المحذوفة', error: e, stackTrace: stackTrace);
       emit(
         state.copyWith(
           status: ContractsStatus.failure,
@@ -113,7 +115,8 @@ class ContractsCubit extends Cubit<ContractsState> {
       );
 
       await fetchData();
-    } on Exception catch (e) {
+    } catch (e, stackTrace) {
+      log('خطأ في إنشاء عقد جديد', error: e, stackTrace: stackTrace);
       emit(
         state.copyWith(
           status: ContractsStatus.failure,
@@ -131,7 +134,8 @@ class ContractsCubit extends Cubit<ContractsState> {
     emit(state.copyWith(status: ContractsStatus.loading));
     try {
       throw UnimplementedError('يرجى تحديث استدعاء هذه الدالة في الـ View');
-    } on Exception catch (e) {
+    } catch (e, stackTrace) {
+      log('خطأ في إرفاق ملف العقد', error: e, stackTrace: stackTrace);
       emit(
         state.copyWith(
           status: ContractsStatus.failure,
@@ -149,7 +153,8 @@ class ContractsCubit extends Cubit<ContractsState> {
       await _erpRepository.deleteContract(id, contractToCancel.apartmentId);
 
       await fetchData();
-    } on Exception catch (e) {
+    } catch (e, stackTrace) {
+      log('خطأ في حذف العقد', error: e, stackTrace: stackTrace);
       emit(
         state.copyWith(
           status: ContractsStatus.failure,
@@ -169,7 +174,8 @@ class ContractsCubit extends Cubit<ContractsState> {
 
       await fetchDeletedContracts();
       await fetchData();
-    } on Exception catch (e) {
+    } catch (e, stackTrace) {
+      log('خطأ في استعادة العقد', error: e, stackTrace: stackTrace);
       emit(
         state.copyWith(
           status: ContractsStatus.failure,
@@ -183,7 +189,8 @@ class ContractsCubit extends Cubit<ContractsState> {
     try {
       await _erpRepository.forceHardDeleteContract(contractId);
       await fetchDeletedContracts();
-    } on Exception catch (e) {
+    } catch (e, stackTrace) {
+      log('خطأ في تدمير العقد نهائياً', error: e, stackTrace: stackTrace);
       emit(
         state.copyWith(
           status: ContractsStatus.failure,
@@ -217,7 +224,8 @@ class ContractsCubit extends Cubit<ContractsState> {
         penaltyIntervalMonths: penaltyIntervalMonths,
       );
       await fetchData();
-    } on Exception catch (e) {
+    } catch (e, stackTrace) {
+      log('خطأ في تعديل العقد', error: e, stackTrace: stackTrace);
       emit(
         state.copyWith(
           status: ContractsStatus.failure,
@@ -244,7 +252,8 @@ class ContractsCubit extends Cubit<ContractsState> {
       );
 
       await fetchData();
-    } on Exception catch (e) {
+    } catch (e, stackTrace) {
+      log('خطأ في تسليم الشقة', error: e, stackTrace: stackTrace);
       emit(
         state.copyWith(
           status: ContractsStatus.failure,
@@ -265,7 +274,8 @@ class ContractsCubit extends Cubit<ContractsState> {
       );
 
       await fetchData();
-    } on Exception catch (e) {
+    } catch (e, stackTrace) {
+      log('خطأ في إلغاء استلام الشقة', error: e, stackTrace: stackTrace);
       emit(
         state.copyWith(
           status: ContractsStatus.failure,
@@ -287,7 +297,8 @@ class ContractsCubit extends Cubit<ContractsState> {
       );
 
       await fetchData();
-    } on Exception catch (e) {
+    } catch (e, stackTrace) {
+      log('خطأ في إغلاق العقد/أرشفته', error: e, stackTrace: stackTrace);
       emit(
         state.copyWith(
           status: ContractsStatus.failure,
