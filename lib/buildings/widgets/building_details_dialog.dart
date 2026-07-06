@@ -25,10 +25,10 @@ class _BuildingDetailsDialogContent extends StatelessWidget {
     var generalCoeffs = <String, dynamic>{};
 
     try {
-      floorCoeffs = jsonDecode(building.floorCoefficients)
-          as Map<String, dynamic>;
-      generalCoeffs = jsonDecode(building.directionCoefficients)
-          as Map<String, dynamic>;
+      floorCoeffs =
+          jsonDecode(building.floorCoefficients) as Map<String, dynamic>;
+      generalCoeffs =
+          jsonDecode(building.directionCoefficients) as Map<String, dynamic>;
     } catch (_) {
       // تم تجاهل الخطأ بصمت لتفادي الانهيار إذا كانت القيمة فارغة أو تالفة
     }

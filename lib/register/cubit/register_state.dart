@@ -40,5 +40,12 @@ class RegisterState extends Equatable {
 
   @override
   // 🌟 إضافة المتغير الجديد لمصفوفة الـ props
-  List<Object?> get props => [status, fullName, email, password, confirmPassword, errorMessage];
+  List<Object?> get props => [
+    status,
+    fullName,
+    email,
+    password,
+    confirmPassword,
+    errorMessage,
+  ];
 }

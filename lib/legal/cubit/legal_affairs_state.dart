@@ -6,25 +6,26 @@ enum LegalAffairsStatus { initial, loading, success, failure }
 class LegalAffairsState extends Equatable {
   const LegalAffairsState({
     this.status = LegalAffairsStatus.initial,
-    this.actions = const[],
-    this.attachmentsMap = const {}, 
+    this.actions = const [],
+    this.attachmentsMap = const {},
     this.contracts = const [],
-    this.clients = const[],
+    this.clients = const [],
     this.userNamesMap = const {},
     this.errorMessage,
   });
 
   final LegalAffairsStatus status;
-  
+
   // 🌟 القوائم الرئيسية
   final List<LegalAction> actions;
-  final Map<String, List<LegalActionAttachment>> attachmentsMap; // مفتاح الخريطة هو actionId
-  
+  final Map<String, List<LegalActionAttachment>>
+  attachmentsMap; // مفتاح الخريطة هو actionId
+
   // 🌟 قوائم مساعدة للربط وعرض الأسماء بدلاً من الـ IDs
   final List<Contract> contracts;
   final List<Client> clients;
-  final Map<String, String> userNamesMap; 
-  
+  final Map<String, String> userNamesMap;
+
   final String? errorMessage;
 
   LegalAffairsState copyWith({
@@ -49,12 +50,12 @@ class LegalAffairsState extends Equatable {
 
   @override
   List<Object?> get props => [
-        status,
-        actions,
-        attachmentsMap,
-        contracts,
-        clients,
-        userNamesMap,
-        errorMessage,
-      ];
+    status,
+    actions,
+    attachmentsMap,
+    contracts,
+    clients,
+    userNamesMap,
+    errorMessage,
+  ];
 }

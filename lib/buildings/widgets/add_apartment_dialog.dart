@@ -80,10 +80,11 @@ class _AddApartmentDialogContentState
     var parsedGeneral = <String, dynamic>{};
 
     try {
-      parsedFloors = jsonDecode(widget.building.floorCoefficients)
-          as Map<String, dynamic>;
-      parsedGeneral = jsonDecode(widget.building.directionCoefficients)
-          as Map<String, dynamic>;
+      parsedFloors =
+          jsonDecode(widget.building.floorCoefficients) as Map<String, dynamic>;
+      parsedGeneral =
+          jsonDecode(widget.building.directionCoefficients)
+              as Map<String, dynamic>;
     } catch (e, stackTrace) {
       log('خطأ في فك تشفير المعاملات', error: e, stackTrace: stackTrace);
     }
@@ -91,7 +92,8 @@ class _AddApartmentDialogContentState
     _availableFloors = parsedFloors;
     _generalCoeffs = parsedGeneral;
 
-    _selectedFloorName = widget.preSelectedFloor ??
+    _selectedFloorName =
+        widget.preSelectedFloor ??
         (_availableFloors.keys.isNotEmpty ? _availableFloors.keys.first : null);
   }
 
@@ -206,8 +208,8 @@ class _AddApartmentDialogContentState
     if (terrace > 0) aptCoeffs['مساحة التراس (م2)'] = terrace;
     if (yard > 0) aptCoeffs['مساحة الوجيبة (م2)'] = yard;
 
-    final floorPercentage =
-        (_availableFloors[_selectedFloorName] as num).toDouble();
+    final floorPercentage = (_availableFloors[_selectedFloorName] as num)
+        .toDouble();
     if (floorPercentage != 0.0) {
       aptCoeffs['الطابق ($_selectedFloorName)'] = floorPercentage;
     }
@@ -222,8 +224,9 @@ class _AddApartmentDialogContentState
       }
     });
 
-    final finalDirectionName =
-        chosenNames.isEmpty ? 'غير محدد' : chosenNames.join(' - ');
+    final finalDirectionName = chosenNames.isEmpty
+        ? 'غير محدد'
+        : chosenNames.join(' - ');
     if (totalDirPercentage != 0.0) {
       aptCoeffs['الاتجاه ($finalDirectionName)'] = totalDirPercentage;
     }
@@ -238,13 +241,13 @@ class _AddApartmentDialogContentState
 
     unawaited(
       context.read<BuildingsCubit>().addApartment(
-            buildingId: widget.building.id,
-            aptNumber: _numCtrl.text.trim(),
-            area: _calculatedTotalArea,
-            floorName: _selectedFloorName!,
-            directionName: finalDirectionName,
-            customCoeffs: aptCoeffs,
-          ),
+        buildingId: widget.building.id,
+        aptNumber: _numCtrl.text.trim(),
+        area: _calculatedTotalArea,
+        floorName: _selectedFloorName!,
+        directionName: finalDirectionName,
+        customCoeffs: aptCoeffs,
+      ),
     );
 
     Navigator.pop(context);

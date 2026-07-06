@@ -35,7 +35,10 @@ Future<void> bootstrap(FutureOr<Widget> Function(ErpRepository) builder) async {
 
   // 2. 🌟 التقاط أخطاء واجهة المستخدم (UI / Synchronous Errors)
   FlutterError.onError = (details) {
-    log('Flutter UI Error: ${details.exceptionAsString()}', stackTrace: details.stack);
+    log(
+      'Flutter UI Error: ${details.exceptionAsString()}',
+      stackTrace: details.stack,
+    );
   };
 
   // 3. 🌟 التقاط الأخطاء الخفية (Asynchronous Errors) - الطريقة الحديثة البديلة لـ runZonedGuarded
@@ -53,7 +56,8 @@ Future<void> bootstrap(FutureOr<Widget> Function(ErpRepository) builder) async {
     // ==========================================
     await Supabase.initialize(
       url: 'https://krdfrdzyfdcqjmnuzads.supabase.co',
-      anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtyZGZyZHp5ZmRjcWptbnV6YWRzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1NTQzOTksImV4cCI6MjA5MDEzMDM5OX0.IzREUxh7vyCE3mBlVj79U6ED8ACOfORGND6YS4yPxgg',
+      anonKey:
+          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtyZGZyZHp5ZmRjcWptbnV6YWRzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1NTQzOTksImV4cCI6MjA5MDEzMDM5OX0.IzREUxh7vyCE3mBlVj79U6ED8ACOfORGND6YS4yPxgg',
     );
 
     // ==========================================
@@ -61,7 +65,7 @@ Future<void> bootstrap(FutureOr<Widget> Function(ErpRepository) builder) async {
     // ==========================================
     final cloudStorageClient = CloudStorageClient();
     final localStorageApi = LocalStorageApi();
-    
+
     final erpRepository = ErpRepository(
       localStorageApi: localStorageApi,
       cloudStorageClient: cloudStorageClient,
@@ -69,7 +73,6 @@ Future<void> bootstrap(FutureOr<Widget> Function(ErpRepository) builder) async {
 
     // 7. تشغيل واجهة المستخدم وتمرير المستودع لها
     runApp(await builder(erpRepository));
-    
   } catch (e, stackTrace) {
     // التقاط أي خطأ قد يحدث أثناء التهيئة (Initialization)
     log('Critical Initialization Error: $e', stackTrace: stackTrace);

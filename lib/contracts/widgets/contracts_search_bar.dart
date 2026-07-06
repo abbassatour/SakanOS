@@ -53,8 +53,10 @@ class ContractsSearchBar extends StatelessWidget {
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
-                    borderSide:
-                        BorderSide(color: Colors.teal.shade400, width: 2),
+                    borderSide: BorderSide(
+                      color: Colors.teal.shade400,
+                      width: 2,
+                    ),
                   ),
                   suffixIcon: searchQuery.isNotEmpty
                       ? IconButton(

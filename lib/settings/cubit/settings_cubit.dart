@@ -134,8 +134,7 @@ class SettingsCubit extends Cubit<SettingsState> {
 
       final allUsers = await _erpRepository.getAllUsers();
       final namesMap = <String, String>{
-        for (final user in allUsers)
-          user.id: user.fullName ?? 'مدير النظام',
+        for (final user in allUsers) user.id: user.fullName ?? 'مدير النظام',
       };
 
       emit(
@@ -156,8 +155,7 @@ class SettingsCubit extends Cubit<SettingsState> {
 
       final allUsers = await _erpRepository.getAllUsers();
       final namesMap = <String, String>{
-        for (final user in allUsers)
-          user.id: user.fullName ?? 'مدير النظام',
+        for (final user in allUsers) user.id: user.fullName ?? 'مدير النظام',
       };
 
       emit(

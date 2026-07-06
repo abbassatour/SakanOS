@@ -43,7 +43,8 @@ class FinancialSection extends StatelessWidget {
     var exchangeRate = 1.0;
     if (isDollarContract) {
       if (isHistoricalContract) {
-        exchangeRate = double.tryParse(
+        exchangeRate =
+            double.tryParse(
               histDollarRateCtrl.text.replaceAll(',', ''),
             ) ??
             0.0;
@@ -52,11 +53,13 @@ class FinancialSection extends StatelessWidget {
       }
     }
 
-    final downPaymentVal = double.tryParse(
+    final downPaymentVal =
+        double.tryParse(
           downPaymentCtrl.text.replaceAll(',', ''),
         ) ??
         0.0;
-    final monthlyVal = double.tryParse(
+    final monthlyVal =
+        double.tryParse(
           monthlyAmountCtrl.text.replaceAll(',', ''),
         ) ??
         0.0;
@@ -102,27 +105,27 @@ class FinancialSection extends StatelessWidget {
                             style: TextStyle(color: Colors.green),
                           )
                         : (currentDollarRate != null
-                            ? Text(
-                                'سعر الصرف الحالي: '
-                                '${NumberFormatters.formatWithCommas(
-                                  currentDollarRate!,
-                                )} ل.س',
-                                style: TextStyle(
-                                  color: isDollarContract
-                                      ? Colors.green.shade900
-                                      : Colors.grey,
-                                ),
-                              )
-                            : const Text(
-                                '⚠️ جاري تحميل التسعيرة أو لم يتم تعيينها',
-                                style: TextStyle(color: Colors.red),
-                              )),
+                              ? Text(
+                                  'سعر الصرف الحالي: '
+                                  '${NumberFormatters.formatWithCommas(
+                                    currentDollarRate!,
+                                  )} ل.س',
+                                  style: TextStyle(
+                                    color: isDollarContract
+                                        ? Colors.green.shade900
+                                        : Colors.grey,
+                                  ),
+                                )
+                              : const Text(
+                                  '⚠️ جاري تحميل التسعيرة أو لم يتم تعيينها',
+                                  style: TextStyle(color: Colors.red),
+                                )),
                     value: isDollarContract,
                     activeThumbColor: Colors.green,
                     onChanged:
                         (isHistoricalContract || currentDollarRate != null)
-                            ? onDollarToggle
-                            : null,
+                        ? onDollarToggle
+                        : null,
                   ),
                   if (isDollarContract && isHistoricalContract)
                     Padding(

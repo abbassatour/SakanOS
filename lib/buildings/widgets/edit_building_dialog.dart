@@ -95,11 +95,11 @@ class _EditBuildingDialogContentState
                 backgroundColor: Colors.red,
                 foregroundColor: Colors.white,
               ),
-             onPressed: () {
+              onPressed: () {
                 unawaited(
-                  context
-                      .read<BuildingsCubit>()
-                      .deleteBuilding(widget.building.id),
+                  context.read<BuildingsCubit>().deleteBuilding(
+                    widget.building.id,
+                  ),
                 );
 
                 Navigator.pop(confirmCtx);
@@ -122,10 +122,10 @@ class _EditBuildingDialogContentState
     if (_nameCtrl.text.trim().isNotEmpty) {
       unawaited(
         context.read<BuildingsCubit>().updateBuilding(
-              id: widget.building.id,
-              name: _nameCtrl.text.trim(),
-              location: _locCtrl.text.trim(),
-            ),
+          id: widget.building.id,
+          name: _nameCtrl.text.trim(),
+          location: _locCtrl.text.trim(),
+        ),
       );
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(

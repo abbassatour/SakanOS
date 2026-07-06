@@ -9,7 +9,7 @@ class AuthState extends Equatable {
     this.userName,
     this.roleName,
     this.isSystemAdmin = false,
-    this.permissions = const[],
+    this.permissions = const [],
     this.errorMessage,
   });
 
@@ -48,13 +48,13 @@ class AuthState extends Equatable {
   }
 
   @override
-  List<Object?> get props =>[
-        status,
-        userId,
-        userName,
-        roleName,
-        isSystemAdmin,
-        permissions,
-        errorMessage,
-      ];
+  List<Object?> get props => [
+    status,
+    userId,
+    userName,
+    roleName,
+    isSystemAdmin,
+    permissions,
+    errorMessage,
+  ];
 }

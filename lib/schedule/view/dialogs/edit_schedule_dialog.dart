@@ -15,24 +15,34 @@ void showEditScheduleDialog(BuildContext parentContext, Contract contract) {
         builder: (context, setState) {
           return AlertDialog(
             title: const Row(
-              children:[
+              children: [
                 Icon(Icons.edit_calendar, color: Colors.indigo),
                 SizedBox(width: 8),
-                Text('تعديل تاريخ بداية العقد', style: TextStyle(color: Colors.indigo)),
+                Text(
+                  'تعديل تاريخ بداية العقد',
+                  style: TextStyle(color: Colors.indigo),
+                ),
               ],
             ),
             content: SizedBox(
-              width: 400, 
+              width: 400,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
-                children:[
+                children: [
                   Container(
                     padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(color: Colors.orange.shade50, borderRadius: BorderRadius.circular(8)),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.shade50,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                     child: const Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children:[
-                        Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 20),
+                      children: [
+                        Icon(
+                          Icons.warning_amber_rounded,
+                          color: Colors.orange,
+                          size: 20,
+                        ),
                         SizedBox(width: 8),
                         Expanded(
                           child: Text(
@@ -47,17 +57,33 @@ void showEditScheduleDialog(BuildContext parentContext, Contract contract) {
 
                   // 📅 تعديل التاريخ
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    decoration: BoxDecoration(border: Border.all(color: Colors.grey.shade400), borderRadius: BorderRadius.circular(8)),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey.shade400),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children:[
-                        const Text('📅 تاريخ التوقيع:', style: TextStyle(fontWeight: FontWeight.bold)),
+                      children: [
+                        const Text(
+                          '📅 تاريخ التوقيع:',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
                         TextButton.icon(
-                          icon: const Icon(Icons.edit_calendar, color: Colors.indigo),
+                          icon: const Icon(
+                            Icons.edit_calendar,
+                            color: Colors.indigo,
+                          ),
                           label: Text(
-                            '${selectedDate.year}/${selectedDate.month}/${selectedDate.day}', 
-                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.indigo)
+                            '${selectedDate.year}/${selectedDate.month}/${selectedDate.day}',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.indigo,
+                            ),
                           ),
                           onPressed: () async {
                             final pickedDate = await showDatePicker(
@@ -75,14 +101,18 @@ void showEditScheduleDialog(BuildContext parentContext, Contract contract) {
                     ),
                   ),
                   const SizedBox(height: 24),
-                  
+
                   // 🌟 إجبار إدخال الرمز السري الصارم
                   TextField(
                     controller: pinController,
                     obscureText: true,
                     textAlign: TextAlign.center,
                     keyboardType: TextInputType.number,
-                    style: const TextStyle(letterSpacing: 8, fontSize: 20, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                      letterSpacing: 8,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
                     decoration: const InputDecoration(
                       labelText: 'رمز الإدارة السري',
                       border: OutlineInputBorder(),
@@ -92,33 +122,48 @@ void showEditScheduleDialog(BuildContext parentContext, Contract contract) {
                 ],
               ),
             ),
-            actions:[
-              TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('إلغاء')),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                child: const Text('إلغاء'),
+              ),
               ElevatedButton(
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.indigo, foregroundColor: Colors.white),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.indigo,
+                  foregroundColor: Colors.white,
+                ),
                 onPressed: () async {
                   if (pinController.text != '0938457732') {
-                    ScaffoldMessenger.of(dialogContext).showSnackBar(const SnackBar(content: Text('رمز الإدارة غير صحيح! ❌'), backgroundColor: Colors.red));
+                    ScaffoldMessenger.of(dialogContext).showSnackBar(
+                      const SnackBar(
+                        content: Text('رمز الإدارة غير صحيح! ❌'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
                     return;
                   }
 
-                  Navigator.pop(dialogContext); 
-                  
+                  Navigator.pop(dialogContext);
+
                   if (parentContext.mounted) {
-                    ScaffoldMessenger.of(parentContext).showSnackBar(const SnackBar(content: Text('جاري تعديل التاريخ... ⏳')));
-                    
-                    // تحديث التاريخ فقط في المستودع
-                    await parentContext.read<ScheduleCubit>().updateContractDateOnly(
-                      id: contract.id,
-                      contractDate: selectedDate,
+                    ScaffoldMessenger.of(parentContext).showSnackBar(
+                      const SnackBar(content: Text('جاري تعديل التاريخ... ⏳')),
                     );
+
+                    // تحديث التاريخ فقط في المستودع
+                    await parentContext
+                        .read<ScheduleCubit>()
+                        .updateContractDateOnly(
+                          id: contract.id,
+                          contractDate: selectedDate,
+                        );
                   }
                 },
                 child: const Text('حفظ التعديل'),
               ),
             ],
           );
-        }
+        },
       );
     },
   );

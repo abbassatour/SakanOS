@@ -57,15 +57,15 @@ class PaymentsState extends Equatable {
 
   @override
   List<Object?> get props => [
-        status,
-        clients,
-        contracts,
-        apartments,
-        buildings,
-        ledgerEntries,
-        deletedLedgerEntries,
-        userNamesMap,
-        selectedContractId,
-        errorMessage,
-      ];
+    status,
+    clients,
+    contracts,
+    apartments,
+    buildings,
+    ledgerEntries,
+    deletedLedgerEntries,
+    userNamesMap,
+    selectedContractId,
+    errorMessage,
+  ];
 }

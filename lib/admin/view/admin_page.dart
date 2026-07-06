@@ -194,8 +194,9 @@ class _AdminViewState extends State<AdminView>
                             isExpanded: true,
                             decoration: const InputDecoration(
                               border: OutlineInputBorder(),
-                              contentPadding:
-                                  EdgeInsets.symmetric(horizontal: 10),
+                              contentPadding: EdgeInsets.symmetric(
+                                horizontal: 10,
+                              ),
                               fillColor: Colors.white,
                               filled: true,
                             ),
@@ -211,10 +212,10 @@ class _AdminViewState extends State<AdminView>
                             }).toList(),
                             onChanged: (newRoleId) {
                               context.read<AdminCubit>().updateUser(
-                                    user.id,
-                                    newRoleId,
-                                    false,
-                                  );
+                                user.id,
+                                newRoleId,
+                                false,
+                              );
                             },
                           ),
                         ),
@@ -224,15 +225,14 @@ class _AdminViewState extends State<AdminView>
                             backgroundColor: Colors.green,
                             foregroundColor: Colors.white,
                           ),
-                          onPressed: user.roleId == null ||
-                                  user.roleId!.isEmpty
+                          onPressed: user.roleId == null || user.roleId!.isEmpty
                               ? null
                               : () {
                                   context.read<AdminCubit>().updateUser(
-                                        user.id,
-                                        user.roleId,
-                                        true,
-                                      );
+                                    user.id,
+                                    user.roleId,
+                                    true,
+                                  );
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
                                       content: Text('تم قبول الموظف بنجاح!'),
@@ -309,8 +309,8 @@ class _AdminViewState extends State<AdminView>
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                        )
-                      ]
+                        ),
+                      ],
                     ],
                   ),
                   subtitle: Text(user.email),
@@ -333,10 +333,10 @@ class _AdminViewState extends State<AdminView>
                                 ? null
                                 : (newRoleId) {
                                     context.read<AdminCubit>().updateUser(
-                                          user.id,
-                                          newRoleId,
-                                          user.isActive,
-                                        );
+                                      user.id,
+                                      newRoleId,
+                                      user.isActive,
+                                    );
                                   },
                           ),
                         ),
@@ -348,12 +348,12 @@ class _AdminViewState extends State<AdminView>
                               ? null
                               : (val) {
                                   context.read<AdminCubit>().updateUser(
-                                        user.id,
-                                        user.roleId,
-                                        val,
-                                      );
+                                    user.id,
+                                    user.roleId,
+                                    val,
+                                  );
                                 },
-                        )
+                        ),
                       ],
                     ),
                   ),
@@ -393,8 +393,11 @@ class _AdminViewState extends State<AdminView>
                 elevation: 2,
                 margin: const EdgeInsets.only(bottom: 12),
                 child: ListTile(
-                  leading: const Icon(Icons.shield,
-                      color: Colors.amber, size: 36),
+                  leading: const Icon(
+                    Icons.shield,
+                    color: Colors.amber,
+                    size: 36,
+                  ),
                   title: Text(
                     role.name,
                     style: const TextStyle(
@@ -491,7 +494,10 @@ class _AdminViewState extends State<AdminView>
                 actions: [
                   TextButton(
                     onPressed: () => Navigator.pop(ctx),
-                    child: const Text('إلغاء', style: TextStyle(color: Colors.red)),
+                    child: const Text(
+                      'إلغاء',
+                      style: TextStyle(color: Colors.red),
+                    ),
                   ),
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
@@ -502,16 +508,16 @@ class _AdminViewState extends State<AdminView>
                       if (role == null) {
                         if (nameController.text.trim().isNotEmpty) {
                           parentContext.read<AdminCubit>().createNewRole(
-                                nameController.text.trim(),
-                                currentPerms,
-                              );
+                            nameController.text.trim(),
+                            currentPerms,
+                          );
                           Navigator.pop(ctx);
                         }
                       } else {
                         parentContext.read<AdminCubit>().updateRole(
-                              role.id,
-                              currentPerms,
-                            );
+                          role.id,
+                          currentPerms,
+                        );
                         Navigator.pop(ctx);
                       }
                     },

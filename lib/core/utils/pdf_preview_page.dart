@@ -17,7 +17,10 @@ class PdfPreviewPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('معاينة: $title', style: const TextStyle(color: Colors.white)),
+        title: Text(
+          'معاينة: $title',
+          style: const TextStyle(color: Colors.white),
+        ),
         backgroundColor: Colors.blueGrey,
         iconTheme: const IconThemeData(color: Colors.white),
       ),

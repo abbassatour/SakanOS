@@ -66,15 +66,18 @@ class _EditContractDialogContentState
 
     detailsController = TextEditingController(text: contract.apartmentDetails);
     guarantorController = TextEditingController(text: contract.guarantorName);
-    monthsController =
-        TextEditingController(text: contract.installmentsCount.toString());
-    monthlyAmountController =
-        TextEditingController(text: contract.agreedMonthlyAmount.toString());
+    monthsController = TextEditingController(
+      text: contract.installmentsCount.toString(),
+    );
+    monthlyAmountController = TextEditingController(
+      text: contract.agreedMonthlyAmount.toString(),
+    );
 
     selectedDate = contract.contractDate.toLocal();
 
-    handoverNotesController =
-        TextEditingController(text: contract.handoverNotes ?? '');
+    handoverNotesController = TextEditingController(
+      text: contract.handoverNotes ?? '',
+    );
     actualHandoverDate = contract.actualHandoverDate?.toLocal();
     isHandoverFormVisible = contract.isHandedOver;
     isAllocated = contract.contractType == 'متخصص';
@@ -110,7 +113,8 @@ class _EditContractDialogContentState
     final isSuperAdmin = parentCtx.select<AuthCubit, bool>(
       (c) => c.state.isSystemAdmin,
     );
-    final canEdit = parentCtx.select<AuthCubit, bool>(
+    final canEdit =
+        parentCtx.select<AuthCubit, bool>(
           (c) => c.state.hasPermission(AppPermissions.createContracts),
         ) &&
         !isCompleted;
@@ -371,8 +375,8 @@ class _EditContractDialogContentState
                             label: const Text('تسليم الشقة الآن'),
                             onPressed: canEdit
                                 ? () => setState(
-                                      () => isHandoverFormVisible = true,
-                                    )
+                                    () => isHandoverFormVisible = true,
+                                  )
                                 : null,
                           ),
                         ),
@@ -386,7 +390,8 @@ class _EditContractDialogContentState
                                     ? () async {
                                         final date = await showDatePicker(
                                           context: context,
-                                          initialDate: actualHandoverDate ??
+                                          initialDate:
+                                              actualHandoverDate ??
                                               DateTime.now(),
                                           firstDate: DateTime(2000),
                                           lastDate: DateTime.now().add(
@@ -410,8 +415,9 @@ class _EditContractDialogContentState
                                         : Colors.grey.shade100,
                                     prefixIcon: Icon(
                                       Icons.calendar_today,
-                                      color:
-                                          canEdit ? Colors.teal : Colors.grey,
+                                      color: canEdit
+                                          ? Colors.teal
+                                          : Colors.grey,
                                     ),
                                     errorText: actualHandoverDate == null
                                         ? 'مطلوب'
@@ -420,14 +426,14 @@ class _EditContractDialogContentState
                                   child: Text(
                                     actualHandoverDate != null
                                         ? '${actualHandoverDate!.year}/'
-                                            '${actualHandoverDate!.month}/'
-                                            '${actualHandoverDate!.day}'
+                                              '${actualHandoverDate!.month}/'
+                                              '${actualHandoverDate!.day}'
                                         : 'حدد التاريخ',
                                     style: TextStyle(
                                       color: actualHandoverDate != null
                                           ? (canEdit
-                                              ? Colors.black
-                                              : Colors.grey)
+                                                ? Colors.black
+                                                : Colors.grey)
                                           : Colors.red,
                                       fontWeight: FontWeight.bold,
                                     ),
@@ -499,14 +505,13 @@ class _EditContractDialogContentState
 
                                 if (parentCtx.mounted) {
                                   unawaited(
-                                    parentCtx
-                                        .read<BuildingsCubit>()
-                                        .loadData(),
+                                    parentCtx.read<BuildingsCubit>().loadData(),
                                   );
                                   ScaffoldMessenger.of(parentCtx).showSnackBar(
                                     const SnackBar(
-                                      content:
-                                          Text('تم توثيق الاستلام بنجاح! ✅'),
+                                      content: Text(
+                                        'تم توثيق الاستلام بنجاح! ✅',
+                                      ),
                                       backgroundColor: Colors.green,
                                     ),
                                   );
@@ -557,9 +562,7 @@ class _EditContractDialogContentState
 
                                 if (parentCtx.mounted) {
                                   unawaited(
-                                    parentCtx
-                                        .read<BuildingsCubit>()
-                                        .loadData(),
+                                    parentCtx.read<BuildingsCubit>().loadData(),
                                   );
                                   ScaffoldMessenger.of(parentCtx).showSnackBar(
                                     const SnackBar(
@@ -601,8 +604,9 @@ class _EditContractDialogContentState
                                     .firstWhere(
                                       (c) => c.id == contract.clientId,
                                     );
-                                final buildingsState =
-                                    parentCtx.read<BuildingsCubit>().state;
+                                final buildingsState = parentCtx
+                                    .read<BuildingsCubit>()
+                                    .state;
                                 final apartment = buildingsState.apartments
                                     .firstWhere(
                                       (a) => a.id == contract.apartmentId,
@@ -612,13 +616,13 @@ class _EditContractDialogContentState
                                       (b) => b.id == apartment.buildingId,
                                     );
 
-                                final pdfBytes = await HandoverPledgePdfHelper
-                                    .generatePdf(
-                                  contract: contract,
-                                  client: client,
-                                  apartment: apartment,
-                                  building: building,
-                                );
+                                final pdfBytes =
+                                    await HandoverPledgePdfHelper.generatePdf(
+                                      contract: contract,
+                                      client: client,
+                                      apartment: apartment,
+                                      building: building,
+                                    );
 
                                 if (parentCtx.mounted) {
                                   unawaited(
@@ -681,8 +685,10 @@ class _EditContractDialogContentState
                               child: TextFormField(
                                 controller: penaltyPctCtrl,
                                 enabled: canEdit,
-                                keyboardType: const TextInputType
-                                    .numberWithOptions(decimal: true),
+                                keyboardType:
+                                    const TextInputType.numberWithOptions(
+                                      decimal: true,
+                                    ),
                                 decoration: InputDecoration(
                                   labelText: 'نسبة الغرامة',
                                   suffixText: '%',
@@ -744,7 +750,8 @@ class _EditContractDialogContentState
                                   contract.contractFileUrl!.isNotEmpty
                               ? Icons.check_circle
                               : Icons.warning_amber_rounded,
-                          color: contract.contractFileUrl != null &&
+                          color:
+                              contract.contractFileUrl != null &&
                                   contract.contractFileUrl!.isNotEmpty
                               ? Colors.green
                               : Colors.orange,
@@ -779,11 +786,11 @@ class _EditContractDialogContentState
                                 parentCtx,
                               );
                               if (!isAuth) return;
-                              final result =
-                                  await FilePicker.platform.pickFiles(
-                                type: FileType.custom,
-                                allowedExtensions: ['doc', 'docx', 'pdf'],
-                              );
+                              final result = await FilePicker.platform
+                                  .pickFiles(
+                                    type: FileType.custom,
+                                    allowedExtensions: ['doc', 'docx', 'pdf'],
+                                  );
                               if (result != null &&
                                   result.files.single.path != null) {
                                 final filePath = result.files.single.path!;
@@ -804,8 +811,9 @@ class _EditContractDialogContentState
                                         extension: extension,
                                       );
                                   if (parentCtx.mounted) {
-                                    ScaffoldMessenger.of(parentCtx)
-                                        .showSnackBar(
+                                    ScaffoldMessenger.of(
+                                      parentCtx,
+                                    ).showSnackBar(
                                       const SnackBar(
                                         content: Text(
                                           'تم استبدال الملف بنجاح! ✅',
@@ -897,8 +905,8 @@ class _EditContractDialogContentState
                   ),
                 );
                 await parentCtx.read<ContractsCubit>().deleteContract(
-                      contract.id,
-                    );
+                  contract.id,
+                );
                 if (parentCtx.mounted) {
                   unawaited(parentCtx.read<BuildingsCubit>().loadData());
                   ScaffoldMessenger.of(parentCtx).showSnackBar(
@@ -944,30 +952,27 @@ class _EditContractDialogContentState
                     if (isAuth && parentCtx.mounted) {
                       unawaited(
                         parentCtx.read<ContractsCubit>().updateContract(
-                              id: contract.id,
-                              details: detailsController.text,
-                              guarantorName: guarantorController.text.isEmpty
-                                  ? 'بدون كفيل'
-                                  : guarantorController.text,
-                              installmentsCount:
-                                  int.parse(monthsController.text),
-                              agreedMonthlyAmount: double.parse(
-                                monthlyAmountController.text,
-                              ),
-                              contractDate: selectedDate,
-                              isPenaltyActive: isAllocated && isPenaltyActive,
-                              penaltyPercentage: isAllocated && isPenaltyActive
-                                  ? (double.tryParse(penaltyPctCtrl.text) ??
-                                      0.0)
-                                  : 0.0,
-                              penaltyIntervalMonths:
-                                  isAllocated && isPenaltyActive
-                                      ? (int.tryParse(
-                                            penaltyIntervalCtrl.text,
-                                          ) ??
-                                          1)
-                                      : 1,
-                            ),
+                          id: contract.id,
+                          details: detailsController.text,
+                          guarantorName: guarantorController.text.isEmpty
+                              ? 'بدون كفيل'
+                              : guarantorController.text,
+                          installmentsCount: int.parse(monthsController.text),
+                          agreedMonthlyAmount: double.parse(
+                            monthlyAmountController.text,
+                          ),
+                          contractDate: selectedDate,
+                          isPenaltyActive: isAllocated && isPenaltyActive,
+                          penaltyPercentage: isAllocated && isPenaltyActive
+                              ? (double.tryParse(penaltyPctCtrl.text) ?? 0.0)
+                              : 0.0,
+                          penaltyIntervalMonths: isAllocated && isPenaltyActive
+                              ? (int.tryParse(
+                                      penaltyIntervalCtrl.text,
+                                    ) ??
+                                    1)
+                              : 1,
+                        ),
                       );
                     }
                   }

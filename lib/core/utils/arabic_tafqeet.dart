@@ -2,16 +2,52 @@
 
 class ArabicTafqeet {
   static const List<String> _ones = [
-    "", "واحد", "اثنان", "ثلاثة", "أربعة", "خمسة", "ستة", "سبعة", "ثمانية", "تسعة",
-    "عشرة", "أحد عشر", "اثنا عشر", "ثلاثة عشر", "أربعة عشر", "خمسة عشر", "ستة عشر", "سبعة عشر", "ثمانية عشر", "تسعة عشر"
+    "",
+    "واحد",
+    "اثنان",
+    "ثلاثة",
+    "أربعة",
+    "خمسة",
+    "ستة",
+    "سبعة",
+    "ثمانية",
+    "تسعة",
+    "عشرة",
+    "أحد عشر",
+    "اثنا عشر",
+    "ثلاثة عشر",
+    "أربعة عشر",
+    "خمسة عشر",
+    "ستة عشر",
+    "سبعة عشر",
+    "ثمانية عشر",
+    "تسعة عشر",
   ];
 
   static const List<String> _tens = [
-    "", "", "عشرون", "ثلاثون", "أربعون", "خمسون", "ستون", "سبعون", "ثمانون", "تسعون"
+    "",
+    "",
+    "عشرون",
+    "ثلاثون",
+    "أربعون",
+    "خمسون",
+    "ستون",
+    "سبعون",
+    "ثمانون",
+    "تسعون",
   ];
 
   static const List<String> _hundreds = [
-    "", "مائة", "مائتان", "ثلاثمائة", "أربعمائة", "خمسمائة", "ستمائة", "سبعمائة", "ثمانمائة", "تسعمائة"
+    "",
+    "مائة",
+    "مائتان",
+    "ثلاثمائة",
+    "أربعمائة",
+    "خمسمائة",
+    "ستمائة",
+    "سبعمائة",
+    "ثمانمائة",
+    "تسعمائة",
   ];
 
   static String convert(int number) {
@@ -24,7 +60,13 @@ class ArabicTafqeet {
     int billions = (number / 1000000000).floor();
     int rem = number % 1000000000;
     if (billions > 0) {
-      result += _processGroup(billions, "مليار", "ملياران", "مليارات", "ملياراً");
+      result += _processGroup(
+        billions,
+        "مليار",
+        "ملياران",
+        "مليارات",
+        "ملياراً",
+      );
     }
 
     // الملايين
@@ -32,7 +74,13 @@ class ArabicTafqeet {
     rem = rem % 1000000;
     if (millions > 0) {
       if (result.isNotEmpty) result += " و";
-      result += _processGroup(millions, "مليون", "مليونان", "ملايين", "مليوناً");
+      result += _processGroup(
+        millions,
+        "مليون",
+        "مليونان",
+        "ملايين",
+        "مليوناً",
+      );
     }
 
     // الآلاف
@@ -52,10 +100,17 @@ class ArabicTafqeet {
     return result.trim();
   }
 
-  static String _processGroup(int number, String singular, String dual, String plural, String accusative) {
+  static String _processGroup(
+    int number,
+    String singular,
+    String dual,
+    String plural,
+    String accusative,
+  ) {
     if (number == 1) return singular;
     if (number == 2) return dual;
-    if (number >= 3 && number <= 10) return "${_processThreeDigits(number)} $plural";
+    if (number >= 3 && number <= 10)
+      return "${_processThreeDigits(number)} $plural";
     return "${_processThreeDigits(number)} $accusative";
   }
 

@@ -14,7 +14,8 @@ class LoginPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       // 🌟 استدعاء دالة قراءة الإيميل المحفوظ بمجرد فتح الشاشة
-      create: (context) => LoginCubit(context.read<ErpRepository>())..loadSavedEmail(),
+      create: (context) =>
+          LoginCubit(context.read<ErpRepository>())..loadSavedEmail(),
       child: const LoginView(),
     );
   }
@@ -41,10 +42,10 @@ class _LoginViewState extends State<LoginView> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.blueGrey.shade50,
-      
+
       // 🌟 التعديل الجوهري: إضافة MultiBlocListener
       body: MultiBlocListener(
-        listeners:[
+        listeners: [
           // 1. مستمع تسجيل الدخول (LoginCubit)
           BlocListener<LoginCubit, LoginState>(
             listener: (context, state) {
@@ -54,8 +55,10 @@ class _LoginViewState extends State<LoginView> {
 
               if (state.status == LoginStatus.failure) {
                 // 🌟 تحسين شكل عرض الخطأ بناءً على نوعه (إنترنت أو بيانات خاطئة)
-                final isNetworkError = state.errorMessage != null && state.errorMessage!.contains('الإنترنت');
-                
+                final isNetworkError =
+                    state.errorMessage != null &&
+                    state.errorMessage!.contains('الإنترنت');
+
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Row(
@@ -65,22 +68,28 @@ class _LoginViewState extends State<LoginView> {
                           color: Colors.white,
                         ),
                         const SizedBox(width: 12),
-                        Expanded(child: Text(state.errorMessage ?? 'حدث خطأ غير معروف')),
+                        Expanded(
+                          child: Text(
+                            state.errorMessage ?? 'حدث خطأ غير معروف',
+                          ),
+                        ),
                       ],
                     ),
-                    backgroundColor: isNetworkError ? Colors.red.shade800 : Colors.red,
+                    backgroundColor: isNetworkError
+                        ? Colors.red.shade800
+                        : Colors.red,
                     behavior: SnackBarBehavior.floating,
                     duration: const Duration(seconds: 4),
                   ),
                 );
-              } 
+              }
               // عند النجاح، نطلب من الحارس الشخصي فحص الصلاحيات
               else if (state.status == LoginStatus.success) {
                 context.read<AuthCubit>().checkSession();
               }
             },
           ),
-          
+
           // 2. مستمع الصلاحيات (AuthCubit) - لكشف أخطاء عدم وجود المستخدم
           BlocListener<AuthCubit, AuthState>(
             listener: (context, state) {
@@ -88,7 +97,9 @@ class _LoginViewState extends State<LoginView> {
                 // إظهار سبب الفشل الحقيقي (مثل: حسابك غير مفعل، أو غير موجود في جدول app_users)
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text(state.errorMessage ?? 'حدث خطأ أثناء التحقق من الصلاحيات'), 
+                    content: Text(
+                      state.errorMessage ?? 'حدث خطأ أثناء التحقق من الصلاحيات',
+                    ),
                     backgroundColor: Colors.red,
                     duration: const Duration(seconds: 5),
                   ),
@@ -106,19 +117,27 @@ class _LoginViewState extends State<LoginView> {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(16),
-              boxShadow: const[
-                BoxShadow(color: Colors.black12, blurRadius: 20, offset: Offset(0, 10)),
+              boxShadow: const [
+                BoxShadow(
+                  color: Colors.black12,
+                  blurRadius: 20,
+                  offset: Offset(0, 10),
+                ),
               ],
             ),
             child: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
-                children:[
+                children: [
                   const Icon(Icons.apartment, size: 80, color: Colors.blueGrey),
                   const SizedBox(height: 16),
                   const Text(
                     'نظام بيتنا العقاري',
-                    style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.blueGrey),
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blueGrey,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   const Text(
@@ -126,24 +145,23 @@ class _LoginViewState extends State<LoginView> {
                     style: TextStyle(fontSize: 16, color: Colors.grey),
                   ),
                   const SizedBox(height: 40),
-                  
+
                   // حقل الإيميل مع تمرير الـ Controller
                   _EmailInput(controller: _emailController),
                   const SizedBox(height: 20),
-                  
+
                   // حقل كلمة المرور
                   const _PasswordInput(),
                   const SizedBox(height: 12),
-                  
+
                   // مربع اختيار "تذكرني" الأنيق
                   const _RememberMeCheckbox(),
                   const SizedBox(height: 32),
-                  
+
                   // زر تسجيل الدخول
                   const _LoginButton(),
-                  
+
                   const SizedBox(height: 24), // مسافة
-                  
                   // 🌟 زر إنشاء حساب موظف جديد
                   TextButton.icon(
                     onPressed: () {
@@ -152,10 +170,17 @@ class _LoginViewState extends State<LoginView> {
                         MaterialPageRoute(builder: (_) => const RegisterPage()),
                       );
                     },
-                    icon: const Icon(Icons.person_add_alt_1, color: Colors.blueGrey),
+                    icon: const Icon(
+                      Icons.person_add_alt_1,
+                      color: Colors.blueGrey,
+                    ),
                     label: const Text(
-                      'إنشاء حساب موظف جديد', 
-                      style: TextStyle(color: Colors.blueGrey, fontWeight: FontWeight.bold, fontSize: 16),
+                      'إنشاء حساب موظف جديد',
+                      style: TextStyle(
+                        color: Colors.blueGrey,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
                     ),
                   ),
                 ],
@@ -169,12 +194,12 @@ class _LoginViewState extends State<LoginView> {
 }
 
 // ==========================================
-// 🧩 مكونات الشاشة الفرعية 
+// 🧩 مكونات الشاشة الفرعية
 // ==========================================
 
 class _EmailInput extends StatelessWidget {
   const _EmailInput({required this.controller});
-  
+
   final TextEditingController controller;
 
   @override
@@ -201,7 +226,8 @@ class _PasswordInput extends StatelessWidget {
       buildWhen: (previous, current) => previous.password != current.password,
       builder: (context, state) {
         return TextField(
-          onChanged: (password) => context.read<LoginCubit>().passwordChanged(password),
+          onChanged: (password) =>
+              context.read<LoginCubit>().passwordChanged(password),
           obscureText: true, // إخفاء الباسورد
           decoration: const InputDecoration(
             labelText: 'كلمة المرور',
@@ -221,16 +247,24 @@ class _RememberMeCheckbox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<LoginCubit, LoginState>(
-      buildWhen: (previous, current) => previous.rememberMe != current.rememberMe,
+      buildWhen: (previous, current) =>
+          previous.rememberMe != current.rememberMe,
       builder: (context, state) {
         return Row(
-          children:[
+          children: [
             Checkbox(
               value: state.rememberMe,
               activeColor: Colors.blueGrey,
-              onChanged: (value) => context.read<LoginCubit>().rememberMeChanged(value ?? false),
+              onChanged: (value) =>
+                  context.read<LoginCubit>().rememberMeChanged(value ?? false),
             ),
-            const Text('تذكر البريد الإلكتروني', style: TextStyle(color: Colors.blueGrey, fontWeight: FontWeight.bold)),
+            const Text(
+              'تذكر البريد الإلكتروني',
+              style: TextStyle(
+                color: Colors.blueGrey,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ],
         );
       },
@@ -249,8 +283,9 @@ class _LoginButton extends StatelessWidget {
     return BlocBuilder<LoginCubit, LoginState>(
       builder: (context, state) {
         // إذا كان التسجيل جاري، أو الصلاحيات قيد التحميل، نظهر دائرة التحميل
-        final isLoading = state.status == LoginStatus.loading || 
-                          authState.status == AuthStatus.loading;
+        final isLoading =
+            state.status == LoginStatus.loading ||
+            authState.status == AuthStatus.loading;
 
         return isLoading
             ? const CircularProgressIndicator()
@@ -261,10 +296,15 @@ class _LoginButton extends StatelessWidget {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.blueGrey,
                     foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                   ),
                   onPressed: () => context.read<LoginCubit>().submit(),
-                  child: const Text('تسجيل الدخول', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  child: const Text(
+                    'تسجيل الدخول',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
                 ),
               );
       },

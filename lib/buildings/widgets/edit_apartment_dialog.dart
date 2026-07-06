@@ -119,9 +119,7 @@ class _EditApartmentDialogContentState
               ),
               onPressed: () {
                 unawaited(
-                  context
-                      .read<BuildingsCubit>()
-                      .deleteApartment(widget.apt.id),
+                  context.read<BuildingsCubit>().deleteApartment(widget.apt.id),
                 );
 
                 Navigator.pop(confirmCtx);
@@ -150,11 +148,11 @@ class _EditApartmentDialogContentState
     if (_numberController.text.trim().isNotEmpty) {
       unawaited(
         context.read<BuildingsCubit>().updateApartment(
-              id: widget.apt.id,
-              apartmentNumber: _numberController.text.trim(),
-              area: widget.apt.area,
-              directionName: widget.apt.directionName,
-            ),
+          id: widget.apt.id,
+          apartmentNumber: _numberController.text.trim(),
+          area: widget.apt.area,
+          directionName: widget.apt.directionName,
+        ),
       );
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
@@ -189,7 +187,8 @@ class _EditApartmentDialogContentState
       borderColor = Colors.amber.shade200;
       iconTextColor = Colors.brown.shade800;
       alertIcon = Icons.info_outline;
-      alertText = 'للحفاظ على سلامة الحسابات والمعاملات المالية، يُسمح لك '
+      alertText =
+          'للحفاظ على سلامة الحسابات والمعاملات المالية، يُسمح لك '
           'بتعديل "الرقم/الرمز" فقط. لتغيير المساحة أو الاتجاه، يرجى حذف '
           'الوحدة وإضافتها من جديد.';
     } else if (isDelivered) {
@@ -197,7 +196,8 @@ class _EditApartmentDialogContentState
       borderColor = Colors.teal.shade200;
       iconTextColor = Colors.teal.shade900;
       alertIcon = Icons.verified_user;
-      alertText = 'هذه الوحدة تم تسليمها للعميل نهائياً وانتهت دورتها. '
+      alertText =
+          'هذه الوحدة تم تسليمها للعميل نهائياً وانتهت دورتها. '
           'يُمنع منعاً باتاً تعديل بياناتها أو حذفها للحفاظ على استقرار '
           'العقود والبيانات المالية.';
     } else {
@@ -205,7 +205,8 @@ class _EditApartmentDialogContentState
       borderColor = Colors.red.shade200;
       iconTextColor = Colors.red.shade900;
       alertIcon = Icons.gavel;
-      alertText = 'هذه الوحدة مباعة أو محجوزة بعقد نشط. يُمنع منعاً باتاً '
+      alertText =
+          'هذه الوحدة مباعة أو محجوزة بعقد نشط. يُمنع منعاً باتاً '
           'تعديل بياناتها أو حذفها للحفاظ على استقرار العقود المالية.';
     }
 
@@ -229,8 +230,8 @@ class _EditApartmentDialogContentState
                   color: isAvailable
                       ? Colors.orange.shade700
                       : (isDelivered
-                          ? Colors.teal.shade700
-                          : Colors.red.shade700),
+                            ? Colors.teal.shade700
+                            : Colors.red.shade700),
                   size: 28,
                 ),
               ),
@@ -262,8 +263,9 @@ class _EditApartmentDialogContentState
                 color: isDelivered ? Colors.teal.shade50 : Colors.red.shade50,
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
-                  color:
-                      isDelivered ? Colors.teal.shade200 : Colors.red.shade200,
+                  color: isDelivered
+                      ? Colors.teal.shade200
+                      : Colors.red.shade200,
                 ),
               ),
               child: Row(

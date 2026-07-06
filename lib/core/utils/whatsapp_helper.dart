@@ -3,12 +3,11 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:erp_repository/erp_repository.dart';
 
 class WhatsAppHelper {
-  
   // ==========================================
   // 1. دالة إرسال (وصل استلام) بعد الدفع
   // ==========================================
   static Future<bool> sendReceiptMessage({
-    required PaymentsLedgerData entry, 
+    required PaymentsLedgerData entry,
     required Contract contract,
     required Client client,
   }) async {
@@ -19,7 +18,8 @@ class WhatsAppHelper {
       phone = '963$phone';
     }
 
-    final String message = '''
+    final String message =
+        '''
 مرحباً أستاذ/ة ${client.name}،
 تم استلام الدفعة الخاصة بكم بنجاح بمبلغ قدره *${entry.amountPaid.toStringAsFixed(0)} ل.س*.
 وذلك عن شقة (${contract.apartmentDetails}).
@@ -34,7 +34,9 @@ class WhatsAppHelper {
 ''';
 
     final String encodedMessage = Uri.encodeComponent(message);
-    final Uri whatsappUrl = Uri.parse('https://wa.me/$phone?text=$encodedMessage');
+    final Uri whatsappUrl = Uri.parse(
+      'https://wa.me/$phone?text=$encodedMessage',
+    );
 
     if (await canLaunchUrl(whatsappUrl)) {
       await launchUrl(whatsappUrl, mode: LaunchMode.externalApplication);
@@ -61,7 +63,8 @@ class WhatsAppHelper {
     }
 
     // 🌟 صياغة رسالة التذكير اللطيفة
-    final String message = '''
+    final String message =
+        '''
 مرحباً أستاذ/ة ${client.name}،
 هذا تذكير ودي باقتراب موعد سداد القسط الشهري رقم (${schedule.installmentNumber}) الخاص بشقة (${contract.apartmentDetails}).
 
@@ -71,7 +74,9 @@ class WhatsAppHelper {
 ''';
 
     final String encodedMessage = Uri.encodeComponent(message);
-    final Uri whatsappUrl = Uri.parse('https://wa.me/$phone?text=$encodedMessage');
+    final Uri whatsappUrl = Uri.parse(
+      'https://wa.me/$phone?text=$encodedMessage',
+    );
 
     if (await canLaunchUrl(whatsappUrl)) {
       await launchUrl(whatsappUrl, mode: LaunchMode.externalApplication);

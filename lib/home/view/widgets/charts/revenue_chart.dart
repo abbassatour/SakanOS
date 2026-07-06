@@ -7,13 +7,13 @@ import 'chart_shared_widgets.dart';
 
 class RevenueChart extends StatelessWidget {
   final String title;
-  final String description; 
+  final String description;
   final Map<String, double> data;
 
   const RevenueChart({
-    super.key, 
-    required this.title, 
-    required this.description, 
+    super.key,
+    required this.title,
+    required this.description,
     required this.data,
   });
 
@@ -23,17 +23,18 @@ class RevenueChart extends StatelessWidget {
     final textFormatter = NumberFormat.currency(locale: 'ar_SY', symbol: 'ل.س');
 
     String bestPeriod = '—';
-    double maxRevenueAbsolute = 0.0; // سنبحث عن أكبر قيمة (سواء كانت موجبة أو سالبة) لرسم المحور Y
+    double maxRevenueAbsolute =
+        0.0; // سنبحث عن أكبر قيمة (سواء كانت موجبة أو سالبة) لرسم المحور Y
     double totalRevenue = 0.0;
 
     for (final e in data.entries) {
       totalRevenue += e.value;
-      
+
       // نحدد أفضل فترة (كأكبر تحصيل موجب)
       if (e.value > 0 && e.value > maxRevenueAbsolute) {
-         bestPeriod = e.key;
+        bestPeriod = e.key;
       }
-      
+
       // نبحث عن أقصى ارتفاع للعمود (بالقيمة المطلقة)
       if (e.value.abs() > maxRevenueAbsolute) {
         maxRevenueAbsolute = e.value.abs();
@@ -41,13 +42,13 @@ class RevenueChart extends StatelessWidget {
     }
 
     final maxY = maxRevenueAbsolute <= 0 ? 1000.0 : maxRevenueAbsolute * 1.25;
-    
+
     final yInterval = (maxY / 5).abs();
     final safeInterval = yInterval == 0 ? 1000.0 : yInterval;
 
     return ChartCard(
       title: title,
-      description: description, 
+      description: description,
       titleIcon: Icons.account_balance_wallet_rounded,
       iconColor: ChartColors.teal,
       chart: SizedBox(
@@ -61,20 +62,27 @@ class RevenueChart extends StatelessWidget {
                   alignment: BarChartAlignment.spaceAround,
                   barTouchData: BarTouchData(
                     touchTooltipData: BarTouchTooltipData(
-                      getTooltipColor: (BarChartGroupData group) => Colors.blueGrey.shade900,
+                      getTooltipColor: (BarChartGroupData group) =>
+                          Colors.blueGrey.shade900,
                       getTooltipItem: (group, _, rod, __) {
                         final period = data.keys.elementAt(group.x);
                         // 🌟 نجلب القيمة الحقيقية (بالسالب أو الموجب) من البيانات الأصلية
                         final actualValue = data.values.elementAt(group.x);
-                        
+
                         return BarTooltipItem(
                           '$period\n',
                           const TextStyle(color: Colors.white70, fontSize: 11),
-                          children:[
+                          children: [
                             TextSpan(
                               // 🌟 نعرض القيمة الحقيقية
                               text: textFormatter.format(actualValue),
-                              style: TextStyle(color: actualValue >= 0 ? Colors.greenAccent : Colors.redAccent, fontWeight: FontWeight.bold, fontSize: 13),
+                              style: TextStyle(
+                                color: actualValue >= 0
+                                    ? Colors.greenAccent
+                                    : Colors.redAccent,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                              ),
                             ),
                           ],
                         );
@@ -83,21 +91,30 @@ class RevenueChart extends StatelessWidget {
                   ),
                   barGroups: data.entries.toList().asMap().entries.map((e) {
                     final bool isPositive = e.value.value >= 0;
-                    
+
                     return BarChartGroupData(
                       x: e.key,
-                      barRods:[
+                      barRods: [
                         BarChartRodData(
-                          toY: e.value.value.abs(), // 🌟 نرسم العمود بناءً على القيمة المطلقة (دائماً للأعلى)
+                          toY: e.value.value
+                              .abs(), // 🌟 نرسم العمود بناءً على القيمة المطلقة (دائماً للأعلى)
                           width: 14,
                           // بما أنه دائماً للأعلى، التدوير دائماً في القمة
-                          borderRadius: const BorderRadius.vertical(top: Radius.circular(6)),
-                          
+                          borderRadius: const BorderRadius.vertical(
+                            top: Radius.circular(6),
+                          ),
+
                           // 🌟 الألوان تحدد إذا كان إيداع أم سحب
                           gradient: LinearGradient(
-                            colors: isPositive 
-                              ?[ChartColors.teal.withOpacity(0.7), ChartColors.teal]
-                              :[Colors.red.shade400.withOpacity(0.7), Colors.red.shade600],
+                            colors: isPositive
+                                ? [
+                                    ChartColors.teal.withOpacity(0.7),
+                                    ChartColors.teal,
+                                  ]
+                                : [
+                                    Colors.red.shade400.withOpacity(0.7),
+                                    Colors.red.shade600,
+                                  ],
                             begin: Alignment.bottomCenter,
                             end: Alignment.topCenter,
                           ),
@@ -112,12 +129,16 @@ class RevenueChart extends StatelessWidget {
                         reservedSize: 32,
                         getTitlesWidget: (value, _) {
                           final i = value.toInt();
-                          if (i < 0 || i >= data.length) return const SizedBox.shrink();
+                          if (i < 0 || i >= data.length)
+                            return const SizedBox.shrink();
                           return Padding(
                             padding: const EdgeInsets.only(top: 8),
                             child: Text(
                               data.keys.elementAt(i),
-                              style: const TextStyle(fontSize: 9, color: ChartColors.axisLabel),
+                              style: const TextStyle(
+                                fontSize: 9,
+                                color: ChartColors.axisLabel,
+                              ),
                             ),
                           );
                         },
@@ -129,16 +150,24 @@ class RevenueChart extends StatelessWidget {
                         reservedSize: 52,
                         interval: safeInterval,
                         getTitlesWidget: (value, meta) {
-                          if (value == 0 || value == maxY) return const SizedBox.shrink();
+                          if (value == 0 || value == maxY)
+                            return const SizedBox.shrink();
                           return Text(
                             axisFormatter.format(value),
-                            style: const TextStyle(fontSize: 10, color: ChartColors.axisLabel),
+                            style: const TextStyle(
+                              fontSize: 10,
+                              color: ChartColors.axisLabel,
+                            ),
                           );
                         },
                       ),
                     ),
-                    topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    topTitles: const AxisTitles(
+                      sideTitles: SideTitles(showTitles: false),
+                    ),
+                    rightTitles: const AxisTitles(
+                      sideTitles: SideTitles(showTitles: false),
+                    ),
                   ),
                   borderData: FlBorderData(show: false),
                   gridData: FlGridData(
@@ -146,22 +175,25 @@ class RevenueChart extends StatelessWidget {
                     drawVerticalLine: false,
                     horizontalInterval: safeInterval,
                     getDrawingHorizontalLine: (value) {
-                      return const FlLine(color: ChartColors.gridLine, strokeWidth: 1);
+                      return const FlLine(
+                        color: ChartColors.gridLine,
+                        strokeWidth: 1,
+                      );
                     },
                   ),
                 ),
-                duration: Duration.zero, 
+                duration: Duration.zero,
               ),
       ),
-      footerRows:[
+      footerRows: [
         FooterRow(
           icon: Icons.star_rounded,
           iconColor: Colors.amber,
           label: 'أعلى فترة تحصيل:',
           // إذا لم يكن هناك تحصيل موجب أبداً، نعرض القيمة العظمى المطلقة (والتي ستكون سالبة)
-          value: bestPeriod != '—' 
-            ? '$bestPeriod (${textFormatter.format(data[bestPeriod])})'
-            : 'لا يوجد',
+          value: bestPeriod != '—'
+              ? '$bestPeriod (${textFormatter.format(data[bestPeriod])})'
+              : 'لا يوجد',
         ),
         FooterRow(
           icon: Icons.functions_rounded,

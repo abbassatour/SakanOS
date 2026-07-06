@@ -11,7 +11,7 @@ part 'home_state.dart';
 
 class HomeCubit extends Cubit<HomeState> {
   HomeCubit(this._erpRepository)
-      : super(HomeState(referenceDate: DateTime.now()));
+    : super(HomeState(referenceDate: DateTime.now()));
 
   final ErpRepository _erpRepository;
 

@@ -39,8 +39,7 @@ class PaymentsCubit extends Cubit<PaymentsState> {
 
       final allUsers = await _erpRepository.getAllUsers();
       final namesMap = <String, String>{
-        for (final user in allUsers)
-          user.id: user.fullName ?? 'مدير النظام',
+        for (final user in allUsers) user.id: user.fullName ?? 'مدير النظام',
       };
 
       emit(
@@ -105,8 +104,9 @@ class PaymentsCubit extends Cubit<PaymentsState> {
   }) async {
     emit(state.copyWith(status: PaymentsStatus.loading));
     try {
-      final contractIndex =
-          state.contracts.indexWhere((c) => c.id == contractId);
+      final contractIndex = state.contracts.indexWhere(
+        (c) => c.id == contractId,
+      );
       if (contractIndex == -1) throw Exception('هذا العقد غير موجود.');
       final contract = state.contracts[contractIndex];
 
@@ -114,15 +114,16 @@ class PaymentsCubit extends Cubit<PaymentsState> {
       if (contract.coefficients.isNotEmpty && contract.coefficients != '{}') {
         final decodedMap =
             jsonDecode(contract.coefficients) as Map<String, dynamic>;
-        
+
         // تم حل مشكلة cascade_invocations باستخدام for loop عادية
         for (final entry in decodedMap.entries) {
           contractCoefficients[entry.key] = (entry.value as num).toDouble();
         }
       }
 
-      final safeAreaForCalculation =
-          contract.totalArea > 0 ? contract.totalArea : 1.0;
+      final safeAreaForCalculation = contract.totalArea > 0
+          ? contract.totalArea
+          : 1.0;
       final paymentDateToSave = customDate?.toUtc() ?? DateTime.now().toUtc();
 
       var rawMeterPriceToUse = 0.0;
@@ -197,8 +198,9 @@ class PaymentsCubit extends Cubit<PaymentsState> {
 
       final effectiveValueRaw =
           amountPaid + (amountPaid * (discountPercentage / 100));
-      final convertedMeters =
-          _roundConvertedMeters(effectiveValueRaw / rawMeterPriceToUse);
+      final convertedMeters = _roundConvertedMeters(
+        effectiveValueRaw / rawMeterPriceToUse,
+      );
 
       await _erpRepository.addLedgerEntry(
         contractId: contractId,
@@ -281,8 +283,9 @@ class PaymentsCubit extends Cubit<PaymentsState> {
   Future<void> softDeleteLastEntry(PaymentsLedgerData entryToDelete) async {
     emit(state.copyWith(status: PaymentsStatus.loading));
     try {
-      final allEntriesForContract =
-          await _erpRepository.getContractLedger(entryToDelete.contractId);
+      final allEntriesForContract = await _erpRepository.getContractLedger(
+        entryToDelete.contractId,
+      );
 
       if (allEntriesForContract.isEmpty ||
           allEntriesForContract.first.id != entryToDelete.id) {

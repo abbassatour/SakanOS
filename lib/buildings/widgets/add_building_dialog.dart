@@ -24,7 +24,7 @@ String _getArabicFloorName(int floorNumber) {
       'الثاني عشر',
       'الثالث عشر',
       'الرابع عشر',
-      'الخامس عشر'
+      'الخامس عشر',
     ];
     if (floorNumber <= names.length) {
       return 'الطابق ${names[floorNumber - 1]}';
@@ -250,11 +250,11 @@ class _AddBuildingDialogContentState extends State<_AddBuildingDialogContent> {
 
     unawaited(
       context.read<BuildingsCubit>().addBuilding(
-            name: _nameCtrl.text.trim(),
-            location: _locCtrl.text.trim(),
-            floorCoeffs: finalFloorCoeffs,
-            dirCoeffs: finalDirCoeffs,
-          ),
+        name: _nameCtrl.text.trim(),
+        location: _locCtrl.text.trim(),
+        floorCoeffs: finalFloorCoeffs,
+        dirCoeffs: finalDirCoeffs,
+      ),
     );
 
     Navigator.pop(context);

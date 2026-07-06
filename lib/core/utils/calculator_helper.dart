@@ -9,24 +9,25 @@ class CalculatorHelper {
     required double area,
     required MaterialPricesHistoryData currentPrices,
     int months = 48,
-    Map<String, double> coefficients = const {}, 
+    Map<String, double> coefficients = const {},
   }) {
     // -----------------------------------------------------
     // 1. حساب تكلفة المتر المربع الواحد (التكلفة الخام)
     // -----------------------------------------------------
-    double baseCostPerSqmRaw = 
-        (currentPrices.ironPrice * 30.0) +                
-        (currentPrices.cementPrice * 4.0) +               
-        (currentPrices.block15Price * 50.0) +             
-        (currentPrices.formworkAndPouringWages * 1.0) +   
-        (currentPrices.aggregateMaterialsPrice * 2.0) +   
-        (currentPrices.ordinaryWorkerWage * 1.0);         
+    double baseCostPerSqmRaw =
+        (currentPrices.ironPrice * 30.0) +
+        (currentPrices.cementPrice * 4.0) +
+        (currentPrices.block15Price * 50.0) +
+        (currentPrices.formworkAndPouringWages * 1.0) +
+        (currentPrices.aggregateMaterialsPrice * 2.0) +
+        (currentPrices.ordinaryWorkerWage * 1.0);
 
     // -----------------------------------------------------
     // 2. تطبيق معامل "الموقع" أولاً
     // -----------------------------------------------------
     double locationCoefficient = coefficients['الموقع'] ?? 0.0;
-    double priceAfterLocationRaw = baseCostPerSqmRaw + (baseCostPerSqmRaw * locationCoefficient);
+    double priceAfterLocationRaw =
+        baseCostPerSqmRaw + (baseCostPerSqmRaw * locationCoefficient);
 
     // -----------------------------------------------------
     // 3. تجميع وتطبيق باقي المعاملات
@@ -39,15 +40,16 @@ class CalculatorHelper {
     });
 
     // السعر النهائي للمتر (بدون أي تقريب لاستخدامه في حساب الإجمالي)
-    double finalPricePerSqmRaw = priceAfterLocationRaw + (priceAfterLocationRaw * otherExtraPercentage);
+    double finalPricePerSqmRaw =
+        priceAfterLocationRaw + (priceAfterLocationRaw * otherExtraPercentage);
 
     // -----------------------------------------------------
     // 4. الحسابات النهائية للعقد (الآن نستخدم القيم الخام)
     // -----------------------------------------------------
-    
+
     // ✅ الإجمالي = السعر الخام الدقيق × المساحة الدقيقة
     double totalValueRaw = finalPricePerSqmRaw * area;
-    
+
     // 🛡️ هنا فقط نقوم بالتقريب النهائي للإجمالي
     double finalTotalValue = _roundTo10(totalValueRaw);
 
@@ -60,7 +62,7 @@ class CalculatorHelper {
     if (months > 0) {
       // نحسب القسط بناءً على الإجمالي المقرب
       monthlyInstallment = _roundTo10(finalTotalValue / months);
-      
+
       // ✅ السر المحاسبي: القسط الأخير يمتص أي فجوة ناتجة عن التقريب
       // نضرب القسط في (عدد الأشهر - 1) ونطرحه من الإجمالي لمعرفة القسط الأخير الفعلي
       lastInstallment = finalTotalValue - (monthlyInstallment * (months - 1));
@@ -70,13 +72,16 @@ class CalculatorHelper {
     // 6. إرجاع النتيجة (نقرب القيم فقط بهدف العرض للمستخدم)
     // -----------------------------------------------------
     return {
-      'baseCostPerSqm': _roundTo10(baseCostPerSqmRaw),     
+      'baseCostPerSqm': _roundTo10(baseCostPerSqmRaw),
       'priceAfterLocation': _roundTo10(priceAfterLocationRaw),
-      'pricePerSqm': _roundTo10(finalPricePerSqmRaw), // نقرب سعر المتر للعرض فقط
+      'pricePerSqm': _roundTo10(
+        finalPricePerSqmRaw,
+      ), // نقرب سعر المتر للعرض فقط
       'pricePerSqmRaw': finalPricePerSqmRaw,
       'totalValue': finalTotalValue,
       'monthlyInstallment': monthlyInstallment,
-      'lastInstallment': lastInstallment, // يفضل إرسال القسط الأخير للواجهة وعرضه إذا كان يختلف عن باقي الأقساط
+      'lastInstallment':
+          lastInstallment, // يفضل إرسال القسط الأخير للواجهة وعرضه إذا كان يختلف عن باقي الأقساط
     };
   }
 }

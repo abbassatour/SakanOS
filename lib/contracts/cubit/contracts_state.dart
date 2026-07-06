@@ -41,11 +41,11 @@ class ContractsState extends Equatable {
 
   @override
   List<Object?> get props => [
-        status,
-        contracts,
-        deletedContracts,
-        clients,
-        userNamesMap,
-        errorMessage,
-      ];
+    status,
+    contracts,
+    deletedContracts,
+    clients,
+    userNamesMap,
+    errorMessage,
+  ];
 }

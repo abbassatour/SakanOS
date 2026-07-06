@@ -4,12 +4,12 @@ import 'chart_colors.dart';
 
 class ChartCard extends StatelessWidget {
   final String title;
-  final String description; 
+  final String description;
   final IconData titleIcon;
   final Color iconColor;
   final Widget chart;
   final List<Widget> footerRows;
-  
+
   // 🌟 [الإضافات الجديدة]: لدعم زر التوسيع أو الانتقال لصفحات تفصيلية
   final VoidCallback? onActionTap;
   final IconData? actionIcon;
@@ -18,13 +18,13 @@ class ChartCard extends StatelessWidget {
   const ChartCard({
     super.key,
     required this.title,
-    required this.description, 
+    required this.description,
     required this.titleIcon,
     required this.iconColor,
     required this.chart,
-    this.footerRows = const[],
+    this.footerRows = const [],
     this.onActionTap, // 🌟
-    this.actionIcon,  // 🌟
+    this.actionIcon, // 🌟
     this.actionTooltip, // 🌟
   });
 
@@ -34,18 +34,37 @@ class ChartCard extends StatelessWidget {
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(
-          children:[
+          children: [
             const Icon(Icons.lightbulb_outline, color: Colors.amber, size: 28),
             const SizedBox(width: 12),
-            Expanded(child: Text('عن المخطط: $title', style: const TextStyle(color: Colors.blueGrey, fontSize: 16, fontWeight: FontWeight.bold))),
+            Expanded(
+              child: Text(
+                'عن المخطط: $title',
+                style: const TextStyle(
+                  color: Colors.blueGrey,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
           ],
         ),
-        content: Text(description, style: const TextStyle(height: 1.6, fontSize: 14, color: Colors.black87)),
-        actions:[
+        content: Text(
+          description,
+          style: const TextStyle(
+            height: 1.6,
+            fontSize: 14,
+            color: Colors.black87,
+          ),
+        ),
+        actions: [
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.indigo, foregroundColor: Colors.white),
-            onPressed: () => Navigator.pop(ctx), 
-            child: const Text('حسناً، فهمت')
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.indigo,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('حسناً، فهمت'),
           ),
         ],
       ),
@@ -58,7 +77,7 @@ class ChartCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: ChartColors.cardBg,
         borderRadius: BorderRadius.circular(16),
-        boxShadow:[
+        boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.06),
             blurRadius: 16,
@@ -70,23 +89,37 @@ class ChartCard extends StatelessWidget {
         padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children:[
+          children: [
             Row(
-              children:[
+              children: [
                 Container(
                   padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(color: iconColor.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
+                  decoration: BoxDecoration(
+                    color: iconColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                   child: Icon(titleIcon, color: iconColor, size: 18),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
-                  child: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: ChartColors.titleColor)),
+                  child: Text(
+                    title,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15,
+                      color: ChartColors.titleColor,
+                    ),
+                  ),
                 ),
-                
+
                 // 🌟 زر الإجراء الإضافي (مثل الانتقال للتفاصيل)
                 if (onActionTap != null && actionIcon != null) ...[
                   IconButton(
-                    icon: Icon(actionIcon, color: Colors.indigo.shade400, size: 22),
+                    icon: Icon(
+                      actionIcon,
+                      color: Colors.indigo.shade400,
+                      size: 22,
+                    ),
                     tooltip: actionTooltip ?? 'فتح التفاصيل',
                     splashRadius: 20,
                     padding: EdgeInsets.zero,
@@ -98,7 +131,11 @@ class ChartCard extends StatelessWidget {
 
                 // زر المعلومات الأساسي
                 IconButton(
-                  icon: const Icon(Icons.info_outline, color: Colors.grey, size: 22),
+                  icon: const Icon(
+                    Icons.info_outline,
+                    color: Colors.grey,
+                    size: 22,
+                  ),
                   tooltip: 'شرح المخطط',
                   splashRadius: 20,
                   padding: EdgeInsets.zero,
@@ -112,7 +149,11 @@ class ChartCard extends StatelessWidget {
             if (footerRows.isNotEmpty) ...[
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 14),
-                child: Divider(height: 1, thickness: 1, color: Color(0xFFF0F0F0)),
+                child: Divider(
+                  height: 1,
+                  thickness: 1,
+                  color: Color(0xFFF0F0F0),
+                ),
               ),
               ...footerRows,
             ],
@@ -122,7 +163,6 @@ class ChartCard extends StatelessWidget {
     );
   }
 }
-
 
 class FooterRow extends StatelessWidget {
   final IconData icon;
@@ -143,7 +183,7 @@ class FooterRow extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
-        children:[
+        children: [
           Icon(icon, size: 16, color: iconColor),
           const SizedBox(width: 8),
           Text(
@@ -178,8 +218,12 @@ class EmptyChart extends StatelessWidget {
       child: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
-          children:[
-            Icon(Icons.bar_chart_rounded, size: 40, color: Colors.grey.shade300),
+          children: [
+            Icon(
+              Icons.bar_chart_rounded,
+              size: 40,
+              color: Colors.grey.shade300,
+            ),
             const SizedBox(height: 10),
             Text(
               'لا توجد بيانات في هذه الفترة',
@@ -197,7 +241,7 @@ class ChartRow extends StatelessWidget {
   const ChartRow({super.key, required this.children});
   @override
   Widget build(BuildContext context) => Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: children,
-      );
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: children,
+  );
 }

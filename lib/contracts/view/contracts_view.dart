@@ -99,8 +99,9 @@ class _ContractsViewState extends State<ContractsView> {
           'عقد جديد',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        backgroundColor:
-            canCreate ? Colors.teal.shade600 : Colors.grey.shade300,
+        backgroundColor: canCreate
+            ? Colors.teal.shade600
+            : Colors.grey.shade300,
         foregroundColor: canCreate ? Colors.white : Colors.grey.shade600,
         elevation: canCreate ? 6 : 0,
         tooltip: canCreate ? 'إنشاء عقد جديد' : 'لا تملك صلاحية إنشاء عقود',
@@ -144,18 +145,21 @@ class _ContractsViewState extends State<ContractsView> {
               }
 
               final filteredContracts = state.contracts.where((contract) {
-                final passStatus = _statusFilter == 'all' ||
+                final passStatus =
+                    _statusFilter == 'all' ||
                     (_statusFilter == 'active' && !contract.isCompleted) ||
                     (_statusFilter == 'completed' && contract.isCompleted);
 
-                final passType = _typeFilter == 'all' ||
+                final passType =
+                    _typeFilter == 'all' ||
                     (_typeFilter == 'allocated' &&
                         contract.contractType == 'متخصص') ||
                     (_typeFilter == 'unallocated' &&
                         contract.contractType == 'لاحق التخصص');
 
                 // تم الإصلاح هنا (بدون == true)
-                final passHandover = _handoverFilter == 'all' ||
+                final passHandover =
+                    _handoverFilter == 'all' ||
                     (_handoverFilter == 'delivered' && contract.isHandedOver) ||
                     (_handoverFilter == 'pending' && !contract.isHandedOver);
 
@@ -169,17 +173,19 @@ class _ContractsViewState extends State<ContractsView> {
                       : '';
 
                   final searchLower = _searchQuery.toLowerCase();
-                  passSearch = clientName.contains(searchLower) ||
-                      contract.apartmentDetails
-                          .toLowerCase()
-                          .contains(searchLower) ||
+                  passSearch =
+                      clientName.contains(searchLower) ||
+                      contract.apartmentDetails.toLowerCase().contains(
+                        searchLower,
+                      ) ||
                       contract.id.contains(searchLower);
                 }
 
                 return passStatus && passType && passHandover && passSearch;
               }).toList();
 
-              final hasActiveFilters = _statusFilter != 'all' ||
+              final hasActiveFilters =
+                  _statusFilter != 'all' ||
                   _typeFilter != 'all' ||
                   _handoverFilter != 'all';
 

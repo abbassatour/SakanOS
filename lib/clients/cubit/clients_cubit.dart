@@ -11,8 +11,8 @@ part 'clients_state.dart';
 class ClientsCubit extends Cubit<ClientsState> {
   ClientsCubit({
     required ErpRepository erpRepository,
-  })  : _erpRepository = erpRepository,
-        super(const ClientsState());
+  }) : _erpRepository = erpRepository,
+       super(const ClientsState());
 
   final ErpRepository _erpRepository;
 

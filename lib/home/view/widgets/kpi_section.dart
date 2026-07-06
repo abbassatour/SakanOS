@@ -11,11 +11,13 @@ class KpiSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final numberFormatter = NumberFormat.decimalPattern('ar_AR');
 
-    final kpis =[
-      // 1. الأرقام القديمة 
+    final kpis = [
+      // 1. الأرقام القديمة
       _KpiData(
         icon: Icons.account_balance_wallet_rounded,
-        gradient: const LinearGradient(colors: [Color(0xFF11998e), Color(0xFF38ef7d)]),
+        gradient: const LinearGradient(
+          colors: [Color(0xFF11998e), Color(0xFF38ef7d)],
+        ),
         title: 'إجمالي المحصّل',
         value: '${numberFormatter.format(state.totalRevenue.toInt())} ل.س',
         subtitle: 'إجمالي المدفوعات المسجلة',
@@ -23,19 +25,23 @@ class KpiSection extends StatelessWidget {
       ),
       _KpiData(
         icon: Icons.square_foot_rounded,
-        gradient: const LinearGradient(colors: [Color(0xFF1A237E), Color(0xFF3949AB)]),
+        gradient: const LinearGradient(
+          colors: [Color(0xFF1A237E), Color(0xFF3949AB)],
+        ),
         title: 'إجمالي المباع',
         value: '${numberFormatter.format(state.totalAreaSold)} م²',
         subtitle: 'المساحة الكلية للعقود',
         iconBg: const Color(0xFF1A237E),
       ),
-      
+
       // ==========================================
       // 🌟 البطاقات الإدارية الخطيرة
       // ==========================================
       _KpiData(
         icon: Icons.warning_amber_rounded,
-        gradient: const LinearGradient(colors:[Color(0xFFe53935), Color(0xFFe35d5b)]), // أحمر تحذيري
+        gradient: const LinearGradient(
+          colors: [Color(0xFFe53935), Color(0xFFe35d5b)],
+        ), // أحمر تحذيري
         title: 'الديون المتأخرة الفورية',
         value: '${numberFormatter.format(state.totalOverdueDebts.toInt())} ل.س',
         subtitle: 'أقساط تجاوزت موعد الاستحقاق',
@@ -43,7 +49,9 @@ class KpiSection extends StatelessWidget {
       ),
       _KpiData(
         icon: Icons.construction_rounded,
-        gradient: const LinearGradient(colors:[Color(0xFFf5af19), Color(0xFFf12711)]), // برتقالي تنبيهي
+        gradient: const LinearGradient(
+          colors: [Color(0xFFf5af19), Color(0xFFf12711)],
+        ), // برتقالي تنبيهي
         title: 'الأمتار المتبقية ',
         value: '${numberFormatter.format(state.remainingMetersInDebt)} م²',
         subtitle: 'أمتار للشركة لم يتم قبض ثمنها',
@@ -55,7 +63,9 @@ class KpiSection extends StatelessWidget {
       // ==========================================
       _KpiData(
         icon: Icons.vpn_key_rounded,
-        gradient: const LinearGradient(colors: [Color(0xFFf7971e), Color(0xFFffd200)]),
+        gradient: const LinearGradient(
+          colors: [Color(0xFFf7971e), Color(0xFFffd200)],
+        ),
         title: 'أمتار قيد التسليم',
         value: '${numberFormatter.format(state.totalUndeliveredMeters)} م²',
         subtitle: 'مساحات مباعة لم تُسلم للعملاء بعد',
@@ -63,7 +73,9 @@ class KpiSection extends StatelessWidget {
       ),
       _KpiData(
         icon: Icons.description_rounded,
-        gradient: const LinearGradient(colors:[Color(0xFF7b4397), Color(0xFFdc2430)]),
+        gradient: const LinearGradient(
+          colors: [Color(0xFF7b4397), Color(0xFFdc2430)],
+        ),
         title: 'العقود الفعّالة',
         value: numberFormatter.format(state.activeContractsCount),
         subtitle: 'إجمالي العقود المبرمة غير المؤرشفة',
@@ -88,7 +100,9 @@ class KpiSection extends StatelessWidget {
             crossAxisCount: crossAxisCount,
             crossAxisSpacing: 16,
             mainAxisSpacing: 16,
-            childAspectRatio: constraints.maxWidth >= 1200 ? 1.4 : 1.6, // تعديل بسيط ليتناسب مع الشاشات العريضة
+            childAspectRatio: constraints.maxWidth >= 1200
+                ? 1.4
+                : 1.6, // تعديل بسيط ليتناسب مع الشاشات العريضة
           ),
           itemCount: kpis.length,
           itemBuilder: (context, index) => _KpiCard(data: kpis[index]),
@@ -126,7 +140,7 @@ class _KpiCard extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: data.gradient,
         borderRadius: BorderRadius.circular(16),
-        boxShadow:[
+        boxShadow: [
           BoxShadow(
             color: data.iconBg.withOpacity(0.35),
             blurRadius: 12,
@@ -139,10 +153,10 @@ class _KpiCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children:[
+          children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children:[
+              children: [
                 Flexible(
                   child: Text(
                     data.title,
