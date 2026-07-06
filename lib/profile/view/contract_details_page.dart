@@ -56,7 +56,8 @@ class ContractDetailsPage extends StatelessWidget {
     Map<String, dynamic> coefficientsMap = {};
     if (contract.coefficients.isNotEmpty && contract.coefficients != '{}') {
       try {
-        coefficientsMap = jsonDecode(contract.coefficients) as Map<String, dynamic>;
+        coefficientsMap =
+            jsonDecode(contract.coefficients) as Map<String, dynamic>;
       } catch (_) {}
     }
 
