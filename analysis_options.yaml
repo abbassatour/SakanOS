@@ -19,48 +19,17 @@ analyzer:
 
 linter:
   rules:
-    # --------------------------------------------------------
-    # ✅ القواعد الأمنية والمنطقية (تم تفعيلها لأن تعطيلها خطير)
-    # --------------------------------------------------------
-    
-    # تم تفعيلها: منع الوصول الديناميكي. تعطيلها هو السبب الأول لـ NoSuchMethodError عند التعامل مع JSON.
     avoid_dynamic_calls: true
-
-    # --------------------------------------------------------
-    # 🛑 القواعد الشكلية المزعجة (مستثناة - لا تؤثر على جودة الكود)
-    # --------------------------------------------------------
-    
-    # إيقاف إجبار إضافة سطر فارغ في نهاية كل ملف
     eol_at_end_of_file: false
-
-    # إيقاف إجبار كتابة التوثيق (Comments) لكل الكلاسات
     public_member_api_docs: false
-    
-    # إيقاف التقييد بـ 80 حرف للسطر (لحرية التنسيق البصري)
     lines_longer_than_80_chars: false
-    
-    # إيقاف إجبار استخدام النقاط المتتابعة (..) لزيادة المقروئية
     cascade_invocations: false
-    
-    # إيقاف الإجبار على ترتيب الاستيرادات أبجدياً
     directives_ordering: false
-    
-    # إيقاف إجبار حذف القيم الافتراضية
     avoid_redundant_argument_values: false
-    
-    # السماح بكتابة أنواع المتغيرات (String x =) بدلاً من (var x =)
     omit_local_variable_types: false
-    
-    # إيقاف التحذير عند استخدام نصوص خام (Raw Strings)
     unnecessary_raw_strings: false
-    
-    # السماح بمقارنة المتغيرات بـ == true (مفيدة للـ Nullable Bools)
     no_literal_bool_comparisons: false
-    
-    # السماح باستخدام catch (e) بشكل عام
     avoid_catches_without_on_clauses: false
-
-    # 🌟 إيقاف القواعد التي تسببت في تخريب أنواع المتغيرات
     avoid_types_on_closure_parameters: false
     always_put_required_named_parameters_first: false
     sort_constructors_first: false
@@ -77,8 +46,6 @@ linter:
     inference_failure_on_instance_creation: false
     avoid_positional_boolean_parameters: false
     # 🌟 إسكات المفتش للأشياء التي لا تؤثر على جودة التطبيق:
-    inference_failure_on_function_invocation: false
-    inference_failure_on_instance_creation: false
     inference_failure_on_function_return_type: false
     dead_code: false
     dead_null_aware_expression: false
