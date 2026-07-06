@@ -62,7 +62,7 @@ class PdfGenerator {
       Map<String, dynamic> snapshot = {};
       try {
         if (entry.pricesSnapshot.isNotEmpty && entry.pricesSnapshot != '{}') {
-          snapshot = jsonDecode(entry.pricesSnapshot);
+          snapshot = jsonDecode(entry.pricesSnapshot) as Map<String, dynamic>;
         }
       } catch (e) {
         print('Error decoding prices snapshot: $e');

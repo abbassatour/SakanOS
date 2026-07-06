@@ -36,7 +36,7 @@ class DepositPdfGenerator {
       Map<String, dynamic> snapshot = {};
       try {
         if (entry.pricesSnapshot.isNotEmpty)
-          snapshot = jsonDecode(entry.pricesSnapshot);
+          snapshot = jsonDecode(entry.pricesSnapshot) as Map<String, dynamic>;
       } catch (_) {}
 
       String getPriceFormatted(String key) {
