@@ -13,12 +13,21 @@ dependencies:
   equatable: ^2.0.8
   erp_repository:
     path: packages/erp_repository
+  # === الحزم التي سنضيفها الآن ===
+  local_storage_api:
+    path: packages/local_storage_api
+  cloud_storage_api:
+    path: packages/cloud_storage_api
+  http: ^1.2.0
+  path: ^1.9.1
+  supabase_flutter: ^2.12.0
+  # ==============================
   excel: ^4.0.6
   file_picker: ^10.3.10
   fl_chart: ^1.2.0
   flutter:
     sdk: flutter
-  flutter_bloc: ^9.1.1
+  # ... (باقي الحزم كما هي)  flutter_bloc: ^9.1.1
   flutter_localizations:
     sdk: flutter
   get_it: ^9.2.1
