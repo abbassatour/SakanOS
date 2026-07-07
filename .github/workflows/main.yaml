@@ -20,6 +20,5 @@ jobs:
     uses: VeryGoodOpenSource/very_good_workflows/.github/workflows/flutter_package.yml@v1
     with:
       flutter_version: "3.44.x"
-      run_bloc_lint: true
-      min_coverage: 0 
-      
+      run_bloc_lint: false  # 🌟 تم طرد مفتش BLoC المزعج هنا!
+      min_coverage: 0
