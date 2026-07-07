@@ -2,7 +2,7 @@
 name: erp_repository
 description: A starting point for Dart libraries or applications.
 version: 1.0.0
-# repository: https://github.com/my_org/my_repo
+publish_to: none  # 🌟 أضف هذا السطر هنا!
 
 environment:
   sdk: ^3.11.1

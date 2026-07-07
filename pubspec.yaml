@@ -37,6 +37,7 @@ dependencies:
     path: packages/cloud_storage_api
   http: ^1.6.0
   supabase_flutter: ^2.15.4
+  path: ^1.9.1
 
 dev_dependencies:
   bloc_lint: ^0.4.0

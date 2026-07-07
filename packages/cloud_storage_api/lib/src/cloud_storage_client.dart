@@ -78,7 +78,7 @@ class CloudStorageClient {
           },
         )
         .subscribe((status, [error]) {
-          if (status == 'SUBSCRIBED') {
+          if (status == RealtimeSubscribeStatus.subscribed) {
             print(
               '✅ تم الاتصال بقناة Supabase بنجاح، التطبيق الآن يستمع للأسعار الحية.',
             );
