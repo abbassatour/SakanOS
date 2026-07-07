@@ -39,7 +39,8 @@ part 'database.g.dart';
   ],
 )
 class AppDatabase extends _$AppDatabase {
-  AppDatabase() : super(_openConnection());
+  // 🌟 تعديل هندسي: نسمح بتمرير (QueryExecutor) من الخارج من أجل اختبارات الـ In-Memory
+  AppDatabase({QueryExecutor? e}) : super(e ?? _openConnection());
 
   @override
   int get schemaVersion => 1;
