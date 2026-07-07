@@ -16,7 +16,6 @@
       "**/pubspec.lock",
       "Redist/**",
       "ourhomesetup.iss",
-      "**/test/**",
       ".github/**",
       "**/*.svg",
       "**/*.png",
