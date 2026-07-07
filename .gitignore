@@ -10,7 +10,7 @@
 .svn/
 repomix-output.xml
 migrate_working_dir/
-
+**/repomix-output.xml
 # Security Keys
 .env
 env.g.dart
