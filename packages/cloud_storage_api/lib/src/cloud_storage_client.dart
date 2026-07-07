@@ -18,6 +18,45 @@ class CloudStorageClient {
   RealtimeChannel? _pricesChannel;
 
   // ==========================================
+  // ⚙️ دالة مساعدة لتجاوز حد الـ 1000 سجل (Pagination)
+  // ==========================================
+  Future<List<Map<String, dynamic>>> _fetchAllPaginated(
+    String tableName, {
+    DateTime? lastSync,
+  }) async {
+    const int limit = 1000;
+    int offset = 0;
+    List<Map<String, dynamic>> allData = [];
+    bool hasMore = true;
+
+    while (hasMore) {
+      var query = _supabase.from(tableName).select();
+
+      if (lastSync != null) {
+        // 🌍 التعديل الذهبي: فرض الـ UTC
+        query = query.gte('updated_at', lastSync.toUtc().toIso8601String());
+      }
+
+      // سحب دفعة (Chunk) من البيانات
+      final response = await query.range(offset, offset + limit - 1);
+      final List<Map<String, dynamic>> chunk = List<Map<String, dynamic>>.from(
+        response,
+      );
+
+      allData.addAll(chunk);
+
+      // إذا كانت الدفعة أقل من الحد الأقصى، فهذا يعني أننا وصلنا للنهاية
+      if (chunk.length < limit) {
+        hasMore = false;
+      } else {
+        offset += limit; // الانتقال للدفعة التالية
+      }
+    }
+
+    return allData;
+  }
+
+  // ==========================================
   // 🔐 المصادقة (Authentication)
   // ==========================================
 
@@ -95,97 +134,46 @@ class CloudStorageClient {
   // نقوم قسرياً باستخدام `.toUtc()` قبل `.toIso8601String()` لضمان أننا نسأل السحابة
   // بناءً على التوقيت العالمي، لأن السحابة تخزن التواريخ بصيغة UTC.
 
-  // 📥 جلب العملاء (تزايدي - Incremental Sync)
-  Future<List<Map<String, dynamic>>> getClients({DateTime? lastSync}) async {
-    var query = _supabase.from('clients').select();
-    if (lastSync != null) {
-      // 🌍 التعديل الذهبي: فرض الـ UTC لضمان المزامنة الصحيحة عبر المناطق الزمنية
-      query = query.gte('updated_at', lastSync.toUtc().toIso8601String());
-    }
-    return await query;
-  }
+  // ==========================================
+  // 📥 دوال سحب البيانات (PULL from Cloud) محصنة ضد الـ 1000 Limit
+  // ==========================================
 
-  // 📥 جلب الأدوار/القوالب (تزايدي)
-  Future<List<Map<String, dynamic>>> getAppRoles({DateTime? lastSync}) async {
-    var query = _supabase.from('app_roles').select();
-    if (lastSync != null) {
-      query = query.gte('updated_at', lastSync.toUtc().toIso8601String());
-    }
-    return await query;
-  }
+  Future<List<Map<String, dynamic>>> getClients({DateTime? lastSync}) =>
+      _fetchAllPaginated('clients', lastSync: lastSync);
 
-  // 📥 جلب المستخدمين وصلاحياتهم (تزايدي)
-  Future<List<Map<String, dynamic>>> getAppUsers({DateTime? lastSync}) async {
-    var query = _supabase.from('app_users').select();
-    if (lastSync != null) {
-      query = query.gte('updated_at', lastSync.toUtc().toIso8601String());
-    }
-    return await query;
-  }
+  Future<List<Map<String, dynamic>>> getAppRoles({DateTime? lastSync}) =>
+      _fetchAllPaginated('app_roles', lastSync: lastSync);
 
-  // 📥 جلب العقود (تزايدي)
-  Future<List<Map<String, dynamic>>> getContracts({DateTime? lastSync}) async {
-    var query = _supabase.from('contracts').select();
-    if (lastSync != null) {
-      // 🌍 فرض الـ UTC
-      query = query.gte('updated_at', lastSync.toUtc().toIso8601String());
-    }
-    return await query;
-  }
+  Future<List<Map<String, dynamic>>> getAppUsers({DateTime? lastSync}) =>
+      _fetchAllPaginated('app_users', lastSync: lastSync);
 
-  // 📥 جلب الدفعات (تزايدي)
-  Future<List<Map<String, dynamic>>> getPayments({DateTime? lastSync}) async {
-    var query = _supabase.from('payments').select();
-    if (lastSync != null) {
-      // 🌍 فرض الـ UTC
-      query = query.gte('updated_at', lastSync.toUtc().toIso8601String());
-    }
-    return await query;
-  }
+  Future<List<Map<String, dynamic>>> getContracts({DateTime? lastSync}) =>
+      _fetchAllPaginated('contracts', lastSync: lastSync);
 
-  // 📥 جلب جدول الاستحقاقات (تزايدي)
-  Future<List<Map<String, dynamic>>> getSchedules({DateTime? lastSync}) async {
-    var query = _supabase.from('installments_schedule').select();
-    if (lastSync != null) {
-      // 🌍 فرض الـ UTC
-      query = query.gte('updated_at', lastSync.toUtc().toIso8601String());
-    }
-    return await query;
-  }
+  Future<List<Map<String, dynamic>>> getPayments({DateTime? lastSync}) =>
+      _fetchAllPaginated('payments', lastSync: lastSync);
 
-  // 🌟 جلب سجل أسعار المواد (غالباً لا نحتاج lastSync هنا إن كنا نجلب السجل كاملاً للإحصائيات)
-  Future<List<Map<String, dynamic>>> getMaterialPrices() async =>
-      await _supabase.from('material_prices').select();
+  Future<List<Map<String, dynamic>>> getSchedules({DateTime? lastSync}) =>
+      _fetchAllPaginated('installments_schedule', lastSync: lastSync);
 
-  // 📥 جلب المحاضر (Buildings)
-  Future<List<Map<String, dynamic>>> getBuildings() async =>
-      await _supabase.from('buildings').select();
+  Future<List<Map<String, dynamic>>> getMaterialPrices() =>
+      _fetchAllPaginated('material_prices');
 
-  // 📥 جلب الشقق (Apartments)
-  Future<List<Map<String, dynamic>>> getApartments() async =>
-      await _supabase.from('apartments').select();
+  Future<List<Map<String, dynamic>>> getBuildings() =>
+      _fetchAllPaginated('buildings');
 
-  // 📥 جلب الإجراءات القانونية
-  Future<List<Map<String, dynamic>>> getLegalActions({
+  Future<List<Map<String, dynamic>>> getApartments() =>
+      _fetchAllPaginated('apartments');
+
+  Future<List<Map<String, dynamic>>> getLegalActions({DateTime? lastSync}) =>
+      _fetchAllPaginated('legal_actions', lastSync: lastSync);
+
+  Future<List<Map<String, dynamic>>> getDollarPrices({DateTime? lastSync}) =>
+      _fetchAllPaginated('dollar_prices', lastSync: lastSync);
+
+  Future<List<Map<String, dynamic>>> getLegalActionAttachments({
     DateTime? lastSync,
-  }) async {
-    var query = _supabase.from('legal_actions').select();
-    if (lastSync != null) {
-      query = query.gte('updated_at', lastSync.toUtc().toIso8601String());
-    }
-    return await query;
-  }
-
-  // 📥 جلب أسعار الدولار (Pull)
-  Future<List<Map<String, dynamic>>> getDollarPrices({
-    DateTime? lastSync,
-  }) async {
-    var query = _supabase.from('dollar_prices').select();
-    if (lastSync != null) {
-      query = query.gte('updated_at', lastSync.toUtc().toIso8601String());
-    }
-    return await query;
-  }
+  }) => _fetchAllPaginated('legal_action_attachments', lastSync: lastSync);
 
   // ==========================================
   // 📤 دوال رفع البيانات (PUSH to Cloud) - (UPSERT)
@@ -276,10 +264,10 @@ class CloudStorageClient {
     if (extension == 'doc' || extension == 'docx')
       contentType = 'application/msword';
 
-    // 4. 🌟 الرابط المباشر لـ Supabase API
-    const projectId = 'krdfrdzyfdcqjmnuzads';
+    // 4. 🌟 استخراج رابط الـ Storage السحابي ديناميكياً
+    final String storageUrl = _supabase.storage.url;
     final uploadUrl = Uri.parse(
-      'https://$projectId.supabase.co/storage/v1/object/$bucketName/$fileName',
+      '$storageUrl/object/$bucketName/$fileName',
     );
 
     // 5. إطلاق صاروخ الـ HTTP مباشرة للسيرفر (Post Request)
@@ -296,8 +284,7 @@ class CloudStorageClient {
 
     // 6. التحقق من الرد (Status Code 200 يعني نجاح العملية) وإرجاع الرابط العام
     if (response.statusCode == 200) {
-      final publicUrl =
-          'https://$projectId.supabase.co/storage/v1/object/public/$bucketName/$fileName';
+      final publicUrl = '$storageUrl/object/public/$bucketName/$fileName';
       return publicUrl;
     } else {
       throw Exception(
@@ -309,17 +296,6 @@ class CloudStorageClient {
   // ==========================================
   // 📎 دوال مرفقات الإجراءات القانونية (تمت الإضافة)
   // ==========================================
-
-  // 1. 📥 جلب سجلات المرفقات من السحابة (تزايدي)
-  Future<List<Map<String, dynamic>>> getLegalActionAttachments({
-    DateTime? lastSync,
-  }) async {
-    var query = _supabase.from('legal_action_attachments').select();
-    if (lastSync != null) {
-      query = query.gte('updated_at', lastSync.toUtc().toIso8601String());
-    }
-    return await query;
-  }
 
   // 2. 📤 رفع سجل المرفق إلى السحابة
   Future<void> upsertLegalActionAttachment(Map<String, dynamic> data) async =>
@@ -360,9 +336,10 @@ class CloudStorageClient {
       contentType =
           'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
 
-    const projectId = 'krdfrdzyfdcqjmnuzads'; // نفس البروجيكت آي دي الخاص بك
+    // استخراج رابط الـ Storage السحابي ديناميكياً
+    final String storageUrl = _supabase.storage.url;
     final uploadUrl = Uri.parse(
-      'https://$projectId.supabase.co/storage/v1/object/$bucketName/$fileName',
+      '$storageUrl/object/$bucketName/$fileName',
     );
 
     final response = await http.post(
@@ -376,7 +353,7 @@ class CloudStorageClient {
     );
 
     if (response.statusCode == 200) {
-      return 'https://$projectId.supabase.co/storage/v1/object/public/$bucketName/$fileName';
+      return '$storageUrl/object/public/$bucketName/$fileName';
     } else {
       throw Exception(
         'فشل رفع المرفق: ${response.statusCode} - ${response.body}',

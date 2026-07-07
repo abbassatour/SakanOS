@@ -77,11 +77,10 @@ class _StorageTestPageState extends State<StorageTestPage> {
 
       // 🌟 الرابط المباشر للرفع (نستخرج الـ Project ID من رابط الـ Supabase الأساسي)
       // مشروعك هو: krdfrdzyfdcqjmnuzads
-      const projectId = 'krdfrdzyfdcqjmnuzads';
+    final String storageUrl = supabase.storage.url;
       final directUrl = Uri.parse(
-        'https://$projectId.supabase.co/storage/v1/object/$bucketName/$fileName',
+        '$storageUrl/object/$bucketName/$fileName',
       );
-
       // 🌟 بناء الطلب يدوياً لتجاوز خطأ 404 الخاص بـ supabase_flutter
       final response = await http.post(
         directUrl,
@@ -95,8 +94,8 @@ class _StorageTestPageState extends State<StorageTestPage> {
 
       // 5. فحص رد السيرفر الحقيقي
       if (response.statusCode == 200) {
-        final publicUrl =
-            'https://$projectId.supabase.co/storage/v1/object/public/$bucketName/$fileName';
+        if (response.statusCode == 200) {
+        final publicUrl = '$storageUrl/object/public/$bucketName/$fileName';
         _addLog("🎉🎉 نجاح ساحق! تم رفع العقد بنجاح تام.");
         _addLog("🔗 الرابط: $publicUrl");
       } else {
