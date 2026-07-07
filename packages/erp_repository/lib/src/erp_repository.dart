@@ -131,8 +131,9 @@ class ErpRepository {
     _cloudApi.startListeningToCloudChanges(
       onDataChanged: () {
         // ignore: avoid_print
-        print('🔄 جاري سحب الأسعار الجديدة من السحابة بسبب تحديث حي...');
-        pullDataFromCloud();
+        print('🔄 جاري المزامنة الشاملة (دفع ثم سحب) بسبب تحديث حي...');
+        // 🌟 التعديل السحري: نستخدم forceSyncWithCloud لكي يرفع البيانات المحلية أولاً قبل أن يسحب!
+        forceSyncWithCloud();
       },
     );
   }

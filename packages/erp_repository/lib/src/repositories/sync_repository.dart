@@ -439,6 +439,9 @@ class SyncRepository {
     if (_isSyncing || currentUserId == null) return;
     _isSyncing = true;
 
+    // 🌟 المتغير المنقذ: يراقب هل فشل رفع أي جدول للسحابة
+    bool hasErrors = false;
+
     final db = _localApi.database;
 
     double safeNum(double? val) {
@@ -467,8 +470,8 @@ class SyncRepository {
         );
       }
     } on Exception catch (e) {
-      // ignore: avoid_print
       print('Sync Clients Failed: $e');
+      hasErrors = true; // 🌟 تسجيل الخطأ
     }
 
     // 2. مزامنة العقود
@@ -479,7 +482,6 @@ class SyncRepository {
       for (final c in pendingContracts) {
         String? finalFileUrl = c.contractFileUrl;
 
-        // 🌟 التحقق: هل الملف يحتاج إلى رفع؟ (إذا كان المسار لا يبدأ بـ http فهو ملف محلي)
         if (finalFileUrl != null && !finalFileUrl.startsWith('http')) {
           try {
             final localFile = File(finalFileUrl);
@@ -497,8 +499,6 @@ class SyncRepository {
               );
               await localFile.delete();
             } else {
-              // 🌟 السطر السحري: إذا قام المستخدم بحذف الملف من الكمبيوتر قبل المزامنة
-              // نجعله null لكي لا نرفع مسار (C:\) إلى السحابة!
               finalFileUrl = null;
               await (db.update(
                 db.contracts,
@@ -507,16 +507,15 @@ class SyncRepository {
               );
             }
           } catch (e) {
-            print('⚠️ فشل رفع ملف العقد (ربما الإنترنت ضعيف): $e');
-            continue; // نؤجل رفع هذا العقد للمرة القادمة
+            print('⚠️ فشل رفع ملف العقد: $e');
+            hasErrors = true; // 🌟 تسجيل الخطأ لتأجيل السحب
+            continue;
           }
         }
 
-        // رفع بيانات العقد للسحابة بالرابط الجديد
         await _cloudApi.upsertContract({
           'id': c.id,
           'client_id': c.clientId,
-          // ... (باقي الحقول كما هي عندك تماماً دون تغيير)
           'apartment_id': c.apartmentId,
           'contract_type': c.contractType,
           'apartment_details': c.apartmentDetails,
@@ -540,7 +539,7 @@ class SyncRepository {
           'coefficients': c.coefficients,
           'contract_date': c.contractDate.toUtc().toIso8601String(),
           'guarantor_name': c.guarantorName,
-          'contract_file_url': finalFileUrl, // 🌟 الرابط المحدث!
+          'contract_file_url': finalFileUrl,
           'user_id': c.userId,
           'is_completed': c.isCompleted,
           'last_action_date': c.lastActionDate?.toUtc().toIso8601String(),
@@ -553,8 +552,8 @@ class SyncRepository {
         );
       }
     } on Exception catch (e) {
-      // ignore: avoid_print
       print('Sync Contracts Failed: $e');
+      hasErrors = true; // 🌟
     }
 
     // 3. مزامنة جدول الاستحقاقات
@@ -591,8 +590,8 @@ class SyncRepository {
         }
       }
     } on Exception catch (e) {
-      // ignore: avoid_print
       print('Sync Schedules Failed: $e');
+      hasErrors = true; // 🌟
     }
 
     // 4. مزامنة الدفعات
@@ -620,8 +619,8 @@ class SyncRepository {
             .write(const PaymentsLedgerCompanion(isSynced: drift.Value(true)));
       }
     } on Exception catch (e) {
-      // ignore: avoid_print
       print('Sync Payments Failed: $e');
+      hasErrors = true; // 🌟
     }
 
     // 5. مزامنة أسعار المواد
@@ -650,8 +649,8 @@ class SyncRepository {
         );
       }
     } on Exception catch (e) {
-      // ignore: avoid_print
       print('Sync Prices Failed: $e');
+      hasErrors = true; // 🌟
     }
 
     // 6. مزامنة المحاضر
@@ -675,8 +674,8 @@ class SyncRepository {
         );
       }
     } on Exception catch (e) {
-      // ignore: avoid_print
       print('Sync Buildings Failed: $e');
+      hasErrors = true; // 🌟
     }
 
     // 7. مزامنة الشقق
@@ -704,8 +703,8 @@ class SyncRepository {
         );
       }
     } on Exception catch (e) {
-      // ignore: avoid_print
       print('Sync Apartments Failed: $e');
+      hasErrors = true; // 🌟
     }
 
     // 8. مزامنة قوالب الأدوار
@@ -727,8 +726,8 @@ class SyncRepository {
         );
       }
     } on Exception catch (e) {
-      // ignore: avoid_print
       print('Sync Roles Failed: $e');
+      hasErrors = true; // 🌟
     }
 
     // 9. مزامنة المستخدمين
@@ -752,8 +751,8 @@ class SyncRepository {
         );
       }
     } on Exception catch (e) {
-      // ignore: avoid_print
       print('Sync Users Failed: $e');
+      hasErrors = true; // 🌟
     }
 
     // 10. مزامنة الإجراءات القانونية
@@ -776,8 +775,8 @@ class SyncRepository {
             .write(const LegalActionsCompanion(isSynced: drift.Value(true)));
       }
     } on Exception catch (e) {
-      // ignore: avoid_print
       print('Sync Legal Actions Failed: $e');
+      hasErrors = true; // 🌟
     }
 
     // 11. مزامنة المرفقات القانونية
@@ -788,7 +787,6 @@ class SyncRepository {
       for (final att in pendingAttachments) {
         String finalFileUrl = att.fileUrl;
 
-        // 🌟 التحقق من الرابط المحلي
         if (!finalFileUrl.startsWith('http')) {
           try {
             final localFile = File(finalFileUrl);
@@ -808,22 +806,22 @@ class SyncRepository {
               );
               await localFile.delete();
             } else {
-              // 🌟 إذا تم حذف المرفق محلياً قبل رفعه، نتخطاه تماماً أو نحذفه من القاعدة
               await (db.delete(
                 db.legalActionAttachments,
               )..where((t) => t.id.equals(att.id))).go();
-              continue; // ننتقل للمرفق التالي فوراً
+              continue;
             }
           } catch (e) {
             print('⚠️ فشل رفع المرفق: $e');
-            continue; // تأجيل
+            hasErrors = true; // 🌟 تسجيل خطأ الإرفاق
+            continue;
           }
         }
 
         await _cloudApi.upsertLegalActionAttachment({
           'id': att.id,
           'legal_action_id': att.legalActionId,
-          'file_url': finalFileUrl, // 🌟 الرابط المحدث
+          'file_url': finalFileUrl,
           'file_name': att.fileName,
           'file_type': att.fileType,
           'user_id': att.userId,
@@ -837,8 +835,8 @@ class SyncRepository {
         );
       }
     } on Exception catch (e) {
-      // ignore: avoid_print
       print('Sync Legal Attachments Failed: $e');
+      hasErrors = true; // 🌟
     }
 
     // 12. مزامنة أسعار الدولار
@@ -855,11 +853,18 @@ class SyncRepository {
         );
       }
     } on Exception catch (e) {
-      // ignore: avoid_print
       print('Sync Dollar Prices Failed: $e');
+      hasErrors = true; // 🌟
     }
 
     _isSyncing = false;
+
+    // 🌟 حجر الزاوية: إحباط السحب إذا كان هناك أخطاء في الرفع!
+    if (hasErrors) {
+      throw Exception(
+        'فشل رفع بعض التعديلات المحلية. تم إيقاف السحب من السحابة لحماية بياناتك من المسح.',
+      );
+    }
   }
 
   Map<String, dynamic> _mapDollarPriceToCloud(
