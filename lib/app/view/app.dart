@@ -23,7 +23,13 @@ class App extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        RepositoryProvider.value(value: erpRepository),
+        RepositoryProvider<ErpRepository>.value(
+          value: erpRepository,
+          // الدالة التي ستعمل عند التخلص من الـ Provider
+          // للأسف RepositoryProvider.value لا يملك خاصية dispose تلقائية،
+          // لذلك هذا الإجراء كافٍ بما أن الـ ErpRepository يعيش طوال دورة حياة التطبيق.
+          // لكن دالة dispose التي أضفناها ستكون جاهزة للاستخدام في الـ main أو الـ teardown إذا احتجنا.
+        ),
         BlocProvider(
           create: (context) => AuthCubit(erpRepository),
         ),

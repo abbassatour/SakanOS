@@ -760,4 +760,10 @@ class ErpRepository {
     timeFilter: timeFilter,
     refDate: refDate,
   );
-} // <--- نهاية كلاس ErpRepository
+  // ==========================================
+  // 🧹 تنظيف الذاكرة وإغلاق القنوات (Dispose)
+  // ==========================================
+  void dispose() {
+    _pricesChannel?.unsubscribe();
+  }
+}

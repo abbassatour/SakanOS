@@ -101,8 +101,8 @@ class _CopyFloorDialogContentState extends State<_CopyFloorDialogContent> {
 
     final availableFloors =
         jsonDecode(widget.building.floorCoefficients) as Map<String, dynamic>;
-    final targetFloorPercentage = (availableFloors[_selectedTargetFloor] as num)
-        .toDouble();
+    final targetFloorPercentage =
+        (availableFloors[_selectedTargetFloor] as num?)?.toDouble() ?? 0.0;
 
     final cubit = context.read<BuildingsCubit>();
 
