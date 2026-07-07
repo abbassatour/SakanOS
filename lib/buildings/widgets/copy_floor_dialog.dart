@@ -71,8 +71,9 @@ class _CopyFloorDialogContentState extends State<_CopyFloorDialogContent> {
     super.initState();
     _selectedTargetFloor = widget.targetFloors.first;
     for (final apt in widget.sourceApartments) {
-      _newNumberControllers[apt.id] =
-          TextEditingController(text: '${apt.apartmentNumber}*');
+      _newNumberControllers[apt.id] = TextEditingController(
+        text: '${apt.apartmentNumber}*',
+      );
     }
   }
 
@@ -85,8 +86,9 @@ class _CopyFloorDialogContentState extends State<_CopyFloorDialogContent> {
   }
 
   void _handleSave() {
-    final hasEmpty =
-        _newNumberControllers.values.any((c) => c.text.trim().isEmpty);
+    final hasEmpty = _newNumberControllers.values.any(
+      (c) => c.text.trim().isEmpty,
+    );
     if (hasEmpty || _selectedTargetFloor == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -97,10 +99,10 @@ class _CopyFloorDialogContentState extends State<_CopyFloorDialogContent> {
       return;
     }
 
-    final availableFloors = jsonDecode(widget.building.floorCoefficients)
-        as Map<String, dynamic>;
-    final targetFloorPercentage =
-        (availableFloors[_selectedTargetFloor] as num).toDouble();
+    final availableFloors =
+        jsonDecode(widget.building.floorCoefficients) as Map<String, dynamic>;
+    final targetFloorPercentage = (availableFloors[_selectedTargetFloor] as num)
+        .toDouble();
 
     final cubit = context.read<BuildingsCubit>();
 
@@ -108,7 +110,7 @@ class _CopyFloorDialogContentState extends State<_CopyFloorDialogContent> {
       final copiedCoeffs =
           jsonDecode(apt.customCoefficients) as Map<String, dynamic>
             ..removeWhere((key, value) => key.startsWith('الطابق'));
-            
+
       if (targetFloorPercentage != 0.0) {
         copiedCoeffs['الطابق ($_selectedTargetFloor)'] = targetFloorPercentage;
       }

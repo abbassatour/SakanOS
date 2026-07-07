@@ -81,28 +81,28 @@ class PaymentsView extends StatelessWidget {
                           ),
                         )
                       : state.ledgerEntries.isEmpty
-                          ? Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.money_off,
-                                    size: 60,
-                                    color: Colors.orange.shade200,
-                                  ),
-                                  const SizedBox(height: 16),
-                                  const Text(
-                                    'لم يتم إدخال أي دفعة لهذا العقد.',
-                                    style: TextStyle(fontSize: 16),
-                                  ),
-                                ],
+                      ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.money_off,
+                                size: 60,
+                                color: Colors.orange.shade200,
                               ),
-                            )
-                          : PaymentsDataTable(
-                              state: state,
-                              canEdit: canEdit,
-                              canDelete: canDelete,
-                            ),
+                              const SizedBox(height: 16),
+                              const Text(
+                                'لم يتم إدخال أي دفعة لهذا العقد.',
+                                style: TextStyle(fontSize: 16),
+                              ),
+                            ],
+                          ),
+                        )
+                      : PaymentsDataTable(
+                          state: state,
+                          canEdit: canEdit,
+                          canDelete: canDelete,
+                        ),
                 ),
               ],
             );

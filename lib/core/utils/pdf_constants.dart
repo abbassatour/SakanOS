@@ -6,12 +6,14 @@ import 'arabic_tafqeet.dart';
 class PdfConstants {
   static const primaryColor = PdfColor.fromInt(0xFF1A2B3D); // أزرق رسمي
   static const depositAccent = PdfColor.fromInt(0xFFE64A19); // برتقالي للدفع
-  static const refundAccent = PdfColors.red900; // أحمر للاسترداد
+  static const PdfColor refundAccent = PdfColors.red900; // أحمر للاسترداد
 
-  static String fmtMoney(double amount) => NumberFormat("#,###", "en_US").format(amount.abs().round());
+  static String fmtMoney(double amount) =>
+      NumberFormat("#,###", "en_US").format(amount.abs().round());
   static String fmtMeters(double meters) => meters.abs().toStringAsFixed(4);
-  static String fmtArea(double area) => NumberFormat.decimalPattern().format(area);
-  
+  static String fmtArea(double area) =>
+      NumberFormat.decimalPattern().format(area);
+
   static String tafqeet(double number) {
     return "فقط ${ArabicTafqeet.convert(number.abs().toInt())} ليرة سورية لا غير.";
   }
@@ -30,8 +32,22 @@ class PdfConstants {
       child: pw.Row(
         mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
         children: [
-          pw.Text(title, style: pw.TextStyle(font: isTotal ? boldFont : font, fontSize: isTotal ? 7.5 : 6.5, color: labelColor ?? PdfColors.black)),
-          pw.Text(value, style: pw.TextStyle(font: boldFont, fontSize: isTotal ? 8.5 : 7.5, color: valueColor ?? (isTotal ? primaryColor : PdfColors.black))),
+          pw.Text(
+            title,
+            style: pw.TextStyle(
+              font: isTotal ? boldFont : font,
+              fontSize: isTotal ? 7.5 : 6.5,
+              color: labelColor ?? PdfColors.black,
+            ),
+          ),
+          pw.Text(
+            value,
+            style: pw.TextStyle(
+              font: boldFont,
+              fontSize: isTotal ? 8.5 : 7.5,
+              color: valueColor ?? (isTotal ? primaryColor : PdfColors.black),
+            ),
+          ),
         ],
       ),
     );

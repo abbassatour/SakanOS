@@ -130,11 +130,13 @@ class ClientTable extends StatelessWidget {
                   final cAt = client.createdAt;
                   final uAt = client.updatedAt;
 
-                  final dateAdded = '${cAt.year}/'
+                  final dateAdded =
+                      '${cAt.year}/'
                       '${cAt.month.toString().padLeft(2, '0')}/'
                       '${cAt.day.toString().padLeft(2, '0')}';
 
-                  final dateUpdated = '${uAt.year}/'
+                  final dateUpdated =
+                      '${uAt.year}/'
                       '${uAt.month.toString().padLeft(2, '0')}/'
                       '${uAt.day.toString().padLeft(2, '0')} '
                       '${uAt.hour}:${uAt.minute.toString().padLeft(2, '0')}';
@@ -327,8 +329,9 @@ class ClientTable extends StatelessWidget {
                             color: canEdit ? Colors.blue : Colors.grey.shade400,
                             size: 22,
                           ),
-                          tooltip:
-                              canEdit ? 'تعديل بيانات' : 'لا تملك الصلاحية',
+                          tooltip: canEdit
+                              ? 'تعديل بيانات'
+                              : 'لا تملك الصلاحية',
                           onPressed: canEdit
                               ? () => showEditClientDialog(context, client)
                               : null,

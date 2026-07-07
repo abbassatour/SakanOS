@@ -7,17 +7,17 @@ class RecycleBinState extends Equatable {
   const RecycleBinState({
     this.status = RecycleBinStatus.initial,
     this.deletedBuildings = const [],
-    this.deletedApartments = const[],
-    this.deletedClients = const[],
+    this.deletedApartments = const [],
+    this.deletedClients = const [],
     this.deletedContracts = const [],
-    this.deletedPayments = const[],
-    
+    this.deletedPayments = const [],
+
     // 🌟 الإضافات الجديدة: البيانات المرجعية لترجمة الـ IDs إلى أسماء مقروءة في الواجهة
-    this.referenceClients = const[],
-    this.referenceContracts = const[],
-    this.referenceBuildings = const[],
+    this.referenceClients = const [],
+    this.referenceContracts = const [],
+    this.referenceBuildings = const [],
     this.userNamesMap = const {},
-    
+
     this.errorMessage,
   });
 
@@ -43,12 +43,12 @@ class RecycleBinState extends Equatable {
     List<Client>? deletedClients,
     List<Contract>? deletedContracts,
     List<PaymentsLedgerData>? deletedPayments,
-    
+
     List<Client>? referenceClients,
     List<Contract>? referenceContracts,
     List<Building>? referenceBuildings,
     Map<String, String>? userNamesMap,
-    
+
     String? errorMessage,
   }) {
     return RecycleBinState(
@@ -58,28 +58,28 @@ class RecycleBinState extends Equatable {
       deletedClients: deletedClients ?? this.deletedClients,
       deletedContracts: deletedContracts ?? this.deletedContracts,
       deletedPayments: deletedPayments ?? this.deletedPayments,
-      
+
       referenceClients: referenceClients ?? this.referenceClients,
       referenceContracts: referenceContracts ?? this.referenceContracts,
       referenceBuildings: referenceBuildings ?? this.referenceBuildings,
       userNamesMap: userNamesMap ?? this.userNamesMap,
-      
+
       errorMessage: errorMessage ?? this.errorMessage,
     );
   }
 
   @override
-  List<Object?> get props =>[
-        status,
-        deletedBuildings,
-        deletedApartments,
-        deletedClients,
-        deletedContracts,
-        deletedPayments,
-        referenceClients,   // 🌟
-        referenceContracts, // 🌟
-        referenceBuildings, // 🌟
-        userNamesMap,       // 🌟
-        errorMessage,
-      ];
+  List<Object?> get props => [
+    status,
+    deletedBuildings,
+    deletedApartments,
+    deletedClients,
+    deletedContracts,
+    deletedPayments,
+    referenceClients, // 🌟
+    referenceContracts, // 🌟
+    referenceBuildings, // 🌟
+    userNamesMap, // 🌟
+    errorMessage,
+  ];
 }

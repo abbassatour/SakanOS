@@ -1,6 +1,6 @@
 // lib/home/view/widgets/recent_activities_section.dart
 import 'package:flutter/material.dart';
-import 'package:erp_repository/erp_repository.dart'; 
+import 'package:erp_repository/erp_repository.dart';
 
 class RecentActivitiesSection extends StatelessWidget {
   final List<ActivityItem> activities;
@@ -15,7 +15,7 @@ class RecentActivitiesSection extends StatelessWidget {
     if (difference.inHours < 24) return 'منذ ${difference.inHours} ساعة';
     if (difference.inDays == 1) return 'أمس';
     if (difference.inDays < 7) return 'منذ ${difference.inDays} أيام';
-    return '${dateTime.year}/${dateTime.month.toString().padLeft(2,'0')}/${dateTime.day.toString().padLeft(2,'0')}';
+    return '${dateTime.year}/${dateTime.month.toString().padLeft(2, '0')}/${dateTime.day.toString().padLeft(2, '0')}';
   }
 
   @override
@@ -27,7 +27,7 @@ class RecentActivitiesSection extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        boxShadow:[
+        boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.03),
             blurRadius: 10,
@@ -37,19 +37,30 @@ class RecentActivitiesSection extends StatelessWidget {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children:[
+        children: [
           // 🌟 ترويسة القسم
           Row(
-            children:[
+            children: [
               Container(
                 padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(color: Colors.orange.shade50, borderRadius: BorderRadius.circular(8)),
-                child: Icon(Icons.history_toggle_off, color: Colors.orange.shade700, size: 22),
+                decoration: BoxDecoration(
+                  color: Colors.orange.shade50,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  Icons.history_toggle_off,
+                  color: Colors.orange.shade700,
+                  size: 22,
+                ),
               ),
               const SizedBox(width: 12),
               const Text(
                 'سجل النشاطات الحديثة',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1A237E)),
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF1A237E),
+                ),
               ),
             ],
           ),
@@ -69,33 +80,32 @@ class RecentActivitiesSection extends StatelessWidget {
               case ActivityType.payment:
                 iconColor = Colors.green.shade600;
                 iconData = Icons.payments_outlined;
-                break;
               case ActivityType.contract:
                 iconColor = Colors.teal.shade600;
                 iconData = Icons.real_estate_agent_outlined;
-                break;
               case ActivityType.client:
                 iconColor = Colors.indigo.shade600;
                 iconData = Icons.person_add_alt_1_outlined;
-                break;
               case ActivityType.adminAction:
                 iconColor = Colors.orange.shade600;
                 iconData = Icons.admin_panel_settings_outlined;
-                break;
             }
 
             return Row(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children:[
+              children: [
                 // 📍 خط الزمن والأيقونة
                 Column(
-                  children:[
+                  children: [
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
                         color: iconColor.withOpacity(0.1),
                         shape: BoxShape.circle,
-                        border: Border.all(color: iconColor.withOpacity(0.3), width: 1.5),
+                        border: Border.all(
+                          color: iconColor.withOpacity(0.3),
+                          width: 1.5,
+                        ),
                       ),
                       child: Icon(iconData, color: iconColor, size: 18),
                     ),
@@ -108,49 +118,71 @@ class RecentActivitiesSection extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(width: 16),
-                
+
                 // 📝 المحتوى النصي للنشاط
                 Expanded(
                   child: Padding(
-                    padding: const EdgeInsets.only(bottom: 16.0), // إبعاد العناصر عن بعضها
+                    padding: const EdgeInsets.only(
+                      bottom: 16.0,
+                    ), // إبعاد العناصر عن بعضها
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children:[
+                      children: [
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children:[
+                          children: [
                             Text(
                               activity.title,
-                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                              ),
                             ),
                             Text(
                               _getTimeAgo(activity.timestamp),
-                              style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
+                              style: TextStyle(
+                                color: Colors.grey.shade500,
+                                fontSize: 12,
+                              ),
                             ),
                           ],
                         ),
                         const SizedBox(height: 4),
                         Text(
                           activity.description,
-                          style: TextStyle(color: Colors.grey.shade700, fontSize: 13),
+                          style: TextStyle(
+                            color: Colors.grey.shade700,
+                            fontSize: 13,
+                          ),
                         ),
                         const SizedBox(height: 8),
-                        
+
                         // 👤 اسم المستخدم الملون
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
                             color: Colors.grey.shade100,
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
-                            children:[
-                              Icon(Icons.person_outline, size: 14, color: Colors.grey.shade600),
+                            children: [
+                              Icon(
+                                Icons.person_outline,
+                                size: 14,
+                                color: Colors.grey.shade600,
+                              ),
                               const SizedBox(width: 4),
                               Text(
                                 activity.userName,
-                                style: TextStyle(color: Colors.grey.shade800, fontSize: 12, fontWeight: FontWeight.bold),
+                                style: TextStyle(
+                                  color: Colors.grey.shade800,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ],
                           ),
@@ -161,7 +193,7 @@ class RecentActivitiesSection extends StatelessWidget {
                 ),
               ],
             );
-          }).toList(),
+          }),
         ],
       ),
     );

@@ -215,9 +215,10 @@ class PaymentsTopBar extends StatelessWidget {
                         ),
                       ),
                     ),
-                    initialSelection: state.contracts.any(
-                      (c) => c.id == state.selectedContractId,
-                    )
+                    initialSelection:
+                        state.contracts.any(
+                          (c) => c.id == state.selectedContractId,
+                        )
                         ? state.selectedContractId
                         : null,
                     onSelected: (val) {
@@ -297,10 +298,11 @@ class PaymentsTopBar extends StatelessWidget {
                 height: 48,
                 child: ElevatedButton.icon(
                   onPressed: canAdd
-                      ? () => showAddPaymentDialog( // تم إزالة unawaited من هنا
-                            context,
-                            state.selectedContractId!,
-                          )
+                      ? () => showAddPaymentDialog(
+                          // تم إزالة unawaited من هنا
+                          context,
+                          state.selectedContractId!,
+                        )
                       : null,
                   icon: const Icon(Icons.add_card, size: 20),
                   label: const Text(
@@ -311,8 +313,9 @@ class PaymentsTopBar extends StatelessWidget {
                     backgroundColor: canAdd
                         ? Colors.deepOrange.shade600
                         : Colors.grey.shade300,
-                    foregroundColor:
-                        canAdd ? Colors.white : Colors.grey.shade600,
+                    foregroundColor: canAdd
+                        ? Colors.white
+                        : Colors.grey.shade600,
                     elevation: canAdd ? 2 : 0,
                     disabledBackgroundColor: Colors.grey.shade300,
                     padding: const EdgeInsets.symmetric(horizontal: 20),

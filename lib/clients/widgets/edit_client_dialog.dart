@@ -56,8 +56,9 @@ class _EditClientDialogContentState extends State<_EditClientDialogContent> {
     super.initState();
     _nameController = TextEditingController(text: widget.client.name);
     _phoneController = TextEditingController(text: widget.client.phone);
-    _nationalIdController =
-        TextEditingController(text: widget.client.nationalId ?? '');
+    _nationalIdController = TextEditingController(
+      text: widget.client.nationalId ?? '',
+    );
   }
 
   @override
@@ -112,9 +113,9 @@ class _EditClientDialogContentState extends State<_EditClientDialogContent> {
     final isAuthorized = await showVerifyPinDialog(widget.parentContext);
 
     if (isAuthorized && widget.parentContext.mounted) {
-      await widget.parentContext
-          .read<ClientsCubit>()
-          .deleteClient(widget.client.id);
+      await widget.parentContext.read<ClientsCubit>().deleteClient(
+        widget.client.id,
+      );
 
       if (widget.parentContext.mounted) {
         ScaffoldMessenger.of(widget.parentContext).showSnackBar(
@@ -147,11 +148,11 @@ class _EditClientDialogContentState extends State<_EditClientDialogContent> {
 
     if (isAuthorized && widget.parentContext.mounted) {
       await widget.parentContext.read<ClientsCubit>().updateClient(
-            id: widget.client.id,
-            name: name,
-            phone: phone,
-            nationalId: nationalId.isEmpty ? null : nationalId,
-          );
+        id: widget.client.id,
+        name: name,
+        phone: phone,
+        nationalId: nationalId.isEmpty ? null : nationalId,
+      );
 
       if (widget.parentContext.mounted) {
         ScaffoldMessenger.of(widget.parentContext).showSnackBar(

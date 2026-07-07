@@ -2,7 +2,10 @@ import 'package:flutter/services.dart';
 
 class ThousandsFormatter extends TextInputFormatter {
   @override
-  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
     if (newValue.text.isEmpty) return newValue;
     String digitsOnly = newValue.text.replaceAll(RegExp(r'[^0-9]'), '');
     if (digitsOnly.isEmpty) return const TextEditingValue(text: '');
@@ -14,8 +17,8 @@ class ThousandsFormatter extends TextInputFormatter {
       count++;
     }
     return TextEditingValue(
-      text: formatted, 
-      selection: TextSelection.collapsed(offset: formatted.length)
+      text: formatted,
+      selection: TextSelection.collapsed(offset: formatted.length),
     );
   }
 }
@@ -25,6 +28,9 @@ class ThousandsFormatter extends TextInputFormatter {
 class NumberFormatters {
   static String formatWithCommas(num number) {
     RegExp reg = RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))');
-    return number.toInt().toString().replaceAllMapped(reg, (Match match) => '${match[1]},');
+    return number.toInt().toString().replaceAllMapped(
+      reg,
+      (Match match) => '${match[1]},',
+    );
   }
 }

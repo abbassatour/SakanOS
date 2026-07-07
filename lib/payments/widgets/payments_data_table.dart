@@ -250,18 +250,18 @@ class PaymentsDataTable extends StatelessWidget {
                                 Text(
                                   '${entry.updatedAt.year}/'
                                   '${entry.updatedAt.month.toString().padLeft(
-                                        2,
-                                        '0',
-                                      )}/'
+                                    2,
+                                    '0',
+                                  )}/'
                                   '${entry.updatedAt.day.toString().padLeft(
-                                        2,
-                                        '0',
-                                      )} '
+                                    2,
+                                    '0',
+                                  )} '
                                   '${entry.updatedAt.hour}:'
                                   '${entry.updatedAt.minute.toString().padLeft(
-                                        2,
-                                        '0',
-                                      )}',
+                                    2,
+                                    '0',
+                                  )}',
                                   style: const TextStyle(
                                     fontSize: 11,
                                     color: Colors.grey,
@@ -306,10 +306,12 @@ class PaymentsDataTable extends StatelessWidget {
                                     double? meterPriceBonus;
 
                                     if (bonusPct != 0) {
-                                      originalInst = entry.amountPaid +
+                                      originalInst =
+                                          entry.amountPaid +
                                           (entry.amountPaid *
                                               (bonusPct.abs() / 100));
-                                      meterPriceBonus = entry.amountPaid /
+                                      meterPriceBonus =
+                                          entry.amountPaid /
                                           entry.convertedMeters;
                                     }
                                     return DepositPdfGenerator.generate(
@@ -317,8 +319,9 @@ class PaymentsDataTable extends StatelessWidget {
                                       contract: contract,
                                       client: client,
                                       originalInstallment: originalInst,
-                                      bonusPercentage:
-                                          bonusPct != 0 ? bonusPct : null,
+                                      bonusPercentage: bonusPct != 0
+                                          ? bonusPct
+                                          : null,
                                       meterPriceAfterBonus: meterPriceBonus,
                                     );
                                   } else {
@@ -328,7 +331,7 @@ class PaymentsDataTable extends StatelessWidget {
                                     if (penaltyPct != 0) {
                                       meterPricePenalty =
                                           entry.amountPaid.abs() /
-                                              entry.convertedMeters.abs();
+                                          entry.convertedMeters.abs();
                                     }
                                     return RefundPdfGenerator.generate(
                                       entry: entry,
@@ -337,8 +340,7 @@ class PaymentsDataTable extends StatelessWidget {
                                       penaltyPercentage: penaltyPct != 0
                                           ? penaltyPct
                                           : null,
-                                      meterPriceAfterPenalty:
-                                          meterPricePenalty,
+                                      meterPriceAfterPenalty: meterPricePenalty,
                                     );
                                   }
                                 }();
@@ -386,17 +388,17 @@ class PaymentsDataTable extends StatelessWidget {
 
                                 final success =
                                     await WhatsAppHelper.sendReceiptMessage(
-                                  entry: entry,
-                                  contract: contract,
-                                  client: client,
-                                );
+                                      entry: entry,
+                                      contract: contract,
+                                      client: client,
+                                    );
 
                                 if (context.mounted && success) {
                                   unawaited(
                                     context.read<PaymentsCubit>().markAsSent(
-                                          entry.id,
-                                          contract.id,
-                                        ),
+                                      entry.id,
+                                      contract.id,
+                                    ),
                                   );
                                 }
                               },
@@ -434,9 +436,9 @@ class PaymentsDataTable extends StatelessWidget {
                                     : 'لا يمكن حذف الدفعات القديمة',
                                 onPressed: isLatestEntry
                                     ? () => showDeletePaymentDialog(
-                                          context,
-                                          entry,
-                                        )
+                                        context,
+                                        entry,
+                                      )
                                     : null,
                               ),
                           ],

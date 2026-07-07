@@ -14,14 +14,14 @@ class ExcelExportHelper {
     try {
       // 1. إنشاء ملف إكسل جديد
       var excel = Excel.createExcel();
-      
+
       // تغيير اسم الورقة الافتراضية
       String sheetName = ' الأمتار المحولة';
       excel.rename('Sheet1', sheetName);
       Sheet sheetObject = excel[sheetName];
 
       // 2. إعداد ترويسة الجدول (Headers)
-      List<CellValue> headers =[
+      List<CellValue> headers = [
         TextCellValue('رقم الإيصال'),
         TextCellValue('المبلغ المدفوع (ل.س)'),
         TextCellValue('سعر المتر وقت الدفع (ل.س)'),
@@ -32,14 +32,18 @@ class ExcelExportHelper {
       sheetObject.appendRow(headers);
 
       // 3. تعبئة البيانات (Rows) بالترتيب
-      for (var entry in ledgerEntries) {
-        List<CellValue> row =[
-          TextCellValue(entry.id.split('-').first), // عرض جزء من الـ UUID لسهولة القراءة
+      for (final entry in ledgerEntries) {
+        List<CellValue> row = [
+          TextCellValue(
+            entry.id.split('-').first,
+          ), // عرض جزء من الـ UUID لسهولة القراءة
           DoubleCellValue(entry.amountPaid),
           DoubleCellValue(entry.meterPriceAtPayment),
           DoubleCellValue(entry.convertedMeters),
           DoubleCellValue(entry.fees),
-          TextCellValue('${entry.paymentDate.year}/${entry.paymentDate.month}/${entry.paymentDate.day}'),
+          TextCellValue(
+            '${entry.paymentDate.year}/${entry.paymentDate.month}/${entry.paymentDate.day}',
+          ),
         ];
         sheetObject.appendRow(row);
       }
@@ -50,8 +54,11 @@ class ExcelExportHelper {
       directory ??= await getApplicationDocumentsDirectory();
 
       // تنظيف اسم العميل من أي رموز قد يرفضها الويندوز في اسم الملف
-      String safeClientName = client.name.replaceAll(RegExp(r'[\\/:*?"<>|]'), '_');
-      String fileName = 'دفتر_الأستاذ_${safeClientName}.xlsx';
+      String safeClientName = client.name.replaceAll(
+        RegExp(r'[\\/:*?"<>|]'),
+        '_',
+      );
+      String fileName = 'دفتر_الأستاذ_$safeClientName.xlsx';
       String fullPath = '${directory.path}\\$fileName';
 
       // 5. حفظ الملف في الكمبيوتر

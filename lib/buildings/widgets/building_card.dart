@@ -224,9 +224,8 @@ class BuildingCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final allUnits = context.select<BuildingsCubit, List<Apartment>>(
-      (c) => c.state.apartments
-          .where((a) => a.buildingId == building.id)
-          .toList(),
+      (c) =>
+          c.state.apartments.where((a) => a.buildingId == building.id).toList(),
     );
     final userNamesMap = context.select<BuildingsCubit, Map<String, String>>(
       (c) => c.state.userNamesMap,
@@ -235,15 +234,13 @@ class BuildingCard extends StatelessWidget {
     final bldApartments = allUnits
         .where((a) => a.unitType == 'apartment')
         .toList();
-        
-    final bldShops = allUnits
-        .where((a) => a.unitType == 'shop')
-        .toList();
+
+    final bldShops = allUnits.where((a) => a.unitType == 'shop').toList();
 
     var availableFloors = <String, dynamic>{};
     try {
-      availableFloors = jsonDecode(building.floorCoefficients)
-          as Map<String, dynamic>;
+      availableFloors =
+          jsonDecode(building.floorCoefficients) as Map<String, dynamic>;
     } catch (_) {}
 
     final sortedFloorNames = availableFloors.keys.toList()
@@ -462,8 +459,9 @@ class BuildingCard extends StatelessWidget {
                                       columnSpacing: 30,
                                       dividerThickness: 0.5,
                                       headingRowColor: WidgetStateProperty.all(
-                                        Colors.indigo.shade50
-                                            .withValues(alpha: 0.5),
+                                        Colors.indigo.shade50.withValues(
+                                          alpha: 0.5,
+                                        ),
                                       ),
                                       columns: const [
                                         DataColumn(
@@ -538,8 +536,9 @@ class BuildingCard extends StatelessWidget {
                             Container(
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: Colors.indigo.shade50
-                                    .withValues(alpha: 0.3),
+                                color: Colors.indigo.shade50.withValues(
+                                  alpha: 0.3,
+                                ),
                                 borderRadius: const BorderRadius.vertical(
                                   bottom: Radius.circular(12),
                                 ),
@@ -748,8 +747,9 @@ class BuildingCard extends StatelessWidget {
                             padding: const EdgeInsets.all(12),
                             width: double.infinity,
                             decoration: BoxDecoration(
-                              color: Colors.orange.shade50
-                                  .withValues(alpha: 0.5),
+                              color: Colors.orange.shade50.withValues(
+                                alpha: 0.5,
+                              ),
                               borderRadius: const BorderRadius.vertical(
                                 bottom: Radius.circular(12),
                               ),

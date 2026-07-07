@@ -1,7 +1,6 @@
 // مسار الملف: lib/dashboard/view/dashboard_page.dart
 // المسؤولية: إدارة التبويبات الرئيسية وحقن جميع كلاسات إدارة الحالة (Cubits) في بداية التطبيق.
 
-import 'dart:async';
 import 'dart:io';
 
 import 'package:erp_repository/erp_repository.dart';
@@ -60,7 +59,9 @@ class DashboardPage extends StatelessWidget {
         BlocProvider(create: (_) => DashboardCubit()),
         BlocProvider(create: (_) => HomeCubit(repo)..fetchDashboardData()),
         // 🌟 هنا تم الإصلاح: استخدام المعامل المسمى (erpRepository: repo)
-        BlocProvider(create: (_) => ClientsCubit(erpRepository: repo)..fetchClients()),
+        BlocProvider(
+          create: (_) => ClientsCubit(erpRepository: repo)..fetchClients(),
+        ),
         BlocProvider(create: (_) => BuildingsCubit(repo)..loadData()),
         BlocProvider(create: (_) => ContractsCubit(repo)..fetchData()),
         BlocProvider(create: (_) => PaymentsCubit(repo)..fetchInitialData()),
@@ -218,9 +219,14 @@ class DashboardView extends StatelessWidget {
             backgroundColor: Colors.blue.shade900,
             unselectedIconTheme: const IconThemeData(color: Colors.white70),
             unselectedLabelTextStyle: const TextStyle(color: Colors.white70),
-            selectedIconTheme: const IconThemeData(color: Colors.white, size: 30),
-            selectedLabelTextStyle:
-                const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            selectedIconTheme: const IconThemeData(
+              color: Colors.white,
+              size: 30,
+            ),
+            selectedLabelTextStyle: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
             destinations: availableTabs
                 .map(
                   (tab) => NavigationRailDestination(
@@ -265,9 +271,11 @@ class DashboardView extends StatelessWidget {
                           var hasInternet = false;
 
                           try {
-                            final result = await InternetAddress.lookup('google.com')
-                                .timeout(const Duration(seconds: 5));
-                            if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
+                            final result = await InternetAddress.lookup(
+                              'google.com',
+                            ).timeout(const Duration(seconds: 5));
+                            if (result.isNotEmpty &&
+                                result[0].rawAddress.isNotEmpty) {
                               hasInternet = true;
                             }
                           } catch (_) {
@@ -309,15 +317,19 @@ class DashboardView extends StatelessWidget {
                           }
 
                           try {
-                            final resultMessage =
-                                await context.read<ErpRepository>().forceSyncWithCloud();
+                            final resultMessage = await context
+                                .read<ErpRepository>()
+                                .forceSyncWithCloud();
 
                             if (context.mounted) {
-                              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                              ScaffoldMessenger.of(
+                                context,
+                              ).hideCurrentSnackBar();
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(resultMessage),
-                                  backgroundColor: resultMessage.contains('بنجاح')
+                                  backgroundColor:
+                                      resultMessage.contains('بنجاح')
                                       ? Colors.green
                                       : Colors.orange,
                                   behavior: SnackBarBehavior.floating,
@@ -343,16 +355,23 @@ class DashboardView extends StatelessWidget {
                       ),
                       const SizedBox(height: 16),
                       IconButton(
-                        icon: const Icon(Icons.logout, color: Colors.redAccent, size: 28),
+                        icon: const Icon(
+                          Icons.logout,
+                          color: Colors.redAccent,
+                          size: 28,
+                        ),
                         tooltip: 'تسجيل الخروج (وإقفال النظام)',
                         onPressed: () {
                           showDialog<void>(
                             context: context,
                             builder: (ctx) => AlertDialog(
-                              title: const Text('تسجيل الخروج',
-                                  style: TextStyle(color: Colors.red)),
+                              title: const Text(
+                                'تسجيل الخروج',
+                                style: TextStyle(color: Colors.red),
+                              ),
                               content: const Text(
-                                  'هل أنت متأكد أنك تريد تسجيل الخروج؟ سيتم إقفال ومسح البيانات المؤقتة من هذا الجهاز لحمايتها.'),
+                                'هل أنت متأكد أنك تريد تسجيل الخروج؟ سيتم إقفال ومسح البيانات المؤقتة من هذا الجهاز لحمايتها.',
+                              ),
                               actions: [
                                 TextButton(
                                   onPressed: () => Navigator.pop(ctx),

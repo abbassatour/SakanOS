@@ -4,8 +4,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:erp_repository/erp_repository.dart';
-import 'package:local_storage_api/local_storage_api.dart'
-    show Client, Contract, InstallmentsScheduleData;
 
 part 'schedule_state.dart';
 
@@ -13,7 +11,7 @@ class ScheduleCubit extends Cubit<ScheduleState> {
   ScheduleCubit(this._erpRepository) : super(const ScheduleState());
 
   final ErpRepository _erpRepository;
-  final double targetAllocationMeters = 50.0; 
+  final double targetAllocationMeters = 50.0;
 
   void changeTab(int index) {
     emit(state.copyWith(activeTabIndex: index));
@@ -81,7 +79,7 @@ class ScheduleCubit extends Cubit<ScheduleState> {
       final oldestSchedule = schedules.first;
       final maxDaysOverdue = now.difference(oldestSchedule.dueDate).inDays;
 
-      var severity = 'notice'; 
+      var severity = 'notice';
       if (maxDaysOverdue >= 60) {
         severity = 'critical';
       } else if (maxDaysOverdue >= 30) {
@@ -175,10 +173,12 @@ class ScheduleCubit extends Cubit<ScheduleState> {
     }
 
     radarList.sort((a, b) {
-      if (a.urgencyLevel == 'action_taken' && b.urgencyLevel != 'action_taken') {
+      if (a.urgencyLevel == 'action_taken' &&
+          b.urgencyLevel != 'action_taken') {
         return 1;
       }
-      if (b.urgencyLevel == 'action_taken' && a.urgencyLevel != 'action_taken') {
+      if (b.urgencyLevel == 'action_taken' &&
+          a.urgencyLevel != 'action_taken') {
         return -1;
       }
       return a.estimatedMonthsLeft.compareTo(b.estimatedMonthsLeft);

@@ -1,7 +1,9 @@
 # .coderabbit.yaml
-language:
-  dart:
-    enabled: true
+language: "en-US"
+
+reviews:
+  profile: "assertive" 
+
 
 reviews:
   profile: "assertive" # لجعل المراجعة دقيقة وصارمة
