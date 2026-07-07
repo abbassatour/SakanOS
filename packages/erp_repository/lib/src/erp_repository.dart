@@ -761,6 +761,21 @@ class ErpRepository {
     timeFilter: timeFilter,
     refDate: refDate,
   );
+
+  // دالة ذكية تحلل المسار: إن كان محلياً تفتحه، وإن كان سحابياً تجلب له رابطاً آمناً
+  Future<String> resolveFileUrl(String bucketName, String storedPath) async {
+    try {
+      final localFile = File(storedPath);
+      // إذا كان الملف محلياً ولم يتم رفعه بعد، نعيده كما هو
+      if (localFile.isAbsolute && await localFile.exists()) {
+        return storedPath;
+      }
+    } catch (_) {}
+
+    // إذا كان سحابياً، نطلب رابطاً مؤقتاً
+    return await _cloudApi.getSecureSignedUrl(bucketName, storedPath);
+  }
+
   // ==========================================
   // 🧹 تنظيف الذاكرة وإغلاق القنوات (Dispose)
   // ==========================================

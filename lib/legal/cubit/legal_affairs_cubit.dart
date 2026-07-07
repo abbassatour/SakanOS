@@ -174,4 +174,21 @@ class LegalAffairsCubit extends Cubit<LegalAffairsState> {
       );
     }
   }
+
+  Future<String?> getSecureAttachmentUrl(String storedPath) async {
+    try {
+      return await _erpRepository.resolveFileUrl(
+        'legal_attachments',
+        storedPath,
+      );
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: LegalAffairsStatus.failure,
+          errorMessage: 'فشل إنشاء الرابط الآمن: $e',
+        ),
+      );
+      return null;
+    }
+  }
 }

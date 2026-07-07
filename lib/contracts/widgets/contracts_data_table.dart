@@ -11,6 +11,8 @@ import 'package:our_home_erp_app/payments/cubit/payments_cubit.dart';
 import 'package:our_home_erp_app/profile/view/contract_details_page.dart';
 import 'package:our_home_erp_app/schedule/cubit/schedule_cubit.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:our_home_erp_app/contracts/cubit/contracts_cubit.dart';
+import 'package:open_filex/open_filex.dart';
 
 class ContractsDataTable extends StatelessWidget {
   const ContractsDataTable({
@@ -39,6 +41,7 @@ class ContractsDataTable extends StatelessWidget {
     final hasFile =
         contract.contractFileUrl != null &&
         contract.contractFileUrl!.isNotEmpty;
+
     return TextButton.icon(
       icon: Icon(
         hasFile ? Icons.download : Icons.upload_file,
@@ -52,11 +55,38 @@ class ContractsDataTable extends StatelessWidget {
           fontWeight: FontWeight.bold,
         ),
       ),
-      onPressed: () {
+      onPressed: () async {
         if (hasFile) {
-          _openFile(contract.contractFileUrl!);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('جاري إنشاء رابط وصول آمن... ⏳')),
+          );
+
+          final secureUrl = await context
+              .read<ContractsCubit>()
+              .getSecureContractUrl(contract.contractFileUrl!);
+
+          if (secureUrl != null) {
+            if (secureUrl.startsWith('http')) {
+              // فتح الملف السحابي في المتصفح
+              final url = Uri.parse(secureUrl);
+              if (await canLaunchUrl(url)) {
+                await launchUrl(url);
+              }
+            } else {
+              // فتح الملف المحلي (الذي لم يُرفع بعد)
+              await OpenFilex.open(secureUrl);
+            }
+          }
         } else {
-          // دالة الإرفاق (تترك للواجهة الخاصة بك)
+          // 🌟 الحل هنا: إرشاد الموظف
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'لإرفاق ملف، اضغط على أيقونة (عرض التفاصيل 👁️) بجوار العقد، ثم أرفقه من هناك.',
+              ),
+              backgroundColor: Colors.orange,
+            ),
+          );
         }
       },
     );

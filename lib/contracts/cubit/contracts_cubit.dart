@@ -307,4 +307,18 @@ class ContractsCubit extends Cubit<ContractsState> {
       );
     }
   }
+
+  Future<String?> getSecureContractUrl(String storedPath) async {
+    try {
+      return await _erpRepository.resolveFileUrl('erp_contracts', storedPath);
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: ContractsStatus.failure,
+          errorMessage: 'فشل إنشاء الرابط الآمن: $e',
+        ),
+      );
+      return null;
+    }
+  }
 }

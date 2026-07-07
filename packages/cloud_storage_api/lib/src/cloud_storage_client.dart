@@ -284,8 +284,7 @@ class CloudStorageClient {
 
     // 6. التحقق من الرد (Status Code 200 يعني نجاح العملية) وإرجاع الرابط العام
     if (response.statusCode == 200) {
-      final publicUrl = '$storageUrl/object/public/$bucketName/$fileName';
-      return publicUrl;
+      return fileName; // 🌟 تم التعديل: إرجاع اسم الملف فقط لزيادة الأمان
     } else {
       throw Exception(
         'فشل الرفع من السيرفر: ${response.statusCode} - ${response.body}',
@@ -353,11 +352,38 @@ class CloudStorageClient {
     );
 
     if (response.statusCode == 200) {
-      return '$storageUrl/object/public/$bucketName/$fileName';
+      return fileName; // 🌟 تم التعديل: إرجاع اسم الملف فقط
     } else {
       throw Exception(
         'فشل رفع المرفق: ${response.statusCode} - ${response.body}',
       );
     }
+  }
+
+  // ==========================================
+  // 🔐 توليد الروابط الآمنة المؤقتة (Signed URLs)
+  // ==========================================
+  Future<String> getSecureSignedUrl(
+    String bucketName,
+    String storedPath,
+  ) async {
+    String actualFileName = storedPath;
+
+    // توافقية رجعية (Backward Compatibility):
+    // إذا كان المسار المخزن هو رابط قديم (Public URL)، نستخرج اسم الملف منه.
+    if (storedPath.startsWith('http')) {
+      final uri = Uri.parse(storedPath);
+      final segments = uri.pathSegments;
+      final bucketIndex = segments.indexOf(bucketName);
+      if (bucketIndex != -1 && bucketIndex < segments.length - 1) {
+        actualFileName = segments.sublist(bucketIndex + 1).join('/');
+      }
+    }
+
+    // توليد رابط آمن صالح لمدة 5 دقائق (300 ثانية)
+    final signedUrl = await _supabase.storage
+        .from(bucketName)
+        .createSignedUrl(actualFileName, 300);
+    return signedUrl;
   }
 }

@@ -15,6 +15,8 @@ import '../../auth/cubit/auth_cubit.dart';
 import '../../core/constants/app_permissions.dart';
 import '../../legal/cubit/legal_affairs_cubit.dart';
 import '../../legal/view/legal_attachments_page.dart';
+import '../../contracts/cubit/contracts_cubit.dart';
+import '../../buildings/cubit/buildings_cubit.dart';
 
 String formatWithCommas(num number) {
   RegExp reg = RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))');
@@ -373,37 +375,57 @@ class ContractDetailsPage extends StatelessWidget {
                               color: Colors.green.shade700,
                               onTap: () async {
                                 final urlString = contract.contractFileUrl!;
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'جاري إنشاء رابط وصول آمن... ⏳',
+                                    ),
+                                    backgroundColor: Colors.teal,
+                                  ),
+                                );
 
-                                if (urlString.startsWith('http')) {
-                                  // ملف سحابي
-                                  final Uri url = Uri.parse(urlString);
-                                  if (await canLaunchUrl(url)) {
-                                    await launchUrl(url);
+                                final secureUrl = await context
+                                    .read<ContractsCubit>()
+                                    .getSecureContractUrl(urlString);
+
+                                if (secureUrl != null) {
+                                  if (secureUrl.startsWith('http')) {
+                                    // ملف سحابي
+                                    final Uri url = Uri.parse(secureUrl);
+                                    if (await canLaunchUrl(url)) {
+                                      await launchUrl(url);
+                                    } else {
+                                      if (context.mounted) {
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          const SnackBar(
+                                            content: Text(
+                                              'لا يمكن فتح الرابط הסحابي.',
+                                            ),
+                                            backgroundColor: Colors.red,
+                                          ),
+                                        );
+                                      }
+                                    }
                                   } else {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text(
-                                          'لا يمكن فتح الرابط السحابي.',
-                                        ),
-                                        backgroundColor: Colors.red,
-                                      ),
+                                    // ملف محلي (أوفلاين)
+                                    final result = await OpenFilex.open(
+                                      secureUrl,
                                     );
-                                  }
-                                } else {
-                                  // ملف محلي (أوفلاين)
-                                  final result = await OpenFilex.open(
-                                    urlString,
-                                  );
-                                  if (result.type != ResultType.done &&
-                                      context.mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(
-                                          '⚠️ تعذر فتح الملف المحلي: ${result.message}',
+                                    if (result.type != ResultType.done &&
+                                        context.mounted) {
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            '⚠️ تعذر فتح الملف المحلي: ${result.message}',
+                                          ),
+                                          backgroundColor: Colors.orange,
                                         ),
-                                        backgroundColor: Colors.orange,
-                                      ),
-                                    );
+                                      );
+                                    }
                                   }
                                 }
                               },
