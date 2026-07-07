@@ -79,3 +79,4 @@ linter:
     prefer_const_declarations: false
     sort_pub_dependencies: false
     prefer_void_public_cubit_methods: false
+    avoid_public_fields: false

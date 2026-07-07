@@ -11,7 +11,7 @@ class ScheduleCubit extends Cubit<ScheduleState> {
   ScheduleCubit(this._erpRepository) : super(const ScheduleState());
 
   final ErpRepository _erpRepository;
-  static const double _targetAllocationMeters = 50.0;
+  final double targetAllocationMeters = 50.0;
 
   void changeTab(int index) {
     emit(state.copyWith(activeTabIndex: index));
