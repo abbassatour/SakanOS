@@ -40,20 +40,39 @@ class SyncRepository {
       final existingClients = await _localApi.getClients();
       final isDatabaseEmpty = existingClients.isEmpty;
 
-      final cloudDollarPrices = await _cloudApi.getDollarPrices();
-      for (final cloudJson in cloudDollarPrices) {
-        await _localApi.syncDollarPrice(_mapCloudToDollarPrice(cloudJson));
-      }
-
       if (lastSyncStr != null && !isDatabaseEmpty) {
         lastSyncTime = DateTime.parse(lastSyncStr).toUtc();
-      } else {
-        lastSyncTime = null;
+      }
+
+      // ==========================================
+      // 🌟 الحل السحري: تتبع أحدث توقيت قادم من السيرفر
+      // ==========================================
+      DateTime? latestServerTimestamp;
+
+      void trackLatestTime(String? dateStr) {
+        if (dateStr == null || dateStr.isEmpty) return;
+        final date = DateTime.tryParse(dateStr)?.toUtc();
+        if (date != null) {
+          if (latestServerTimestamp == null ||
+              date.isAfter(latestServerTimestamp!)) {
+            latestServerTimestamp = date;
+          }
+        }
+      }
+
+      // 0. سحب أسعار الدولار
+      final cloudDollarPrices = await _cloudApi.getDollarPrices(
+        lastSync: lastSyncTime,
+      );
+      for (final d in cloudDollarPrices) {
+        trackLatestTime(d['updated_at']?.toString());
+        await _localApi.syncDollarPrice(_mapCloudToDollarPrice(d));
       }
 
       // 1. سحب العملاء
       final cloudClients = await _cloudApi.getClients(lastSync: lastSyncTime);
       for (final c in cloudClients) {
+        trackLatestTime(c['updated_at']?.toString());
         final client = ClientsCompanion.insert(
           id: drift.Value(c['id'].toString()),
           name: c['name'].toString(),
@@ -75,6 +94,7 @@ class SyncRepository {
         lastSync: lastSyncTime,
       );
       for (final c in cloudContracts) {
+        trackLatestTime(c['updated_at']?.toString());
         final contract = ContractsCompanion.insert(
           id: drift.Value(c['id'].toString()),
           clientId: c['client_id'].toString(),
@@ -156,6 +176,7 @@ class SyncRepository {
       // 3. سحب أسعار المواد
       final cloudPrices = await _cloudApi.getMaterialPrices();
       for (final p in cloudPrices) {
+        trackLatestTime(p['updated_at']?.toString());
         final price = MaterialPricesHistoryCompanion.insert(
           id: drift.Value(p['id'].toString()),
           ironPrice: double.tryParse(p['iron_price']?.toString() ?? '0') ?? 0.0,
@@ -192,6 +213,7 @@ class SyncRepository {
         lastSync: lastSyncTime,
       );
       for (final s in cloudSchedules) {
+        trackLatestTime(s['updated_at']?.toString());
         final schedule = InstallmentsScheduleCompanion.insert(
           id: drift.Value(s['id'].toString()),
           contractId: s['contract_id'].toString(),
@@ -221,6 +243,7 @@ class SyncRepository {
       // 5. سحب الأقساط (الدفعات)
       final cloudPayments = await _cloudApi.getPayments(lastSync: lastSyncTime);
       for (final p in cloudPayments) {
+        trackLatestTime(p['updated_at']?.toString());
         final payment = PaymentsLedgerCompanion.insert(
           id: drift.Value(p['id'].toString()),
           contractId: p['contract_id'].toString(),
@@ -254,6 +277,7 @@ class SyncRepository {
       // 6. سحب المحاضر
       final cloudBuildings = await _cloudApi.getBuildings();
       for (final b in cloudBuildings) {
+        trackLatestTime(b['updated_at']?.toString());
         final building = BuildingsCompanion.insert(
           id: drift.Value(b['id'].toString()),
           name: b['name'].toString(),
@@ -278,6 +302,7 @@ class SyncRepository {
       // 7. سحب الشقق
       final cloudApartments = await _cloudApi.getApartments();
       for (final a in cloudApartments) {
+        trackLatestTime(a['updated_at']?.toString());
         final apartment = ApartmentsCompanion.insert(
           id: drift.Value(a['id'].toString()),
           buildingId: a['building_id'].toString(),
@@ -304,6 +329,7 @@ class SyncRepository {
       // 8. سحب قوالب الأدوار
       final cloudRoles = await _cloudApi.getAppRoles(lastSync: lastSyncTime);
       for (final r in cloudRoles) {
+        trackLatestTime(r['updated_at']?.toString());
         final role = AppRolesCompanion.insert(
           id: drift.Value(r['id'].toString()),
           name: r['name'].toString(),
@@ -322,6 +348,7 @@ class SyncRepository {
       // 9. سحب المستخدمين
       final cloudUsers = await _cloudApi.getAppUsers(lastSync: lastSyncTime);
       for (final u in cloudUsers) {
+        trackLatestTime(u['updated_at']?.toString());
         final user = LocalUsersCompanion.insert(
           id: u['id'].toString(),
           email: u['email']?.toString() ?? '',
@@ -348,6 +375,7 @@ class SyncRepository {
         lastSync: lastSyncTime,
       );
       for (final a in cloudLegalActions) {
+        trackLatestTime(a['updated_at']?.toString());
         final action = LegalActionsCompanion.insert(
           id: drift.Value(a['id'].toString()),
           contractId: a['contract_id'].toString(),
@@ -372,6 +400,7 @@ class SyncRepository {
         lastSync: lastSyncTime,
       );
       for (final att in cloudAttachments) {
+        trackLatestTime(att['updated_at']?.toString());
         final attachment = LegalActionAttachmentsCompanion.insert(
           id: drift.Value(att['id'].toString()),
           legalActionId: att['legal_action_id'].toString(),
@@ -391,10 +420,15 @@ class SyncRepository {
             .insert(attachment, mode: drift.InsertMode.insertOrReplace);
       }
 
-      await prefs.setString(
-        'last_pull_timestamp',
-        DateTime.now().toUtc().toIso8601String(),
-      );
+      // ==========================================
+      // 🌟 حفظ أحدث توقيت سيرفر للمزامنة القادمة (إن وُجد)
+      // ==========================================
+      if (latestServerTimestamp != null) {
+        await prefs.setString(
+          'last_pull_timestamp',
+          latestServerTimestamp!.toIso8601String(),
+        );
+      }
     } on Exception catch (e) {
       // ignore: avoid_print
       print('❌ Cloud Pull Failed: $e');
