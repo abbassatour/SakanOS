@@ -1,5 +1,6 @@
 //lib\core\utils\excel_export_helper.dart
 import 'dart:io';
+import 'package:path/path.dart' as p;
 import 'package:excel/excel.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:erp_repository/erp_repository.dart';
@@ -59,7 +60,7 @@ class ExcelExportHelper {
         '_',
       );
       String fileName = 'دفتر_الأستاذ_$safeClientName.xlsx';
-      String fullPath = '${directory.path}\\$fileName';
+      String fullPath = p.join(directory.path, fileName); // ✅ الحل الاحترافي
 
       // 5. حفظ الملف في الكمبيوتر
       var fileBytes = excel.save();
