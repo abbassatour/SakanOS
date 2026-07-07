@@ -595,30 +595,129 @@ class AppDatabase extends _$AppDatabase {
       await delete(clients).go();
     });
   }
+  // ==========================================
+  // ☁️ دوال الحقن السحابي المحصنة (Safe Sync Upserts)
+  // ==========================================
 
-  Future<void> syncClient(ClientsCompanion entity) =>
-      into(clients).insert(entity, mode: InsertMode.insertOrReplace);
+  Future<void> syncClient(ClientsCompanion entity) => into(clients).insert(
+    entity,
+    onConflict: DoUpdate(
+      (old) => entity,
+      target: [clients.id],
+      where: (old) => old.isSynced.equals(true), // 🛡️ الحماية هنا
+    ),
+  );
 
   Future<void> syncContract(ContractsCompanion entity) =>
-      into(contracts).insert(entity, mode: InsertMode.insertOrReplace);
+      into(contracts).insert(
+        entity,
+        onConflict: DoUpdate(
+          (old) => entity,
+          target: [contracts.id],
+          where: (old) => old.isSynced.equals(true),
+        ),
+      );
 
-  Future<void> syncMaterialPrice(MaterialPricesHistoryCompanion entity) => into(
-    materialPricesHistory,
-  ).insert(entity, mode: InsertMode.insertOrReplace);
+  Future<void> syncMaterialPrice(MaterialPricesHistoryCompanion entity) =>
+      into(materialPricesHistory).insert(
+        entity,
+        onConflict: DoUpdate(
+          (old) => entity,
+          target: [materialPricesHistory.id],
+          where: (old) => old.isSynced.equals(true),
+        ),
+      );
 
-  Future<void> syncSchedule(InstallmentsScheduleCompanion entity) => into(
-    installmentsSchedule,
-  ).insert(entity, mode: InsertMode.insertOrReplace);
+  Future<void> syncSchedule(InstallmentsScheduleCompanion entity) =>
+      into(installmentsSchedule).insert(
+        entity,
+        onConflict: DoUpdate(
+          (old) => entity,
+          target: [installmentsSchedule.id],
+          where: (old) => old.isSynced.equals(true),
+        ),
+      );
 
   Future<void> syncPayment(PaymentsLedgerCompanion entity) =>
-      into(paymentsLedger).insert(entity, mode: InsertMode.insertOrReplace);
+      into(paymentsLedger).insert(
+        entity,
+        onConflict: DoUpdate(
+          (old) => entity,
+          target: [paymentsLedger.id],
+          where: (old) => old.isSynced.equals(true),
+        ),
+      );
 
   Future<void> syncBuilding(BuildingsCompanion entity) =>
-      into(buildings).insert(entity, mode: InsertMode.insertOrReplace);
+      into(buildings).insert(
+        entity,
+        onConflict: DoUpdate(
+          (old) => entity,
+          target: [buildings.id],
+          where: (old) => old.isSynced.equals(true),
+        ),
+      );
 
   Future<void> syncApartment(ApartmentsCompanion entity) =>
-      into(apartments).insert(entity, mode: InsertMode.insertOrReplace);
+      into(apartments).insert(
+        entity,
+        onConflict: DoUpdate(
+          (old) => entity,
+          target: [apartments.id],
+          where: (old) => old.isSynced.equals(true),
+        ),
+      );
 
+  Future<void> syncAppRole(AppRolesCompanion entity) => into(appRoles).insert(
+    entity,
+    onConflict: DoUpdate(
+      (old) => entity,
+      target: [appRoles.id],
+      where: (old) => old.isSynced.equals(true),
+    ),
+  );
+
+  Future<void> syncLocalUser(LocalUsersCompanion entity) =>
+      into(localUsers).insert(
+        entity,
+        onConflict: DoUpdate(
+          (old) => entity,
+          target: [localUsers.id],
+          where: (old) => old.isSynced.equals(true),
+        ),
+      );
+
+  Future<void> syncDollarPrice(DollarPricesHistoryCompanion entity) =>
+      into(dollarPricesHistory).insert(
+        entity,
+        onConflict: DoUpdate(
+          (old) => entity,
+          target: [dollarPricesHistory.id],
+          where: (old) => old.isSynced.equals(true),
+        ),
+      );
+
+  // 🌟 دوال المرفقات والإجراءات القانونية (أضفناها هنا لنوحد الحماية)
+  Future<void> syncLegalAction(LegalActionsCompanion entity) =>
+      into(legalActions).insert(
+        entity,
+        onConflict: DoUpdate(
+          (old) => entity,
+          target: [legalActions.id],
+          where: (old) => old.isSynced.equals(true),
+        ),
+      );
+
+  Future<void> syncLegalActionAttachment(
+    LegalActionAttachmentsCompanion entity,
+  ) => into(legalActionAttachments).insert(
+    entity,
+    onConflict: DoUpdate(
+      (old) => entity,
+      target: [legalActionAttachments.id],
+      where: (old) => old.isSynced.equals(true),
+    ),
+  );
   // ==========================================
   // 🗑️ سلة المحذوفات (Recycle Bin) - العملاء
   // ==========================================
@@ -1003,15 +1102,6 @@ class AppDatabase extends _$AppDatabase {
     );
   }
 
-  // ==========================================
-  // ☁️ دوال الحقن السحابي الجديدة (Sync Upserts)
-  // ==========================================
-  Future<void> syncAppRole(AppRolesCompanion entity) =>
-      into(appRoles).insert(entity, mode: InsertMode.insertOrReplace);
-
-  Future<void> syncLocalUser(LocalUsersCompanion entity) =>
-      into(localUsers).insert(entity, mode: InsertMode.insertOrReplace);
-
   Future<LocalUser?> getLocalUserById(String id) =>
       (select(localUsers)..where((t) => t.id.equals(id))).getSingleOrNull();
 
@@ -1133,10 +1223,6 @@ class AppDatabase extends _$AppDatabase {
           ..limit(1))
         .watchSingleOrNull();
   }
-
-  Future<void> syncDollarPrice(DollarPricesHistoryCompanion entity) => into(
-    dollarPricesHistory,
-  ).insert(entity, mode: InsertMode.insertOrReplace);
 
   Future<int> softDeleteDollarPrice(String id) {
     return (update(dollarPricesHistory)..where((t) => t.id.equals(id))).write(

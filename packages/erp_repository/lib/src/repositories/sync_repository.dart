@@ -390,9 +390,8 @@ class SyncRepository {
           ),
           isSynced: const drift.Value(true),
         );
-        await _localApi.database
-            .into(_localApi.database.legalActions)
-            .insert(action, mode: drift.InsertMode.insertOrReplace);
+        // 🌟 استدعاء الدالة المحصنة بدلاً من الكود المباشر القديم
+        await _localApi.database.syncLegalAction(action);
       }
 
       // 11. سحب المرفقات القانونية
@@ -415,9 +414,8 @@ class SyncRepository {
           ),
           isSynced: const drift.Value(true),
         );
-        await _localApi.database
-            .into(_localApi.database.legalActionAttachments)
-            .insert(attachment, mode: drift.InsertMode.insertOrReplace);
+        // 🌟 استدعاء الدالة المحصنة بدلاً من الكود المباشر القديم
+        await _localApi.database.syncLegalActionAttachment(attachment);
       }
 
       // ==========================================
