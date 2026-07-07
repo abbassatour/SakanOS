@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:local_storage_api/local_storage_api.dart' show Contract;
 import '../../cubit/schedule_cubit.dart';
+import 'package:our_home_erp_app/env/env.dart';
 
 void showRescheduleDialog(BuildContext parentContext, Contract contract) {
   final monthsController = TextEditingController();
@@ -151,7 +152,7 @@ void showRescheduleDialog(BuildContext parentContext, Contract contract) {
                 icon: const Icon(Icons.check_circle),
                 label: const Text('اعتماد الجدولة الجديدة'),
                 onPressed: () async {
-                  if (pinController.text != '0938457732') {
+                  if (pinController.text != Env.adminPin) {
                     ScaffoldMessenger.of(dialogContext).showSnackBar(
                       const SnackBar(
                         content: Text('رمز الإدارة غير صحيح! ❌'),

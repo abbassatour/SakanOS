@@ -1,5 +1,6 @@
 // lib/recycle_bin/view/dialogs/verify_hard_delete_dialog.dart
 import 'package:flutter/material.dart';
+import 'package:our_home_erp_app/env/env.dart';
 
 void showVerifyHardDeleteDialog({
   required BuildContext context,
@@ -7,7 +8,7 @@ void showVerifyHardDeleteDialog({
   required VoidCallback onConfirm,
 }) {
   final pinController = TextEditingController();
-  const String correctPin = '0938457732'; // رمز الأمان الموحد
+  final String correctPin = Env.adminPin; // رمز الأمان الموحد
 
   showDialog(
     context: context,

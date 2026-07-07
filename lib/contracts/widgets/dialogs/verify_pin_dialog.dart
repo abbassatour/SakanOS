@@ -1,6 +1,7 @@
 // contracts/widgets/dialogs/verify_pin_dialog.dart
 
 import 'package:flutter/material.dart';
+import 'package:our_home_erp_app/env/env.dart';
 
 Future<bool> showVerifyPinDialog(BuildContext context) async {
   final result = await showDialog<bool>(
@@ -22,7 +23,7 @@ class _VerifyPinDialogContent extends StatefulWidget {
 
 class _VerifyPinDialogContentState extends State<_VerifyPinDialogContent> {
   late final TextEditingController _pinController;
-  static const String _correctPin = '0000';
+  static final String _correctPin = Env.adminPin;
 
   @override
   void initState() {

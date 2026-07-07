@@ -11,4 +11,7 @@ abstract class Env {
 
   @EnviedField(varName: 'SUPABASE_ANON_KEY', obfuscate: true)
   static final String supabaseAnonKey = _Env.supabaseAnonKey;
+
+  @EnviedField(varName: 'ADMIN_PIN', obfuscate: true)
+  static final String adminPin = _Env.adminPin;
 }

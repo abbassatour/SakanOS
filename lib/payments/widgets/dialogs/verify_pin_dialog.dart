@@ -1,17 +1,18 @@
 // lib/payments/widgets/dialogs/verify_pin_dialog.dart
 
 import 'package:flutter/material.dart';
+import 'package:our_home_erp_app/env/env.dart';
 
 Future<bool> showVerifyPinDialog({
   required BuildContext context,
-  String correctPin = '0000',
+  String? correctPin, // نجعله اختيارياً
   String? message,
 }) async {
   final result = await showDialog<bool>(
     context: context,
     barrierDismissible: false,
     builder: (ctx) => _VerifyPinDialogContent(
-      correctPin: correctPin,
+      correctPin: correctPin ?? Env.adminPin, // 🌟 استخدام الرمز المشفر هنا
       message: message ?? 'هذه العملية حساسة مالياً. يرجى إدخال رمز الأمان:',
     ),
   );
