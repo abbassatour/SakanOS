@@ -1,5 +1,5 @@
 // lib/login/cubit/login_cubit.dart
-import 'dart:async'; // 🌟 إضافة ضرورية لدالة المهلة timeout
+import 'dart:async';
 import 'dart:io';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
@@ -10,9 +10,28 @@ import 'package:path/path.dart' as p;
 part 'login_state.dart';
 
 class LoginCubit extends Cubit<LoginState> {
-  LoginCubit(this._erpRepository) : super(const LoginState());
+  LoginCubit(
+    this._erpRepository, {
+    // 🌟 حقن التبعية: نسمح بتمرير دالة الفحص من الخارج لتسهيل الاختبار
+    Future<bool> Function()? checkInternetConnection,
+  }) : _checkInternetConnection =
+           checkInternetConnection ?? _defaultCheckInternet,
+       super(const LoginState());
 
   final ErpRepository _erpRepository;
+  final Future<bool> Function() _checkInternetConnection;
+
+  // 🌟 الدالة الافتراضية التي سيستخدمها التطبيق الحقيقي
+  static Future<bool> _defaultCheckInternet() async {
+    try {
+      final result = await InternetAddress.lookup(
+        'google.com',
+      ).timeout(const Duration(seconds: 5));
+      return result.isNotEmpty && result[0].rawAddress.isNotEmpty;
+    } catch (_) {
+      return false;
+    }
+  }
 
   Future<void> loadSavedEmail() async {
     try {
@@ -55,22 +74,10 @@ class LoginCubit extends Cubit<LoginState> {
 
     try {
       // ==========================================
-      // 🛡️ 1. الفحص المسبق السريع للإنترنت (Ping) - مهلة 5 ثوانٍ
+      // 🛡️ 1. الفحص المسبق للإنترنت (باستخدام الدالة المحقونة)
       // ==========================================
-      bool hasInternet = false;
-      try {
-        final result = await InternetAddress.lookup(
-          'google.com',
-        ).timeout(const Duration(seconds: 5)); // ⏱️ لن ينتظر أكثر من 5 ثوانٍ
+      final hasInternet = await _checkInternetConnection();
 
-        if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
-          hasInternet = true;
-        }
-      } catch (_) {
-        hasInternet = false;
-      }
-
-      // ⛔ إيقاف العملية فوراً إذا لم يكن هناك إنترنت
       if (!hasInternet) {
         emit(
           state.copyWith(
@@ -83,7 +90,7 @@ class LoginCubit extends Cubit<LoginState> {
       }
 
       // ==========================================
-      // 🔄 2. محاولة تسجيل الدخول الفعلية (بما أن الإنترنت متوفر)
+      // 🔄 2. محاولة تسجيل الدخول الفعلية
       // ==========================================
       await _erpRepository.signIn(
         email: state.email.trim(),
@@ -108,14 +115,11 @@ class LoginCubit extends Cubit<LoginState> {
           'فشل تسجيل الدخول. تأكد من صحة البيانات أو اتصالك بالإنترنت.';
       final errorString = e.toString().toLowerCase();
 
-      // اصطياد أخطاء Supabase
       if (errorString.contains('email not confirmed')) {
         msg = 'يرجى تأكيد بريدك الإلكتروني أولاً عبر الرابط الذي أرسلناه إليك.';
       } else if (errorString.contains('invalid login credentials')) {
         msg = 'البريد الإلكتروني أو كلمة المرور غير صحيحة.';
-      }
-      // حماية إضافية في حال انقطع الاتصال فجأة أثناء الطلب
-      else if (errorString.contains('socketexception') ||
+      } else if (errorString.contains('socketexception') ||
           errorString.contains('failed host lookup') ||
           errorString.contains('clientexception')) {
         msg = 'انقطع الاتصال بالإنترنت أثناء تسجيل الدخول. 🌐❌';
