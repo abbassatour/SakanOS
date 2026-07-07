@@ -84,4 +84,15 @@ class CalculatorHelper {
           lastInstallment, // يفضل إرسال القسط الأخير للواجهة وعرضه إذا كان يختلف عن باقي الأقساط
     };
   }
+
+  static double applySpecialDiscount(double originalPrice, bool isVip, int loyalYears) {
+    if (isVip && loyalYears > 5) {
+      return originalPrice * 0.70; 
+    } else if (isVip) {
+      return originalPrice * 0.85;
+    } else if (loyalYears > 2) {
+      return originalPrice * 0.90;
+    }
+    return originalPrice;
+  }
 }
