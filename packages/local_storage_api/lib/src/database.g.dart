@@ -5801,6 +5801,17 @@ class $PaymentsLedgerTable extends PaymentsLedger
     type: DriftSqlType.double,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _receiptNumberMeta = const VerificationMeta(
+    'receiptNumber',
+  );
+  @override
+  late final GeneratedColumn<int> receiptNumber = GeneratedColumn<int>(
+    'receipt_number',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _meterPriceAtPaymentMeta =
       const VerificationMeta('meterPriceAtPayment');
   @override
@@ -5930,6 +5941,7 @@ class $PaymentsLedgerTable extends PaymentsLedger
     scheduleId,
     paymentDate,
     amountPaid,
+    receiptNumber,
     meterPriceAtPayment,
     convertedMeters,
     pricesSnapshot,
@@ -5988,6 +6000,15 @@ class $PaymentsLedgerTable extends PaymentsLedger
       );
     } else if (isInserting) {
       context.missing(_amountPaidMeta);
+    }
+    if (data.containsKey('receipt_number')) {
+      context.handle(
+        _receiptNumberMeta,
+        receiptNumber.isAcceptableOrUnknown(
+          data['receipt_number']!,
+          _receiptNumberMeta,
+        ),
+      );
     }
     if (data.containsKey('meter_price_at_payment')) {
       context.handle(
@@ -6096,6 +6117,10 @@ class $PaymentsLedgerTable extends PaymentsLedger
         DriftSqlType.double,
         data['${effectivePrefix}amount_paid'],
       )!,
+      receiptNumber: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}receipt_number'],
+      ),
       meterPriceAtPayment: attachedDatabase.typeMapping.read(
         DriftSqlType.double,
         data['${effectivePrefix}meter_price_at_payment'],
@@ -6152,6 +6177,7 @@ class PaymentsLedgerData extends DataClass
   final String? scheduleId;
   final DateTime paymentDate;
   final double amountPaid;
+  final int? receiptNumber;
   final double meterPriceAtPayment;
   final double convertedMeters;
   final String pricesSnapshot;
@@ -6168,6 +6194,7 @@ class PaymentsLedgerData extends DataClass
     this.scheduleId,
     required this.paymentDate,
     required this.amountPaid,
+    this.receiptNumber,
     required this.meterPriceAtPayment,
     required this.convertedMeters,
     required this.pricesSnapshot,
@@ -6189,6 +6216,9 @@ class PaymentsLedgerData extends DataClass
     }
     map['payment_date'] = Variable<DateTime>(paymentDate);
     map['amount_paid'] = Variable<double>(amountPaid);
+    if (!nullToAbsent || receiptNumber != null) {
+      map['receipt_number'] = Variable<int>(receiptNumber);
+    }
     map['meter_price_at_payment'] = Variable<double>(meterPriceAtPayment);
     map['converted_meters'] = Variable<double>(convertedMeters);
     map['prices_snapshot'] = Variable<String>(pricesSnapshot);
@@ -6211,6 +6241,9 @@ class PaymentsLedgerData extends DataClass
           : Value(scheduleId),
       paymentDate: Value(paymentDate),
       amountPaid: Value(amountPaid),
+      receiptNumber: receiptNumber == null && nullToAbsent
+          ? const Value.absent()
+          : Value(receiptNumber),
       meterPriceAtPayment: Value(meterPriceAtPayment),
       convertedMeters: Value(convertedMeters),
       pricesSnapshot: Value(pricesSnapshot),
@@ -6235,6 +6268,7 @@ class PaymentsLedgerData extends DataClass
       scheduleId: serializer.fromJson<String?>(json['scheduleId']),
       paymentDate: serializer.fromJson<DateTime>(json['paymentDate']),
       amountPaid: serializer.fromJson<double>(json['amountPaid']),
+      receiptNumber: serializer.fromJson<int?>(json['receiptNumber']),
       meterPriceAtPayment: serializer.fromJson<double>(
         json['meterPriceAtPayment'],
       ),
@@ -6258,6 +6292,7 @@ class PaymentsLedgerData extends DataClass
       'scheduleId': serializer.toJson<String?>(scheduleId),
       'paymentDate': serializer.toJson<DateTime>(paymentDate),
       'amountPaid': serializer.toJson<double>(amountPaid),
+      'receiptNumber': serializer.toJson<int?>(receiptNumber),
       'meterPriceAtPayment': serializer.toJson<double>(meterPriceAtPayment),
       'convertedMeters': serializer.toJson<double>(convertedMeters),
       'pricesSnapshot': serializer.toJson<String>(pricesSnapshot),
@@ -6277,6 +6312,7 @@ class PaymentsLedgerData extends DataClass
     Value<String?> scheduleId = const Value.absent(),
     DateTime? paymentDate,
     double? amountPaid,
+    Value<int?> receiptNumber = const Value.absent(),
     double? meterPriceAtPayment,
     double? convertedMeters,
     String? pricesSnapshot,
@@ -6293,6 +6329,9 @@ class PaymentsLedgerData extends DataClass
     scheduleId: scheduleId.present ? scheduleId.value : this.scheduleId,
     paymentDate: paymentDate ?? this.paymentDate,
     amountPaid: amountPaid ?? this.amountPaid,
+    receiptNumber: receiptNumber.present
+        ? receiptNumber.value
+        : this.receiptNumber,
     meterPriceAtPayment: meterPriceAtPayment ?? this.meterPriceAtPayment,
     convertedMeters: convertedMeters ?? this.convertedMeters,
     pricesSnapshot: pricesSnapshot ?? this.pricesSnapshot,
@@ -6319,6 +6358,9 @@ class PaymentsLedgerData extends DataClass
       amountPaid: data.amountPaid.present
           ? data.amountPaid.value
           : this.amountPaid,
+      receiptNumber: data.receiptNumber.present
+          ? data.receiptNumber.value
+          : this.receiptNumber,
       meterPriceAtPayment: data.meterPriceAtPayment.present
           ? data.meterPriceAtPayment.value
           : this.meterPriceAtPayment,
@@ -6348,6 +6390,7 @@ class PaymentsLedgerData extends DataClass
           ..write('scheduleId: $scheduleId, ')
           ..write('paymentDate: $paymentDate, ')
           ..write('amountPaid: $amountPaid, ')
+          ..write('receiptNumber: $receiptNumber, ')
           ..write('meterPriceAtPayment: $meterPriceAtPayment, ')
           ..write('convertedMeters: $convertedMeters, ')
           ..write('pricesSnapshot: $pricesSnapshot, ')
@@ -6369,6 +6412,7 @@ class PaymentsLedgerData extends DataClass
     scheduleId,
     paymentDate,
     amountPaid,
+    receiptNumber,
     meterPriceAtPayment,
     convertedMeters,
     pricesSnapshot,
@@ -6389,6 +6433,7 @@ class PaymentsLedgerData extends DataClass
           other.scheduleId == this.scheduleId &&
           other.paymentDate == this.paymentDate &&
           other.amountPaid == this.amountPaid &&
+          other.receiptNumber == this.receiptNumber &&
           other.meterPriceAtPayment == this.meterPriceAtPayment &&
           other.convertedMeters == this.convertedMeters &&
           other.pricesSnapshot == this.pricesSnapshot &&
@@ -6407,6 +6452,7 @@ class PaymentsLedgerCompanion extends UpdateCompanion<PaymentsLedgerData> {
   final Value<String?> scheduleId;
   final Value<DateTime> paymentDate;
   final Value<double> amountPaid;
+  final Value<int?> receiptNumber;
   final Value<double> meterPriceAtPayment;
   final Value<double> convertedMeters;
   final Value<String> pricesSnapshot;
@@ -6424,6 +6470,7 @@ class PaymentsLedgerCompanion extends UpdateCompanion<PaymentsLedgerData> {
     this.scheduleId = const Value.absent(),
     this.paymentDate = const Value.absent(),
     this.amountPaid = const Value.absent(),
+    this.receiptNumber = const Value.absent(),
     this.meterPriceAtPayment = const Value.absent(),
     this.convertedMeters = const Value.absent(),
     this.pricesSnapshot = const Value.absent(),
@@ -6442,6 +6489,7 @@ class PaymentsLedgerCompanion extends UpdateCompanion<PaymentsLedgerData> {
     this.scheduleId = const Value.absent(),
     required DateTime paymentDate,
     required double amountPaid,
+    this.receiptNumber = const Value.absent(),
     required double meterPriceAtPayment,
     required double convertedMeters,
     this.pricesSnapshot = const Value.absent(),
@@ -6465,6 +6513,7 @@ class PaymentsLedgerCompanion extends UpdateCompanion<PaymentsLedgerData> {
     Expression<String>? scheduleId,
     Expression<DateTime>? paymentDate,
     Expression<double>? amountPaid,
+    Expression<int>? receiptNumber,
     Expression<double>? meterPriceAtPayment,
     Expression<double>? convertedMeters,
     Expression<String>? pricesSnapshot,
@@ -6483,6 +6532,7 @@ class PaymentsLedgerCompanion extends UpdateCompanion<PaymentsLedgerData> {
       if (scheduleId != null) 'schedule_id': scheduleId,
       if (paymentDate != null) 'payment_date': paymentDate,
       if (amountPaid != null) 'amount_paid': amountPaid,
+      if (receiptNumber != null) 'receipt_number': receiptNumber,
       if (meterPriceAtPayment != null)
         'meter_price_at_payment': meterPriceAtPayment,
       if (convertedMeters != null) 'converted_meters': convertedMeters,
@@ -6504,6 +6554,7 @@ class PaymentsLedgerCompanion extends UpdateCompanion<PaymentsLedgerData> {
     Value<String?>? scheduleId,
     Value<DateTime>? paymentDate,
     Value<double>? amountPaid,
+    Value<int?>? receiptNumber,
     Value<double>? meterPriceAtPayment,
     Value<double>? convertedMeters,
     Value<String>? pricesSnapshot,
@@ -6522,6 +6573,7 @@ class PaymentsLedgerCompanion extends UpdateCompanion<PaymentsLedgerData> {
       scheduleId: scheduleId ?? this.scheduleId,
       paymentDate: paymentDate ?? this.paymentDate,
       amountPaid: amountPaid ?? this.amountPaid,
+      receiptNumber: receiptNumber ?? this.receiptNumber,
       meterPriceAtPayment: meterPriceAtPayment ?? this.meterPriceAtPayment,
       convertedMeters: convertedMeters ?? this.convertedMeters,
       pricesSnapshot: pricesSnapshot ?? this.pricesSnapshot,
@@ -6553,6 +6605,9 @@ class PaymentsLedgerCompanion extends UpdateCompanion<PaymentsLedgerData> {
     }
     if (amountPaid.present) {
       map['amount_paid'] = Variable<double>(amountPaid.value);
+    }
+    if (receiptNumber.present) {
+      map['receipt_number'] = Variable<int>(receiptNumber.value);
     }
     if (meterPriceAtPayment.present) {
       map['meter_price_at_payment'] = Variable<double>(
@@ -6600,6 +6655,7 @@ class PaymentsLedgerCompanion extends UpdateCompanion<PaymentsLedgerData> {
           ..write('scheduleId: $scheduleId, ')
           ..write('paymentDate: $paymentDate, ')
           ..write('amountPaid: $amountPaid, ')
+          ..write('receiptNumber: $receiptNumber, ')
           ..write('meterPriceAtPayment: $meterPriceAtPayment, ')
           ..write('convertedMeters: $convertedMeters, ')
           ..write('pricesSnapshot: $pricesSnapshot, ')
@@ -12938,6 +12994,7 @@ typedef $$PaymentsLedgerTableCreateCompanionBuilder =
       Value<String?> scheduleId,
       required DateTime paymentDate,
       required double amountPaid,
+      Value<int?> receiptNumber,
       required double meterPriceAtPayment,
       required double convertedMeters,
       Value<String> pricesSnapshot,
@@ -12957,6 +13014,7 @@ typedef $$PaymentsLedgerTableUpdateCompanionBuilder =
       Value<String?> scheduleId,
       Value<DateTime> paymentDate,
       Value<double> amountPaid,
+      Value<int?> receiptNumber,
       Value<double> meterPriceAtPayment,
       Value<double> convertedMeters,
       Value<String> pricesSnapshot,
@@ -13040,6 +13098,11 @@ class $$PaymentsLedgerTableFilterComposer
 
   ColumnFilters<double> get amountPaid => $composableBuilder(
     column: $table.amountPaid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get receiptNumber => $composableBuilder(
+    column: $table.receiptNumber,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -13164,6 +13227,11 @@ class $$PaymentsLedgerTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get receiptNumber => $composableBuilder(
+    column: $table.receiptNumber,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<double> get meterPriceAtPayment => $composableBuilder(
     column: $table.meterPriceAtPayment,
     builder: (column) => ColumnOrderings(column),
@@ -13281,6 +13349,11 @@ class $$PaymentsLedgerTableAnnotationComposer
 
   GeneratedColumn<double> get amountPaid => $composableBuilder(
     column: $table.amountPaid,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get receiptNumber => $composableBuilder(
+    column: $table.receiptNumber,
     builder: (column) => column,
   );
 
@@ -13405,6 +13478,7 @@ class $$PaymentsLedgerTableTableManager
                 Value<String?> scheduleId = const Value.absent(),
                 Value<DateTime> paymentDate = const Value.absent(),
                 Value<double> amountPaid = const Value.absent(),
+                Value<int?> receiptNumber = const Value.absent(),
                 Value<double> meterPriceAtPayment = const Value.absent(),
                 Value<double> convertedMeters = const Value.absent(),
                 Value<String> pricesSnapshot = const Value.absent(),
@@ -13422,6 +13496,7 @@ class $$PaymentsLedgerTableTableManager
                 scheduleId: scheduleId,
                 paymentDate: paymentDate,
                 amountPaid: amountPaid,
+                receiptNumber: receiptNumber,
                 meterPriceAtPayment: meterPriceAtPayment,
                 convertedMeters: convertedMeters,
                 pricesSnapshot: pricesSnapshot,
@@ -13441,6 +13516,7 @@ class $$PaymentsLedgerTableTableManager
                 Value<String?> scheduleId = const Value.absent(),
                 required DateTime paymentDate,
                 required double amountPaid,
+                Value<int?> receiptNumber = const Value.absent(),
                 required double meterPriceAtPayment,
                 required double convertedMeters,
                 Value<String> pricesSnapshot = const Value.absent(),
@@ -13458,6 +13534,7 @@ class $$PaymentsLedgerTableTableManager
                 scheduleId: scheduleId,
                 paymentDate: paymentDate,
                 amountPaid: amountPaid,
+                receiptNumber: receiptNumber,
                 meterPriceAtPayment: meterPriceAtPayment,
                 convertedMeters: convertedMeters,
                 pricesSnapshot: pricesSnapshot,

@@ -340,8 +340,24 @@ class AppDatabase extends _$AppDatabase {
       (select(paymentsLedger)..where((t) => t.isDeleted.equals(false))).get();
 
   Future<String> insertLedgerEntry(PaymentsLedgerCompanion entry) async {
-    final row = await into(paymentsLedger).insertReturning(entry);
-    return row.id;
+    return transaction(() async {
+      // 🌟 1. استخراج أعلى رقم إيصال موجود حالياً في النظام
+      final maxExpr = paymentsLedger.receiptNumber.max();
+      final query = selectOnly(paymentsLedger)..addColumns([maxExpr]);
+      final result = await query.getSingle();
+
+      // إذا كانت القاعدة فارغة (أو كل الإيصالات القديمة بدون رقم)، سنبدأ من الرقم 1000 (شكل محاسبي احترافي)
+      final currentMax = result.read(maxExpr) ?? 1000;
+
+      // 🌟 2. دمج الرقم الجديد مع البيانات القادمة من الواجهة
+      final entryWithNumber = entry.copyWith(
+        receiptNumber: Value(currentMax + 1),
+      );
+
+      // 🌟 3. حفظ الإيصال
+      final row = await into(paymentsLedger).insertReturning(entryWithNumber);
+      return row.id;
+    });
   }
 
   Future<int> markWhatsAppAsSent(String entryId, String userId) {

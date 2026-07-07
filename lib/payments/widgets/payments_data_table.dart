@@ -133,7 +133,10 @@ class PaymentsDataTable extends StatelessWidget {
                     cells: [
                       DataCell(
                         Text(
-                          entry.id.split('-').first.toUpperCase(),
+                          // 🌟 تم تصحيح الخطأ الإملائي هنا
+                          entry.receiptNumber != null
+                              ? entry.receiptNumber.toString()
+                              : entry.id.split('-').first.toUpperCase(),
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             color: Colors.grey.shade600,

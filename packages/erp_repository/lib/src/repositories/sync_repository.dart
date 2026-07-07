@@ -248,6 +248,12 @@ class SyncRepository {
           id: drift.Value(p['id'].toString()),
           contractId: p['contract_id'].toString(),
           scheduleId: drift.Value(p['schedule_id']?.toString()),
+          receiptNumber: drift.Value(
+            p['receipt_number'] != null
+                ? int.tryParse(p['receipt_number'].toString())
+                : null,
+          ),
+
           paymentDate:
               DateTime.tryParse(p['payment_date']?.toString() ?? '')?.toUtc() ??
               DateTime.now().toUtc(),
@@ -602,6 +608,9 @@ class SyncRepository {
           'id': p.id,
           'contract_id': p.contractId,
           'schedule_id': p.scheduleId,
+          // 🌟 السطر الجديد: رفع رقم الإيصال للسحابة
+          'receipt_number': p.receiptNumber,
+
           'payment_date': p.paymentDate.toUtc().toIso8601String(),
           'amount_paid': safeNum(p.amountPaid),
           'meter_price_at_payment': safeNum(p.meterPriceAtPayment),

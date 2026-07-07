@@ -86,7 +86,8 @@ class DepositPdfGenerator {
               mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
               children: [
                 pw.Text(
-                  'رقم: ${entry.id.split('-').first.toUpperCase()}',
+                  // 🌟 التعديل هنا:
+                  'رقم: ${entry.receiptNumber != null ? entry.receiptNumber : entry.id.split('-').first.toUpperCase()}',
                   style: pw.TextStyle(font: arabicFont, fontSize: 8),
                 ),
                 pw.Text(

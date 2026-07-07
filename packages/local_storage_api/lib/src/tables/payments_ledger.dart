@@ -15,6 +15,10 @@ class PaymentsLedger extends Table {
       text().nullable().references(InstallmentsSchedule, #id)();
   DateTimeColumn get paymentDate => dateTime()();
   RealColumn get amountPaid => real()();
+
+  // 🌟 [السطر الجديد]: الرقم المتسلسل المحاسبي (جعلناه Nullable لكي لا تنهار الإيصالات القديمة)
+  IntColumn get receiptNumber => integer().nullable()();
+
   RealColumn get meterPriceAtPayment => real()();
   RealColumn get convertedMeters => real()();
   TextColumn get pricesSnapshot => text().withDefault(const Constant('{}'))();

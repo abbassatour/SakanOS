@@ -464,7 +464,10 @@ class AllocatedLedgerPdf {
                         mainAxisAlignment: pw.MainAxisAlignment.center,
                         children: [
                           pw.Text(
-                            entry.id.split('-').first.toUpperCase(),
+                            // 🌟 التعديل هنا:
+                            entry.receiptNumber != null
+                                ? entry.receiptNumber.toString()
+                                : entry.id.split('-').first.toUpperCase(),
                             style: pw.TextStyle(font: arabicFont, fontSize: 8),
                           ),
                           if (isFirstPayment && !isRefund)

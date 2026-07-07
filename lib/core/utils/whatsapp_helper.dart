@@ -25,7 +25,7 @@ class WhatsAppHelper {
 وذلك عن شقة (${contract.apartmentDetails}).
 
 *تفاصيل الدفعة:*
-- رقم الإيصال: ${entry.id.split('-').first}
+- رقم الإيصال: ${entry.receiptNumber != null ? entry.receiptNumber : entry.id.split('-').first.toUpperCase()}
 - تاريخ الدفع: ${entry.paymentDate.year}/${entry.paymentDate.month}/${entry.paymentDate.day}
 - سعر المتر المعتمد وقت الدفع: ${entry.meterPriceAtPayment.toStringAsFixed(0)} ل.س
 - الأمتار المحولة بهذه الدفعة: ${entry.convertedMeters.toStringAsFixed(3)} م2

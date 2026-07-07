@@ -36,8 +36,11 @@ class ExcelExportHelper {
       for (final entry in ledgerEntries) {
         List<CellValue> row = [
           TextCellValue(
-            entry.id.split('-').first,
-          ), // عرض جزء من الـ UUID لسهولة القراءة
+            // 🌟 التعديل هنا:
+            entry.receiptNumber != null
+                ? entry.receiptNumber.toString()
+                : entry.id.split('-').first.toUpperCase(),
+          ),
           DoubleCellValue(entry.amountPaid),
           DoubleCellValue(entry.meterPriceAtPayment),
           DoubleCellValue(entry.convertedMeters),
