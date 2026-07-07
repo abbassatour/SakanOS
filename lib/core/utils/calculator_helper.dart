@@ -85,9 +85,13 @@ class CalculatorHelper {
     };
   }
 
-  static double applySpecialDiscount(double originalPrice, bool isVip, int loyalYears) {
+  static double applySpecialDiscount(
+    double originalPrice,
+    bool isVip,
+    int loyalYears,
+  ) {
     if (isVip && loyalYears > 5) {
-      return originalPrice * 0.70; 
+      return originalPrice * 0.70;
     } else if (isVip) {
       return originalPrice * 0.85;
     } else if (loyalYears > 2) {
