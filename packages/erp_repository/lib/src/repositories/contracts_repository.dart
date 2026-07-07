@@ -4,6 +4,8 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as p;
 import 'package:cloud_storage_api/cloud_storage_api.dart';
 import 'package:drift/drift.dart' as drift;
 import 'package:local_storage_api/local_storage_api.dart';
@@ -344,23 +346,32 @@ class ContractsRepository {
     final userId = _getCurrentUserId();
     if (userId == null) throw Exception('يجب تسجيل الدخول أولاً.');
 
-    final fileUrl = await _cloudApi.uploadContractFile(
-      contractId: contractId,
-      file: file,
-      extension: extension,
-    );
+    // 1. إنشاء مجلد محلي آمن داخل مجلد التطبيق
+    final dir = await getApplicationSupportDirectory();
+    final localDirPath = p.join(dir.path, 'pending_uploads');
+    final localDir = Directory(localDirPath);
+    if (!await localDir.exists()) await localDir.create(recursive: true);
 
+    // 2. نسخ الملف المختار إلى هذا المجلد المحلي
+    final fileName = 'contract_$contractId.$extension';
+    final localFile = await file.copy(p.join(localDir.path, fileName));
+
+    // 3. حفظ المسار المحلي في قاعدة البيانات بدلاً من الرابط السحابي
     final db = _localApi.database;
     await (db.update(
       db.contracts,
     )..where((t) => t.id.equals(contractId))).write(
       ContractsCompanion(
-        contractFileUrl: drift.Value(fileUrl),
+        contractFileUrl: drift.Value(
+          localFile.path,
+        ), // 🌟 حفظ المسار المحلي هنا
         userId: drift.Value(userId),
         updatedAt: drift.Value(DateTime.now().toUtc()),
-        isSynced: const drift.Value(false),
+        isSynced: const drift.Value(false), // 🌟 تأشير كـ "غير متزامن"
       ),
     );
+
+    // 4. محاولة المزامنة (إذا كان هناك إنترنت سيرفع فوراً، وإلا سينتظر)
     await _syncRepo.syncPendingData();
   }
 

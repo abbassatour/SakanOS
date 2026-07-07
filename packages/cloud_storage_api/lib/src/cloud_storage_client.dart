@@ -254,10 +254,18 @@ class CloudStorageClient {
     const bucketName = 'erp_contracts'; // اسم السلة (Bucket) في Supabase
     final fileName = 'contract_$contractId.$extension';
 
-    // 1. جلب مفتاح الجلسة الحالي (JWT) للمصادقة للسماح بالرفع
-    final session = _supabase.auth.currentSession;
+    // 1. جلب مفتاح الجلسة الحالي (JWT) وتحديثه إذا لزم الأمر
+    var session = _supabase.auth.currentSession;
     if (session == null) throw Exception('يجب تسجيل الدخول لرفع الملفات.');
-    final jwtToken = session.accessToken;
+
+    // 🌟 السحر هنا: نتحقق إذا كان التوكن منتهي الصلاحية، ونجبره على التجديد الآني
+    if (session.isExpired) {
+      final response = await _supabase.auth.refreshSession();
+      session = response.session;
+    }
+
+    final jwtToken = session?.accessToken;
+    if (jwtToken == null) throw Exception('فشل الحصول على مفتاح الجلسة الآمن.');
 
     // 2. قراءة الملف كبيانات خام (Bytes)
     final bytes = file.readAsBytesSync();
@@ -327,9 +335,16 @@ class CloudStorageClient {
     const bucketName = 'legal_attachments';
     final fileName = 'attach_$attachmentId.$extension';
 
-    final session = _supabase.auth.currentSession;
+    var session = _supabase.auth.currentSession;
     if (session == null) throw Exception('يجب تسجيل الدخول لرفع الملفات.');
-    final jwtToken = session.accessToken;
+
+    if (session.isExpired) {
+      final response = await _supabase.auth.refreshSession();
+      session = response.session;
+    }
+
+    final jwtToken = session?.accessToken;
+    if (jwtToken == null) throw Exception('فشل الحصول على مفتاح الجلسة الآمن.');
 
     final bytes = file.readAsBytesSync();
 

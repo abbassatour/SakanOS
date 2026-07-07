@@ -1,6 +1,7 @@
 // packages/erp_repository/lib/src/repositories/sync_repository.dart
 // ignore_for_file: depend_on_referenced_packages
-
+import 'dart:io';
+import 'package:path/path.dart' as p;
 import 'package:cloud_storage_api/cloud_storage_api.dart';
 import 'package:drift/drift.dart' as drift;
 import 'package:local_storage_api/local_storage_api.dart';
@@ -442,9 +443,46 @@ class SyncRepository {
         db.contracts,
       )..where((t) => t.isSynced.equals(false))).get();
       for (final c in pendingContracts) {
+        String? finalFileUrl = c.contractFileUrl;
+
+        // 🌟 التحقق: هل الملف يحتاج إلى رفع؟ (إذا كان المسار لا يبدأ بـ http فهو ملف محلي)
+        if (finalFileUrl != null && !finalFileUrl.startsWith('http')) {
+          try {
+            final localFile = File(finalFileUrl);
+            if (await localFile.exists()) {
+              final extension = p.extension(localFile.path).replaceAll('.', '');
+              finalFileUrl = await _cloudApi.uploadContractFile(
+                contractId: c.id,
+                file: localFile,
+                extension: extension,
+              );
+              await (db.update(
+                db.contracts,
+              )..where((t) => t.id.equals(c.id))).write(
+                ContractsCompanion(contractFileUrl: drift.Value(finalFileUrl)),
+              );
+              await localFile.delete();
+            } else {
+              // 🌟 السطر السحري: إذا قام المستخدم بحذف الملف من الكمبيوتر قبل المزامنة
+              // نجعله null لكي لا نرفع مسار (C:\) إلى السحابة!
+              finalFileUrl = null;
+              await (db.update(
+                db.contracts,
+              )..where((t) => t.id.equals(c.id))).write(
+                const ContractsCompanion(contractFileUrl: drift.Value(null)),
+              );
+            }
+          } catch (e) {
+            print('⚠️ فشل رفع ملف العقد (ربما الإنترنت ضعيف): $e');
+            continue; // نؤجل رفع هذا العقد للمرة القادمة
+          }
+        }
+
+        // رفع بيانات العقد للسحابة بالرابط الجديد
         await _cloudApi.upsertContract({
           'id': c.id,
           'client_id': c.clientId,
+          // ... (باقي الحقول كما هي عندك تماماً دون تغيير)
           'apartment_id': c.apartmentId,
           'contract_type': c.contractType,
           'apartment_details': c.apartmentDetails,
@@ -468,7 +506,7 @@ class SyncRepository {
           'coefficients': c.coefficients,
           'contract_date': c.contractDate.toUtc().toIso8601String(),
           'guarantor_name': c.guarantorName,
-          'contract_file_url': c.contractFileUrl,
+          'contract_file_url': finalFileUrl, // 🌟 الرابط المحدث!
           'user_id': c.userId,
           'is_completed': c.isCompleted,
           'last_action_date': c.lastActionDate?.toUtc().toIso8601String(),
@@ -714,10 +752,44 @@ class SyncRepository {
         db.legalActionAttachments,
       )..where((t) => t.isSynced.equals(false))).get();
       for (final att in pendingAttachments) {
+        String finalFileUrl = att.fileUrl;
+
+        // 🌟 التحقق من الرابط المحلي
+        if (!finalFileUrl.startsWith('http')) {
+          try {
+            final localFile = File(finalFileUrl);
+            if (await localFile.exists()) {
+              final extension = att.fileType ?? 'pdf';
+              finalFileUrl = await _cloudApi.uploadLegalAttachmentFile(
+                attachmentId: att.id,
+                file: localFile,
+                extension: extension,
+              );
+              await (db.update(
+                db.legalActionAttachments,
+              )..where((t) => t.id.equals(att.id))).write(
+                LegalActionAttachmentsCompanion(
+                  fileUrl: drift.Value(finalFileUrl),
+                ),
+              );
+              await localFile.delete();
+            } else {
+              // 🌟 إذا تم حذف المرفق محلياً قبل رفعه، نتخطاه تماماً أو نحذفه من القاعدة
+              await (db.delete(
+                db.legalActionAttachments,
+              )..where((t) => t.id.equals(att.id))).go();
+              continue; // ننتقل للمرفق التالي فوراً
+            }
+          } catch (e) {
+            print('⚠️ فشل رفع المرفق: $e');
+            continue; // تأجيل
+          }
+        }
+
         await _cloudApi.upsertLegalActionAttachment({
           'id': att.id,
           'legal_action_id': att.legalActionId,
-          'file_url': att.fileUrl,
+          'file_url': finalFileUrl, // 🌟 الرابط المحدث
           'file_name': att.fileName,
           'file_type': att.fileType,
           'user_id': att.userId,

@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:local_storage_api/local_storage_api.dart' show Client, Contract;
 import 'package:url_launcher/url_launcher.dart';
-
+import 'package:open_filex/open_filex.dart';
 import '../../dashboard/cubit/dashboard_cubit.dart';
 import '../cubit/client_profile_cubit.dart';
 import '../../payments/cubit/payments_cubit.dart';
@@ -372,18 +372,39 @@ class ContractDetailsPage extends StatelessWidget {
                               label: 'عرض ملف العقد المرفق (PDF/Word)',
                               color: Colors.green.shade700,
                               onTap: () async {
-                                final Uri url = Uri.parse(
-                                  contract.contractFileUrl!,
-                                );
-                                if (await canLaunchUrl(url)) {
-                                  await launchUrl(url);
+                                final urlString = contract.contractFileUrl!;
+
+                                if (urlString.startsWith('http')) {
+                                  // ملف سحابي
+                                  final Uri url = Uri.parse(urlString);
+                                  if (await canLaunchUrl(url)) {
+                                    await launchUrl(url);
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          'لا يمكن فتح الرابط السحابي.',
+                                        ),
+                                        backgroundColor: Colors.red,
+                                      ),
+                                    );
+                                  }
                                 } else {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('لا يمكن فتح الرابط.'),
-                                      backgroundColor: Colors.red,
-                                    ),
+                                  // ملف محلي (أوفلاين)
+                                  final result = await OpenFilex.open(
+                                    urlString,
                                   );
+                                  if (result.type != ResultType.done &&
+                                      context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          '⚠️ تعذر فتح الملف المحلي: ${result.message}',
+                                        ),
+                                        backgroundColor: Colors.orange,
+                                      ),
+                                    );
+                                  }
                                 }
                               },
                             ),
