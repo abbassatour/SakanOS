@@ -120,7 +120,11 @@ class PaymentsDataTable extends StatelessWidget {
                   final entry = mapEntry.value;
                   final isLatestEntry = index == 0;
                   final isRefund = entry.amountPaid < 0;
-
+                  final minutesPassed = DateTime.now()
+                      .toUtc()
+                      .difference(entry.createdAt)
+                      .inMinutes;
+                  final isGracePeriod = minutesPassed <= 5;
                   return DataRow(
                     color: WidgetStateProperty.resolveWith<Color?>(
                       (states) {
@@ -429,14 +433,23 @@ class PaymentsDataTable extends StatelessWidget {
                             if (canDelete)
                               IconButton(
                                 icon: Icon(
-                                  Icons.delete_forever,
+                                  // تغيير الأيقونة بناءً على الوقت
+                                  isLatestEntry
+                                      ? (isGracePeriod
+                                            ? Icons.delete_forever
+                                            : Icons.autorenew)
+                                      : Icons.delete_forever,
                                   color: isLatestEntry
-                                      ? Colors.red
+                                      ? (isGracePeriod
+                                            ? Colors.red
+                                            : Colors.orange.shade800)
                                       : Colors.grey.shade300,
                                 ),
                                 tooltip: isLatestEntry
-                                    ? 'إلغاء آخر دفعة'
-                                    : 'لا يمكن حذف الدفعات القديمة',
+                                    ? (isGracePeriod
+                                          ? 'إلغاء فوري للإيصال (متبقي ${5 - minutesPassed} دقائق)'
+                                          : 'تسوية محاسبية (قيد عكسي)')
+                                    : 'لا يمكن إلغاء دفعات قديمة',
                                 onPressed: isLatestEntry
                                     ? () => showDeletePaymentDialog(
                                         context,
