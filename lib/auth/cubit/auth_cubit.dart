@@ -162,4 +162,9 @@ class AuthCubit extends Cubit<AuthState> {
     await _erpRepository.signOut();
     emit(const AuthState(status: AuthStatus.unauthenticated));
   }
+
+  // 🌟 [جديد] تسجيل وقت الإدخال الصحيح للـ PIN لتفعيل فترة السماح
+  void markPinVerified() {
+    emit(state.copyWith(lastPinVerificationTime: DateTime.now()));
+  }
 }

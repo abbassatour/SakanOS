@@ -4,12 +4,25 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:our_home_erp_app/auth/cubit/auth_cubit.dart';
 
 Future<bool> showVerifyPinDialog(BuildContext context) async {
-  final correctPin = context.read<AuthCubit>().state.securityPin;
+  final authCubit = context.read<AuthCubit>();
+
+  // 🌟 التحقق من فترة السماح
+  if (authCubit.state.isPinGracePeriodActive) {
+    return true;
+  }
+
+  final correctPin = authCubit.state.securityPin;
   final result = await showDialog<bool>(
     context: context,
     barrierDismissible: false,
     builder: (ctx) => _VerifyPinDialogContent(correctPin: correctPin),
   );
+
+  // 🌟 تفعيل الجلسة
+  if (result == true) {
+    authCubit.markPinVerified();
+  }
+
   return result ?? false;
 }
 

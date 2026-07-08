@@ -1,3 +1,4 @@
+// lib/recycle_bin/view/dialogs/verify_hard_delete_dialog.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:our_home_erp_app/auth/cubit/auth_cubit.dart';
@@ -7,8 +8,22 @@ void showVerifyHardDeleteDialog({
   required String itemName,
   required VoidCallback onConfirm,
 }) {
+  final authCubit = context.read<AuthCubit>();
+
+  // 🌟 تجاوز النافذة إذا كانت الجلسة نشطة
+  if (authCubit.state.isPinGracePeriodActive) {
+    onConfirm();
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('تم الحذف النهائي بنجاح.'),
+        backgroundColor: Colors.green,
+      ),
+    );
+    return;
+  }
+
   final pinController = TextEditingController();
-  final String correctPin = context.read<AuthCubit>().state.securityPin;
+  final String correctPin = authCubit.state.securityPin;
 
   showDialog(
     context: context,
@@ -56,6 +71,7 @@ void showVerifyHardDeleteDialog({
           ),
           onPressed: () {
             if (pinController.text == correctPin) {
+              authCubit.markPinVerified(); // 🌟 تفعيل الجلسة المفتوحة
               Navigator.pop(ctx);
               onConfirm();
               ScaffoldMessenger.of(context).showSnackBar(

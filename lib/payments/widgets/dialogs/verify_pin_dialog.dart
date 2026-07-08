@@ -8,7 +8,14 @@ Future<bool> showVerifyPinDialog({
   String? correctPin,
   String? message,
 }) async {
-  final pinToUse = correctPin ?? context.read<AuthCubit>().state.securityPin;
+  final authCubit = context.read<AuthCubit>();
+
+  // 🌟 [السحر هنا]: إذا كانت الجلسة نشطة، مرر العملية فوراً بدون إظهار النافذة!
+  if (authCubit.state.isPinGracePeriodActive) {
+    return true;
+  }
+
+  final pinToUse = correctPin ?? authCubit.state.securityPin;
 
   final result = await showDialog<bool>(
     context: context,
@@ -20,6 +27,11 @@ Future<bool> showVerifyPinDialog({
           'هذه العملية حساسة مالياً. يرجى إدخال رمز الأمان الخاص بك:',
     ),
   );
+
+  // 🌟 تفعيل الجلسة عند النجاح
+  if (result == true) {
+    authCubit.markPinVerified();
+  }
 
   return result ?? false;
 }
