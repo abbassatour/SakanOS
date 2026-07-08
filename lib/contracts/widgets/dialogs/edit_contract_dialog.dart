@@ -87,19 +87,36 @@ class _EditContractDialogContentState
 
   // 🌟 دالة الحفظ الموحدة (يتم استدعاؤها من أزرار الحفظ في التبويبات المختلفة)
   Future<void> _saveContractData(String successMessage) async {
-    if (isPenaltyActive && double.tryParse(penaltyPctCtrl.text) == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('أدخل نسبة غرامة صحيحة!'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
+    // 🛡️ حماية صارمة: منع الحقول الفارغة نهائياً
+    if (isAllocated && isPenaltyActive) {
+      if (penaltyPctCtrl.text.trim().isEmpty ||
+          double.tryParse(penaltyPctCtrl.text) == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'أدخل نسبة غرامة صحيحة! الحقل لا يمكن أن يكون فارغاً.',
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+      if (penaltyIntervalCtrl.text.trim().isEmpty ||
+          int.tryParse(penaltyIntervalCtrl.text) == null ||
+          int.parse(penaltyIntervalCtrl.text) <= 0) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('مدة التطبيق يجب أن تكون شهراً واحداً على الأقل.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
     }
 
     Navigator.pop(context); // إغلاق النافذة
     final isAuth = await showVerifyPinDialog(widget.parentContext);
-
+    // ... باقي الكود كما هو
     if (isAuth && widget.parentContext.mounted) {
       unawaited(
         widget.parentContext.read<ContractsCubit>().updateContract(

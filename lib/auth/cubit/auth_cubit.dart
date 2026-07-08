@@ -158,6 +158,7 @@ class AuthCubit extends Cubit<AuthState> {
 
   // دالة لتسجيل الخروج يدوياً
   Future<void> logout() async {
+    _gracePeriodTimer?.cancel();
     emit(state.copyWith(status: AuthStatus.loading));
     await _erpRepository.signOut();
     emit(const AuthState(status: AuthStatus.unauthenticated));

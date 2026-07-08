@@ -135,7 +135,14 @@ class ScheduleCubit extends Cubit<ScheduleState> {
       if (averageMetersPerMonth > 0) {
         var metersLeft = targetAllocationMeters - accumulatedMeters;
         if (metersLeft < 0) metersLeft = 0;
-        estimatedMonthsLeft = (metersLeft / averageMetersPerMonth).ceil();
+        // 🛡️ حماية ضد الأرقام الفلكية أو الـ Infinity
+        final double calcMonths = metersLeft / averageMetersPerMonth;
+        if (calcMonths.isInfinite || calcMonths.isNaN) {
+          estimatedMonthsLeft = 999;
+        } else {
+          final int ceilMonths = calcMonths.ceil();
+          estimatedMonthsLeft = ceilMonths > 999 ? 999 : ceilMonths;
+        }
       }
 
       var hasRecentAction = false;
