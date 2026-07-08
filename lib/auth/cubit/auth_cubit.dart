@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'dart:developer';
-
+import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:erp_repository/erp_repository.dart';
@@ -163,8 +163,33 @@ class AuthCubit extends Cubit<AuthState> {
     emit(const AuthState(status: AuthStatus.unauthenticated));
   }
 
-  // 🌟 [جديد] تسجيل وقت الإدخال الصحيح للـ PIN لتفعيل فترة السماح
+  // 🌟 متغيرات الجلسة المفتوحة
+  static const int gracePeriodMinutes = 5;
+  Timer? _gracePeriodTimer;
+
+  // 🌟 بدء الجلسة المفتوحة
   void markPinVerified() {
     emit(state.copyWith(lastPinVerificationTime: DateTime.now()));
+
+    // إلغاء أي مؤقت سابق لضمان عدم التضارب
+    _gracePeriodTimer?.cancel();
+
+    // تشغيل مؤقت لمدة 5 دقائق، يقوم بقفل الجلسة آلياً عند انتهائه
+    _gracePeriodTimer = Timer(const Duration(minutes: gracePeriodMinutes), () {
+      lockPinSession();
+    });
+  }
+
+  // 🌟 القفل اليدوي / الآلي
+  void lockPinSession() {
+    _gracePeriodTimer?.cancel();
+    emit(state.copyWith(clearGracePeriod: true)); // مسح الوقت من الـ State
+  }
+
+  // يجب إلغاء المؤقت عند إغلاق التطبيق أو تسجيل الخروج
+  @override
+  Future<void> close() {
+    _gracePeriodTimer?.cancel();
+    return super.close();
   }
 }

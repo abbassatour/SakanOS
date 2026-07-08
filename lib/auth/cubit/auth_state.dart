@@ -47,7 +47,8 @@ class AuthState extends Equatable {
     bool? isSystemAdmin,
     List<String>? permissions,
     String? errorMessage,
-    DateTime? lastPinVerificationTime, // 🌟
+    DateTime? lastPinVerificationTime,
+    bool clearGracePeriod = false, // 🌟 [جديد] لإجبار مسح الجلسة
   }) {
     return AuthState(
       status: status ?? this.status,
@@ -58,9 +59,10 @@ class AuthState extends Equatable {
       isSystemAdmin: isSystemAdmin ?? this.isSystemAdmin,
       permissions: permissions ?? this.permissions,
       errorMessage: errorMessage ?? this.errorMessage,
-      // إذا تم تمرير null، سيتجاهله ويحتفظ بالقديم. لتفريغه نمرر تاريخ قديم، لكننا لا نحتاج ذلك هنا.
-      lastPinVerificationTime:
-          lastPinVerificationTime ?? this.lastPinVerificationTime,
+      // 🌟 إذا تم طلب المسح، نجعله null، وإلا نأخذ الجديد، وإلا نحتفظ بالقديم
+      lastPinVerificationTime: clearGracePeriod
+          ? null
+          : (lastPinVerificationTime ?? this.lastPinVerificationTime),
     );
   }
 

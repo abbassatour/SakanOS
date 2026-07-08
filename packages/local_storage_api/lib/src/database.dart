@@ -1118,6 +1118,17 @@ class AppDatabase extends _$AppDatabase {
     );
   }
 
+  Future<void> softDeleteRole(String roleId) async {
+    final nowUtc = Value(DateTime.now().toUtc());
+    await (update(appRoles)..where((t) => t.id.equals(roleId))).write(
+      AppRolesCompanion(
+        isDeleted: const Value(true),
+        updatedAt: nowUtc,
+        isSynced: const Value(false),
+      ),
+    );
+  }
+
   // ==========================================
   // 🔐 تحديث رمز الأمان (PIN) للمستخدم
   // ==========================================

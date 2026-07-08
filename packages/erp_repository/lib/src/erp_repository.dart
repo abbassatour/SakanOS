@@ -681,6 +681,8 @@ class ErpRepository {
     permissions: permissions,
   );
 
+  Future<void> deleteRole(String roleId) => _adminRepo.deleteRole(roleId);
+
   Future<void> updateUserRoleAndPermissions({
     required String userId,
     required String roleId,

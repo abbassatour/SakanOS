@@ -252,7 +252,12 @@ class DashboardView extends StatelessWidget {
                           fontSize: 12,
                         ),
                       ),
+
+                      const SizedBox(height: 8),
+                      // 🌟 تم إضافة أيقونة ومؤشر الجلسة המفتوحة هنا! 🌟
+                      const _PinSessionIndicator(),
                       const SizedBox(height: 16),
+
                       IconButton(
                         icon: const Icon(
                           Icons.sync,
@@ -408,6 +413,87 @@ class DashboardView extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _PinSessionIndicator extends StatelessWidget {
+  const _PinSessionIndicator();
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<AuthCubit, AuthState>(
+      builder: (context, state) {
+        final isActive = state.isPinGracePeriodActive;
+
+        // 🔒 الحالة الأولى: الجلسة مقفلة
+        if (!isActive) {
+          return Tooltip(
+            message: 'صلاحيات الإدارة مقفلة بأمان 🔒',
+            child: IconButton(
+              icon: const Icon(Icons.lock_outline, color: Colors.white38),
+              onPressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                      'النظام مقفل. سيُطلب الرمز عند أي عملية حساسة.',
+                    ),
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+              },
+            ),
+          );
+        }
+
+        // 🔓 الحالة الثانية: الجلسة مفتوحة (نحسب الوقت المتبقي للأنميشن)
+        // 5 دقائق = 300 ثانية
+        final expiryTime = state.lastPinVerificationTime!.add(
+          const Duration(minutes: 5),
+        );
+        final remainingDuration = expiryTime.difference(DateTime.now());
+        final remainingSeconds = remainingDuration.inSeconds.clamp(0, 300);
+        final percentage = remainingSeconds / 300.0;
+
+        return Tooltip(
+          message: 'صلاحيات الإدارة مفتوحة.\nانقر للقفل فوراً.',
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              // 🌟 شريط التقدم الدائري المتناقص
+              SizedBox(
+                width: 38,
+                height: 38,
+                child: TweenAnimationBuilder<double>(
+                  tween: Tween<double>(begin: percentage, end: 0.0),
+                  duration: Duration(seconds: remainingSeconds),
+                  builder: (context, value, child) {
+                    return CircularProgressIndicator(
+                      value: value,
+                      color: Colors.greenAccent,
+                      backgroundColor: Colors.transparent,
+                      strokeWidth: 2.5,
+                    );
+                  },
+                ),
+              ),
+              // 🌟 زر القفل المفتوح
+              IconButton(
+                icon: const Icon(Icons.lock_open, color: Colors.greenAccent),
+                onPressed: () {
+                  context.read<AuthCubit>().lockPinSession();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('تم قفل الصلاحيات الحساسة بنجاح 🔒'),
+                      backgroundColor: Colors.blueGrey,
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

@@ -276,6 +276,7 @@ class LocalStorageApi {
   Future<LocalUser?> getLocalUserById(String id) => _db.getLocalUserById(id);
   Future<AppRole?> getRoleById(String id) => _db.getRoleById(id);
 
+  Future<void> deleteRole(String roleId) => _db.softDeleteRole(roleId);
   // ==========================================
   // ⚖️ الإجراءات القانونية
   // ==========================================
