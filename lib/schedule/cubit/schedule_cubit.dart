@@ -70,6 +70,8 @@ class ScheduleCubit extends Cubit<ScheduleState> {
       if (contractIdx == -1) return;
       final contract = allContracts[contractIdx];
 
+      if (contract.isCompleted) return;
+
       final clientIdx = allClients.indexWhere(
         (c) => c.id == contract.clientId,
       );

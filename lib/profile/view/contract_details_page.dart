@@ -292,7 +292,61 @@ class ContractDetailsPage extends StatelessWidget {
                 ),
 
                 const SliverToBoxAdapter(child: SizedBox(height: 80)),
-
+                // ==========================================
+                // 🔒 رسالة توضيحية تظهر فقط للعقود المؤرشفة
+                // ==========================================
+                if (contract.isCompleted)
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.green.shade50,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: Colors.green.shade200,
+                            width: 2,
+                          ),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.archive_rounded,
+                                  color: Colors.green.shade700,
+                                  size: 28,
+                                ),
+                                const SizedBox(width: 10),
+                                Text(
+                                  'هذا العقد مُغلق ومؤرشف 🔒',
+                                  style: TextStyle(
+                                    color: Colors.green.shade900,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            const Text(
+                              '• السجل المالي: محفوظ بالكامل للاطلاع والتدقيق المحاسبي.\n'
+                              '• المدفوعات: تم إيقاف إضافة أو تعديل الدفعات لمنع التلاعب في الحسابات المنتهية.\n'
+                              '• المراقبة: تم سحب العقد من "رادار المراقبة" ولن تظهر له أي مطالبات أو متأخرات.\n'
+                              '• الإجراءات: يمكن للإدارة العليا فقط النقر على زر "إلغاء الأرشفة" من جدول العقود لإعادة فتحه عند الضرورة.',
+                              style: TextStyle(
+                                color: Colors.black87,
+                                height: 1.6,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
                 // ==========================================
                 // 🚀 2. أزرار الإجراءات السريعة
                 // ==========================================

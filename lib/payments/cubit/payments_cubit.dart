@@ -33,7 +33,10 @@ class PaymentsCubit extends Cubit<PaymentsState> {
     }
     try {
       final clients = await _erpRepository.getClients();
-      final contracts = await _erpRepository.getAllContracts();
+      final allContracts = await _erpRepository.getAllContracts();
+      final activeContracts = allContracts
+          .where((c) => !c.isCompleted)
+          .toList();
       final apartments = await _erpRepository.getAllApartments();
       final buildings = await _erpRepository.getBuildings();
 
@@ -46,7 +49,7 @@ class PaymentsCubit extends Cubit<PaymentsState> {
         state.copyWith(
           status: PaymentsStatus.success,
           clients: clients,
-          contracts: contracts,
+          contracts: activeContracts,
           apartments: apartments,
           buildings: buildings,
           userNamesMap: namesMap,
