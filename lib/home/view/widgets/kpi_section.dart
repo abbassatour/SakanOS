@@ -12,7 +12,6 @@ class KpiSection extends StatelessWidget {
     final numberFormatter = NumberFormat.decimalPattern('ar_AR');
 
     final kpis = [
-      // 1. الأرقام القديمة
       _KpiData(
         icon: Icons.account_balance_wallet_rounded,
         gradient: const LinearGradient(
@@ -35,32 +34,37 @@ class KpiSection extends StatelessWidget {
       ),
 
       // ==========================================
-      // 🌟 البطاقات الإدارية الخطيرة
+      // 🌟 بطاقة الديون المتأخرة مع شرح الخوارزمية
       // ==========================================
       _KpiData(
         icon: Icons.warning_amber_rounded,
         gradient: const LinearGradient(
           colors: [Color(0xFFe53935), Color(0xFFe35d5b)],
-        ), // أحمر تحذيري
+        ),
         title: 'الديون المتأخرة الفورية',
         value: '${numberFormatter.format(state.totalOverdueDebts.toInt())} ل.س',
         subtitle: 'أقساط تجاوزت موعد الاستحقاق',
         iconBg: const Color(0xFFe53935),
+        // 🌟 الشرح التفصيلي الذي سيظهر للمدير
+        infoDetails:
+            'يعتمد النظام في حساب هذا الرقم على (محرك هجين) دقيق جداً:\n\n'
+            '1️⃣ المطلوب رياضياً: يحسب النظام عدد الأشهر التي مرت منذ توقيع العقد ويضربها بالقسط الشهري.\n'
+            '2️⃣ الدفعات الاستثنائية: يبحث النظام عن أي دفعة استثنائية (مثل: صب سقف، كسوة) حان موعدها ويضيفها للمطلوب.\n'
+            '3️⃣ الخصم: يُطرح من المجموع كل المبالغ التي دفعها العميل فعلياً عبر الإيصالات.\n'
+            '4️⃣ الغرامات: تُضاف غرامات التأخير آلياً (إذا كانت مفعلة وتم تسليم الشقة للعميل).\n\n'
+            'النتيجة النهائية تمثل النقص الفعلي والسيولة الغائبة عن صندوق الشركة اليوم.',
       ),
+
       _KpiData(
         icon: Icons.construction_rounded,
         gradient: const LinearGradient(
           colors: [Color(0xFFf5af19), Color(0xFFf12711)],
-        ), // برتقالي تنبيهي
+        ),
         title: 'الأمتار المتبقية ',
         value: '${numberFormatter.format(state.remainingMetersInDebt)} م²',
         subtitle: 'أمتار للشركة لم يتم قبض ثمنها',
         iconBg: const Color(0xFFf5af19),
       ),
-
-      // ==========================================
-      // 🌟 [التعديل هنا]: استبدال متوسط السعر القديم بمؤشر الأمتار قيد التسليم
-      // ==========================================
       _KpiData(
         icon: Icons.vpn_key_rounded,
         gradient: const LinearGradient(
@@ -85,7 +89,6 @@ class KpiSection extends StatelessWidget {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        // ✅ شبكة تكيّفية: 2 عمود للصغير، 3 للوسط، 6 للكبير جداً
         var crossAxisCount = 2;
         if (constraints.maxWidth >= 1200) {
           crossAxisCount = 6;
@@ -100,9 +103,7 @@ class KpiSection extends StatelessWidget {
             crossAxisCount: crossAxisCount,
             crossAxisSpacing: 16,
             mainAxisSpacing: 16,
-            childAspectRatio: constraints.maxWidth >= 1200
-                ? 1.4
-                : 1.6, // تعديل بسيط ليتناسب مع الشاشات العريضة
+            childAspectRatio: constraints.maxWidth >= 1200 ? 1.4 : 1.6,
           ),
           itemCount: kpis.length,
           itemBuilder: (context, index) => _KpiCard(data: kpis[index]),
@@ -112,7 +113,6 @@ class KpiSection extends StatelessWidget {
   }
 }
 
-// ✅ نموذج بيانات الكرت (بقي كما هو بدون أي مساس)
 class _KpiData {
   const _KpiData({
     required this.icon,
@@ -121,6 +121,7 @@ class _KpiData {
     required this.value,
     required this.subtitle,
     required this.iconBg,
+    this.infoDetails, // 🌟 الحقل الجديد
   });
   final IconData icon;
   final LinearGradient gradient;
@@ -128,11 +129,60 @@ class _KpiData {
   final String value;
   final String subtitle;
   final Color iconBg;
+  final String? infoDetails; // 🌟
 }
 
 class _KpiCard extends StatelessWidget {
   const _KpiCard({required this.data});
   final _KpiData data;
+
+  // 🌟 دالة إظهار النافذة المنبثقة
+  void _showInfoDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            const Icon(
+              Icons.analytics_outlined,
+              color: Colors.indigo,
+              size: 28,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                'آلية حساب: ${data.title}',
+                style: const TextStyle(
+                  color: Colors.indigo,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          data.infoDetails!,
+          style: const TextStyle(
+            height: 1.6,
+            fontSize: 14,
+            color: Colors.black87,
+          ),
+        ),
+        actions: [
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.indigo,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('مفهوم'),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -156,16 +206,39 @@ class _KpiCard extends StatelessWidget {
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Flexible(
-                  child: Text(
-                    data.title,
-                    style: const TextStyle(
-                      color: Colors.white70,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                    ),
-                    overflow: TextOverflow.ellipsis,
+                Expanded(
+                  child: Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          data.title,
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      // 🌟 الأيقونة السحرية (تظهر فقط إذا كان هناك شرح)
+                      if (data.infoDetails != null) ...[
+                        const SizedBox(width: 6),
+                        Tooltip(
+                          message: 'انقر لمعرفة طريقة الحساب',
+                          child: InkWell(
+                            onTap: () => _showInfoDialog(context),
+                            borderRadius: BorderRadius.circular(12),
+                            child: const Icon(
+                              Icons.info_outline,
+                              color: Colors.white70,
+                              size: 16,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                 ),
                 Container(

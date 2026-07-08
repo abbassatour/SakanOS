@@ -197,12 +197,17 @@ class DashboardRepository {
 
     final now = DateTime.now().toUtc();
 
+    // 🌟 [الإضافة الجديدة]: حفظ تواريخ الفلتر اليومي الدقيقة (مع السنة)
+    final validDailyDates = <DateTime>[];
+
     // تهيئة الخرائط الزمنية
     if (timeFilter == DashboardTimeFilter.daily) {
       for (var i = 6; i >= 0; i--) {
-        final key = DateFormat(
-          'MM-dd',
-        ).format(refDate.subtract(Duration(days: i)));
+        final d = refDate.subtract(Duration(days: i));
+        // حفظ التاريخ بدون وقت للمطابقة الدقيقة
+        validDailyDates.add(DateTime(d.year, d.month, d.day));
+
+        final key = DateFormat('MM-dd').format(d);
         tempGroupedRev[key] = 0.0;
         tempDollarTrend[key] = [];
         tempCostTrend[key] = [];
@@ -235,8 +240,14 @@ class DashboardRepository {
       totalPaidMeters += p.convertedMeters;
 
       if (timeFilter == DashboardTimeFilter.daily) {
-        final key = DateFormat('MM-dd').format(p.paymentDate);
-        if (tempGroupedRev.containsKey(key)) {
+        // 🌟 [التحقق الصارم]: هل الدفعة حدثت فعلاً في أحد هذه الأيام الـ 7؟
+        final pDate = DateTime(
+          p.paymentDate.year,
+          p.paymentDate.month,
+          p.paymentDate.day,
+        );
+        if (validDailyDates.contains(pDate)) {
+          final key = DateFormat('MM-dd').format(pDate);
           tempGroupedRev[key] = tempGroupedRev[key]! + p.amountPaid;
         }
       } else if (timeFilter == DashboardTimeFilter.weekly &&
@@ -273,14 +284,24 @@ class DashboardRepository {
 
       if (!c.isHandedOver) totalUndeliveredMeters += c.totalArea;
 
-      if (!c.isCompleted && c.agreedMonthlyAmount > 0) {
+      // 🌟 الكود الذي أصلحناه في الخطوة السابقة لحساب الأقساط الاستثنائية
+      if (!c.isCompleted) {
         var monthsPassed = _monthsBetween(c.contractDate, now);
         if (monthsPassed > c.installmentsCount) {
           monthsPassed = c.installmentsCount;
         }
 
-        final expectedPayment =
-            c.downPayment + (monthsPassed * c.agreedMonthlyAmount);
+        var expectedPayment = c.downPayment;
+        if (c.agreedMonthlyAmount > 0) {
+          expectedPayment += (monthsPassed * c.agreedMonthlyAmount);
+        }
+
+        final contractSchedules = await _localApi.getContractSchedule(c.id);
+        for (final s in contractSchedules) {
+          if (s.expectedAmount != null && s.dueDate.isBefore(now)) {
+            expectedPayment += s.expectedAmount!;
+          }
+        }
 
         var actualPaidForThisContract = 0.0;
         for (final p in payments.where(
@@ -322,8 +343,14 @@ class DashboardRepository {
       if (d.isDeleted) continue;
 
       if (timeFilter == DashboardTimeFilter.daily) {
-        final key = DateFormat('MM-dd').format(d.effectiveDate);
-        if (tempDollarTrend.containsKey(key)) {
+        // 🌟 الحماية نفسها للدولار
+        final dDate = DateTime(
+          d.effectiveDate.year,
+          d.effectiveDate.month,
+          d.effectiveDate.day,
+        );
+        if (validDailyDates.contains(dDate)) {
+          final key = DateFormat('MM-dd').format(dDate);
           tempDollarTrend[key]!.add(d.exchangeRate);
         }
       } else if (timeFilter == DashboardTimeFilter.weekly &&
@@ -370,8 +397,14 @@ class DashboardRepository {
           (price.ordinaryWorkerWage * 1.0);
 
       if (timeFilter == DashboardTimeFilter.daily) {
-        final key = DateFormat('MM-dd').format(price.effectiveDate);
-        if (tempCostTrend.containsKey(key)) {
+        // 🌟 الحماية نفسها لتكاليف المواد
+        final pDate = DateTime(
+          price.effectiveDate.year,
+          price.effectiveDate.month,
+          price.effectiveDate.day,
+        );
+        if (validDailyDates.contains(pDate)) {
+          final key = DateFormat('MM-dd').format(pDate);
           tempCostTrend[key]!.add(baseCost);
         }
       } else if (timeFilter == DashboardTimeFilter.weekly &&
