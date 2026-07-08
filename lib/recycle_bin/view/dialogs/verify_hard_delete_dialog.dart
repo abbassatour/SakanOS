@@ -1,6 +1,6 @@
-// lib/recycle_bin/view/dialogs/verify_hard_delete_dialog.dart
 import 'package:flutter/material.dart';
-import 'package:our_home_erp_app/env/env.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:our_home_erp_app/auth/cubit/auth_cubit.dart';
 
 void showVerifyHardDeleteDialog({
   required BuildContext context,
@@ -8,7 +8,7 @@ void showVerifyHardDeleteDialog({
   required VoidCallback onConfirm,
 }) {
   final pinController = TextEditingController();
-  final String correctPin = Env.adminPin; // رمز الأمان الموحد
+  final String correctPin = context.read<AuthCubit>().state.securityPin;
 
   showDialog(
     context: context,
@@ -28,7 +28,7 @@ void showVerifyHardDeleteDialog({
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            'هل أنت متأكد من مسح "$itemName" نهائياً؟\nهذا الإجراء لا يمكن التراجع عنه.\n\nيرجى إدخال رمز المدير للتأكيد:',
+            'هل أنت متأكد من مسح "$itemName" نهائياً؟\nهذا الإجراء لا يمكن التراجع عنه.\n\nيرجى إدخال رمز الأمان الخاص بك للتأكيد:',
           ),
           const SizedBox(height: 16),
           TextField(
@@ -56,8 +56,8 @@ void showVerifyHardDeleteDialog({
           ),
           onPressed: () {
             if (pinController.text == correctPin) {
-              Navigator.pop(ctx); // إغلاق الديالوج
-              onConfirm(); // تنفيذ دالة الحذف النهائي المُمررة
+              Navigator.pop(ctx);
+              onConfirm();
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                   content: Text('تم الحذف النهائي بنجاح.'),

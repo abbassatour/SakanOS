@@ -8,6 +8,7 @@ class AuthState extends Equatable {
     this.userId,
     this.userName,
     this.roleName,
+    this.securityPin = '0000', // 🌟 [جديد]
     this.isSystemAdmin = false,
     this.permissions = const [],
     this.errorMessage,
@@ -17,13 +18,13 @@ class AuthState extends Equatable {
   final String? userId;
   final String? userName;
   final String? roleName;
-  final bool isSystemAdmin; // 🌟 إذا كانت true، هذا المستخدم يتخطى كل الفحوصات
-  final List<String> permissions; // قائمة الصلاحيات النهائية الصافية
+  final String securityPin; // 🌟 [جديد]
+  final bool isSystemAdmin;
+  final List<String> permissions;
   final String? errorMessage;
 
-  // 🌟 هذه هي الدالة السحرية التي سنستخدمها في الواجهة (UI) لإخفاء/إظهار الأزرار
   bool hasPermission(String permission) {
-    if (isSystemAdmin) return true; // الآدمن يرى كل شيء دائماً
+    if (isSystemAdmin) return true;
     return permissions.contains(permission);
   }
 
@@ -32,6 +33,7 @@ class AuthState extends Equatable {
     String? userId,
     String? userName,
     String? roleName,
+    String? securityPin, // 🌟
     bool? isSystemAdmin,
     List<String>? permissions,
     String? errorMessage,
@@ -41,6 +43,7 @@ class AuthState extends Equatable {
       userId: userId ?? this.userId,
       userName: userName ?? this.userName,
       roleName: roleName ?? this.roleName,
+      securityPin: securityPin ?? this.securityPin, // 🌟
       isSystemAdmin: isSystemAdmin ?? this.isSystemAdmin,
       permissions: permissions ?? this.permissions,
       errorMessage: errorMessage ?? this.errorMessage,
@@ -53,6 +56,7 @@ class AuthState extends Equatable {
     userId,
     userName,
     roleName,
+    securityPin, // 🌟
     isSystemAdmin,
     permissions,
     errorMessage,

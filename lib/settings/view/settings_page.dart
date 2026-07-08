@@ -317,7 +317,17 @@ class _SettingsViewState extends State<SettingsView> {
                           ],
 
                           // ==========================================
-                          // 🛡️ بطاقة النسخ الاحتياطي
+                          // 🔐 بطاقة رمز الأمان (تم نقلها لتكون فوق النسخ الاحتياطي)
+                          // ==========================================
+                          if (authState.isSystemAdmin) ...[
+                            _buildSecurityCard(context, authState.securityPin),
+                            const SizedBox(
+                              height: 36,
+                            ), // زيادة المسافة بين رمز الأمان والنسخ الاحتياطي
+                          ],
+
+                          // ==========================================
+                          // 🛡️ بطاقة النسخ الاحتياطي والاستعادة
                           // ==========================================
                           _buildBackupRestoreCard(
                             context,
@@ -693,6 +703,162 @@ class _SettingsViewState extends State<SettingsView> {
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // 🔐 بطاقة رمز الأمان
+  Widget _buildSecurityCard(BuildContext context, String currentPin) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.red.shade100, width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.red.withOpacity(0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.password, color: Colors.red.shade600, size: 28),
+              const SizedBox(width: 12),
+              const Text(
+                'رمز الأمان وحماية العمليات الحساسة',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.red,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'هذا الرمز يُطلب عند الحذف أو استرجاع الأموال والعمليات الإدارية الحساسة. (الرمز الافتراضي 0000)',
+            style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+          ),
+          const SizedBox(height: 20),
+          SizedBox(
+            width: double.infinity,
+            height: 55,
+            child: ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red.shade50,
+                foregroundColor: Colors.red.shade800,
+                elevation: 0,
+                side: BorderSide(color: Colors.red.shade200, width: 1.5),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              onPressed: () => _showChangePinDialog(context, currentPin),
+              icon: const Icon(Icons.edit_attributes, size: 24),
+              label: const Text(
+                'تغيير رمز الأمان (PIN)',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ديالوج تغيير الـ PIN
+  void _showChangePinDialog(BuildContext parentContext, String currentPin) {
+    final oldPinCtrl = TextEditingController();
+    final newPinCtrl = TextEditingController();
+
+    showDialog(
+      context: parentContext,
+      builder: (ctx) => AlertDialog(
+        title: const Text(
+          'تغيير رمز الأمان',
+          style: TextStyle(color: Colors.red),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: oldPinCtrl,
+              obscureText: true,
+              maxLength: 10,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: 'الرمز الحالي',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: newPinCtrl,
+              obscureText: true,
+              maxLength: 10,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: 'الرمز الجديد',
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('إلغاء'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () async {
+              if (oldPinCtrl.text != currentPin) {
+                ScaffoldMessenger.of(parentContext).showSnackBar(
+                  const SnackBar(
+                    content: Text('الرمز الحالي غير صحيح!'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+                return;
+              }
+              if (newPinCtrl.text.isEmpty) {
+                ScaffoldMessenger.of(parentContext).showSnackBar(
+                  const SnackBar(
+                    content: Text('أدخل رمزاً جديداً!'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+                return;
+              }
+
+              Navigator.pop(ctx);
+              await parentContext.read<SettingsCubit>().updateSecurityPin(
+                newPinCtrl.text.trim(),
+              );
+              // تحديث الـ AuthCubit ليعكس الرمز الجديد فوراً في التطبيق
+              await parentContext.read<AuthCubit>().checkSession();
+
+              if (parentContext.mounted) {
+                ScaffoldMessenger.of(parentContext).showSnackBar(
+                  const SnackBar(
+                    content: Text('تم تغيير الرمز بنجاح! ✅'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+              }
+            },
+            child: const Text('حفظ الرمز الجديد'),
           ),
         ],
       ),

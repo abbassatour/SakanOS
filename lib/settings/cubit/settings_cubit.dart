@@ -127,6 +127,27 @@ class SettingsCubit extends Cubit<SettingsState> {
     }
   }
 
+  // ==========================================
+  // 🔐 تغيير رمز الأمان الخاص بالمستخدم
+  // ==========================================
+  Future<void> updateSecurityPin(String newPin) async {
+    final userId = _erpRepository.currentUserId;
+    if (userId == null) return;
+
+    emit(state.copyWith(status: SettingsStatus.loading));
+    try {
+      await _erpRepository.updateUserSecurityPin(userId, newPin);
+      emit(state.copyWith(status: SettingsStatus.success));
+    } on Exception catch (e) {
+      emit(
+        state.copyWith(
+          status: SettingsStatus.failure,
+          errorMessage: 'فشل تحديث رمز الأمان: $e',
+        ),
+      );
+    }
+  }
+
   Future<void> fetchPriceHistory() async {
     try {
       final history = await _erpRepository.getAllMaterialPricesHistory();

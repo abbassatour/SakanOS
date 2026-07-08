@@ -1,19 +1,23 @@
 // lib/payments/widgets/dialogs/verify_pin_dialog.dart
-
 import 'package:flutter/material.dart';
-import 'package:our_home_erp_app/env/env.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:our_home_erp_app/auth/cubit/auth_cubit.dart';
 
 Future<bool> showVerifyPinDialog({
   required BuildContext context,
-  String? correctPin, // نجعله اختيارياً
+  String? correctPin,
   String? message,
 }) async {
+  final pinToUse = correctPin ?? context.read<AuthCubit>().state.securityPin;
+
   final result = await showDialog<bool>(
     context: context,
     barrierDismissible: false,
     builder: (ctx) => _VerifyPinDialogContent(
-      correctPin: correctPin ?? Env.adminPin, // 🌟 استخدام الرمز المشفر هنا
-      message: message ?? 'هذه العملية حساسة مالياً. يرجى إدخال رمز الأمان:',
+      correctPin: pinToUse,
+      message:
+          message ??
+          'هذه العملية حساسة مالياً. يرجى إدخال رمز الأمان الخاص بك:',
     ),
   );
 
@@ -72,10 +76,7 @@ class _VerifyPinDialogContentState extends State<_VerifyPinDialogContent> {
           SizedBox(width: 8),
           Text(
             'التحقق من الصلاحية',
-            style: TextStyle(
-              color: Colors.red,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
           ),
         ],
       ),
@@ -90,10 +91,7 @@ class _VerifyPinDialogContentState extends State<_VerifyPinDialogContent> {
             keyboardType: TextInputType.number,
             textAlign: TextAlign.center,
             maxLength: 10,
-            style: const TextStyle(
-              fontSize: 24,
-              letterSpacing: 12,
-            ),
+            style: const TextStyle(fontSize: 24, letterSpacing: 12),
             onSubmitted: (_) => _verify(),
             decoration: const InputDecoration(
               border: OutlineInputBorder(),
@@ -106,10 +104,7 @@ class _VerifyPinDialogContentState extends State<_VerifyPinDialogContent> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context, false),
-          child: const Text(
-            'إلغاء',
-            style: TextStyle(color: Colors.grey),
-          ),
+          child: const Text('إلغاء', style: TextStyle(color: Colors.grey)),
         ),
         ElevatedButton(
           style: ElevatedButton.styleFrom(

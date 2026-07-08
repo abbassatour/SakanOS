@@ -1,19 +1,21 @@
 // مسار الملف: lib/clients/widgets/verify_pin_dialog.dart
-
 import 'package:flutter/material.dart';
-import 'package:our_home_erp_app/env/env.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:our_home_erp_app/auth/cubit/auth_cubit.dart';
 
 Future<bool> showVerifyPinDialog(BuildContext context) async {
+  final correctPin = context.read<AuthCubit>().state.securityPin;
   final result = await showDialog<bool>(
     context: context,
     barrierDismissible: false,
-    builder: (ctx) => const _VerifyPinDialogContent(),
+    builder: (ctx) => _VerifyPinDialogContent(correctPin: correctPin),
   );
   return result ?? false;
 }
 
 class _VerifyPinDialogContent extends StatefulWidget {
-  const _VerifyPinDialogContent();
+  const _VerifyPinDialogContent({required this.correctPin});
+  final String correctPin;
 
   @override
   State<_VerifyPinDialogContent> createState() =>
@@ -22,7 +24,6 @@ class _VerifyPinDialogContent extends StatefulWidget {
 
 class _VerifyPinDialogContentState extends State<_VerifyPinDialogContent> {
   late final TextEditingController _pinController;
-  static final String _correctPin = Env.adminPin;
 
   @override
   void initState() {
@@ -37,7 +38,7 @@ class _VerifyPinDialogContentState extends State<_VerifyPinDialogContent> {
   }
 
   void _verifyPin() {
-    if (_pinController.text == _correctPin) {
+    if (_pinController.text == widget.correctPin) {
       Navigator.pop(context, true);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -47,7 +48,6 @@ class _VerifyPinDialogContentState extends State<_VerifyPinDialogContent> {
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
           backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.floating,
         ),
       );
       _pinController.clear();
@@ -88,8 +88,7 @@ class _VerifyPinDialogContentState extends State<_VerifyPinDialogContent> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'هذه العملية حساسة ومراقبة. يرجى إدخال رمز الأمان (PIN) '
-              'الخاص بالإدارة للمتابعة.',
+              'هذه العملية حساسة ومراقبة. يرجى إدخال رمز الأمان (PIN) الخاص بك للمتابعة.',
               style: TextStyle(color: Colors.grey, fontSize: 14, height: 1.5),
             ),
             const SizedBox(height: 24),
@@ -98,7 +97,7 @@ class _VerifyPinDialogContentState extends State<_VerifyPinDialogContent> {
               obscureText: true,
               keyboardType: TextInputType.number,
               textAlign: TextAlign.center,
-              maxLength: 4,
+              maxLength: 10,
               autofocus: true,
               style: const TextStyle(
                 fontSize: 32,
@@ -107,7 +106,7 @@ class _VerifyPinDialogContentState extends State<_VerifyPinDialogContent> {
               ),
               onSubmitted: (_) => _verifyPin(),
               decoration: InputDecoration(
-                hintText: '----',
+                hintText: '****',
                 hintStyle: TextStyle(
                   color: Colors.grey.shade300,
                   fontSize: 32,

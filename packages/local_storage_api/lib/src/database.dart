@@ -1118,6 +1118,19 @@ class AppDatabase extends _$AppDatabase {
     );
   }
 
+  // ==========================================
+  // 🔐 تحديث رمز الأمان (PIN) للمستخدم
+  // ==========================================
+  Future<int> updateUserSecurityPin(String userId, String newPin) {
+    return (update(localUsers)..where((t) => t.id.equals(userId))).write(
+      LocalUsersCompanion(
+        securityPin: Value(newPin),
+        updatedAt: Value(DateTime.now().toUtc()),
+        isSynced: const Value(false),
+      ),
+    );
+  }
+
   Future<LocalUser?> getLocalUserById(String id) =>
       (select(localUsers)..where((t) => t.id.equals(id))).getSingleOrNull();
 

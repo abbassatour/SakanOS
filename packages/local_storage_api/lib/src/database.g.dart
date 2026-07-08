@@ -7233,6 +7233,18 @@ class $LocalUsersTable extends LocalUsers
       'REFERENCES app_roles (id)',
     ),
   );
+  static const VerificationMeta _securityPinMeta = const VerificationMeta(
+    'securityPin',
+  );
+  @override
+  late final GeneratedColumn<String> securityPin = GeneratedColumn<String>(
+    'security_pin',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('0000'),
+  );
   static const VerificationMeta _extraPermissionsJsonMeta =
       const VerificationMeta('extraPermissionsJson');
   @override
@@ -7332,6 +7344,7 @@ class $LocalUsersTable extends LocalUsers
     fullName,
     email,
     roleId,
+    securityPin,
     extraPermissionsJson,
     revokedPermissionsJson,
     isActive,
@@ -7375,6 +7388,15 @@ class $LocalUsersTable extends LocalUsers
       context.handle(
         _roleIdMeta,
         roleId.isAcceptableOrUnknown(data['role_id']!, _roleIdMeta),
+      );
+    }
+    if (data.containsKey('security_pin')) {
+      context.handle(
+        _securityPinMeta,
+        securityPin.isAcceptableOrUnknown(
+          data['security_pin']!,
+          _securityPinMeta,
+        ),
       );
     }
     if (data.containsKey('extra_permissions_json')) {
@@ -7450,6 +7472,10 @@ class $LocalUsersTable extends LocalUsers
         DriftSqlType.string,
         data['${effectivePrefix}role_id'],
       ),
+      securityPin: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}security_pin'],
+      )!,
       extraPermissionsJson: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}extra_permissions_json'],
@@ -7492,6 +7518,7 @@ class LocalUser extends DataClass implements Insertable<LocalUser> {
   final String? fullName;
   final String email;
   final String? roleId;
+  final String securityPin;
   final String extraPermissionsJson;
   final String revokedPermissionsJson;
   final bool isActive;
@@ -7504,6 +7531,7 @@ class LocalUser extends DataClass implements Insertable<LocalUser> {
     this.fullName,
     required this.email,
     this.roleId,
+    required this.securityPin,
     required this.extraPermissionsJson,
     required this.revokedPermissionsJson,
     required this.isActive,
@@ -7523,6 +7551,7 @@ class LocalUser extends DataClass implements Insertable<LocalUser> {
     if (!nullToAbsent || roleId != null) {
       map['role_id'] = Variable<String>(roleId);
     }
+    map['security_pin'] = Variable<String>(securityPin);
     map['extra_permissions_json'] = Variable<String>(extraPermissionsJson);
     map['revoked_permissions_json'] = Variable<String>(revokedPermissionsJson);
     map['is_active'] = Variable<bool>(isActive);
@@ -7543,6 +7572,7 @@ class LocalUser extends DataClass implements Insertable<LocalUser> {
       roleId: roleId == null && nullToAbsent
           ? const Value.absent()
           : Value(roleId),
+      securityPin: Value(securityPin),
       extraPermissionsJson: Value(extraPermissionsJson),
       revokedPermissionsJson: Value(revokedPermissionsJson),
       isActive: Value(isActive),
@@ -7563,6 +7593,7 @@ class LocalUser extends DataClass implements Insertable<LocalUser> {
       fullName: serializer.fromJson<String?>(json['fullName']),
       email: serializer.fromJson<String>(json['email']),
       roleId: serializer.fromJson<String?>(json['roleId']),
+      securityPin: serializer.fromJson<String>(json['securityPin']),
       extraPermissionsJson: serializer.fromJson<String>(
         json['extraPermissionsJson'],
       ),
@@ -7584,6 +7615,7 @@ class LocalUser extends DataClass implements Insertable<LocalUser> {
       'fullName': serializer.toJson<String?>(fullName),
       'email': serializer.toJson<String>(email),
       'roleId': serializer.toJson<String?>(roleId),
+      'securityPin': serializer.toJson<String>(securityPin),
       'extraPermissionsJson': serializer.toJson<String>(extraPermissionsJson),
       'revokedPermissionsJson': serializer.toJson<String>(
         revokedPermissionsJson,
@@ -7601,6 +7633,7 @@ class LocalUser extends DataClass implements Insertable<LocalUser> {
     Value<String?> fullName = const Value.absent(),
     String? email,
     Value<String?> roleId = const Value.absent(),
+    String? securityPin,
     String? extraPermissionsJson,
     String? revokedPermissionsJson,
     bool? isActive,
@@ -7613,6 +7646,7 @@ class LocalUser extends DataClass implements Insertable<LocalUser> {
     fullName: fullName.present ? fullName.value : this.fullName,
     email: email ?? this.email,
     roleId: roleId.present ? roleId.value : this.roleId,
+    securityPin: securityPin ?? this.securityPin,
     extraPermissionsJson: extraPermissionsJson ?? this.extraPermissionsJson,
     revokedPermissionsJson:
         revokedPermissionsJson ?? this.revokedPermissionsJson,
@@ -7628,6 +7662,9 @@ class LocalUser extends DataClass implements Insertable<LocalUser> {
       fullName: data.fullName.present ? data.fullName.value : this.fullName,
       email: data.email.present ? data.email.value : this.email,
       roleId: data.roleId.present ? data.roleId.value : this.roleId,
+      securityPin: data.securityPin.present
+          ? data.securityPin.value
+          : this.securityPin,
       extraPermissionsJson: data.extraPermissionsJson.present
           ? data.extraPermissionsJson.value
           : this.extraPermissionsJson,
@@ -7649,6 +7686,7 @@ class LocalUser extends DataClass implements Insertable<LocalUser> {
           ..write('fullName: $fullName, ')
           ..write('email: $email, ')
           ..write('roleId: $roleId, ')
+          ..write('securityPin: $securityPin, ')
           ..write('extraPermissionsJson: $extraPermissionsJson, ')
           ..write('revokedPermissionsJson: $revokedPermissionsJson, ')
           ..write('isActive: $isActive, ')
@@ -7666,6 +7704,7 @@ class LocalUser extends DataClass implements Insertable<LocalUser> {
     fullName,
     email,
     roleId,
+    securityPin,
     extraPermissionsJson,
     revokedPermissionsJson,
     isActive,
@@ -7682,6 +7721,7 @@ class LocalUser extends DataClass implements Insertable<LocalUser> {
           other.fullName == this.fullName &&
           other.email == this.email &&
           other.roleId == this.roleId &&
+          other.securityPin == this.securityPin &&
           other.extraPermissionsJson == this.extraPermissionsJson &&
           other.revokedPermissionsJson == this.revokedPermissionsJson &&
           other.isActive == this.isActive &&
@@ -7696,6 +7736,7 @@ class LocalUsersCompanion extends UpdateCompanion<LocalUser> {
   final Value<String?> fullName;
   final Value<String> email;
   final Value<String?> roleId;
+  final Value<String> securityPin;
   final Value<String> extraPermissionsJson;
   final Value<String> revokedPermissionsJson;
   final Value<bool> isActive;
@@ -7709,6 +7750,7 @@ class LocalUsersCompanion extends UpdateCompanion<LocalUser> {
     this.fullName = const Value.absent(),
     this.email = const Value.absent(),
     this.roleId = const Value.absent(),
+    this.securityPin = const Value.absent(),
     this.extraPermissionsJson = const Value.absent(),
     this.revokedPermissionsJson = const Value.absent(),
     this.isActive = const Value.absent(),
@@ -7723,6 +7765,7 @@ class LocalUsersCompanion extends UpdateCompanion<LocalUser> {
     this.fullName = const Value.absent(),
     required String email,
     this.roleId = const Value.absent(),
+    this.securityPin = const Value.absent(),
     this.extraPermissionsJson = const Value.absent(),
     this.revokedPermissionsJson = const Value.absent(),
     this.isActive = const Value.absent(),
@@ -7738,6 +7781,7 @@ class LocalUsersCompanion extends UpdateCompanion<LocalUser> {
     Expression<String>? fullName,
     Expression<String>? email,
     Expression<String>? roleId,
+    Expression<String>? securityPin,
     Expression<String>? extraPermissionsJson,
     Expression<String>? revokedPermissionsJson,
     Expression<bool>? isActive,
@@ -7752,6 +7796,7 @@ class LocalUsersCompanion extends UpdateCompanion<LocalUser> {
       if (fullName != null) 'full_name': fullName,
       if (email != null) 'email': email,
       if (roleId != null) 'role_id': roleId,
+      if (securityPin != null) 'security_pin': securityPin,
       if (extraPermissionsJson != null)
         'extra_permissions_json': extraPermissionsJson,
       if (revokedPermissionsJson != null)
@@ -7770,6 +7815,7 @@ class LocalUsersCompanion extends UpdateCompanion<LocalUser> {
     Value<String?>? fullName,
     Value<String>? email,
     Value<String?>? roleId,
+    Value<String>? securityPin,
     Value<String>? extraPermissionsJson,
     Value<String>? revokedPermissionsJson,
     Value<bool>? isActive,
@@ -7784,6 +7830,7 @@ class LocalUsersCompanion extends UpdateCompanion<LocalUser> {
       fullName: fullName ?? this.fullName,
       email: email ?? this.email,
       roleId: roleId ?? this.roleId,
+      securityPin: securityPin ?? this.securityPin,
       extraPermissionsJson: extraPermissionsJson ?? this.extraPermissionsJson,
       revokedPermissionsJson:
           revokedPermissionsJson ?? this.revokedPermissionsJson,
@@ -7810,6 +7857,9 @@ class LocalUsersCompanion extends UpdateCompanion<LocalUser> {
     }
     if (roleId.present) {
       map['role_id'] = Variable<String>(roleId.value);
+    }
+    if (securityPin.present) {
+      map['security_pin'] = Variable<String>(securityPin.value);
     }
     if (extraPermissionsJson.present) {
       map['extra_permissions_json'] = Variable<String>(
@@ -7849,6 +7899,7 @@ class LocalUsersCompanion extends UpdateCompanion<LocalUser> {
           ..write('fullName: $fullName, ')
           ..write('email: $email, ')
           ..write('roleId: $roleId, ')
+          ..write('securityPin: $securityPin, ')
           ..write('extraPermissionsJson: $extraPermissionsJson, ')
           ..write('revokedPermissionsJson: $revokedPermissionsJson, ')
           ..write('isActive: $isActive, ')
@@ -13996,6 +14047,7 @@ typedef $$LocalUsersTableCreateCompanionBuilder =
       Value<String?> fullName,
       required String email,
       Value<String?> roleId,
+      Value<String> securityPin,
       Value<String> extraPermissionsJson,
       Value<String> revokedPermissionsJson,
       Value<bool> isActive,
@@ -14011,6 +14063,7 @@ typedef $$LocalUsersTableUpdateCompanionBuilder =
       Value<String?> fullName,
       Value<String> email,
       Value<String?> roleId,
+      Value<String> securityPin,
       Value<String> extraPermissionsJson,
       Value<String> revokedPermissionsJson,
       Value<bool> isActive,
@@ -14064,6 +14117,11 @@ class $$LocalUsersTableFilterComposer
 
   ColumnFilters<String> get email => $composableBuilder(
     column: $table.email,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get securityPin => $composableBuilder(
+    column: $table.securityPin,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -14150,6 +14208,11 @@ class $$LocalUsersTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get securityPin => $composableBuilder(
+    column: $table.securityPin,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get extraPermissionsJson => $composableBuilder(
     column: $table.extraPermissionsJson,
     builder: (column) => ColumnOrderings(column),
@@ -14226,6 +14289,11 @@ class $$LocalUsersTableAnnotationComposer
 
   GeneratedColumn<String> get email =>
       $composableBuilder(column: $table.email, builder: (column) => column);
+
+  GeneratedColumn<String> get securityPin => $composableBuilder(
+    column: $table.securityPin,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get extraPermissionsJson => $composableBuilder(
     column: $table.extraPermissionsJson,
@@ -14308,6 +14376,7 @@ class $$LocalUsersTableTableManager
                 Value<String?> fullName = const Value.absent(),
                 Value<String> email = const Value.absent(),
                 Value<String?> roleId = const Value.absent(),
+                Value<String> securityPin = const Value.absent(),
                 Value<String> extraPermissionsJson = const Value.absent(),
                 Value<String> revokedPermissionsJson = const Value.absent(),
                 Value<bool> isActive = const Value.absent(),
@@ -14321,6 +14390,7 @@ class $$LocalUsersTableTableManager
                 fullName: fullName,
                 email: email,
                 roleId: roleId,
+                securityPin: securityPin,
                 extraPermissionsJson: extraPermissionsJson,
                 revokedPermissionsJson: revokedPermissionsJson,
                 isActive: isActive,
@@ -14336,6 +14406,7 @@ class $$LocalUsersTableTableManager
                 Value<String?> fullName = const Value.absent(),
                 required String email,
                 Value<String?> roleId = const Value.absent(),
+                Value<String> securityPin = const Value.absent(),
                 Value<String> extraPermissionsJson = const Value.absent(),
                 Value<String> revokedPermissionsJson = const Value.absent(),
                 Value<bool> isActive = const Value.absent(),
@@ -14349,6 +14420,7 @@ class $$LocalUsersTableTableManager
                 fullName: fullName,
                 email: email,
                 roleId: roleId,
+                securityPin: securityPin,
                 extraPermissionsJson: extraPermissionsJson,
                 revokedPermissionsJson: revokedPermissionsJson,
                 isActive: isActive,

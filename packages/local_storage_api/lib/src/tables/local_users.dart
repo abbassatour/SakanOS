@@ -8,6 +8,10 @@ class LocalUsers extends Table {
   TextColumn get fullName => text().nullable()();
   TextColumn get email => text()();
   TextColumn get roleId => text().nullable().references(AppRoles, #id)();
+
+  // 🌟 [العمود الجديد]: رمز الأمان الخاص بالمستخدم (افتراضياً 0000)
+  TextColumn get securityPin => text().withDefault(const Constant('0000'))();
+
   TextColumn get extraPermissionsJson =>
       text().withDefault(const Constant('[]'))();
   TextColumn get revokedPermissionsJson =>

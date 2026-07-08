@@ -360,6 +360,10 @@ class SyncRepository {
           email: u['email']?.toString() ?? '',
           fullName: drift.Value(u['full_name']?.toString()),
           roleId: drift.Value(u['role_id']?.toString()),
+
+          // 🌟 السطر الجديد: جلب الـ PIN من السحابة
+          securityPin: drift.Value(u['security_pin']?.toString() ?? '0000'),
+
           extraPermissionsJson: drift.Value(
             u['extra_permissions']?.toString() ?? '[]',
           ),
@@ -748,6 +752,10 @@ class SyncRepository {
           'full_name': u.fullName,
           'email': u.email,
           'role_id': u.roleId,
+
+          // 🌟 السطر الجديد: رفع الـ PIN للسحابة
+          'security_pin': u.securityPin,
+
           'extra_permissions': u.extraPermissionsJson,
           'revoked_permissions': u.revokedPermissionsJson,
           'is_active': u.isActive,
@@ -759,7 +767,7 @@ class SyncRepository {
       }
     } on Exception catch (e) {
       print('Sync Users Failed: $e');
-      hasErrors = true; // 🌟
+      hasErrors = true;
     }
 
     // 10. مزامنة الإجراءات القانونية

@@ -695,6 +695,11 @@ class ErpRepository {
     isActive: isActive,
   );
 
+  Future<void> updateUserSecurityPin(String userId, String newPin) async {
+    await _localApi.updateUserSecurityPin(userId, newPin);
+    await syncPendingData();
+  }
+
   // ==========================================
   // ⚖️ الإجراءات القانونية (Legal Facade)
   // ==========================================

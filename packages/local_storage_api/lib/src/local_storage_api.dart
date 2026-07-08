@@ -267,6 +267,8 @@ class LocalStorageApi {
     isActive: isActive,
   );
 
+  Future<int> updateUserSecurityPin(String userId, String newPin) =>
+      _db.updateUserSecurityPin(userId, newPin);
   // --- دوال الحقن السحابي الخاصة بالصلاحيات ---
   Future<void> syncAppRole(AppRolesCompanion r) => _db.syncAppRole(r);
   Future<void> syncLocalUser(LocalUsersCompanion u) => _db.syncLocalUser(u);
