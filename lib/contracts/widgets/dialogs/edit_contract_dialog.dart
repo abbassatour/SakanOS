@@ -110,14 +110,11 @@ class _EditContractDialogContentState
 
     final isCompleted = contract.isCompleted;
 
-    final isSuperAdmin = parentCtx.select<AuthCubit, bool>(
-      (c) => c.state.isSystemAdmin,
-    );
+    // 🌟 الحل: استخدام read بدلاً من select لمنع انهيار الـ Context خارج شجرة البناء
+    final authState = parentCtx.read<AuthCubit>().state;
+    final isSuperAdmin = authState.isSystemAdmin;
     final canEdit =
-        parentCtx.select<AuthCubit, bool>(
-          (c) => c.state.hasPermission(AppPermissions.createContracts),
-        ) &&
-        !isCompleted;
+        authState.hasPermission(AppPermissions.createContracts) && !isCompleted;
 
     return AlertDialog(
       title: Row(
@@ -656,79 +653,83 @@ class _EditContractDialogContentState
                     ),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Column(
-                    children: [
-                      SwitchListTile(
-                        title: const Text(
-                          'تفعيل غرامة التأخير (ما بعد الاستلام)',
-                          style: TextStyle(
-                            color: Colors.deepOrange,
-                            fontWeight: FontWeight.bold,
+                  // 🌟 الحل: تغليف الـ Column بـ Material شفاف لدعم تأثير النقر
+                  child: Material(
+                    color: Colors.transparent,
+                    child: Column(
+                      children: [
+                        SwitchListTile(
+                          title: const Text(
+                            'تفعيل غرامة التأخير (ما بعد الاستلام)',
+                            style: TextStyle(
+                              color: Colors.deepOrange,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
+                          subtitle: const Text(
+                            'لتطبيق نسبة مئوية تتراكم على الذمة المالية '
+                            'بعد استلام الشقة.',
+                          ),
+                          value: isPenaltyActive,
+                          activeThumbColor: Colors.deepOrange,
+                          onChanged: canEdit
+                              ? (val) => setState(() => isPenaltyActive = val)
+                              : null,
+                          contentPadding: EdgeInsets.zero,
                         ),
-                        subtitle: const Text(
-                          'لتطبيق نسبة مئوية تتراكم على الذمة المالية '
-                          'بعد استلام الشقة.',
-                        ),
-                        value: isPenaltyActive,
-                        activeThumbColor: Colors.deepOrange,
-                        onChanged: canEdit
-                            ? (val) => setState(() => isPenaltyActive = val)
-                            : null,
-                        contentPadding: EdgeInsets.zero,
-                      ),
-                      if (isPenaltyActive) ...[
-                        const SizedBox(height: 12),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: TextFormField(
-                                controller: penaltyPctCtrl,
-                                enabled: canEdit,
-                                keyboardType:
-                                    const TextInputType.numberWithOptions(
-                                      decimal: true,
+                        if (isPenaltyActive) ...[
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: TextFormField(
+                                  controller: penaltyPctCtrl,
+                                  enabled: canEdit,
+                                  keyboardType:
+                                      const TextInputType.numberWithOptions(
+                                        decimal: true,
+                                      ),
+                                  decoration: InputDecoration(
+                                    labelText: 'نسبة الغرامة',
+                                    suffixText: '%',
+                                    border: const OutlineInputBorder(),
+                                    filled: true,
+                                    fillColor: canEdit
+                                        ? Colors.white
+                                        : Colors.grey.shade100,
+                                    prefixIcon: const Icon(
+                                      Icons.percent,
+                                      color: Colors.deepOrange,
                                     ),
-                                decoration: InputDecoration(
-                                  labelText: 'نسبة الغرامة',
-                                  suffixText: '%',
-                                  border: const OutlineInputBorder(),
-                                  filled: true,
-                                  fillColor: canEdit
-                                      ? Colors.white
-                                      : Colors.grey.shade100,
-                                  prefixIcon: const Icon(
-                                    Icons.percent,
-                                    color: Colors.deepOrange,
                                   ),
                                 ),
                               ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: TextFormField(
-                                controller: penaltyIntervalCtrl,
-                                enabled: canEdit,
-                                keyboardType: TextInputType.number,
-                                decoration: InputDecoration(
-                                  labelText: 'تُطبق كل',
-                                  suffixText: 'أشهر',
-                                  border: const OutlineInputBorder(),
-                                  filled: true,
-                                  fillColor: canEdit
-                                      ? Colors.white
-                                      : Colors.grey.shade100,
-                                  prefixIcon: const Icon(
-                                    Icons.update,
-                                    color: Colors.deepOrange,
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: TextFormField(
+                                  controller: penaltyIntervalCtrl,
+                                  enabled: canEdit,
+                                  keyboardType: TextInputType.number,
+                                  decoration: InputDecoration(
+                                    labelText: 'تُطبق كل',
+                                    suffixText: 'أشهر',
+                                    border: const OutlineInputBorder(),
+                                    filled: true,
+                                    fillColor: canEdit
+                                        ? Colors.white
+                                        : Colors.grey.shade100,
+                                    prefixIcon: const Icon(
+                                      Icons.update,
+                                      color: Colors.deepOrange,
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
+                            ],
+                          ),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
                 ),
                 const SizedBox(height: 16),

@@ -1,6 +1,6 @@
 // lib/contracts/cubit/contracts_cubit.dart
 import 'dart:developer';
-
+import 'dart:io';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:erp_repository/erp_repository.dart';
@@ -133,7 +133,13 @@ class ContractsCubit extends Cubit<ContractsState> {
   }) async {
     emit(state.copyWith(status: ContractsStatus.loading));
     try {
-      throw UnimplementedError('يرجى تحديث استدعاء هذه الدالة في الـ View');
+      // 🌟 استدعاء الدالة الحقيقية من المستودع (تم إزالة throw UnimplementedError)
+      await _erpRepository.attachContractFile(
+        contractId,
+        File(filePath),
+        extension,
+      );
+      await fetchData(); // تحديث البيانات بعد نجاح الرفع
     } catch (e, stackTrace) {
       log('خطأ في إرفاق ملف العقد', error: e, stackTrace: stackTrace);
       emit(

@@ -14,6 +14,11 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:our_home_erp_app/contracts/cubit/contracts_cubit.dart';
 import 'package:open_filex/open_filex.dart';
 
+// 🌟 الاستيرادات الجديدة المطلوبة للزر والصلاحيات
+import 'package:our_home_erp_app/auth/cubit/auth_cubit.dart';
+import 'package:our_home_erp_app/core/constants/app_permissions.dart';
+import 'package:our_home_erp_app/contracts/widgets/dialogs/edit_contract_dialog.dart';
+
 class ContractsDataTable extends StatelessWidget {
   const ContractsDataTable({
     required this.contracts,
@@ -78,11 +83,11 @@ class ContractsDataTable extends StatelessWidget {
             }
           }
         } else {
-          // 🌟 الحل هنا: إرشاد الموظف
+          // إرشاد الموظف إلى المكان الصحيح للإرفاق
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text(
-                'لإرفاق ملف، اضغط على أيقونة (عرض التفاصيل 👁️) بجوار العقد، ثم أرفقه من هناك.',
+                'لإرفاق ملف، اضغط على أيقونة (تعديل العقد 📝) بجوار العقد، ثم أرفقه من هناك.',
               ),
               backgroundColor: Colors.orange,
             ),
@@ -94,6 +99,12 @@ class ContractsDataTable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 🌟 جلب الصلاحيات لمعرفة ما إذا كان يحق للمستخدم تعديل العقود
+    final authState = context.watch<AuthCubit>().state;
+    final canEditContracts = authState.hasPermission(
+      AppPermissions.createContracts,
+    );
+
     return Card(
       elevation: 2,
       margin: EdgeInsets.zero,
@@ -202,6 +213,7 @@ class ContractsDataTable extends StatelessWidget {
 
               final isAllocated = contract.contractType == 'متخصص';
               final isHandedOver = contract.isHandedOver;
+              final isCompleted = contract.isCompleted;
 
               return DataRow(
                 color: WidgetStateProperty.resolveWith<Color?>(
@@ -351,12 +363,34 @@ class ContractsDataTable extends StatelessWidget {
                       ],
                     ),
                   ),
+
+                  // ==========================================
+                  // 🌟 هنا تم إضافة الزر المفقود: أزرار الإجراءات
+                  // ==========================================
                   DataCell(
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
+                        // 🌟 الزر الجديد (تعديل العقد)
                         IconButton(
-                          tooltip: 'عرض التفاصيل',
+                          tooltip: (!canEditContracts || isCompleted)
+                              ? 'غير مصرح أو العقد مغلق'
+                              : 'تعديل بيانات العقد',
+                          icon: Icon(
+                            Icons.edit_document,
+                            color: (!canEditContracts || isCompleted)
+                                ? Colors.grey.shade300
+                                : Colors.orange,
+                            size: 22,
+                          ),
+                          onPressed: (!canEditContracts || isCompleted)
+                              ? null
+                              : () => showEditContractDialog(context, contract),
+                        ),
+
+                        // زر عرض التفاصيل (القديم)
+                        IconButton(
+                          tooltip: 'عرض تفاصيل الملف والمحفظة',
                           icon: const Icon(
                             Icons.visibility,
                             color: Colors.indigo,
