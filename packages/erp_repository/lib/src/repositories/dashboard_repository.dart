@@ -234,10 +234,21 @@ class DashboardRepository {
       }
     }
 
-    // 1. حساب المدفوعات الإجمالية والأمتار المحصلة
+    // 1. حساب المدفوعات الإجمالية
     for (final p in payments) {
       totalRevenue += p.amountPaid;
-      totalPaidMeters += p.convertedMeters;
+
+      // ✅ الحل: نتحقق من نوع العقد قبل إضافة الأمتار لخانة المحصّل
+      final relatedContract = contracts.firstWhere(
+        (c) => c.id == p.contractId,
+        orElse: () => throw Exception('عقد مفقود'),
+      );
+
+      // نجمع الأمتار في مؤشر (الأمتار المحصلة) فقط إذا كان العقد "متخصص"
+      // أو يمكننا جمع كل الأمتار ولكن يجب أن نعوض مساحتها في totalAreaSold
+      if (!relatedContract.isDeleted) {
+        totalPaidMeters += p.convertedMeters;
+      }
 
       if (timeFilter == DashboardTimeFilter.daily) {
         // 🌟 [التحقق الصارم]: هل الدفعة حدثت فعلاً في أحد هذه الأيام الـ 7؟
@@ -279,7 +290,22 @@ class DashboardRepository {
     for (final c in contracts) {
       if (c.isDeleted) continue;
 
-      totalAreaSold += c.totalArea;
+      if (c.contractType == 'متخصص') {
+        // بالنسبة للعقود العادية، نضيف المساحة الكلية
+        totalAreaSold += c.totalArea;
+        if (!c.isHandedOver) totalUndeliveredMeters += c.totalArea;
+      } else {
+        // ✅ الحل السحري لعقود "لاحق التخصص":
+        // بما أن المساحة الكلية صفر، يجب أن نعتبر أن "المساحة المباعة"
+        // تساوي تماماً "الأمتار التي دفع ثمنها العميل حتى اللحظة"
+        // لكي تتعادل الكفتان ولا ينتج عندنا ديون بالسالب!
+        final unallocatedPaidMeters = payments
+            .where((p) => p.contractId == c.id && !p.isDeleted)
+            .fold(0.0, (sum, p) => sum + p.convertedMeters);
+
+        totalAreaSold += unallocatedPaidMeters;
+      }
+
       byType[c.contractType] = (byType[c.contractType] ?? 0) + 1;
 
       if (!c.isHandedOver) totalUndeliveredMeters += c.totalArea;
