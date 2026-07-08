@@ -1,4 +1,4 @@
-//lib\admin\view\admin_page.dart
+// lib/admin/view/admin_page.dart
 import 'dart:async';
 import 'dart:convert';
 
@@ -34,6 +34,7 @@ class _AdminViewState extends State<AdminView>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
+  // ترجمة أسماء الصلاحيات
   final Map<String, String> permissionNames = {
     AppPermissions.viewClients: 'عرض العملاء',
     AppPermissions.createClients: 'إضافة عميل',
@@ -58,6 +59,60 @@ class _AdminViewState extends State<AdminView>
     AppPermissions.deleteLegalAction: 'حذف إجراء قانوني',
     AppPermissions.manageLegalAttachments: 'إدارة المرفقات القانونية (رفع/حذف)',
   };
+
+  // 🌟 [التحسين الأول]: تجميع الصلاحيات حسب الأقسام
+  final Map<String, List<String>> permissionGroups = {
+    'إدارة العملاء': [
+      AppPermissions.viewClients,
+      AppPermissions.createClients,
+      AppPermissions.editClients,
+      AppPermissions.deleteClients,
+    ],
+    'العقود والمشاريع': [
+      AppPermissions.manageBuildings,
+      AppPermissions.viewContracts,
+      AppPermissions.createContracts,
+      AppPermissions.restructureContracts,
+    ],
+    'الإدارة المالية والأسعار': [
+      AppPermissions.viewPayments,
+      AppPermissions.addPayments,
+      AppPermissions.editPayments,
+      AppPermissions.deletePayments,
+      AppPermissions.viewPrices,
+      AppPermissions.updatePrices,
+    ],
+    'الشؤون القانونية': [
+      AppPermissions.viewLegalAffairs,
+      AppPermissions.addLegalAction,
+      AppPermissions.editLegalAction,
+      AppPermissions.deleteLegalAction,
+      AppPermissions.manageLegalAttachments,
+    ],
+    'إدارة النظام والأمان': [
+      AppPermissions.viewRecycleBin,
+      AppPermissions.restoreItems,
+      AppPermissions.hardDeleteItems,
+    ],
+  };
+
+  // 🌟 أيقونات لكل قسم لجمالية الواجهة
+  IconData _getGroupIcon(String groupName) {
+    switch (groupName) {
+      case 'إدارة العملاء':
+        return Icons.people_alt;
+      case 'العقود والمشاريع':
+        return Icons.domain;
+      case 'الإدارة المالية والأسعار':
+        return Icons.account_balance_wallet;
+      case 'الشؤون القانونية':
+        return Icons.gavel;
+      case 'إدارة النظام والأمان':
+        return Icons.security;
+      default:
+        return Icons.list;
+    }
+  }
 
   @override
   void initState() {
@@ -86,7 +141,7 @@ class _AdminViewState extends State<AdminView>
           indicatorColor: Colors.amber,
           tabs: const [
             Tab(icon: Icon(Icons.group), text: 'الموظفين (تعيين الأدوار)'),
-            Tab(icon: Icon(Icons.security), text: 'قوالب الصلاحيات (الأدوار)'),
+            Tab(icon: Icon(Icons.shield), text: 'قوالب الصلاحيات (الأدوار)'),
           ],
         ),
       ),
@@ -118,6 +173,9 @@ class _AdminViewState extends State<AdminView>
     );
   }
 
+  // ==========================================
+  // تبويب المستخدمين (بقي كما هو)
+  // ==========================================
   Widget _buildUsersTab(BuildContext context, AdminState state) {
     final myUserId = context.watch<AuthCubit>().state.userId;
 
@@ -368,6 +426,9 @@ class _AdminViewState extends State<AdminView>
     );
   }
 
+  // ==========================================
+  // تبويب القوالب والأدوار (بقي كما هو خارج الديالوج)
+  // ==========================================
   Widget _buildRolesTab(BuildContext context, AdminState state) {
     return Column(
       children: [
@@ -379,6 +440,7 @@ class _AdminViewState extends State<AdminView>
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.blueGrey.shade800,
               foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             ),
             onPressed: () => _showRoleDialog(context, null),
           ),
@@ -393,9 +455,11 @@ class _AdminViewState extends State<AdminView>
                 elevation: 2,
                 margin: const EdgeInsets.only(bottom: 12),
                 child: ListTile(
-                  leading: const Icon(
-                    Icons.shield,
-                    color: Colors.amber,
+                  leading: Icon(
+                    role.isSystemRole ? Icons.shield : Icons.manage_accounts,
+                    color: role.isSystemRole
+                        ? Colors.red
+                        : Colors.amber.shade700,
                     size: 36,
                   ),
                   title: Text(
@@ -406,10 +470,18 @@ class _AdminViewState extends State<AdminView>
                     ),
                   ),
                   subtitle: Text(
-                    role.isSystemRole ? 'دور أساسي في النظام' : 'دور مخصص',
+                    role.isSystemRole
+                        ? 'دور أساسي (غير قابل للتعديل الكامل)'
+                        : 'دور مخصص',
                   ),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.edit_square, color: Colors.blue),
+                  trailing: ElevatedButton.icon(
+                    icon: const Icon(Icons.edit_square, size: 18),
+                    label: const Text('تعديل الصلاحيات'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blueGrey.shade50,
+                      foregroundColor: Colors.blueGrey.shade900,
+                      elevation: 0,
+                    ),
                     onPressed: () => _showRoleDialog(context, role),
                   ),
                 ),
@@ -421,6 +493,9 @@ class _AdminViewState extends State<AdminView>
     );
   }
 
+  // ==========================================
+  // 🌟 [التحسين الجديد]: نافذة تعيين الصلاحيات
+  // ==========================================
   void _showRoleDialog(BuildContext parentContext, AppRole? role) {
     final nameController = TextEditingController(text: role?.name ?? '');
     var currentPerms = <String>[];
@@ -430,7 +505,7 @@ class _AdminViewState extends State<AdminView>
         final decoded = jsonDecode(role.permissionsJson) as Iterable<dynamic>;
         currentPerms = List<String>.from(decoded);
       } catch (_) {
-        // إذا فشل فك التشفير، نبقي القائمة فارغة
+        // تجاهل في حال الفشل
       }
     }
 
@@ -441,49 +516,194 @@ class _AdminViewState extends State<AdminView>
         builder: (ctx) {
           return StatefulBuilder(
             builder: (context, setState) {
+              final isSystemRole = role?.isSystemRole ?? false;
+
               return AlertDialog(
-                title: Text(role == null ? 'دور جديد' : 'تعديل: ${role.name}'),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                title: Row(
+                  children: [
+                    Icon(
+                      isSystemRole ? Icons.shield : Icons.edit_note,
+                      color: Colors.blueGrey.shade800,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      role == null
+                          ? 'بناء دور وظيفي جديد'
+                          : 'تعديل صلاحيات: ${role.name}',
+                      style: TextStyle(
+                        color: Colors.blueGrey.shade900,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
                 content: SizedBox(
-                  width: double.maxFinite,
+                  width: 700, // توسيع النافذة قليلاً لتناسب التصميم
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if (role == null)
+                      if (role == null) ...[
                         TextField(
                           controller: nameController,
-                          decoration: const InputDecoration(
-                            labelText: 'اسم الدور (مثال: محاسب فرع)',
-                            border: OutlineInputBorder(),
+                          decoration: InputDecoration(
+                            labelText:
+                                'اسم الدور (مثال: محاسب، محامي، مدير فرع)',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            prefixIcon: const Icon(Icons.badge),
                           ),
                         ),
-                      const SizedBox(height: 16),
-                      const Text(
-                        'الصلاحيات الممنوحة:',
-                        style: TextStyle(fontWeight: FontWeight.bold),
+                        const SizedBox(height: 16),
+                      ],
+
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.blueGrey.shade50,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.blueGrey.shade200),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.info_outline,
+                              color: Colors.blueGrey,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                isSystemRole
+                                    ? 'هذا الدور أساسي في النظام ولا يمكن تعديل صلاحياته لتجنب الأخطاء.'
+                                    : 'قم باختيار الصلاحيات المناسبة لهذا الدور. أي موظف يتم تعيينه بهذا الدور سيكتسب هذه الصلاحيات فوراً.',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                      const Divider(),
+                      const SizedBox(height: 16),
+
+                      // 🌟 بناء الأقسام (Modules) باستخدام ExpansionTile
                       Expanded(
                         child: ListView(
                           shrinkWrap: true,
-                          children: AppPermissions.all.map((permCode) {
-                            final hasPerm = currentPerms.contains(permCode);
-                            return CheckboxListTile(
-                              title: Text(
-                                permissionNames[permCode] ?? permCode,
+                          children: permissionGroups.entries.map((entry) {
+                            final groupName = entry.key;
+                            final groupPerms = entry.value;
+
+                            // حساب عدد الصلاحيات المحددة في هذا القسم
+                            final selectedCount = groupPerms
+                                .where((p) => currentPerms.contains(p))
+                                .length;
+                            final isAllSelected =
+                                selectedCount == groupPerms.length;
+
+                            return Card(
+                              margin: const EdgeInsets.only(bottom: 8),
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                side: BorderSide(color: Colors.grey.shade300),
                               ),
-                              value: hasPerm,
-                              activeColor: Colors.blueGrey.shade900,
-                              onChanged: role?.isSystemRole == true
-                                  ? null
-                                  : (bool? val) {
-                                      setState(() {
-                                        if (val == true) {
-                                          currentPerms.add(permCode);
-                                        } else {
-                                          currentPerms.remove(permCode);
-                                        }
-                                      });
-                                    },
+                              child: Theme(
+                                data: Theme.of(
+                                  context,
+                                ).copyWith(dividerColor: Colors.transparent),
+                                child: ExpansionTile(
+                                  leading: Icon(
+                                    _getGroupIcon(groupName),
+                                    color: Colors.indigo,
+                                  ),
+                                  title: Text(
+                                    groupName,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  subtitle: Text(
+                                    '$selectedCount من ${groupPerms.length} محددة',
+                                    style: TextStyle(
+                                      color: selectedCount == groupPerms.length
+                                          ? Colors.green
+                                          : Colors.grey,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                  children: [
+                                    // 🌟 زر تحديد الكل
+                                    Container(
+                                      color: Colors.grey.shade50,
+                                      child: CheckboxListTile(
+                                        title: const Text(
+                                          'تحديد كافة صلاحيات هذا القسم',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.indigo,
+                                          ),
+                                        ),
+                                        value: isAllSelected,
+                                        activeColor: Colors.indigo,
+                                        onChanged: isSystemRole
+                                            ? null
+                                            : (val) {
+                                                setState(() {
+                                                  if (val == true) {
+                                                    // إضافة الصلاحيات غير الموجودة
+                                                    currentPerms.addAll(
+                                                      groupPerms.where(
+                                                        (p) => !currentPerms
+                                                            .contains(p),
+                                                      ),
+                                                    );
+                                                  } else {
+                                                    // إزالة كل صلاحيات هذا القسم
+                                                    currentPerms.removeWhere(
+                                                      (p) => groupPerms
+                                                          .contains(p),
+                                                    );
+                                                  }
+                                                });
+                                              },
+                                      ),
+                                    ),
+                                    const Divider(height: 1),
+                                    // 🌟 الصلاحيات الفردية
+                                    ...groupPerms.map((permCode) {
+                                      final hasPerm = currentPerms.contains(
+                                        permCode,
+                                      );
+                                      return CheckboxListTile(
+                                        title: Text(
+                                          permissionNames[permCode] ?? permCode,
+                                        ),
+                                        value: hasPerm,
+                                        activeColor: Colors.blueGrey.shade800,
+                                        onChanged: isSystemRole
+                                            ? null
+                                            : (bool? val) {
+                                                setState(() {
+                                                  if (val == true) {
+                                                    currentPerms.add(permCode);
+                                                  } else {
+                                                    currentPerms.remove(
+                                                      permCode,
+                                                    );
+                                                  }
+                                                });
+                                              },
+                                      );
+                                    }),
+                                  ],
+                                ),
+                              ),
                             );
                           }).toList(),
                         ),
@@ -491,38 +711,63 @@ class _AdminViewState extends State<AdminView>
                     ],
                   ),
                 ),
+                actionsPadding: const EdgeInsets.all(16),
                 actions: [
                   TextButton(
                     onPressed: () => Navigator.pop(ctx),
                     child: const Text(
                       'إلغاء',
-                      style: TextStyle(color: Colors.red),
+                      style: TextStyle(
+                        color: Colors.red,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blueGrey.shade900,
-                      foregroundColor: Colors.white,
-                    ),
-                    onPressed: () {
-                      if (role == null) {
-                        if (nameController.text.trim().isNotEmpty) {
-                          parentContext.read<AdminCubit>().createNewRole(
-                            nameController.text.trim(),
+                  if (!isSystemRole)
+                    ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.indigo,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 12,
+                        ),
+                      ),
+                      icon: const Icon(Icons.save),
+                      label: const Text(
+                        'حفظ الصلاحيات',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      onPressed: () {
+                        if (role == null) {
+                          if (nameController.text.trim().isNotEmpty) {
+                            parentContext.read<AdminCubit>().createNewRole(
+                              nameController.text.trim(),
+                              currentPerms,
+                            );
+                            Navigator.pop(ctx);
+                            ScaffoldMessenger.of(parentContext).showSnackBar(
+                              const SnackBar(
+                                content: Text('تم إنشاء الدور بنجاح'),
+                                backgroundColor: Colors.green,
+                              ),
+                            );
+                          }
+                        } else {
+                          parentContext.read<AdminCubit>().updateRole(
+                            role.id,
                             currentPerms,
                           );
                           Navigator.pop(ctx);
+                          ScaffoldMessenger.of(parentContext).showSnackBar(
+                            const SnackBar(
+                              content: Text('تم تحديث الصلاحيات بنجاح'),
+                              backgroundColor: Colors.green,
+                            ),
+                          );
                         }
-                      } else {
-                        parentContext.read<AdminCubit>().updateRole(
-                          role.id,
-                          currentPerms,
-                        );
-                        Navigator.pop(ctx);
-                      }
-                    },
-                    child: const Text('حفظ'),
-                  ),
+                      },
+                    ),
                 ],
               );
             },
