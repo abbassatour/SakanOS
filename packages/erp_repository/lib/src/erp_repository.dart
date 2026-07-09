@@ -333,12 +333,6 @@ class ErpRepository {
     isCompleted: isCompleted,
   );
 
-  Future<void> attachContractFile(
-    String contractId,
-    File file,
-    String extension,
-  ) => _contractsRepo.attachContractFile(contractId, file, extension);
-
   Future<void> markContractActionTaken({
     required String contractId,
     required String note,
@@ -356,6 +350,27 @@ class ErpRepository {
     newRemainingMonths: newRemainingMonths,
     newStartDate: newStartDate,
   );
+
+  // ==========================================
+  // 📎 مرفقات العقود (الواجهة المكشوفة)
+  // ==========================================
+  Future<List<ContractAttachment>> getAllContractAttachments() =>
+      _contractsRepo.getAllContractAttachments();
+
+  Future<void> attachFileToContractGallery({
+    required String contractId,
+    required File file,
+    required String extension,
+    required String originalFileName,
+  }) => _contractsRepo.attachFileToContractGallery(
+    contractId: contractId,
+    file: file,
+    extension: extension,
+    originalFileName: originalFileName,
+  );
+
+  Future<void> deleteContractAttachment(String attachmentId) =>
+      _contractsRepo.deleteContractAttachment(attachmentId);
 
   // ==========================================
   // 📅 جدول الاستحقاقات (Schedules Facade)
@@ -620,43 +635,6 @@ class ErpRepository {
           },
         )
         .subscribe();
-  }
-
-  // ==========================================
-  // 🌟 إرفاق ملف Word للعقد
-  // ==========================================
-  Future<void> attachFileToContract(
-    String contractId,
-    File file,
-    String extension,
-  ) async {
-    final String? safeUserId = currentUserId;
-    if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
-
-    try {
-      final fileUrl = await _cloudApi.uploadContractFile(
-        contractId: contractId,
-        file: file,
-        extension: extension,
-      );
-
-      final db = _localApi.database;
-      await (db.update(
-        db.contracts,
-      )..where((t) => t.id.equals(contractId))).write(
-        ContractsCompanion(
-          contractFileUrl: drift.Value(fileUrl),
-          userId: drift.Value(safeUserId),
-          updatedAt: drift.Value(DateTime.now().toUtc()),
-          isSynced: const drift.Value(false),
-        ),
-      );
-      await syncPendingData();
-    } catch (e, stacktrace) {
-      print('❌❌ خطأ فادح أثناء إرفاق الملف: $e');
-      print('🔍 التفاصيل: $stacktrace');
-      throw Exception('فشل الإرفاق: $e');
-    }
   }
 
   // ==========================================

@@ -3,7 +3,7 @@
 
 import 'dart:convert';
 import 'dart:io';
-
+import 'package:uuid/uuid.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import 'package:cloud_storage_api/cloud_storage_api.dart';
@@ -413,6 +413,60 @@ class ContractsRepository {
         isSynced: const drift.Value(false),
       ),
     );
+    await _syncRepo.syncPendingData();
+  }
+
+  // ==========================================
+  // 📎 إدارة المرفقات المتعددة للعقود (النظام الجديد)
+  // ==========================================
+
+  Future<List<ContractAttachment>> getAllContractAttachments() =>
+      _localApi.database.getAllContractAttachments();
+
+  Future<List<ContractAttachment>> getAttachmentsForContract(
+    String contractId,
+  ) => _localApi.database.getAttachmentsForContract(contractId);
+
+  Future<void> attachFileToContractGallery({
+    required String contractId,
+    required File file,
+    required String extension,
+    required String originalFileName,
+  }) async {
+    final userId = _getCurrentUserId();
+    if (userId == null) throw Exception('يجب تسجيل الدخول أولاً.');
+
+    final attachmentId = const Uuid().v7();
+
+    // 1. الحفظ المحلي المؤقت
+    final dir = await getApplicationSupportDirectory();
+    final localDirPath = p.join(dir.path, 'pending_uploads');
+    final localDir = Directory(localDirPath);
+    if (!await localDir.exists()) await localDir.create(recursive: true);
+
+    final fileName = 'attach_$attachmentId.$extension';
+    final localFile = await file.copy(p.join(localDir.path, fileName));
+
+    // 2. الحفظ في الداتابيز
+    final newAttachment = ContractAttachmentsCompanion.insert(
+      id: drift.Value(attachmentId),
+      contractId: contractId,
+      fileUrl: localFile.path,
+      fileName: drift.Value(originalFileName),
+      fileType: drift.Value(extension),
+      userId: userId,
+      isSynced: const drift.Value(false),
+    );
+
+    await _localApi.database.insertContractAttachment(newAttachment);
+    await _syncRepo.syncPendingData();
+  }
+
+  Future<void> deleteContractAttachment(String attachmentId) async {
+    final userId = _getCurrentUserId();
+    if (userId == null) throw Exception('يجب تسجيل الدخول أولاً.');
+
+    await _localApi.database.softDeleteContractAttachment(attachmentId, userId);
     await _syncRepo.syncPendingData();
   }
 }

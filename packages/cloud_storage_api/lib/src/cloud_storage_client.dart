@@ -175,6 +175,9 @@ class CloudStorageClient {
     DateTime? lastSync,
   }) => _fetchAllPaginated('legal_action_attachments', lastSync: lastSync);
 
+  Future<List<Map<String, dynamic>>> getContractAttachments({
+    DateTime? lastSync,
+  }) => _fetchAllPaginated('contract_attachments', lastSync: lastSync);
   // ==========================================
   // 📤 دوال رفع البيانات (PUSH to Cloud) - (UPSERT)
   // ==========================================
@@ -234,63 +237,6 @@ class CloudStorageClient {
   /// تقوم هذه الدالة برفع ملف العقد (PDF/Doc) إلى سلة تخزين Supabase.
   /// تم استخدام مكتبة HTTP مباشرة لتجاوز بعض المشاكل المتعلقة بمكتبة Storage الأصلية،
   /// مما يعطينا تحكماً كاملاً بالـ Headers والـ Auth Token.
-  Future<String> uploadContractFile({
-    required String contractId,
-    required File file,
-    required String extension,
-  }) async {
-    const bucketName = 'erp_contracts'; // اسم السلة (Bucket) في Supabase
-    final fileName = 'contract_$contractId.$extension';
-
-    // 1. جلب مفتاح الجلسة الحالي (JWT) وتحديثه إذا لزم الأمر
-    var session = _supabase.auth.currentSession;
-    if (session == null) throw Exception('يجب تسجيل الدخول لرفع الملفات.');
-
-    // 🌟 السحر هنا: نتحقق إذا كان التوكن منتهي الصلاحية، ونجبره على التجديد الآني
-    if (session.isExpired) {
-      final response = await _supabase.auth.refreshSession();
-      session = response.session;
-    }
-
-    final jwtToken = session?.accessToken;
-    if (jwtToken == null) throw Exception('فشل الحصول على مفتاح الجلسة الآمن.');
-
-    // 2. قراءة الملف كبيانات خام (Bytes)
-    final bytes = file.readAsBytesSync();
-
-    // 3. تحديد نوع الملف (MIME Type) لتتعرف عليه السحابة
-    String contentType = 'application/octet-stream'; // الافتراضي
-    if (extension == 'pdf') contentType = 'application/pdf';
-    if (extension == 'doc' || extension == 'docx')
-      contentType = 'application/msword';
-
-    // 4. 🌟 استخراج رابط الـ Storage السحابي ديناميكياً
-    final String storageUrl = _supabase.storage.url;
-    final uploadUrl = Uri.parse(
-      '$storageUrl/object/$bucketName/$fileName',
-    );
-
-    // 5. إطلاق صاروخ الـ HTTP مباشرة للسيرفر (Post Request)
-    final response = await http.post(
-      uploadUrl,
-      headers: {
-        'Authorization': 'Bearer $jwtToken',
-        'Content-Type': contentType,
-        'x-upsert':
-            'true', // هذه القيمة تسمح باستبدال الملف لو تم رفعه مسبقاً بنفس الاسم
-      },
-      body: bytes,
-    );
-
-    // 6. التحقق من الرد (Status Code 200 يعني نجاح العملية) وإرجاع الرابط العام
-    if (response.statusCode == 200) {
-      return fileName; // 🌟 تم التعديل: إرجاع اسم الملف فقط لزيادة الأمان
-    } else {
-      throw Exception(
-        'فشل الرفع من السيرفر: ${response.statusCode} - ${response.body}',
-      );
-    }
-  }
 
   // ==========================================
   // 📎 دوال مرفقات الإجراءات القانونية (تمت الإضافة)
@@ -299,6 +245,10 @@ class CloudStorageClient {
   // 2. 📤 رفع سجل المرفق إلى السحابة
   Future<void> upsertLegalActionAttachment(Map<String, dynamic> data) async =>
       await _supabase.from('legal_action_attachments').upsert(data);
+
+  // 📤 رفع سجل مرفقات العقود إلى السحابة
+  Future<void> upsertContractAttachment(Map<String, dynamic> data) async =>
+      await _supabase.from('contract_attachments').upsert(data);
 
   // 3. 📂 رفع الملف الفعلي (PDF/صورة) إلى سلة المرفقات
   Future<String> uploadLegalAttachmentFile({
@@ -356,6 +306,62 @@ class CloudStorageClient {
     } else {
       throw Exception(
         'فشل رفع المرفق: ${response.statusCode} - ${response.body}',
+      );
+    }
+  }
+
+  // 📂 رفع الملف الفعلي (مرفقات العقود الجديدة) إلى سلة المرفقات
+  Future<String> uploadContractAttachmentFile({
+    required String attachmentId,
+    required File file,
+    required String extension,
+  }) async {
+    const bucketName = 'contract_attachments';
+    final fileName = 'attach_$attachmentId.$extension';
+
+    var session = _supabase.auth.currentSession;
+    if (session == null) throw Exception('يجب تسجيل الدخول لرفع الملفات.');
+
+    if (session.isExpired) {
+      final response = await _supabase.auth.refreshSession();
+      session = response.session;
+    }
+
+    final jwtToken = session?.accessToken;
+    if (jwtToken == null) throw Exception('فشل الحصول على مفتاح الجلسة الآمن.');
+
+    final bytes = file.readAsBytesSync();
+
+    String contentType = 'application/octet-stream';
+    if (extension == 'pdf') contentType = 'application/pdf';
+    if (extension == 'png') contentType = 'image/png';
+    if (extension == 'jpg' || extension == 'jpeg') contentType = 'image/jpeg';
+    if (extension == 'doc' || extension == 'docx')
+      contentType = 'application/msword';
+    if (extension == 'xls') contentType = 'application/vnd.ms-excel';
+    if (extension == 'xlsx')
+      contentType =
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+
+    // استخراج رابط الـ Storage السحابي ديناميكياً
+    final String storageUrl = _supabase.storage.url;
+    final uploadUrl = Uri.parse('$storageUrl/object/$bucketName/$fileName');
+
+    final response = await http.post(
+      uploadUrl,
+      headers: {
+        'Authorization': 'Bearer $jwtToken',
+        'Content-Type': contentType,
+        'x-upsert': 'true',
+      },
+      body: bytes,
+    );
+
+    if (response.statusCode == 200) {
+      return fileName; // إرجاع اسم الملف فقط لحفظه في الداتابيز
+    } else {
+      throw Exception(
+        'فشل رفع مرفق العقد: ${response.statusCode} - ${response.body}',
       );
     }
   }

@@ -428,6 +428,29 @@ class SyncRepository {
         await _localApi.database.syncLegalActionAttachment(attachment);
       }
 
+      // 12. سحب المرفقات الخاصة بالعقود
+      final cloudContractAttachments = await _cloudApi.getContractAttachments(
+        lastSync: lastSyncTime,
+      );
+      for (final att in cloudContractAttachments) {
+        trackLatestTime(att['updated_at']?.toString());
+        final attachment = ContractAttachmentsCompanion.insert(
+          id: drift.Value(att['id'].toString()),
+          contractId: att['contract_id'].toString(),
+          fileUrl: att['file_url'].toString(),
+          fileName: drift.Value(att['file_name']?.toString()),
+          fileType: drift.Value(att['file_type']?.toString()),
+          userId: att['user_id']?.toString() ?? '',
+          isDeleted: drift.Value(att['is_deleted'] == true),
+          updatedAt: drift.Value(
+            DateTime.tryParse(att['updated_at']?.toString() ?? '')?.toUtc() ??
+                DateTime.now().toUtc(),
+          ),
+          isSynced: const drift.Value(true),
+        );
+        await _localApi.database.syncContractAttachment(attachment);
+      }
+
       // ==========================================
       // 🌟 حفظ أحدث توقيت سيرفر للمزامنة القادمة (إن وُجد)
       // ==========================================
@@ -488,39 +511,6 @@ class SyncRepository {
         db.contracts,
       )..where((t) => t.isSynced.equals(false))).get();
       for (final c in pendingContracts) {
-        String? finalFileUrl = c.contractFileUrl;
-
-        if (finalFileUrl != null && !finalFileUrl.startsWith('http')) {
-          try {
-            final localFile = File(finalFileUrl);
-            if (await localFile.exists()) {
-              final extension = p.extension(localFile.path).replaceAll('.', '');
-              finalFileUrl = await _cloudApi.uploadContractFile(
-                contractId: c.id,
-                file: localFile,
-                extension: extension,
-              );
-              await (db.update(
-                db.contracts,
-              )..where((t) => t.id.equals(c.id))).write(
-                ContractsCompanion(contractFileUrl: drift.Value(finalFileUrl)),
-              );
-              await localFile.delete();
-            } else {
-              finalFileUrl = null;
-              await (db.update(
-                db.contracts,
-              )..where((t) => t.id.equals(c.id))).write(
-                const ContractsCompanion(contractFileUrl: drift.Value(null)),
-              );
-            }
-          } catch (e) {
-            print('⚠️ فشل رفع ملف العقد: $e');
-            hasErrors = true; // 🌟 تسجيل الخطأ لتأجيل السحب
-            continue;
-          }
-        }
-
         await _cloudApi.upsertContract({
           'id': c.id,
           'client_id': c.clientId,
@@ -547,7 +537,8 @@ class SyncRepository {
           'coefficients': c.coefficients,
           'contract_date': c.contractDate.toUtc().toIso8601String(),
           'guarantor_name': c.guarantorName,
-          'contract_file_url': finalFileUrl,
+          'contract_file_url':
+              c.contractFileUrl, // سحبنا كود الرفع وبقينا على حفظ القيمة فقط
           'user_id': c.userId,
           'is_completed': c.isCompleted,
           'last_action_date': c.lastActionDate?.toUtc().toIso8601String(),
@@ -561,7 +552,7 @@ class SyncRepository {
       }
     } on Exception catch (e) {
       print('Sync Contracts Failed: $e');
-      hasErrors = true; // 🌟
+      hasErrors = true;
     }
 
     // 3. مزامنة جدول الاستحقاقات
@@ -870,6 +861,71 @@ class SyncRepository {
     } on Exception catch (e) {
       print('Sync Dollar Prices Failed: $e');
       hasErrors = true; // 🌟
+    }
+
+    // 13. مزامنة المرفقات الخاصة بالعقود
+    try {
+      final pendingContractAttachments = await (db.select(
+        db.contractAttachments,
+      )..where((t) => t.isSynced.equals(false))).get();
+
+      for (final att in pendingContractAttachments) {
+        String finalFileUrl = att.fileUrl;
+
+        if (!finalFileUrl.startsWith('http')) {
+          try {
+            final localFile = File(finalFileUrl);
+            if (await localFile.exists()) {
+              final extension = att.fileType ?? 'pdf';
+              finalFileUrl = await _cloudApi.uploadContractAttachmentFile(
+                attachmentId: att.id,
+                file: localFile,
+                extension: extension,
+              );
+              await (db.update(
+                db.contractAttachments,
+              )..where((t) => t.id.equals(att.id))).write(
+                ContractAttachmentsCompanion(
+                  fileUrl: drift.Value(finalFileUrl),
+                ),
+              );
+              await localFile.delete();
+            } else {
+              // إذا لم يجد الملف المحلي، يحذف السجل لكي لا يعلق النظام
+              await (db.delete(
+                db.contractAttachments,
+              )..where((t) => t.id.equals(att.id))).go();
+              continue;
+            }
+          } catch (e) {
+            print('⚠️ فشل رفع مرفق العقد: $e');
+            hasErrors = true; // 🌟 تسجيل خطأ الإرفاق
+            continue;
+          }
+        }
+
+        // رفع البيانات للسحابة
+        await _cloudApi.upsertContractAttachment({
+          'id': att.id,
+          'contract_id': att.contractId,
+          'file_url': finalFileUrl,
+          'file_name': att.fileName,
+          'file_type': att.fileType,
+          'user_id': att.userId,
+          'is_deleted': att.isDeleted,
+          'updated_at': att.updatedAt.toUtc().toIso8601String(),
+        });
+
+        // التوثيق محلياً بأنها تزامنت
+        await (db.update(
+          db.contractAttachments,
+        )..where((t) => t.id.equals(att.id))).write(
+          const ContractAttachmentsCompanion(isSynced: drift.Value(true)),
+        );
+      }
+    } on Exception catch (e) {
+      print('Sync Contract Attachments Failed: $e');
+      hasErrors = true;
     }
 
     _isSyncing = false;

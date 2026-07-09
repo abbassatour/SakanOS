@@ -10,4 +10,5 @@ export 'package:local_storage_api/local_storage_api.dart'
         Contract,
         PaymentsLedgerData,
         MaterialPricesHistoryData,
-        InstallmentsScheduleData;
+        InstallmentsScheduleData,
+        ContractAttachment;

@@ -19,6 +19,7 @@ import 'tables/legal_actions.dart';
 import 'tables/local_users.dart';
 import 'tables/material_prices_history.dart';
 import 'tables/payments_ledger.dart';
+import 'tables/contract_attachments.dart';
 
 part 'database.g.dart';
 
@@ -36,6 +37,7 @@ part 'database.g.dart';
     LocalUsers,
     LegalActions,
     LegalActionAttachments,
+    ContractAttachments,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -377,6 +379,18 @@ class AppDatabase extends _$AppDatabase {
             isSynced: const Value(false),
           ),
         );
+
+        // 🌟 الحماية الجديدة: حذف مرفقات العقد آلياً
+        await (update(
+          contractAttachments,
+        )..where((t) => t.contractId.equals(contractId))).write(
+          ContractAttachmentsCompanion(
+            isDeleted: const Value(true),
+            userId: Value(userId),
+            updatedAt: nowUtc,
+            isSynced: const Value(false),
+          ),
+        );
       }
 
       // 🌟 الحماية الجديدة: تحرير الشقة لتعود متاحة للبيع
@@ -459,6 +473,18 @@ class AppDatabase extends _$AppDatabase {
         );
       }
 
+      // 🌟 الحماية الجديدة: استعادة مرفقات العقد آلياً
+      await (update(
+        contractAttachments,
+      )..where((t) => t.contractId.equals(contractId))).write(
+        ContractAttachmentsCompanion(
+          isDeleted: const Value(false),
+          userId: Value(userId),
+          updatedAt: nowUtc,
+          isSynced: const Value(false),
+        ),
+      );
+
       // 🌟 الحماية الجديدة: إعادة حجز الشقة
       if (apartmentId != null && apartmentId.isNotEmpty) {
         final targetStatus = isHandedOver ? 'delivered' : 'sold';
@@ -499,7 +525,12 @@ class AppDatabase extends _$AppDatabase {
         installmentsSchedule,
       )..where((t) => t.contractId.equals(contractId))).go();
 
-      // 🌟 أخيراً، حذف العقد
+      // 🌟 حذف مرفقات العقد نهائياً (يجب أن يكون هنا قبل العقد)
+      await (delete(
+        contractAttachments,
+      )..where((t) => t.contractId.equals(contractId))).go();
+
+      // 🌟 أخيراً، حذف العقد نفسه
       await (delete(contracts)..where((t) => t.id.equals(contractId))).go();
     });
   }
@@ -780,6 +811,7 @@ class AppDatabase extends _$AppDatabase {
 
   Future<void> clearAllData() {
     return transaction(() async {
+      await delete(contractAttachments).go();
       await delete(legalActionAttachments).go();
       await delete(legalActions).go();
       await delete(localUsers).go();
@@ -917,6 +949,54 @@ class AppDatabase extends _$AppDatabase {
       where: (old) => old.isSynced.equals(true),
     ),
   );
+  // ==========================================
+  // 📎 استعلامات مرفقات العقود (Contract Attachments)
+  // ==========================================
+  Future<List<ContractAttachment>> getAttachmentsForContract(
+    String contractId,
+  ) =>
+      (select(contractAttachments)
+            ..where(
+              (t) =>
+                  t.contractId.equals(contractId) & t.isDeleted.equals(false),
+            )
+            ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
+          .get();
+
+  Future<String> insertContractAttachment(
+    ContractAttachmentsCompanion attachment,
+  ) async {
+    final row = await into(contractAttachments).insertReturning(attachment);
+    return row.id;
+  }
+
+  Future<int> softDeleteContractAttachment(String attachmentId, String userId) {
+    return (update(
+      contractAttachments,
+    )..where((t) => t.id.equals(attachmentId))).write(
+      ContractAttachmentsCompanion(
+        isDeleted: const Value(true),
+        userId: Value(userId),
+        updatedAt: Value(DateTime.now().toUtc()),
+        isSynced: const Value(false),
+      ),
+    );
+  }
+
+  Future<List<ContractAttachment>> getAllContractAttachments() => (select(
+    contractAttachments,
+  )..where((t) => t.isDeleted.equals(false))).get();
+
+  // الحقن السحابي لمرفقات العقود
+  Future<void> syncContractAttachment(ContractAttachmentsCompanion entity) =>
+      into(contractAttachments).insert(
+        entity,
+        onConflict: DoUpdate(
+          (old) => entity,
+          target: [contractAttachments.id],
+          where: (old) => old.isSynced.equals(true),
+        ),
+      );
   // ==========================================
   // 🗑️ سلة المحذوفات (Recycle Bin) - العملاء
   // ==========================================

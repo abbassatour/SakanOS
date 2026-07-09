@@ -25,12 +25,20 @@ class ContractsCubit extends Cubit<ContractsState> {
         for (final user in allUsers) user.id: user.fullName ?? 'مدير النظام',
       };
 
+      // 🌟 جلب المرفقات وتوزيعها
+      final allAttachments = await _erpRepository.getAllContractAttachments();
+      final attachmentsMap = <String, List<ContractAttachment>>{};
+      for (final att in allAttachments) {
+        attachmentsMap.putIfAbsent(att.contractId, () => []).add(att);
+      }
+
       emit(
         state.copyWith(
           status: ContractsStatus.success,
           clients: clients,
           contracts: allContracts,
           userNamesMap: namesMap,
+          attachmentsMap: attachmentsMap, // 🌟 حفظ المرفقات في الـ State
         ),
       );
     } catch (e, stackTrace) {
@@ -126,28 +134,68 @@ class ContractsCubit extends Cubit<ContractsState> {
     }
   }
 
-  Future<void> attachContractFile({
+  // ==========================================
+  // 📎 دوال إدارة المرفقات المتعددة (النظام الجديد)
+  // ==========================================
+
+  Future<void> attachFileToContractGallery({
     required String contractId,
     required String filePath,
     required String extension,
+    required String originalFileName,
   }) async {
     emit(state.copyWith(status: ContractsStatus.loading));
     try {
-      // 🌟 استدعاء الدالة الحقيقية من المستودع (تم إزالة throw UnimplementedError)
-      await _erpRepository.attachContractFile(
-        contractId,
-        File(filePath),
-        extension,
+      final file = File(filePath);
+
+      await _erpRepository.attachFileToContractGallery(
+        contractId: contractId,
+        file: file,
+        extension: extension,
+        originalFileName: originalFileName,
       );
-      await fetchData(); // تحديث البيانات بعد نجاح الرفع
-    } catch (e, stackTrace) {
-      log('خطأ في إرفاق ملف العقد', error: e, stackTrace: stackTrace);
+
+      await fetchData(); // تحديث الواجهة بعد الرفع
+    } on Exception catch (e) {
       emit(
         state.copyWith(
           status: ContractsStatus.failure,
           errorMessage: 'فشل إرفاق الملف: $e',
         ),
       );
+    }
+  }
+
+  Future<void> deleteContractAttachment(String attachmentId) async {
+    emit(state.copyWith(status: ContractsStatus.loading));
+    try {
+      await _erpRepository.deleteContractAttachment(attachmentId);
+      await fetchData();
+    } on Exception catch (e) {
+      emit(
+        state.copyWith(
+          status: ContractsStatus.failure,
+          errorMessage: 'فشل حذف المرفق: $e',
+        ),
+      );
+    }
+  }
+
+  Future<String?> getSecureAttachmentUrl(String storedPath) async {
+    try {
+      // 🌟 نطلب الرابط الآمن من السلة الجديدة contract_attachments
+      return await _erpRepository.resolveFileUrl(
+        'contract_attachments',
+        storedPath,
+      );
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: ContractsStatus.failure,
+          errorMessage: 'فشل إنشاء الرابط الآمن: $e',
+        ),
+      );
+      return null;
     }
   }
 

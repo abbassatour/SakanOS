@@ -319,6 +319,8 @@ class _ContractsViewState extends State<ContractsView> {
                                 contracts: filteredContracts,
                                 clients: state.clients,
                                 userNamesMap: state.userNamesMap,
+                                attachmentsMap: state
+                                    .attachmentsMap, // 🌟 تمرير الخريطة الجديدة
                               ),
                             ],
                           ),

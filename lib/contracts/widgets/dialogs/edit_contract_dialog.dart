@@ -9,8 +9,6 @@ import 'package:our_home_erp_app/contracts/cubit/contracts_cubit.dart';
 import 'package:our_home_erp_app/contracts/widgets/dialogs/verify_pin_dialog.dart';
 import 'package:our_home_erp_app/core/constants/app_permissions.dart';
 
-// استيراد الأقسام المعزولة الأنيقة
-import 'edit_contract_sections/attachment_manager_section.dart';
 import 'edit_contract_sections/penalty_settings_section.dart';
 
 void showEditContractDialog(BuildContext parentContext, Contract contract) {
@@ -175,7 +173,7 @@ class _EditContractDialogContentState
       ],
       // 🌟 بناء هيكل التبويبات (Tabs) بتصميم عصري
       content: DefaultTabController(
-        length: 3,
+        length: 2,
         child: SizedBox(
           width: 650,
           height: 520, // زيادة مساحة النافذة للراحة البصرية
@@ -343,10 +341,6 @@ class _EditContractDialogContentState
                           icon: Icon(Icons.gavel_outlined),
                           text: 'الغرامات والجزاء',
                         ),
-                        Tab(
-                          icon: Icon(Icons.attach_file),
-                          text: 'مرفقات العقد',
-                        ),
                       ],
                     ),
                   ],
@@ -359,7 +353,6 @@ class _EditContractDialogContentState
                   children: [
                     _buildBasicInfoTab(canEdit),
                     _buildPenaltyTab(canEdit),
-                    _buildAttachmentsTab(canEdit),
                   ],
                 ),
               ),
@@ -516,77 +509,6 @@ class _EditContractDialogContentState
                   _saveContractData('تم تحديث الشروط الجزائية بنجاح ✅'),
             ),
           ),
-      ],
-    );
-  }
-
-  // ==========================================
-  // 📎 التبويب الثالث: المرفقات
-  // ==========================================
-  Widget _buildAttachmentsTab(bool canEdit) {
-    return ListView(
-      padding: const EdgeInsets.all(24),
-      children: [
-        Row(
-          children: [
-            Icon(
-              Icons.picture_as_pdf,
-              color: Colors.blueGrey.shade700,
-              size: 28,
-            ),
-            const SizedBox(width: 12),
-            const Text(
-              'النسخة الإلكترونية من العقد',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
-                color: Colors.blueGrey,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'يمكنك إرفاق نسخة ممسوحة ضوئياً (PDF/Word) من العقد الورقي الموقّع هنا لسهولة الوصول إليه لاحقاً وطباعته في أي وقت.',
-          style: TextStyle(
-            color: Colors.grey.shade600,
-            fontSize: 13,
-            height: 1.5,
-          ),
-        ),
-        const SizedBox(height: 24),
-
-        AttachmentManagerSection(
-          contract: widget.contract,
-          canEdit: canEdit,
-          parentContext: widget.parentContext,
-        ),
-
-        const SizedBox(height: 32),
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.teal.shade50,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.teal.shade200),
-          ),
-          child: Row(
-            children: [
-              Icon(Icons.cloud_sync, color: Colors.teal.shade700, size: 28),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  'المرفقات يتم حفظها ورفعها للسحابة فوراً بشكل مستقل عند الاختيار، ولا تحتاج للضغط على زر حفظ إضافي.',
-                  style: TextStyle(
-                    color: Colors.teal.shade900,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
       ],
     );
   }

@@ -13,7 +13,7 @@ import 'package:our_home_erp_app/schedule/cubit/schedule_cubit.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:our_home_erp_app/contracts/cubit/contracts_cubit.dart';
 import 'package:open_filex/open_filex.dart';
-
+import 'package:our_home_erp_app/contracts/view/contract_attachments_page.dart';
 // 🌟 الاستيرادات الجديدة المطلوبة للزر والصلاحيات
 import 'package:our_home_erp_app/auth/cubit/auth_cubit.dart';
 import 'package:our_home_erp_app/core/constants/app_permissions.dart';
@@ -24,78 +24,14 @@ class ContractsDataTable extends StatelessWidget {
     required this.contracts,
     required this.clients,
     required this.userNamesMap,
+    required this.attachmentsMap,
     super.key,
   });
 
   final List<Contract> contracts;
   final List<Client> clients;
   final Map<String, String> userNamesMap;
-
-  void _openFile(String urlString) {
-    unawaited(
-      () async {
-        final url = Uri.parse(urlString);
-        if (await canLaunchUrl(url)) {
-          await launchUrl(url);
-        }
-      }(),
-    );
-  }
-
-  Widget _buildFileAction(BuildContext context, Contract contract) {
-    final hasFile =
-        contract.contractFileUrl != null &&
-        contract.contractFileUrl!.isNotEmpty;
-
-    return TextButton.icon(
-      icon: Icon(
-        hasFile ? Icons.download : Icons.upload_file,
-        color: hasFile ? Colors.green : Colors.orange,
-        size: 18,
-      ),
-      label: Text(
-        hasFile ? 'فتح' : 'إرفاق',
-        style: TextStyle(
-          color: hasFile ? Colors.green : Colors.orange,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-      onPressed: () async {
-        if (hasFile) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('جاري إنشاء رابط وصول آمن... ⏳')),
-          );
-
-          final secureUrl = await context
-              .read<ContractsCubit>()
-              .getSecureContractUrl(contract.contractFileUrl!);
-
-          if (secureUrl != null) {
-            if (secureUrl.startsWith('http')) {
-              // فتح الملف السحابي في المتصفح
-              final url = Uri.parse(secureUrl);
-              if (await canLaunchUrl(url)) {
-                await launchUrl(url);
-              }
-            } else {
-              // فتح الملف المحلي (الذي لم يُرفع بعد)
-              await OpenFilex.open(secureUrl);
-            }
-          }
-        } else {
-          // إرشاد الموظف إلى المكان الصحيح للإرفاق
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text(
-                'لإرفاق ملف، اضغط على أيقونة (تعديل العقد 📝) بجوار العقد، ثم أرفقه من هناك.',
-              ),
-              backgroundColor: Colors.orange,
-            ),
-          );
-        }
-      },
-    );
-  }
+  final Map<String, List<ContractAttachment>> attachmentsMap;
 
   @override
   Widget build(BuildContext context) {
@@ -164,7 +100,7 @@ class ContractsDataTable extends StatelessWidget {
               ),
               DataColumn(
                 label: Text(
-                  'ملف العقد',
+                  'المرفقات', // 🌟 كان "ملف العقد"
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     color: Colors.teal,
@@ -249,7 +185,68 @@ class ContractsDataTable extends StatelessWidget {
                       ),
                     ),
                   ),
-                  DataCell(_buildFileAction(context, contract)),
+                  // 🌟 شارة المرفقات (Badge) وتمرير الصلاحية للمعرض
+                  DataCell(
+                    InkWell(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          ContractAttachmentsPage.route(
+                            contract,
+                            canEditContracts, // 👈 التعديل هنا: تمرير الصلاحية المخصصة للرفع والحذف
+                            context.read<ContractsCubit>(),
+                          ),
+                        );
+                      },
+                      borderRadius: BorderRadius.circular(20),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color:
+                              (attachmentsMap[contract.id]?.isNotEmpty ?? false)
+                              ? Colors.teal.shade50
+                              : Colors.grey.shade100,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color:
+                                (attachmentsMap[contract.id]?.isNotEmpty ??
+                                    false)
+                                ? Colors.teal.shade300
+                                : Colors.grey.shade300,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.attach_file,
+                              size: 16,
+                              color:
+                                  (attachmentsMap[contract.id]?.isNotEmpty ??
+                                      false)
+                                  ? Colors.teal.shade700
+                                  : Colors.grey,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              '${attachmentsMap[contract.id]?.length ?? 0}',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color:
+                                    (attachmentsMap[contract.id]?.isNotEmpty ??
+                                        false)
+                                    ? Colors.teal.shade700
+                                    : Colors.grey,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
                   DataCell(
                     !isAllocated
                         ? const Center(
