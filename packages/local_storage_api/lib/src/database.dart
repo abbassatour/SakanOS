@@ -253,46 +253,77 @@ class AppDatabase extends _$AppDatabase {
   }
 
   // ==========================================
-  // --- إضافة عقد مع قسط البداية فقط ---
+  // --- إضافة عقد شامل مع المعاملة المالية الموحدة (Atomic Transaction) ---
   // ==========================================
-  Future<void> insertContractWithSchedules(
-    ContractsCompanion contract,
-    int installmentsCount,
-    DateTime startDate,
-    String userId,
-    String contractType,
-  ) async {
+  Future<void> insertFullContractProcess({
+    required ContractsCompanion contract,
+    required DateTime startDate,
+    required String userId,
+    required PaymentsLedgerCompanion? downPaymentEntry,
+    required String? apartmentId,
+  }) async {
     return transaction(() async {
+      // 1. إضافة العقد
       final contractRow = await into(contracts).insertReturning(contract);
       final String newContractId = contractRow.id;
 
-      final int loopCount = 1;
+      // 2. إضافة القسط الأول فقط
+      final dueDate = DateTime.utc(
+        startDate.year,
+        startDate.month + 1,
+        startDate.day,
+      );
 
-      for (int i = 1; i <= loopCount; i++) {
-        final dueDate = DateTime.utc(
-          startDate.year,
-          startDate.month + i,
-          startDate.day,
-        );
+      final scheduleEntry = InstallmentsScheduleCompanion.insert(
+        contractId: newContractId,
+        installmentNumber: 1,
+        dueDate: dueDate,
+        status: const Value('pending'),
+        userId: userId,
+      );
+      await into(installmentsSchedule).insert(scheduleEntry);
 
-        final entry = InstallmentsScheduleCompanion.insert(
-          contractId: newContractId,
-          installmentNumber: i,
-          dueDate: dueDate,
-          status: const Value('pending'),
-          userId: userId,
+      // 3. إضافة الدفعة المقدمة (إن وُجدت)
+      if (downPaymentEntry != null) {
+        final maxExpr = paymentsLedger.receiptNumber.max();
+        final query = selectOnly(paymentsLedger)..addColumns([maxExpr]);
+        final result = await query.getSingle();
+        final currentMax = result.read(maxExpr) ?? 1000;
+
+        final newPaymentEntry = downPaymentEntry.copyWith(
+          contractId: Value(newContractId),
+          receiptNumber: Value(currentMax + 1),
         );
-        await into(installmentsSchedule).insert(entry);
+        await into(paymentsLedger).insert(newPaymentEntry);
+      }
+
+      // 4. تغيير حالة الشقة إلى "مباعة" لكي لا تُباع لشخصين في نفس اللحظة
+      if (apartmentId != null && apartmentId.isNotEmpty) {
+        await (update(
+          apartments,
+        )..where((t) => t.id.equals(apartmentId))).write(
+          ApartmentsCompanion(
+            status: const Value('sold'),
+            userId: Value(userId),
+            updatedAt: Value(DateTime.now().toUtc()),
+            isSynced: const Value(false),
+          ),
+        );
       }
     });
   }
 
-  Future<List<Contract>> getActiveContracts() =>
-      (select(contracts)..where((t) => t.isDeleted.equals(false))).get();
-
-  Future<void> softDeleteContract(String contractId, String userId) async {
+  // ==========================================
+  // 🗑️ الحذف والاستعادة للعقود (Cascading & Atomicity)
+  // ==========================================
+  Future<void> softDeleteContract(
+    String contractId,
+    String? apartmentId,
+    String userId,
+  ) async {
     return transaction(() async {
       final nowUtc = Value(DateTime.now().toUtc());
+
       await (update(contracts)..where((t) => t.id.equals(contractId))).write(
         ContractsCompanion(
           isDeleted: const Value(true),
@@ -321,8 +352,160 @@ class AppDatabase extends _$AppDatabase {
           isSynced: const Value(false),
         ),
       );
+      await (update(
+        legalActions,
+      )..where((t) => t.contractId.equals(contractId))).write(
+        LegalActionsCompanion(
+          isDeleted: const Value(true),
+          userId: Value(userId),
+          updatedAt: nowUtc,
+          isSynced: const Value(false),
+        ),
+      );
+
+      final actions = await (select(
+        legalActions,
+      )..where((t) => t.contractId.equals(contractId))).get();
+      for (final action in actions) {
+        await (update(
+          legalActionAttachments,
+        )..where((t) => t.legalActionId.equals(action.id))).write(
+          LegalActionAttachmentsCompanion(
+            isDeleted: const Value(true),
+            userId: Value(userId),
+            updatedAt: nowUtc,
+            isSynced: const Value(false),
+          ),
+        );
+      }
+
+      // 🌟 الحماية الجديدة: تحرير الشقة لتعود متاحة للبيع
+      if (apartmentId != null && apartmentId.isNotEmpty) {
+        await (update(
+          apartments,
+        )..where((t) => t.id.equals(apartmentId))).write(
+          ApartmentsCompanion(
+            status: const Value('available'),
+            userId: Value(userId),
+            updatedAt: nowUtc,
+            isSynced: const Value(false),
+          ),
+        );
+      }
     });
   }
+
+  Future<void> restoreSoftDeletedContract(
+    String contractId,
+    String? apartmentId,
+    bool isHandedOver,
+    String userId,
+  ) async {
+    return transaction(() async {
+      final nowUtc = Value(DateTime.now().toUtc());
+
+      await (update(contracts)..where((t) => t.id.equals(contractId))).write(
+        ContractsCompanion(
+          isDeleted: const Value(false),
+          userId: Value(userId),
+          updatedAt: nowUtc,
+          isSynced: const Value(false),
+        ),
+      );
+      await (update(
+        installmentsSchedule,
+      )..where((t) => t.contractId.equals(contractId))).write(
+        InstallmentsScheduleCompanion(
+          isDeleted: const Value(false),
+          userId: Value(userId),
+          updatedAt: nowUtc,
+          isSynced: const Value(false),
+        ),
+      );
+      await (update(
+        paymentsLedger,
+      )..where((t) => t.contractId.equals(contractId))).write(
+        PaymentsLedgerCompanion(
+          isDeleted: const Value(false),
+          userId: Value(userId),
+          updatedAt: nowUtc,
+          isSynced: const Value(false),
+        ),
+      );
+      await (update(
+        legalActions,
+      )..where((t) => t.contractId.equals(contractId))).write(
+        LegalActionsCompanion(
+          isDeleted: const Value(false),
+          userId: Value(userId),
+          updatedAt: nowUtc,
+          isSynced: const Value(false),
+        ),
+      );
+
+      final actions = await (select(
+        legalActions,
+      )..where((t) => t.contractId.equals(contractId))).get();
+      for (final action in actions) {
+        await (update(
+          legalActionAttachments,
+        )..where((t) => t.legalActionId.equals(action.id))).write(
+          LegalActionAttachmentsCompanion(
+            isDeleted: const Value(false),
+            userId: Value(userId),
+            updatedAt: nowUtc,
+            isSynced: const Value(false),
+          ),
+        );
+      }
+
+      // 🌟 الحماية الجديدة: إعادة حجز الشقة
+      if (apartmentId != null && apartmentId.isNotEmpty) {
+        final targetStatus = isHandedOver ? 'delivered' : 'sold';
+        await (update(
+          apartments,
+        )..where((t) => t.id.equals(apartmentId))).write(
+          ApartmentsCompanion(
+            status: Value(targetStatus),
+            userId: Value(userId),
+            updatedAt: nowUtc,
+            isSynced: const Value(false),
+          ),
+        );
+      }
+    });
+  }
+
+  Future<void> hardDeleteContract(String contractId) async {
+    return transaction(() async {
+      // 🌟 حذف المرفقات والإجراءات القانونية
+      final actions = await (select(
+        legalActions,
+      )..where((t) => t.contractId.equals(contractId))).get();
+      for (final action in actions) {
+        await (delete(
+          legalActionAttachments,
+        )..where((t) => t.legalActionId.equals(action.id))).go();
+      }
+      await (delete(
+        legalActions,
+      )..where((t) => t.contractId.equals(contractId))).go();
+
+      // 🌟 حذف المدفوعات والأقساط
+      await (delete(
+        paymentsLedger,
+      )..where((t) => t.contractId.equals(contractId))).go();
+      await (delete(
+        installmentsSchedule,
+      )..where((t) => t.contractId.equals(contractId))).go();
+
+      // 🌟 أخيراً، حذف العقد
+      await (delete(contracts)..where((t) => t.id.equals(contractId))).go();
+    });
+  }
+
+  Future<List<Contract>> getActiveContracts() =>
+      (select(contracts)..where((t) => t.isDeleted.equals(false))).get();
 
   // ==========================================
   // --- استعلامات دفتر المدفوعات (Ledger) ---
@@ -775,55 +958,6 @@ class AppDatabase extends _$AppDatabase {
   // ==========================================
   Future<List<Contract>> getDeletedContracts() =>
       (select(contracts)..where((t) => t.isDeleted.equals(true))).get();
-
-  Future<void> restoreSoftDeletedContract(
-    String contractId,
-    String userId,
-  ) async {
-    return transaction(() async {
-      final nowUtc = Value(DateTime.now().toUtc());
-      await (update(contracts)..where((t) => t.id.equals(contractId))).write(
-        ContractsCompanion(
-          isDeleted: const Value(false),
-          userId: Value(userId),
-          updatedAt: nowUtc,
-          isSynced: const Value(false),
-        ),
-      );
-      await (update(
-        installmentsSchedule,
-      )..where((t) => t.contractId.equals(contractId))).write(
-        InstallmentsScheduleCompanion(
-          isDeleted: const Value(false),
-          userId: Value(userId),
-          updatedAt: nowUtc,
-          isSynced: const Value(false),
-        ),
-      );
-      await (update(
-        paymentsLedger,
-      )..where((t) => t.contractId.equals(contractId))).write(
-        PaymentsLedgerCompanion(
-          isDeleted: const Value(false),
-          userId: Value(userId),
-          updatedAt: nowUtc,
-          isSynced: const Value(false),
-        ),
-      );
-    });
-  }
-
-  Future<void> hardDeleteContract(String contractId) async {
-    return transaction(() async {
-      await (delete(
-        paymentsLedger,
-      )..where((t) => t.contractId.equals(contractId))).go();
-      await (delete(
-        installmentsSchedule,
-      )..where((t) => t.contractId.equals(contractId))).go();
-      await (delete(contracts)..where((t) => t.id.equals(contractId))).go();
-    });
-  }
 
   Future<void> autoCleanOldDeletedContracts() async {
     final sevenDaysAgo = DateTime.now().toUtc().subtract(

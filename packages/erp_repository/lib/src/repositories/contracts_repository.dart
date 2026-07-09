@@ -96,7 +96,6 @@ class ContractsRepository {
         );
         await _localApi.saveDollarPrice(historicalDollar);
       } on Exception catch (e) {
-        // ignore: avoid_print
         print('⚠️ تحذير: فشل حفظ تسعيرة الدولار التاريخية: $e');
       }
     }
@@ -147,16 +146,8 @@ class ContractsRepository {
       userId: userId,
     );
 
-    // إضافة العقد والأقساط الأولية
-    await _localApi.addContractWithSchedules(
-      newContract,
-      installmentsCount,
-      contractDateToSave,
-      userId,
-      contractType,
-    );
-
-    // 5. حفظ الدفعة الأولى إن وجدت
+    // 5. تجهيز الدفعة الأولى (إن وُجدت)
+    PaymentsLedgerCompanion? downPaymentEntry;
     if (downPayment > 0) {
       final rawConverted = basePrice > 0 ? (downPayment / basePrice) : 0;
       final snapshotData = <String, dynamic>{
@@ -185,12 +176,8 @@ class ContractsRepository {
         }
       }
 
-      // نحتاج جلب الـ ID الخاص بالعقد الجديد الذي أُضيف للتو من القاعدة
-      final latestContracts = await _localApi.getAllContracts();
-      final addedContract = latestContracts.last; // آخر عقد تمت إضافته
-
-      final downPaymentEntry = PaymentsLedgerCompanion.insert(
-        contractId: addedContract.id,
+      downPaymentEntry = PaymentsLedgerCompanion.insert(
+        contractId: 'TEMP', // سيتم استبدالها آلياً داخل قاعدة البيانات
         paymentDate: contractDateToSave,
         amountPaid: downPayment,
         meterPriceAtPayment: basePrice,
@@ -198,14 +185,18 @@ class ContractsRepository {
         pricesSnapshot: drift.Value(jsonEncode(snapshotData)),
         userId: userId,
       );
-
-      await _localApi.addLedgerEntry(downPaymentEntry);
     }
 
-    // 6. تغيير حالة الشقة
-    if (apartmentId != null && apartmentId.isNotEmpty) {
-      await _localApi.changeApartmentStatus(apartmentId, 'sold', userId);
-    }
+    // ==========================================
+    // 🛡️ التنفيذ الذري (Atomic Transaction)
+    // ==========================================
+    await _localApi.database.insertFullContractProcess(
+      contract: newContract,
+      startDate: contractDateToSave,
+      userId: userId,
+      downPaymentEntry: downPaymentEntry,
+      apartmentId: apartmentId,
+    );
 
     await _syncRepo.syncPendingData();
   }
@@ -270,10 +261,8 @@ class ContractsRepository {
     final userId = _getCurrentUserId();
     if (userId == null) throw Exception('يجب تسجيل الدخول أولاً.');
 
-    await _localApi.deleteContract(contractId, userId);
-    if (apartmentId != null && apartmentId.isNotEmpty) {
-      await _localApi.changeApartmentStatus(apartmentId, 'available', userId);
-    }
+    // السطر السحري: عملية واحدة محمية 100%
+    await _localApi.deleteContract(contractId, apartmentId, userId);
     await _syncRepo.syncPendingData();
   }
 
@@ -285,11 +274,13 @@ class ContractsRepository {
     final userId = _getCurrentUserId();
     if (userId == null) throw Exception('يجب تسجيل الدخول أولاً.');
 
-    await _localApi.restoreContract(contractId, userId);
-    if (apartmentId != null && apartmentId.isNotEmpty) {
-      final targetStatus = isHandedOver ? 'delivered' : 'sold';
-      await _localApi.changeApartmentStatus(apartmentId, targetStatus, userId);
-    }
+    // السطر السحري: عملية واحدة محمية 100%
+    await _localApi.restoreContract(
+      contractId,
+      apartmentId,
+      isHandedOver,
+      userId,
+    );
     await _syncRepo.syncPendingData();
   }
 

@@ -40,21 +40,9 @@ class LocalStorageApi {
   // 📄 العقود
   // ==========================================
   Future<List<Contract>> getAllContracts() => _db.getActiveContracts();
-  Future<void> addContractWithSchedules(
-    ContractsCompanion contract,
-    int count,
-    DateTime start,
-    String userId,
-    String contractType,
-  ) => _db.insertContractWithSchedules(
-    contract,
-    count,
-    start,
-    userId,
-    contractType,
-  );
-  Future<void> deleteContract(String id, String userId) =>
-      _db.softDeleteContract(id, userId);
+
+  Future<void> deleteContract(String id, String? apartmentId, String userId) =>
+      _db.softDeleteContract(id, apartmentId, userId);
   Future<int> markContractActionTaken(
     String contractId,
     String note,
@@ -209,8 +197,12 @@ class LocalStorageApi {
   // 🗑️ دوال سلة المحذوفات (العقود)
   // ==========================================
   Future<List<Contract>> getDeletedContracts() => _db.getDeletedContracts();
-  Future<void> restoreContract(String id, String userId) =>
-      _db.restoreSoftDeletedContract(id, userId);
+  Future<void> restoreContract(
+    String id,
+    String? apartmentId,
+    bool isHandedOver,
+    String userId,
+  ) => _db.restoreSoftDeletedContract(id, apartmentId, isHandedOver, userId);
   Future<void> hardDeleteContractLocal(String id) => _db.hardDeleteContract(id);
   Future<void> autoCleanOldDeletedContracts() =>
       _db.autoCleanOldDeletedContracts();
