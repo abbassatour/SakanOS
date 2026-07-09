@@ -11,4 +11,5 @@ export 'package:local_storage_api/local_storage_api.dart'
         MaterialPricesHistoryData,
         InstallmentsScheduleData,
         ContractAttachment,
-        ApartmentAttachment; // 🌟 السطر الجديد
+        BuildingAttachment, // 🌟 أضفنا هذا السطر
+        ApartmentAttachment; // 🌟 أضف هذا السطر

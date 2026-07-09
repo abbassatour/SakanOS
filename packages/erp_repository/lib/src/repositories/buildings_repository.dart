@@ -258,4 +258,56 @@ class BuildingsRepository {
     );
     await _syncRepo.syncPendingData();
   }
+
+  // ==========================================
+  // 📎 إدارة المرفقات المتعددة للمحاضر
+  // ==========================================
+
+  Future<List<BuildingAttachment>> getAllBuildingAttachments() =>
+      _localApi.database.getAllBuildingAttachments();
+
+  Future<List<BuildingAttachment>> getAttachmentsForBuilding(
+    String buildingId,
+  ) => _localApi.database.getAttachmentsForBuilding(buildingId);
+
+  Future<void> attachFileToBuildingGallery({
+    required String buildingId,
+    required File file,
+    required String extension,
+    required String originalFileName,
+  }) async {
+    final userId = _getCurrentUserId();
+    if (userId == null) throw Exception('يجب تسجيل الدخول أولاً.');
+
+    final attachmentId = const Uuid().v7();
+
+    final dir = await getApplicationSupportDirectory();
+    final localDirPath = p.join(dir.path, 'pending_uploads');
+    final localDir = Directory(localDirPath);
+    if (!await localDir.exists()) await localDir.create(recursive: true);
+
+    final fileName = 'attach_$attachmentId.$extension';
+    final localFile = await file.copy(p.join(localDir.path, fileName));
+
+    final newAttachment = BuildingAttachmentsCompanion.insert(
+      id: drift.Value(attachmentId),
+      buildingId: buildingId,
+      fileUrl: localFile.path,
+      fileName: drift.Value(originalFileName),
+      fileType: drift.Value(extension),
+      userId: userId,
+      isSynced: const drift.Value(false),
+    );
+
+    await _localApi.database.insertBuildingAttachment(newAttachment);
+    await _syncRepo.syncPendingData();
+  }
+
+  Future<void> deleteBuildingAttachment(String attachmentId) async {
+    final userId = _getCurrentUserId();
+    if (userId == null) throw Exception('يجب تسجيل الدخول أولاً.');
+
+    await _localApi.database.softDeleteBuildingAttachment(attachmentId, userId);
+    await _syncRepo.syncPendingData();
+  }
 }

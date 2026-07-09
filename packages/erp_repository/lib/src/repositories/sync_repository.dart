@@ -471,6 +471,29 @@ class SyncRepository {
         await _localApi.database.syncApartmentAttachment(attachment);
       }
 
+      // 13. سحب المرفقات الخاصة بالمحاضر
+      final cloudBuildingAttachments = await _cloudApi.getBuildingAttachments(
+        lastSync: lastSyncTime,
+      );
+      for (final att in cloudBuildingAttachments) {
+        trackLatestTime(att['updated_at']?.toString());
+        final attachment = BuildingAttachmentsCompanion.insert(
+          id: drift.Value(att['id'].toString()),
+          buildingId: att['building_id'].toString(),
+          fileUrl: att['file_url'].toString(),
+          fileName: drift.Value(att['file_name']?.toString()),
+          fileType: drift.Value(att['file_type']?.toString()),
+          userId: att['user_id']?.toString() ?? '',
+          isDeleted: drift.Value(att['is_deleted'] == true),
+          updatedAt: drift.Value(
+            DateTime.tryParse(att['updated_at']?.toString() ?? '')?.toUtc() ??
+                DateTime.now().toUtc(),
+          ),
+          isSynced: const drift.Value(true),
+        );
+        await _localApi.database.syncBuildingAttachment(attachment);
+      }
+
       // ==========================================
       // 🌟 حفظ أحدث توقيت سيرفر للمزامنة القادمة (إن وُجد)
       // ==========================================
@@ -996,6 +1019,68 @@ class SyncRepository {
       }
     } on Exception catch (e) {
       print('Sync Apartment Attachments Failed: $e');
+      hasErrors = true;
+    }
+
+    // 14. مزامنة المرفقات الخاصة بالمحاضر
+    try {
+      final pendingBuildingAttachments = await (db.select(
+        db.buildingAttachments,
+      )..where((t) => t.isSynced.equals(false))).get();
+
+      for (final att in pendingBuildingAttachments) {
+        String finalFileUrl = att.fileUrl;
+
+        if (!finalFileUrl.startsWith('http')) {
+          try {
+            final localFile = File(finalFileUrl);
+            if (await localFile.exists()) {
+              final extension = att.fileType ?? 'pdf';
+              finalFileUrl = await _cloudApi.uploadBuildingAttachmentFile(
+                attachmentId: att.id,
+                file: localFile,
+                extension: extension,
+              );
+              await (db.update(
+                db.buildingAttachments,
+              )..where((t) => t.id.equals(att.id))).write(
+                BuildingAttachmentsCompanion(
+                  fileUrl: drift.Value(finalFileUrl),
+                ),
+              );
+              await localFile.delete();
+            } else {
+              await (db.delete(
+                db.buildingAttachments,
+              )..where((t) => t.id.equals(att.id))).go();
+              continue;
+            }
+          } catch (e) {
+            print('⚠️ فشل رفع مرفق المحضر: $e');
+            hasErrors = true;
+            continue;
+          }
+        }
+
+        await _cloudApi.upsertBuildingAttachment({
+          'id': att.id,
+          'building_id': att.buildingId,
+          'file_url': finalFileUrl,
+          'file_name': att.fileName,
+          'file_type': att.fileType,
+          'user_id': att.userId,
+          'is_deleted': att.isDeleted,
+          'updated_at': att.updatedAt.toUtc().toIso8601String(),
+        });
+
+        await (db.update(
+          db.buildingAttachments,
+        )..where((t) => t.id.equals(att.id))).write(
+          const BuildingAttachmentsCompanion(isSynced: drift.Value(true)),
+        );
+      }
+    } on Exception catch (e) {
+      print('Sync Building Attachments Failed: $e');
       hasErrors = true;
     }
 

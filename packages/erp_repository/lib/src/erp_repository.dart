@@ -615,6 +615,23 @@ class ErpRepository {
   Future<List<Apartment>> getDeletedApartments() =>
       _buildingsRepo.getDeletedApartments();
 
+  Future<List<BuildingAttachment>> getAllBuildingAttachments() =>
+      _buildingsRepo.getAllBuildingAttachments();
+
+  Future<void> attachFileToBuildingGallery({
+    required String buildingId,
+    required File file,
+    required String extension,
+    required String originalFileName,
+  }) => _buildingsRepo.attachFileToBuildingGallery(
+    buildingId: buildingId,
+    file: file,
+    extension: extension,
+    originalFileName: originalFileName,
+  );
+
+  Future<void> deleteBuildingAttachment(String attachmentId) =>
+      _buildingsRepo.deleteBuildingAttachment(attachmentId);
   // ==========================================
   // 📎 مرفقات الشقق (الواجهة المكشوفة)
   // ==========================================

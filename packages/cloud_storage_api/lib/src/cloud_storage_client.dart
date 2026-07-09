@@ -182,6 +182,11 @@ class CloudStorageClient {
   Future<List<Map<String, dynamic>>> getApartmentAttachments({
     DateTime? lastSync,
   }) => _fetchAllPaginated('apartment_attachments', lastSync: lastSync);
+
+  Future<List<Map<String, dynamic>>> getBuildingAttachments({
+    DateTime? lastSync,
+  }) => _fetchAllPaginated('building_attachments', lastSync: lastSync);
+
   // ==========================================
   // 📤 دوال رفع البيانات (PUSH to Cloud) - (UPSERT)
   // ==========================================
@@ -239,6 +244,9 @@ class CloudStorageClient {
   Future<void> upsertDollarPrice(Map<String, dynamic> data) async =>
       await _supabase.from('dollar_prices').upsert(data);
 
+  Future<void> upsertBuildingAttachment(Map<String, dynamic> data) async =>
+      await _supabase.from('building_attachments').upsert(data);
+
   // ==========================================
   // 📂 رفع الملفات إلى Supabase Storage (طريقة التجاوز المباشر HTTP)
   // ==========================================
@@ -257,6 +265,116 @@ class CloudStorageClient {
   // 📤 رفع سجل مرفقات العقود إلى السحابة
   Future<void> upsertContractAttachment(Map<String, dynamic> data) async =>
       await _supabase.from('contract_attachments').upsert(data);
+
+  // 📂 رفع مرفقات المحاضر
+  Future<String> uploadBuildingAttachmentFile({
+    required String attachmentId,
+    required File file,
+    required String extension,
+  }) async {
+    const bucketName = 'building_attachments';
+    final fileName = 'attach_$attachmentId.$extension';
+
+    var session = _supabase.auth.currentSession;
+    if (session == null) throw Exception('يجب تسجيل الدخول لرفع الملفات.');
+
+    if (session.isExpired) {
+      final response = await _supabase.auth.refreshSession();
+      session = response.session;
+    }
+
+    final jwtToken = session?.accessToken;
+    if (jwtToken == null) throw Exception('فشل الحصول على مفتاح الجلسة الآمن.');
+
+    final bytes = file.readAsBytesSync();
+
+    String contentType = 'application/octet-stream';
+    if (extension == 'pdf') contentType = 'application/pdf';
+    if (extension == 'png') contentType = 'image/png';
+    if (extension == 'jpg' || extension == 'jpeg') contentType = 'image/jpeg';
+    if (extension == 'doc' || extension == 'docx')
+      contentType = 'application/msword';
+    if (extension == 'xls') contentType = 'application/vnd.ms-excel';
+    if (extension == 'xlsx')
+      contentType =
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+
+    final String storageUrl = _supabase.storage.url;
+    final uploadUrl = Uri.parse('$storageUrl/object/$bucketName/$fileName');
+
+    final response = await http.post(
+      uploadUrl,
+      headers: {
+        'Authorization': 'Bearer $jwtToken',
+        'Content-Type': contentType,
+        'x-upsert': 'true',
+      },
+      body: bytes,
+    );
+
+    if (response.statusCode == 200) {
+      return fileName;
+    } else {
+      throw Exception(
+        'فشل رفع مرفق المحضر: ${response.statusCode} - ${response.body}',
+      );
+    }
+  }
+
+  // 📂 رفع مرفقات الشقق
+  Future<String> uploadApartmentAttachmentFile({
+    required String attachmentId,
+    required File file,
+    required String extension,
+  }) async {
+    const bucketName = 'apartment_attachments';
+    final fileName = 'attach_$attachmentId.$extension';
+
+    var session = _supabase.auth.currentSession;
+    if (session == null) throw Exception('يجب تسجيل الدخول لرفع الملفات.');
+
+    if (session.isExpired) {
+      final response = await _supabase.auth.refreshSession();
+      session = response.session;
+    }
+
+    final jwtToken = session?.accessToken;
+    if (jwtToken == null) throw Exception('فشل الحصول على مفتاح الجلسة الآمن.');
+
+    final bytes = file.readAsBytesSync();
+
+    String contentType = 'application/octet-stream';
+    if (extension == 'pdf') contentType = 'application/pdf';
+    if (extension == 'png') contentType = 'image/png';
+    if (extension == 'jpg' || extension == 'jpeg') contentType = 'image/jpeg';
+    if (extension == 'doc' || extension == 'docx')
+      contentType = 'application/msword';
+    if (extension == 'xls') contentType = 'application/vnd.ms-excel';
+    if (extension == 'xlsx')
+      contentType =
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+
+    final String storageUrl = _supabase.storage.url;
+    final uploadUrl = Uri.parse('$storageUrl/object/$bucketName/$fileName');
+
+    final response = await http.post(
+      uploadUrl,
+      headers: {
+        'Authorization': 'Bearer $jwtToken',
+        'Content-Type': contentType,
+        'x-upsert': 'true',
+      },
+      body: bytes,
+    );
+
+    if (response.statusCode == 200) {
+      return fileName;
+    } else {
+      throw Exception(
+        'فشل رفع مرفق الشقة: ${response.statusCode} - ${response.body}',
+      );
+    }
+  }
 
   // 3. 📂 رفع الملف الفعلي (PDF/صورة) إلى سلة المرفقات
   Future<String> uploadLegalAttachmentFile({
@@ -370,63 +488,6 @@ class CloudStorageClient {
     } else {
       throw Exception(
         'فشل رفع مرفق العقد: ${response.statusCode} - ${response.body}',
-      );
-    }
-  }
-
-  // 📂 رفع الملف الفعلي (مرفقات الشقق) إلى سلة المرفقات
-  Future<String> uploadApartmentAttachmentFile({
-    required String attachmentId,
-    required File file,
-    required String extension,
-  }) async {
-    const bucketName =
-        'apartment_attachments'; // ⚠️ تأكد من إنشاء هذه السلة في Supabase
-    final fileName = 'attach_$attachmentId.$extension';
-
-    var session = _supabase.auth.currentSession;
-    if (session == null) throw Exception('يجب تسجيل الدخول لرفع الملفات.');
-
-    if (session.isExpired) {
-      final response = await _supabase.auth.refreshSession();
-      session = response.session;
-    }
-
-    final jwtToken = session?.accessToken;
-    if (jwtToken == null) throw Exception('فشل الحصول على مفتاح الجلسة الآمن.');
-
-    final bytes = file.readAsBytesSync();
-
-    String contentType = 'application/octet-stream';
-    if (extension == 'pdf') contentType = 'application/pdf';
-    if (extension == 'png') contentType = 'image/png';
-    if (extension == 'jpg' || extension == 'jpeg') contentType = 'image/jpeg';
-    if (extension == 'doc' || extension == 'docx')
-      contentType = 'application/msword';
-    if (extension == 'xls') contentType = 'application/vnd.ms-excel';
-    if (extension == 'xlsx')
-      contentType =
-          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
-
-    // استخراج رابط الـ Storage السحابي ديناميكياً
-    final String storageUrl = _supabase.storage.url;
-    final uploadUrl = Uri.parse('$storageUrl/object/$bucketName/$fileName');
-
-    final response = await http.post(
-      uploadUrl,
-      headers: {
-        'Authorization': 'Bearer $jwtToken',
-        'Content-Type': contentType,
-        'x-upsert': 'true',
-      },
-      body: bytes,
-    );
-
-    if (response.statusCode == 200) {
-      return fileName;
-    } else {
-      throw Exception(
-        'فشل رفع مرفق الشقة: ${response.statusCode} - ${response.body}',
       );
     }
   }

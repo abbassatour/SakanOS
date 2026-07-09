@@ -7,7 +7,9 @@ import 'package:local_storage_api/local_storage_api.dart'
     show Apartment, Building, ApartmentAttachment;
 import 'package:our_home_erp_app/buildings/cubit/buildings_cubit.dart';
 import 'package:our_home_erp_app/buildings/widgets/widgets.dart';
-
+import 'package:our_home_erp_app/auth/cubit/auth_cubit.dart';
+import 'package:our_home_erp_app/core/constants/app_permissions.dart';
+import 'package:our_home_erp_app/buildings/view/building_attachments_page.dart'; // 🌟
 // 🌟 الاستيرادات الجديدة
 import 'package:our_home_erp_app/auth/cubit/auth_cubit.dart';
 import 'package:our_home_erp_app/core/constants/app_permissions.dart';
@@ -416,14 +418,74 @@ class BuildingCard extends StatelessWidget {
               ),
             ],
           ),
+          // ...
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
+              // 🌟 الزر الجديد الخاص بمعرض المرفقات
+              Stack(
+                alignment: Alignment.topRight,
+                children: [
+                  IconButton(
+                    icon: const Icon(
+                      Icons.perm_media,
+                      color: Colors.blueAccent,
+                    ),
+                    tooltip: 'معرض مرفقات ومخططات المحضر',
+                    onPressed: () {
+                      final authState = context.read<AuthCubit>().state;
+                      final canManage = authState.hasPermission(
+                        AppPermissions.manageBuildings,
+                      );
+                      Navigator.push(
+                        context,
+                        BuildingAttachmentsPage.route(
+                          building,
+                          canManage,
+                          context.read<BuildingsCubit>(),
+                        ),
+                      );
+                    },
+                  ),
+                  // 🌟 شارة (Badge) لعرض عدد المرفقات
+                  Builder(
+                    builder: (context) {
+                      final attachments = context.select<BuildingsCubit, int>(
+                        (cubit) =>
+                            cubit.state.attachmentsMap[building.id]?.length ??
+                            0,
+                      );
+                      if (attachments == 0) return const SizedBox.shrink();
+                      return Positioned(
+                        top: 2,
+                        right: 2,
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: const BoxDecoration(
+                            color: Colors.red,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Text(
+                            '$attachments',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 9,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+              // الزر القديم الخاص بتعديل المحضر
               IconButton(
                 icon: const Icon(Icons.edit_note, color: Colors.orange),
                 tooltip: 'تعديل بيانات المحضر',
                 onPressed: () => showEditBuildingDialog(context, building),
               ),
+              // الزر القديم الخاص بعرض التفاصيل
               IconButton(
                 icon: const Icon(Icons.info_outline, color: Colors.teal),
                 tooltip: 'عرض التفاصيل والنسب',
@@ -433,6 +495,7 @@ class BuildingCard extends StatelessWidget {
               const Icon(Icons.keyboard_arrow_down, color: Colors.grey),
             ],
           ),
+          // ...
           children: [
             Container(
               color: Colors.grey.shade50,

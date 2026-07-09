@@ -10363,6 +10363,616 @@ class ApartmentAttachmentsCompanion
   }
 }
 
+class $BuildingAttachmentsTable extends BuildingAttachments
+    with TableInfo<$BuildingAttachmentsTable, BuildingAttachment> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $BuildingAttachmentsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    clientDefault: () => const Uuid().v7(),
+  );
+  static const VerificationMeta _buildingIdMeta = const VerificationMeta(
+    'buildingId',
+  );
+  @override
+  late final GeneratedColumn<String> buildingId = GeneratedColumn<String>(
+    'building_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES buildings (id)',
+    ),
+  );
+  static const VerificationMeta _fileUrlMeta = const VerificationMeta(
+    'fileUrl',
+  );
+  @override
+  late final GeneratedColumn<String> fileUrl = GeneratedColumn<String>(
+    'file_url',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _fileNameMeta = const VerificationMeta(
+    'fileName',
+  );
+  @override
+  late final GeneratedColumn<String> fileName = GeneratedColumn<String>(
+    'file_name',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _fileTypeMeta = const VerificationMeta(
+    'fileType',
+  );
+  @override
+  late final GeneratedColumn<String> fileType = GeneratedColumn<String>(
+    'file_type',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
+    'user_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    clientDefault: () => DateTime.now().toUtc(),
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    clientDefault: () => DateTime.now().toUtc(),
+  );
+  static const VerificationMeta _isDeletedMeta = const VerificationMeta(
+    'isDeleted',
+  );
+  @override
+  late final GeneratedColumn<bool> isDeleted = GeneratedColumn<bool>(
+    'is_deleted',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_deleted" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _isSyncedMeta = const VerificationMeta(
+    'isSynced',
+  );
+  @override
+  late final GeneratedColumn<bool> isSynced = GeneratedColumn<bool>(
+    'is_synced',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_synced" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    buildingId,
+    fileUrl,
+    fileName,
+    fileType,
+    userId,
+    createdAt,
+    updatedAt,
+    isDeleted,
+    isSynced,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'building_attachments';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<BuildingAttachment> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('building_id')) {
+      context.handle(
+        _buildingIdMeta,
+        buildingId.isAcceptableOrUnknown(data['building_id']!, _buildingIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_buildingIdMeta);
+    }
+    if (data.containsKey('file_url')) {
+      context.handle(
+        _fileUrlMeta,
+        fileUrl.isAcceptableOrUnknown(data['file_url']!, _fileUrlMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_fileUrlMeta);
+    }
+    if (data.containsKey('file_name')) {
+      context.handle(
+        _fileNameMeta,
+        fileName.isAcceptableOrUnknown(data['file_name']!, _fileNameMeta),
+      );
+    }
+    if (data.containsKey('file_type')) {
+      context.handle(
+        _fileTypeMeta,
+        fileType.isAcceptableOrUnknown(data['file_type']!, _fileTypeMeta),
+      );
+    }
+    if (data.containsKey('user_id')) {
+      context.handle(
+        _userIdMeta,
+        userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_userIdMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    if (data.containsKey('is_deleted')) {
+      context.handle(
+        _isDeletedMeta,
+        isDeleted.isAcceptableOrUnknown(data['is_deleted']!, _isDeletedMeta),
+      );
+    }
+    if (data.containsKey('is_synced')) {
+      context.handle(
+        _isSyncedMeta,
+        isSynced.isAcceptableOrUnknown(data['is_synced']!, _isSyncedMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  BuildingAttachment map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return BuildingAttachment(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      buildingId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}building_id'],
+      )!,
+      fileUrl: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}file_url'],
+      )!,
+      fileName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}file_name'],
+      ),
+      fileType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}file_type'],
+      ),
+      userId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}user_id'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      isDeleted: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_deleted'],
+      )!,
+      isSynced: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_synced'],
+      )!,
+    );
+  }
+
+  @override
+  $BuildingAttachmentsTable createAlias(String alias) {
+    return $BuildingAttachmentsTable(attachedDatabase, alias);
+  }
+}
+
+class BuildingAttachment extends DataClass
+    implements Insertable<BuildingAttachment> {
+  final String id;
+  final String buildingId;
+  final String fileUrl;
+  final String? fileName;
+  final String? fileType;
+  final String userId;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final bool isDeleted;
+  final bool isSynced;
+  const BuildingAttachment({
+    required this.id,
+    required this.buildingId,
+    required this.fileUrl,
+    this.fileName,
+    this.fileType,
+    required this.userId,
+    required this.createdAt,
+    required this.updatedAt,
+    required this.isDeleted,
+    required this.isSynced,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['building_id'] = Variable<String>(buildingId);
+    map['file_url'] = Variable<String>(fileUrl);
+    if (!nullToAbsent || fileName != null) {
+      map['file_name'] = Variable<String>(fileName);
+    }
+    if (!nullToAbsent || fileType != null) {
+      map['file_type'] = Variable<String>(fileType);
+    }
+    map['user_id'] = Variable<String>(userId);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    map['is_deleted'] = Variable<bool>(isDeleted);
+    map['is_synced'] = Variable<bool>(isSynced);
+    return map;
+  }
+
+  BuildingAttachmentsCompanion toCompanion(bool nullToAbsent) {
+    return BuildingAttachmentsCompanion(
+      id: Value(id),
+      buildingId: Value(buildingId),
+      fileUrl: Value(fileUrl),
+      fileName: fileName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(fileName),
+      fileType: fileType == null && nullToAbsent
+          ? const Value.absent()
+          : Value(fileType),
+      userId: Value(userId),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      isDeleted: Value(isDeleted),
+      isSynced: Value(isSynced),
+    );
+  }
+
+  factory BuildingAttachment.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return BuildingAttachment(
+      id: serializer.fromJson<String>(json['id']),
+      buildingId: serializer.fromJson<String>(json['buildingId']),
+      fileUrl: serializer.fromJson<String>(json['fileUrl']),
+      fileName: serializer.fromJson<String?>(json['fileName']),
+      fileType: serializer.fromJson<String?>(json['fileType']),
+      userId: serializer.fromJson<String>(json['userId']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      isDeleted: serializer.fromJson<bool>(json['isDeleted']),
+      isSynced: serializer.fromJson<bool>(json['isSynced']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'buildingId': serializer.toJson<String>(buildingId),
+      'fileUrl': serializer.toJson<String>(fileUrl),
+      'fileName': serializer.toJson<String?>(fileName),
+      'fileType': serializer.toJson<String?>(fileType),
+      'userId': serializer.toJson<String>(userId),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'isDeleted': serializer.toJson<bool>(isDeleted),
+      'isSynced': serializer.toJson<bool>(isSynced),
+    };
+  }
+
+  BuildingAttachment copyWith({
+    String? id,
+    String? buildingId,
+    String? fileUrl,
+    Value<String?> fileName = const Value.absent(),
+    Value<String?> fileType = const Value.absent(),
+    String? userId,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    bool? isDeleted,
+    bool? isSynced,
+  }) => BuildingAttachment(
+    id: id ?? this.id,
+    buildingId: buildingId ?? this.buildingId,
+    fileUrl: fileUrl ?? this.fileUrl,
+    fileName: fileName.present ? fileName.value : this.fileName,
+    fileType: fileType.present ? fileType.value : this.fileType,
+    userId: userId ?? this.userId,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+    isDeleted: isDeleted ?? this.isDeleted,
+    isSynced: isSynced ?? this.isSynced,
+  );
+  BuildingAttachment copyWithCompanion(BuildingAttachmentsCompanion data) {
+    return BuildingAttachment(
+      id: data.id.present ? data.id.value : this.id,
+      buildingId: data.buildingId.present
+          ? data.buildingId.value
+          : this.buildingId,
+      fileUrl: data.fileUrl.present ? data.fileUrl.value : this.fileUrl,
+      fileName: data.fileName.present ? data.fileName.value : this.fileName,
+      fileType: data.fileType.present ? data.fileType.value : this.fileType,
+      userId: data.userId.present ? data.userId.value : this.userId,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      isDeleted: data.isDeleted.present ? data.isDeleted.value : this.isDeleted,
+      isSynced: data.isSynced.present ? data.isSynced.value : this.isSynced,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('BuildingAttachment(')
+          ..write('id: $id, ')
+          ..write('buildingId: $buildingId, ')
+          ..write('fileUrl: $fileUrl, ')
+          ..write('fileName: $fileName, ')
+          ..write('fileType: $fileType, ')
+          ..write('userId: $userId, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('isDeleted: $isDeleted, ')
+          ..write('isSynced: $isSynced')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    buildingId,
+    fileUrl,
+    fileName,
+    fileType,
+    userId,
+    createdAt,
+    updatedAt,
+    isDeleted,
+    isSynced,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is BuildingAttachment &&
+          other.id == this.id &&
+          other.buildingId == this.buildingId &&
+          other.fileUrl == this.fileUrl &&
+          other.fileName == this.fileName &&
+          other.fileType == this.fileType &&
+          other.userId == this.userId &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.isDeleted == this.isDeleted &&
+          other.isSynced == this.isSynced);
+}
+
+class BuildingAttachmentsCompanion extends UpdateCompanion<BuildingAttachment> {
+  final Value<String> id;
+  final Value<String> buildingId;
+  final Value<String> fileUrl;
+  final Value<String?> fileName;
+  final Value<String?> fileType;
+  final Value<String> userId;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<bool> isDeleted;
+  final Value<bool> isSynced;
+  final Value<int> rowid;
+  const BuildingAttachmentsCompanion({
+    this.id = const Value.absent(),
+    this.buildingId = const Value.absent(),
+    this.fileUrl = const Value.absent(),
+    this.fileName = const Value.absent(),
+    this.fileType = const Value.absent(),
+    this.userId = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.isDeleted = const Value.absent(),
+    this.isSynced = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  BuildingAttachmentsCompanion.insert({
+    this.id = const Value.absent(),
+    required String buildingId,
+    required String fileUrl,
+    this.fileName = const Value.absent(),
+    this.fileType = const Value.absent(),
+    required String userId,
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.isDeleted = const Value.absent(),
+    this.isSynced = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : buildingId = Value(buildingId),
+       fileUrl = Value(fileUrl),
+       userId = Value(userId);
+  static Insertable<BuildingAttachment> custom({
+    Expression<String>? id,
+    Expression<String>? buildingId,
+    Expression<String>? fileUrl,
+    Expression<String>? fileName,
+    Expression<String>? fileType,
+    Expression<String>? userId,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<bool>? isDeleted,
+    Expression<bool>? isSynced,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (buildingId != null) 'building_id': buildingId,
+      if (fileUrl != null) 'file_url': fileUrl,
+      if (fileName != null) 'file_name': fileName,
+      if (fileType != null) 'file_type': fileType,
+      if (userId != null) 'user_id': userId,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (isDeleted != null) 'is_deleted': isDeleted,
+      if (isSynced != null) 'is_synced': isSynced,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  BuildingAttachmentsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? buildingId,
+    Value<String>? fileUrl,
+    Value<String?>? fileName,
+    Value<String?>? fileType,
+    Value<String>? userId,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<bool>? isDeleted,
+    Value<bool>? isSynced,
+    Value<int>? rowid,
+  }) {
+    return BuildingAttachmentsCompanion(
+      id: id ?? this.id,
+      buildingId: buildingId ?? this.buildingId,
+      fileUrl: fileUrl ?? this.fileUrl,
+      fileName: fileName ?? this.fileName,
+      fileType: fileType ?? this.fileType,
+      userId: userId ?? this.userId,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      isDeleted: isDeleted ?? this.isDeleted,
+      isSynced: isSynced ?? this.isSynced,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (buildingId.present) {
+      map['building_id'] = Variable<String>(buildingId.value);
+    }
+    if (fileUrl.present) {
+      map['file_url'] = Variable<String>(fileUrl.value);
+    }
+    if (fileName.present) {
+      map['file_name'] = Variable<String>(fileName.value);
+    }
+    if (fileType.present) {
+      map['file_type'] = Variable<String>(fileType.value);
+    }
+    if (userId.present) {
+      map['user_id'] = Variable<String>(userId.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (isDeleted.present) {
+      map['is_deleted'] = Variable<bool>(isDeleted.value);
+    }
+    if (isSynced.present) {
+      map['is_synced'] = Variable<bool>(isSynced.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('BuildingAttachmentsCompanion(')
+          ..write('id: $id, ')
+          ..write('buildingId: $buildingId, ')
+          ..write('fileUrl: $fileUrl, ')
+          ..write('fileName: $fileName, ')
+          ..write('fileType: $fileType, ')
+          ..write('userId: $userId, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('isDeleted: $isDeleted, ')
+          ..write('isSynced: $isSynced, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -10386,6 +10996,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       $ContractAttachmentsTable(this);
   late final $ApartmentAttachmentsTable apartmentAttachments =
       $ApartmentAttachmentsTable(this);
+  late final $BuildingAttachmentsTable buildingAttachments =
+      $BuildingAttachmentsTable(this);
   late final Index idxClientsSync = Index(
     'idx_clients_sync',
     'CREATE INDEX idx_clients_sync ON clients (is_deleted, updated_at)',
@@ -10442,6 +11054,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     'idx_apartment_attachments_sync',
     'CREATE INDEX idx_apartment_attachments_sync ON apartment_attachments (is_deleted, updated_at, apartment_id)',
   );
+  late final Index idxBuildingAttachmentsSync = Index(
+    'idx_building_attachments_sync',
+    'CREATE INDEX idx_building_attachments_sync ON building_attachments (is_deleted, updated_at, building_id)',
+  );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -10461,6 +11077,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     legalActionAttachments,
     contractAttachments,
     apartmentAttachments,
+    buildingAttachments,
     idxClientsSync,
     idxContractsSync,
     idxBuildingsSync,
@@ -10475,6 +11092,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     idxAttachmentsSync,
     idxContractAttachmentsSync,
     idxApartmentAttachmentsSync,
+    idxBuildingAttachmentsSync,
   ];
 }
 
@@ -10899,6 +11517,30 @@ final class $$BuildingsTableReferences
       manager.$state.copyWith(prefetchedData: cache),
     );
   }
+
+  static MultiTypedResultKey<
+    $BuildingAttachmentsTable,
+    List<BuildingAttachment>
+  >
+  _buildingAttachmentsRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.buildingAttachments,
+        aliasName: 'buildings__id__building_attachments__building_id',
+      );
+
+  $$BuildingAttachmentsTableProcessedTableManager get buildingAttachmentsRefs {
+    final manager = $$BuildingAttachmentsTableTableManager(
+      $_db,
+      $_db.buildingAttachments,
+    ).filter((f) => f.buildingId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _buildingAttachmentsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
 }
 
 class $$BuildingsTableFilterComposer
@@ -10976,6 +11618,31 @@ class $$BuildingsTableFilterComposer
           }) => $$ApartmentsTableFilterComposer(
             $db: $db,
             $table: $db.apartments,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> buildingAttachmentsRefs(
+    Expression<bool> Function($$BuildingAttachmentsTableFilterComposer f) f,
+  ) {
+    final $$BuildingAttachmentsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.buildingAttachments,
+      getReferencedColumn: (t) => t.buildingId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BuildingAttachmentsTableFilterComposer(
+            $db: $db,
+            $table: $db.buildingAttachments,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -11113,6 +11780,32 @@ class $$BuildingsTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> buildingAttachmentsRefs<T extends Object>(
+    Expression<T> Function($$BuildingAttachmentsTableAnnotationComposer a) f,
+  ) {
+    final $$BuildingAttachmentsTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.buildingAttachments,
+          getReferencedColumn: (t) => t.buildingId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$BuildingAttachmentsTableAnnotationComposer(
+                $db: $db,
+                $table: $db.buildingAttachments,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
 }
 
 class $$BuildingsTableTableManager
@@ -11128,7 +11821,10 @@ class $$BuildingsTableTableManager
           $$BuildingsTableUpdateCompanionBuilder,
           (Building, $$BuildingsTableReferences),
           Building,
-          PrefetchHooks Function({bool apartmentsRefs})
+          PrefetchHooks Function({
+            bool apartmentsRefs,
+            bool buildingAttachmentsRefs,
+          })
         > {
   $$BuildingsTableTableManager(_$AppDatabase db, $BuildingsTable table)
     : super(
@@ -11201,36 +11897,63 @@ class $$BuildingsTableTableManager
                 ),
               )
               .toList(),
-          prefetchHooksCallback: ({apartmentsRefs = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [if (apartmentsRefs) db.apartments],
-              addJoins: null,
-              getPrefetchedDataCallback: (items) async {
-                return [
-                  if (apartmentsRefs)
-                    await $_getPrefetchedData<
-                      Building,
-                      $BuildingsTable,
-                      Apartment
-                    >(
-                      currentTable: table,
-                      referencedTable: $$BuildingsTableReferences
-                          ._apartmentsRefsTable(db),
-                      managerFromTypedResult: (p0) =>
-                          $$BuildingsTableReferences(
-                            db,
-                            table,
-                            p0,
-                          ).apartmentsRefs,
-                      referencedItemsForCurrentItem: (item, referencedItems) =>
-                          referencedItems.where((e) => e.buildingId == item.id),
-                      typedResults: items,
-                    ),
-                ];
+          prefetchHooksCallback:
+              ({apartmentsRefs = false, buildingAttachmentsRefs = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (apartmentsRefs) db.apartments,
+                    if (buildingAttachmentsRefs) db.buildingAttachments,
+                  ],
+                  addJoins: null,
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (apartmentsRefs)
+                        await $_getPrefetchedData<
+                          Building,
+                          $BuildingsTable,
+                          Apartment
+                        >(
+                          currentTable: table,
+                          referencedTable: $$BuildingsTableReferences
+                              ._apartmentsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$BuildingsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).apartmentsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.buildingId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (buildingAttachmentsRefs)
+                        await $_getPrefetchedData<
+                          Building,
+                          $BuildingsTable,
+                          BuildingAttachment
+                        >(
+                          currentTable: table,
+                          referencedTable: $$BuildingsTableReferences
+                              ._buildingAttachmentsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$BuildingsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).buildingAttachmentsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.buildingId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
               },
-            );
-          },
         ),
       );
 }
@@ -11247,7 +11970,10 @@ typedef $$BuildingsTableProcessedTableManager =
       $$BuildingsTableUpdateCompanionBuilder,
       (Building, $$BuildingsTableReferences),
       Building,
-      PrefetchHooks Function({bool apartmentsRefs})
+      PrefetchHooks Function({
+        bool apartmentsRefs,
+        bool buildingAttachmentsRefs,
+      })
     >;
 typedef $$ApartmentsTableCreateCompanionBuilder =
     ApartmentsCompanion Function({
@@ -17773,6 +18499,437 @@ typedef $$ApartmentAttachmentsTableProcessedTableManager =
       ApartmentAttachment,
       PrefetchHooks Function({bool apartmentId})
     >;
+typedef $$BuildingAttachmentsTableCreateCompanionBuilder =
+    BuildingAttachmentsCompanion Function({
+      Value<String> id,
+      required String buildingId,
+      required String fileUrl,
+      Value<String?> fileName,
+      Value<String?> fileType,
+      required String userId,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<bool> isDeleted,
+      Value<bool> isSynced,
+      Value<int> rowid,
+    });
+typedef $$BuildingAttachmentsTableUpdateCompanionBuilder =
+    BuildingAttachmentsCompanion Function({
+      Value<String> id,
+      Value<String> buildingId,
+      Value<String> fileUrl,
+      Value<String?> fileName,
+      Value<String?> fileType,
+      Value<String> userId,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<bool> isDeleted,
+      Value<bool> isSynced,
+      Value<int> rowid,
+    });
+
+final class $$BuildingAttachmentsTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $BuildingAttachmentsTable,
+          BuildingAttachment
+        > {
+  $$BuildingAttachmentsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $BuildingsTable _buildingIdTable(_$AppDatabase db) => db.buildings
+      .createAlias('building_attachments__building_id__buildings__id');
+
+  $$BuildingsTableProcessedTableManager get buildingId {
+    final $_column = $_itemColumn<String>('building_id')!;
+
+    final manager = $$BuildingsTableTableManager(
+      $_db,
+      $_db.buildings,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_buildingIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$BuildingAttachmentsTableFilterComposer
+    extends Composer<_$AppDatabase, $BuildingAttachmentsTable> {
+  $$BuildingAttachmentsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get fileUrl => $composableBuilder(
+    column: $table.fileUrl,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get fileName => $composableBuilder(
+    column: $table.fileName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get fileType => $composableBuilder(
+    column: $table.fileType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get userId => $composableBuilder(
+    column: $table.userId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isDeleted => $composableBuilder(
+    column: $table.isDeleted,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isSynced => $composableBuilder(
+    column: $table.isSynced,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$BuildingsTableFilterComposer get buildingId {
+    final $$BuildingsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.buildingId,
+      referencedTable: $db.buildings,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BuildingsTableFilterComposer(
+            $db: $db,
+            $table: $db.buildings,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$BuildingAttachmentsTableOrderingComposer
+    extends Composer<_$AppDatabase, $BuildingAttachmentsTable> {
+  $$BuildingAttachmentsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get fileUrl => $composableBuilder(
+    column: $table.fileUrl,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get fileName => $composableBuilder(
+    column: $table.fileName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get fileType => $composableBuilder(
+    column: $table.fileType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get userId => $composableBuilder(
+    column: $table.userId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isDeleted => $composableBuilder(
+    column: $table.isDeleted,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isSynced => $composableBuilder(
+    column: $table.isSynced,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$BuildingsTableOrderingComposer get buildingId {
+    final $$BuildingsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.buildingId,
+      referencedTable: $db.buildings,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BuildingsTableOrderingComposer(
+            $db: $db,
+            $table: $db.buildings,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$BuildingAttachmentsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $BuildingAttachmentsTable> {
+  $$BuildingAttachmentsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get fileUrl =>
+      $composableBuilder(column: $table.fileUrl, builder: (column) => column);
+
+  GeneratedColumn<String> get fileName =>
+      $composableBuilder(column: $table.fileName, builder: (column) => column);
+
+  GeneratedColumn<String> get fileType =>
+      $composableBuilder(column: $table.fileType, builder: (column) => column);
+
+  GeneratedColumn<String> get userId =>
+      $composableBuilder(column: $table.userId, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<bool> get isDeleted =>
+      $composableBuilder(column: $table.isDeleted, builder: (column) => column);
+
+  GeneratedColumn<bool> get isSynced =>
+      $composableBuilder(column: $table.isSynced, builder: (column) => column);
+
+  $$BuildingsTableAnnotationComposer get buildingId {
+    final $$BuildingsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.buildingId,
+      referencedTable: $db.buildings,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BuildingsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.buildings,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$BuildingAttachmentsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $BuildingAttachmentsTable,
+          BuildingAttachment,
+          $$BuildingAttachmentsTableFilterComposer,
+          $$BuildingAttachmentsTableOrderingComposer,
+          $$BuildingAttachmentsTableAnnotationComposer,
+          $$BuildingAttachmentsTableCreateCompanionBuilder,
+          $$BuildingAttachmentsTableUpdateCompanionBuilder,
+          (BuildingAttachment, $$BuildingAttachmentsTableReferences),
+          BuildingAttachment,
+          PrefetchHooks Function({bool buildingId})
+        > {
+  $$BuildingAttachmentsTableTableManager(
+    _$AppDatabase db,
+    $BuildingAttachmentsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$BuildingAttachmentsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$BuildingAttachmentsTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$BuildingAttachmentsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> buildingId = const Value.absent(),
+                Value<String> fileUrl = const Value.absent(),
+                Value<String?> fileName = const Value.absent(),
+                Value<String?> fileType = const Value.absent(),
+                Value<String> userId = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<bool> isDeleted = const Value.absent(),
+                Value<bool> isSynced = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => BuildingAttachmentsCompanion(
+                id: id,
+                buildingId: buildingId,
+                fileUrl: fileUrl,
+                fileName: fileName,
+                fileType: fileType,
+                userId: userId,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                isDeleted: isDeleted,
+                isSynced: isSynced,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                required String buildingId,
+                required String fileUrl,
+                Value<String?> fileName = const Value.absent(),
+                Value<String?> fileType = const Value.absent(),
+                required String userId,
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<bool> isDeleted = const Value.absent(),
+                Value<bool> isSynced = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => BuildingAttachmentsCompanion.insert(
+                id: id,
+                buildingId: buildingId,
+                fileUrl: fileUrl,
+                fileName: fileName,
+                fileType: fileType,
+                userId: userId,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                isDeleted: isDeleted,
+                isSynced: isSynced,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$BuildingAttachmentsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({buildingId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (buildingId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.buildingId,
+                                referencedTable:
+                                    $$BuildingAttachmentsTableReferences
+                                        ._buildingIdTable(db),
+                                referencedColumn:
+                                    $$BuildingAttachmentsTableReferences
+                                        ._buildingIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$BuildingAttachmentsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $BuildingAttachmentsTable,
+      BuildingAttachment,
+      $$BuildingAttachmentsTableFilterComposer,
+      $$BuildingAttachmentsTableOrderingComposer,
+      $$BuildingAttachmentsTableAnnotationComposer,
+      $$BuildingAttachmentsTableCreateCompanionBuilder,
+      $$BuildingAttachmentsTableUpdateCompanionBuilder,
+      (BuildingAttachment, $$BuildingAttachmentsTableReferences),
+      BuildingAttachment,
+      PrefetchHooks Function({bool buildingId})
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -17808,4 +18965,6 @@ class $AppDatabaseManager {
       $$ContractAttachmentsTableTableManager(_db, _db.contractAttachments);
   $$ApartmentAttachmentsTableTableManager get apartmentAttachments =>
       $$ApartmentAttachmentsTableTableManager(_db, _db.apartmentAttachments);
+  $$BuildingAttachmentsTableTableManager get buildingAttachments =>
+      $$BuildingAttachmentsTableTableManager(_db, _db.buildingAttachments);
 }

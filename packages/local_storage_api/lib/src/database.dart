@@ -21,6 +21,7 @@ import 'tables/material_prices_history.dart';
 import 'tables/payments_ledger.dart';
 import 'tables/contract_attachments.dart';
 import 'tables/apartment_attachments.dart';
+import 'tables/building_attachments.dart';
 
 part 'database.g.dart';
 
@@ -40,6 +41,7 @@ part 'database.g.dart';
     LegalActionAttachments,
     ContractAttachments,
     ApartmentAttachments,
+    BuildingAttachments, // 🌟 الجدول الجديد
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -1621,6 +1623,55 @@ class AppDatabase extends _$AppDatabase {
         onConflict: DoUpdate(
           (old) => entity,
           target: [apartmentAttachments.id],
+          where: (old) => old.isSynced.equals(true),
+        ),
+      );
+
+  // ==========================================
+  // 📎 استعلامات مرفقات المحاضر (Building Attachments)
+  // ==========================================
+  Future<List<BuildingAttachment>> getAttachmentsForBuilding(
+    String buildingId,
+  ) =>
+      (select(buildingAttachments)
+            ..where(
+              (t) =>
+                  t.buildingId.equals(buildingId) & t.isDeleted.equals(false),
+            )
+            ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
+          .get();
+
+  Future<String> insertBuildingAttachment(
+    BuildingAttachmentsCompanion attachment,
+  ) async {
+    final row = await into(buildingAttachments).insertReturning(attachment);
+    return row.id;
+  }
+
+  Future<int> softDeleteBuildingAttachment(String attachmentId, String userId) {
+    return (update(
+      buildingAttachments,
+    )..where((t) => t.id.equals(attachmentId))).write(
+      BuildingAttachmentsCompanion(
+        isDeleted: const Value(true),
+        userId: Value(userId),
+        updatedAt: Value(DateTime.now().toUtc()),
+        isSynced: const Value(false),
+      ),
+    );
+  }
+
+  Future<List<BuildingAttachment>> getAllBuildingAttachments() => (select(
+    buildingAttachments,
+  )..where((t) => t.isDeleted.equals(false))).get();
+
+  // الحقن السحابي למرفقات المحاضر
+  Future<void> syncBuildingAttachment(BuildingAttachmentsCompanion entity) =>
+      into(buildingAttachments).insert(
+        entity,
+        onConflict: DoUpdate(
+          (old) => entity,
+          target: [buildingAttachments.id],
           where: (old) => old.isSynced.equals(true),
         ),
       );
