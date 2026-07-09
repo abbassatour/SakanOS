@@ -253,7 +253,6 @@ class SyncRepository {
                 ? int.tryParse(p['receipt_number'].toString())
                 : null,
           ),
-
           paymentDate:
               DateTime.tryParse(p['payment_date']?.toString() ?? '')?.toUtc() ??
               DateTime.now().toUtc(),
@@ -400,7 +399,6 @@ class SyncRepository {
           ),
           isSynced: const drift.Value(true),
         );
-        // 🌟 استدعاء الدالة المحصنة بدلاً من الكود المباشر القديم
         await _localApi.database.syncLegalAction(action);
       }
 
@@ -424,7 +422,6 @@ class SyncRepository {
           ),
           isSynced: const drift.Value(true),
         );
-        // 🌟 استدعاء الدالة المحصنة بدلاً من الكود المباشر القديم
         await _localApi.database.syncLegalActionAttachment(attachment);
       }
 
@@ -451,6 +448,29 @@ class SyncRepository {
         await _localApi.database.syncContractAttachment(attachment);
       }
 
+      // 13. سحب المرفقات الخاصة بالشقق
+      final cloudApartmentAttachments = await _cloudApi.getApartmentAttachments(
+        lastSync: lastSyncTime,
+      );
+      for (final att in cloudApartmentAttachments) {
+        trackLatestTime(att['updated_at']?.toString());
+        final attachment = ApartmentAttachmentsCompanion.insert(
+          id: drift.Value(att['id'].toString()),
+          apartmentId: att['apartment_id'].toString(),
+          fileUrl: att['file_url'].toString(),
+          fileName: drift.Value(att['file_name']?.toString()),
+          fileType: drift.Value(att['file_type']?.toString()),
+          userId: att['user_id']?.toString() ?? '',
+          isDeleted: drift.Value(att['is_deleted'] == true),
+          updatedAt: drift.Value(
+            DateTime.tryParse(att['updated_at']?.toString() ?? '')?.toUtc() ??
+                DateTime.now().toUtc(),
+          ),
+          isSynced: const drift.Value(true),
+        );
+        await _localApi.database.syncApartmentAttachment(attachment);
+      }
+
       // ==========================================
       // 🌟 حفظ أحدث توقيت سيرفر للمزامنة القادمة (إن وُجد)
       // ==========================================
@@ -470,9 +490,7 @@ class SyncRepository {
     if (_isSyncing || currentUserId == null) return;
     _isSyncing = true;
 
-    // 🌟 المتغير المنقذ: يراقب هل فشل رفع أي جدول للسحابة
     bool hasErrors = false;
-
     final db = _localApi.database;
 
     double safeNum(double? val) {
@@ -502,7 +520,7 @@ class SyncRepository {
       }
     } on Exception catch (e) {
       print('Sync Clients Failed: $e');
-      hasErrors = true; // 🌟 تسجيل الخطأ
+      hasErrors = true;
     }
 
     // 2. مزامنة العقود
@@ -537,8 +555,7 @@ class SyncRepository {
           'coefficients': c.coefficients,
           'contract_date': c.contractDate.toUtc().toIso8601String(),
           'guarantor_name': c.guarantorName,
-          'contract_file_url':
-              c.contractFileUrl, // سحبنا كود الرفع وبقينا على حفظ القيمة فقط
+          'contract_file_url': c.contractFileUrl,
           'user_id': c.userId,
           'is_completed': c.isCompleted,
           'last_action_date': c.lastActionDate?.toUtc().toIso8601String(),
@@ -590,7 +607,7 @@ class SyncRepository {
       }
     } on Exception catch (e) {
       print('Sync Schedules Failed: $e');
-      hasErrors = true; // 🌟
+      hasErrors = true;
     }
 
     // 4. مزامنة الدفعات
@@ -603,9 +620,7 @@ class SyncRepository {
           'id': p.id,
           'contract_id': p.contractId,
           'schedule_id': p.scheduleId,
-          // 🌟 السطر الجديد: رفع رقم الإيصال للسحابة
           'receipt_number': p.receiptNumber,
-
           'payment_date': p.paymentDate.toUtc().toIso8601String(),
           'amount_paid': safeNum(p.amountPaid),
           'meter_price_at_payment': safeNum(p.meterPriceAtPayment),
@@ -622,7 +637,7 @@ class SyncRepository {
       }
     } on Exception catch (e) {
       print('Sync Payments Failed: $e');
-      hasErrors = true; // 🌟
+      hasErrors = true;
     }
 
     // 5. مزامنة أسعار المواد
@@ -652,7 +667,7 @@ class SyncRepository {
       }
     } on Exception catch (e) {
       print('Sync Prices Failed: $e');
-      hasErrors = true; // 🌟
+      hasErrors = true;
     }
 
     // 6. مزامنة المحاضر
@@ -677,7 +692,7 @@ class SyncRepository {
       }
     } on Exception catch (e) {
       print('Sync Buildings Failed: $e');
-      hasErrors = true; // 🌟
+      hasErrors = true;
     }
 
     // 7. مزامنة الشقق
@@ -706,7 +721,7 @@ class SyncRepository {
       }
     } on Exception catch (e) {
       print('Sync Apartments Failed: $e');
-      hasErrors = true; // 🌟
+      hasErrors = true;
     }
 
     // 8. مزامنة قوالب الأدوار
@@ -729,7 +744,7 @@ class SyncRepository {
       }
     } on Exception catch (e) {
       print('Sync Roles Failed: $e');
-      hasErrors = true; // 🌟
+      hasErrors = true;
     }
 
     // 9. مزامنة المستخدمين
@@ -743,10 +758,7 @@ class SyncRepository {
           'full_name': u.fullName,
           'email': u.email,
           'role_id': u.roleId,
-
-          // 🌟 السطر الجديد: رفع الـ PIN للسحابة
           'security_pin': u.securityPin,
-
           'extra_permissions': u.extraPermissionsJson,
           'revoked_permissions': u.revokedPermissionsJson,
           'is_active': u.isActive,
@@ -782,7 +794,7 @@ class SyncRepository {
       }
     } on Exception catch (e) {
       print('Sync Legal Actions Failed: $e');
-      hasErrors = true; // 🌟
+      hasErrors = true;
     }
 
     // 11. مزامنة المرفقات القانونية
@@ -819,7 +831,7 @@ class SyncRepository {
             }
           } catch (e) {
             print('⚠️ فشل رفع المرفق: $e');
-            hasErrors = true; // 🌟 تسجيل خطأ الإرفاق
+            hasErrors = true;
             continue;
           }
         }
@@ -842,7 +854,7 @@ class SyncRepository {
       }
     } on Exception catch (e) {
       print('Sync Legal Attachments Failed: $e');
-      hasErrors = true; // 🌟
+      hasErrors = true;
     }
 
     // 12. مزامنة أسعار الدولار
@@ -860,7 +872,7 @@ class SyncRepository {
       }
     } on Exception catch (e) {
       print('Sync Dollar Prices Failed: $e');
-      hasErrors = true; // 🌟
+      hasErrors = true;
     }
 
     // 13. مزامنة المرفقات الخاصة بالعقود
@@ -891,7 +903,6 @@ class SyncRepository {
               );
               await localFile.delete();
             } else {
-              // إذا لم يجد الملف المحلي، يحذف السجل لكي لا يعلق النظام
               await (db.delete(
                 db.contractAttachments,
               )..where((t) => t.id.equals(att.id))).go();
@@ -899,12 +910,11 @@ class SyncRepository {
             }
           } catch (e) {
             print('⚠️ فشل رفع مرفق العقد: $e');
-            hasErrors = true; // 🌟 تسجيل خطأ الإرفاق
+            hasErrors = true;
             continue;
           }
         }
 
-        // رفع البيانات للسحابة
         await _cloudApi.upsertContractAttachment({
           'id': att.id,
           'contract_id': att.contractId,
@@ -916,7 +926,6 @@ class SyncRepository {
           'updated_at': att.updatedAt.toUtc().toIso8601String(),
         });
 
-        // التوثيق محلياً بأنها تزامنت
         await (db.update(
           db.contractAttachments,
         )..where((t) => t.id.equals(att.id))).write(
@@ -928,9 +937,70 @@ class SyncRepository {
       hasErrors = true;
     }
 
+    // 14. مزامنة المرفقات الخاصة بالشقق
+    try {
+      final pendingApartmentAttachments = await (db.select(
+        db.apartmentAttachments,
+      )..where((t) => t.isSynced.equals(false))).get();
+
+      for (final att in pendingApartmentAttachments) {
+        String finalFileUrl = att.fileUrl;
+
+        if (!finalFileUrl.startsWith('http')) {
+          try {
+            final localFile = File(finalFileUrl);
+            if (await localFile.exists()) {
+              final extension = att.fileType ?? 'pdf';
+              finalFileUrl = await _cloudApi.uploadApartmentAttachmentFile(
+                attachmentId: att.id,
+                file: localFile,
+                extension: extension,
+              );
+              await (db.update(
+                db.apartmentAttachments,
+              )..where((t) => t.id.equals(att.id))).write(
+                ApartmentAttachmentsCompanion(
+                  fileUrl: drift.Value(finalFileUrl),
+                ),
+              );
+              await localFile.delete();
+            } else {
+              await (db.delete(
+                db.apartmentAttachments,
+              )..where((t) => t.id.equals(att.id))).go();
+              continue;
+            }
+          } catch (e) {
+            print('⚠️ فشل رفع مرفق الشقة: $e');
+            hasErrors = true;
+            continue;
+          }
+        }
+
+        await _cloudApi.upsertApartmentAttachment({
+          'id': att.id,
+          'apartment_id': att.apartmentId,
+          'file_url': finalFileUrl,
+          'file_name': att.fileName,
+          'file_type': att.fileType,
+          'user_id': att.userId,
+          'is_deleted': att.isDeleted,
+          'updated_at': att.updatedAt.toUtc().toIso8601String(),
+        });
+
+        await (db.update(
+          db.apartmentAttachments,
+        )..where((t) => t.id.equals(att.id))).write(
+          const ApartmentAttachmentsCompanion(isSynced: drift.Value(true)),
+        );
+      }
+    } on Exception catch (e) {
+      print('Sync Apartment Attachments Failed: $e');
+      hasErrors = true;
+    }
+
     _isSyncing = false;
 
-    // 🌟 حجر الزاوية: إحباط السحب إذا كان هناك أخطاء في الرفع!
     if (hasErrors) {
       throw Exception(
         'فشل رفع بعض التعديلات المحلية. تم إيقاف السحب من السحابة لحماية بياناتك من المسح.',

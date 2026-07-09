@@ -3,7 +3,6 @@ library erp_repository;
 
 export 'src/erp_repository.dart';
 
-// 🌟 أضفنا InstallmentsScheduleData في نهاية هذه القائمة
 export 'package:local_storage_api/local_storage_api.dart'
     show
         Client,
@@ -11,4 +10,5 @@ export 'package:local_storage_api/local_storage_api.dart'
         PaymentsLedgerData,
         MaterialPricesHistoryData,
         InstallmentsScheduleData,
-        ContractAttachment;
+        ContractAttachment,
+        ApartmentAttachment; // 🌟 السطر الجديد

@@ -2,7 +2,10 @@
 // ignore_for_file: depend_on_referenced_packages
 
 import 'dart:convert';
-
+import 'dart:io';
+import 'package:uuid/uuid.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as p;
 import 'package:drift/drift.dart' as drift;
 import 'package:local_storage_api/local_storage_api.dart';
 
@@ -199,4 +202,60 @@ class BuildingsRepository {
 
   Future<List<Apartment>> getDeletedApartments() =>
       _localApi.database.getDeletedApartments();
+
+  // ==========================================
+  // 📎 إدارة المرفقات المتعددة للشقق
+  // ==========================================
+  Future<List<ApartmentAttachment>> getAllApartmentAttachments() =>
+      _localApi.database.getAllApartmentAttachments();
+
+  Future<List<ApartmentAttachment>> getAttachmentsForApartment(
+    String apartmentId,
+  ) => _localApi.database.getAttachmentsForApartment(apartmentId);
+
+  Future<void> attachFileToApartmentGallery({
+    required String apartmentId,
+    required File file,
+    required String extension,
+    required String originalFileName,
+  }) async {
+    final userId = _getCurrentUserId();
+    if (userId == null) throw Exception('يجب تسجيل الدخول أولاً.');
+
+    final attachmentId = const Uuid().v7();
+
+    // 1. الحفظ المحلي المؤقت
+    final dir = await getApplicationSupportDirectory();
+    final localDirPath = p.join(dir.path, 'pending_uploads');
+    final localDir = Directory(localDirPath);
+    if (!await localDir.exists()) await localDir.create(recursive: true);
+
+    final fileName = 'attach_$attachmentId.$extension';
+    final localFile = await file.copy(p.join(localDir.path, fileName));
+
+    // 2. الحفظ في الداتابيز
+    final newAttachment = ApartmentAttachmentsCompanion.insert(
+      id: drift.Value(attachmentId),
+      apartmentId: apartmentId,
+      fileUrl: localFile.path,
+      fileName: drift.Value(originalFileName),
+      fileType: drift.Value(extension),
+      userId: userId,
+      isSynced: const drift.Value(false),
+    );
+
+    await _localApi.database.insertApartmentAttachment(newAttachment);
+    await _syncRepo.syncPendingData();
+  }
+
+  Future<void> deleteApartmentAttachment(String attachmentId) async {
+    final userId = _getCurrentUserId();
+    if (userId == null) throw Exception('يجب تسجيل الدخول أولاً.');
+
+    await _localApi.database.softDeleteApartmentAttachment(
+      attachmentId,
+      userId,
+    );
+    await _syncRepo.syncPendingData();
+  }
 }

@@ -9,6 +9,7 @@ class BuildingsState extends Equatable {
     this.buildings = const [],
     this.apartments = const [],
     this.userNamesMap = const {},
+    this.apartmentAttachmentsMap = const {}, // 🌟 المتغير الجديد
     this.errorMessage,
   });
 
@@ -16,6 +17,10 @@ class BuildingsState extends Equatable {
   final List<Building> buildings;
   final List<Apartment> apartments;
   final Map<String, String> userNamesMap;
+
+  // 🌟 الخريطة الجديدة: المفتاح هو apartmentId، والقيمة هي قائمة المرفقات
+  final Map<String, List<ApartmentAttachment>> apartmentAttachmentsMap;
+
   final String? errorMessage;
 
   BuildingsState copyWith({
@@ -23,6 +28,7 @@ class BuildingsState extends Equatable {
     List<Building>? buildings,
     List<Apartment>? apartments,
     Map<String, String>? userNamesMap,
+    Map<String, List<ApartmentAttachment>>? apartmentAttachmentsMap, // 🌟
     String? errorMessage,
   }) {
     return BuildingsState(
@@ -30,6 +36,8 @@ class BuildingsState extends Equatable {
       buildings: buildings ?? this.buildings,
       apartments: apartments ?? this.apartments,
       userNamesMap: userNamesMap ?? this.userNamesMap,
+      apartmentAttachmentsMap:
+          apartmentAttachmentsMap ?? this.apartmentAttachmentsMap, // 🌟
       errorMessage: errorMessage ?? this.errorMessage,
     );
   }
@@ -40,6 +48,7 @@ class BuildingsState extends Equatable {
     buildings,
     apartments,
     userNamesMap,
+    apartmentAttachmentsMap, // 🌟
     errorMessage,
   ];
 }

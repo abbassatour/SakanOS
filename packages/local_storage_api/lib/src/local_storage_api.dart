@@ -27,6 +27,13 @@ class LocalStorageApi {
   Future<int> changeApartmentStatus(String id, String status, String userId) =>
       _db.updateApartmentStatus(id, status, userId);
 
+  // أضف هذه الدوال في أي مكان مناسب:
+  Future<List<ApartmentAttachment>> getAllApartmentAttachments() =>
+      _db.getAllApartmentAttachments();
+
+  Future<List<ApartmentAttachment>> getAttachmentsForApartment(
+    String apartmentId,
+  ) => _db.getAttachmentsForApartment(apartmentId);
   // ==========================================
   // 👥 العملاء
   // ==========================================

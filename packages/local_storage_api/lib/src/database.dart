@@ -20,6 +20,7 @@ import 'tables/local_users.dart';
 import 'tables/material_prices_history.dart';
 import 'tables/payments_ledger.dart';
 import 'tables/contract_attachments.dart';
+import 'tables/apartment_attachments.dart';
 
 part 'database.g.dart';
 
@@ -38,6 +39,7 @@ part 'database.g.dart';
     LegalActions,
     LegalActionAttachments,
     ContractAttachments,
+    ApartmentAttachments,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -824,6 +826,7 @@ class AppDatabase extends _$AppDatabase {
       await delete(apartments).go();
       await delete(buildings).go();
       await delete(clients).go();
+      await delete(apartmentAttachments).go(); // 🌟 السطر الجديد
     });
   }
   // ==========================================
@@ -1194,6 +1197,23 @@ class AppDatabase extends _$AppDatabase {
           isSynced: const Value(false),
         ),
       );
+
+      // ... بعد كود الـ apartments:
+      final bldApts = await (select(
+        apartments,
+      )..where((t) => t.buildingId.equals(buildingId))).get();
+      for (final apt in bldApts) {
+        await (update(
+          apartmentAttachments,
+        )..where((t) => t.apartmentId.equals(apt.id))).write(
+          ApartmentAttachmentsCompanion(
+            isDeleted: const Value(true),
+            userId: Value(userId),
+            updatedAt: nowUtc,
+            isSynced: const Value(false),
+          ),
+        );
+      }
     });
   }
 
@@ -1221,29 +1241,88 @@ class AppDatabase extends _$AppDatabase {
           isSynced: const Value(false),
         ),
       );
+
+      // ... بعد كود الـ apartments:
+      final bldApts = await (select(
+        apartments,
+      )..where((t) => t.buildingId.equals(buildingId))).get();
+      for (final apt in bldApts) {
+        await (update(
+          apartmentAttachments,
+        )..where((t) => t.apartmentId.equals(apt.id))).write(
+          ApartmentAttachmentsCompanion(
+            isDeleted: const Value(false),
+            userId: Value(userId),
+            updatedAt: nowUtc,
+            isSynced: const Value(false),
+          ),
+        );
+      }
     });
   }
 
-  Future<int> softDeleteApartment(String apartmentId, String userId) {
-    return (update(apartments)..where((t) => t.id.equals(apartmentId))).write(
-      ApartmentsCompanion(
-        isDeleted: const Value(true),
-        userId: Value(userId),
-        updatedAt: Value(DateTime.now().toUtc()),
-        isSynced: const Value(false),
-      ),
-    );
+  Future<void> softDeleteApartment(String apartmentId, String userId) {
+    return transaction(() async {
+      final nowUtc = Value(DateTime.now().toUtc());
+
+      await (update(apartments)..where((t) => t.id.equals(apartmentId))).write(
+        ApartmentsCompanion(
+          isDeleted: const Value(true),
+          userId: Value(userId),
+          updatedAt: nowUtc,
+          isSynced: const Value(false),
+        ),
+      );
+
+      // 🌟 الحذف المؤقت للمرفقات التابعة للشقة
+      await (update(
+        apartmentAttachments,
+      )..where((t) => t.apartmentId.equals(apartmentId))).write(
+        ApartmentAttachmentsCompanion(
+          isDeleted: const Value(true),
+          userId: Value(userId),
+          updatedAt: nowUtc,
+          isSynced: const Value(false),
+        ),
+      );
+    });
   }
 
-  Future<int> restoreSoftDeletedApartment(String apartmentId, String userId) {
-    return (update(apartments)..where((t) => t.id.equals(apartmentId))).write(
-      ApartmentsCompanion(
-        isDeleted: const Value(false),
-        userId: Value(userId),
-        updatedAt: Value(DateTime.now().toUtc()),
-        isSynced: const Value(false),
-      ),
-    );
+  Future<void> restoreSoftDeletedApartment(String apartmentId, String userId) {
+    return transaction(() async {
+      final nowUtc = Value(DateTime.now().toUtc());
+
+      await (update(apartments)..where((t) => t.id.equals(apartmentId))).write(
+        ApartmentsCompanion(
+          isDeleted: const Value(false),
+          userId: Value(userId),
+          updatedAt: nowUtc,
+          isSynced: const Value(false),
+        ),
+      );
+
+      // 🌟 استعادة المرفقات التابعة للشقة
+      await (update(
+        apartmentAttachments,
+      )..where((t) => t.apartmentId.equals(apartmentId))).write(
+        ApartmentAttachmentsCompanion(
+          isDeleted: const Value(false),
+          userId: Value(userId),
+          updatedAt: nowUtc,
+          isSynced: const Value(false),
+        ),
+      );
+    });
+  }
+
+  Future<void> hardDeleteApartment(String apartmentId) {
+    return transaction(() async {
+      // 🌟 يجب حذف المرفقات نهائياً قبل الشقة (بسبب الربط المرجعي FK)
+      await (delete(
+        apartmentAttachments,
+      )..where((t) => t.apartmentId.equals(apartmentId))).go();
+      await (delete(apartments)..where((t) => t.id.equals(apartmentId))).go();
+    });
   }
 
   Future<List<Building>> getDeletedBuildings() =>
@@ -1254,15 +1333,21 @@ class AppDatabase extends _$AppDatabase {
 
   Future<void> hardDeleteBuilding(String buildingId) async {
     return transaction(() async {
+      // ... قبل حذف الـ apartments:
+      final bldApts = await (select(
+        apartments,
+      )..where((t) => t.buildingId.equals(buildingId))).get();
+      for (final apt in bldApts) {
+        await (delete(
+          apartmentAttachments,
+        )..where((t) => t.apartmentId.equals(apt.id))).go();
+      }
+
       await (delete(
         apartments,
       )..where((t) => t.buildingId.equals(buildingId))).go();
       await (delete(buildings)..where((t) => t.id.equals(buildingId))).go();
     });
-  }
-
-  Future<int> hardDeleteApartment(String apartmentId) {
-    return (delete(apartments)..where((t) => t.id.equals(apartmentId))).go();
   }
 
   Future<void> autoCleanOldDeletedBuildingsAndApartments() async {
@@ -1487,6 +1572,58 @@ class AppDatabase extends _$AppDatabase {
       ),
     );
   }
+
+  // ==========================================
+  // 📎 استعلامات مرفقات الشقق (Apartment Attachments)
+  // ==========================================
+  Future<List<ApartmentAttachment>> getAttachmentsForApartment(
+    String apartmentId,
+  ) =>
+      (select(apartmentAttachments)
+            ..where(
+              (t) =>
+                  t.apartmentId.equals(apartmentId) & t.isDeleted.equals(false),
+            )
+            ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
+          .get();
+
+  Future<String> insertApartmentAttachment(
+    ApartmentAttachmentsCompanion attachment,
+  ) async {
+    final row = await into(apartmentAttachments).insertReturning(attachment);
+    return row.id;
+  }
+
+  Future<int> softDeleteApartmentAttachment(
+    String attachmentId,
+    String userId,
+  ) {
+    return (update(
+      apartmentAttachments,
+    )..where((t) => t.id.equals(attachmentId))).write(
+      ApartmentAttachmentsCompanion(
+        isDeleted: const Value(true),
+        userId: Value(userId),
+        updatedAt: Value(DateTime.now().toUtc()),
+        isSynced: const Value(false),
+      ),
+    );
+  }
+
+  Future<List<ApartmentAttachment>> getAllApartmentAttachments() => (select(
+    apartmentAttachments,
+  )..where((t) => t.isDeleted.equals(false))).get();
+
+  // الحقن السحابي لمرفقات الشقق
+  Future<void> syncApartmentAttachment(ApartmentAttachmentsCompanion entity) =>
+      into(apartmentAttachments).insert(
+        entity,
+        onConflict: DoUpdate(
+          (old) => entity,
+          target: [apartmentAttachments.id],
+          where: (old) => old.isSynced.equals(true),
+        ),
+      );
 }
 
 LazyDatabase _openConnection() {

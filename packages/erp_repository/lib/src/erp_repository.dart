@@ -616,6 +616,26 @@ class ErpRepository {
       _buildingsRepo.getDeletedApartments();
 
   // ==========================================
+  // 📎 مرفقات الشقق (الواجهة المكشوفة)
+  // ==========================================
+  Future<List<ApartmentAttachment>> getAllApartmentAttachments() =>
+      _buildingsRepo.getAllApartmentAttachments();
+
+  Future<void> attachFileToApartmentGallery({
+    required String apartmentId,
+    required File file,
+    required String extension,
+    required String originalFileName,
+  }) => _buildingsRepo.attachFileToApartmentGallery(
+    apartmentId: apartmentId,
+    file: file,
+    extension: extension,
+    originalFileName: originalFileName,
+  );
+
+  Future<void> deleteApartmentAttachment(String attachmentId) =>
+      _buildingsRepo.deleteApartmentAttachment(attachmentId);
+  // ==========================================
   // 📡 محرك الاستماع السحابي الحي (Realtime Sync)
   // ==========================================
   void startListeningToCloudChanges() {

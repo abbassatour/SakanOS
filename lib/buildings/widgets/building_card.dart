@@ -4,9 +4,14 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:local_storage_api/local_storage_api.dart'
-    show Apartment, Building;
+    show Apartment, Building, ApartmentAttachment;
 import 'package:our_home_erp_app/buildings/cubit/buildings_cubit.dart';
 import 'package:our_home_erp_app/buildings/widgets/widgets.dart';
+
+// 🌟 الاستيرادات الجديدة
+import 'package:our_home_erp_app/auth/cubit/auth_cubit.dart';
+import 'package:our_home_erp_app/core/constants/app_permissions.dart';
+import 'package:our_home_erp_app/buildings/view/apartment_attachments_page.dart';
 
 int _getFloorLevel(String name) {
   if (name.contains('الأرضي')) return 0;
@@ -66,11 +71,14 @@ class BuildingCard extends StatelessWidget {
     );
   }
 
+  // 🌟 تحديث المتغيرات المطلوبة للدالة
   DataRow _buildDataRow(
     BuildContext context,
     Apartment apt, {
     required bool isShop,
     required Map<String, String> userNamesMap,
+    required Map<String, List<ApartmentAttachment>> attachmentsMap,
+    required bool canManage,
   }) {
     final mainColor = isShop ? Colors.orange : Colors.indigo;
 
@@ -95,6 +103,9 @@ class BuildingCard extends StatelessWidget {
       statusBorderColor = Colors.red.shade200;
       statusBgColor = Colors.red.shade50;
     }
+
+    // 🌟 جلب عدد المرفقات
+    final attachmentsCount = attachmentsMap[apt.id]?.length ?? 0;
 
     return DataRow(
       cells: [
@@ -131,6 +142,60 @@ class BuildingCard extends StatelessWidget {
             style: TextStyle(color: Colors.grey.shade700),
           ),
         ),
+
+        // 🌟 العمود الجديد: المرفقات
+        DataCell(
+          InkWell(
+            onTap: () {
+              Navigator.push(
+                context,
+                ApartmentAttachmentsPage.route(
+                  apt,
+                  canManage, // تمرير الصلاحية (يمكن لمدير النظام الرفع والحذف)
+                  context.read<BuildingsCubit>(),
+                ),
+              );
+            },
+            borderRadius: BorderRadius.circular(20),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: attachmentsCount > 0
+                    ? mainColor.shade50
+                    : Colors.grey.shade100,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: attachmentsCount > 0
+                      ? mainColor.shade300
+                      : Colors.grey.shade300,
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.attach_file,
+                    size: 16,
+                    color: attachmentsCount > 0
+                        ? mainColor.shade700
+                        : Colors.grey,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    '$attachmentsCount',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: attachmentsCount > 0
+                          ? mainColor.shade700
+                          : Colors.grey,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+
         DataCell(
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -223,6 +288,11 @@ class BuildingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 🌟 جلب الصلاحيات
+    final canManage = context.select<AuthCubit, bool>(
+      (c) => c.state.hasPermission(AppPermissions.manageBuildings),
+    );
+
     final allUnits = context.select<BuildingsCubit, List<Apartment>>(
       (c) =>
           c.state.apartments.where((a) => a.buildingId == building.id).toList(),
@@ -230,6 +300,12 @@ class BuildingCard extends StatelessWidget {
     final userNamesMap = context.select<BuildingsCubit, Map<String, String>>(
       (c) => c.state.userNamesMap,
     );
+
+    // 🌟 جلب المرفقات
+    final attachmentsMap = context
+        .select<BuildingsCubit, Map<String, List<ApartmentAttachment>>>(
+          (c) => c.state.apartmentAttachmentsMap,
+        );
 
     final bldApartments = allUnits
         .where((a) => a.unitType == 'apartment')
@@ -492,6 +568,16 @@ class BuildingCard extends StatelessWidget {
                                           ),
                                         ),
                                         DataColumn(
+                                          // 🌟 إضافة عمود المرفقات
+                                          label: Text(
+                                            'المرفقات',
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.indigo,
+                                            ),
+                                          ),
+                                        ),
+                                        DataColumn(
                                           label: Text(
                                             'الحالة',
                                             style: TextStyle(
@@ -526,6 +612,8 @@ class BuildingCard extends StatelessWidget {
                                               apt,
                                               isShop: false,
                                               userNamesMap: userNamesMap,
+                                              attachmentsMap: attachmentsMap,
+                                              canManage: canManage,
                                             ),
                                           )
                                           .toList(),
@@ -702,6 +790,16 @@ class BuildingCard extends StatelessWidget {
                                         ),
                                       ),
                                       DataColumn(
+                                        // 🌟 إضافة عمود المرفقات للمحلات
+                                        label: Text(
+                                          'المرفقات',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.orange,
+                                          ),
+                                        ),
+                                      ),
+                                      DataColumn(
                                         label: Text(
                                           'الحالة',
                                           style: TextStyle(
@@ -736,6 +834,8 @@ class BuildingCard extends StatelessWidget {
                                             shop,
                                             isShop: true,
                                             userNamesMap: userNamesMap,
+                                            attachmentsMap: attachmentsMap,
+                                            canManage: canManage,
                                           ),
                                         )
                                         .toList(),
