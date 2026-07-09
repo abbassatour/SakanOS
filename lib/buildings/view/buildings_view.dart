@@ -1,4 +1,4 @@
-// lib/buildings/view/buildings_view.dart
+// مسار الملف: lib/buildings/view/buildings_view.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:our_home_erp_app/buildings/cubit/buildings_cubit.dart';
@@ -45,10 +45,9 @@ class BuildingsView extends StatelessWidget {
               );
             }
           },
+          // 🌟 تم إزالة buildWhen الخاطئ الذي كان يمنع تحديث حالة الشقة
+          // الـ BlocBuilder سيعتمد الآن على Equatable لتحديث الواجهة بذكاء عند أي تغير في حالة الشقق
           child: BlocBuilder<BuildingsCubit, BuildingsState>(
-            buildWhen: (previous, current) =>
-                previous.status == BuildingsStatus.loading ||
-                previous.buildings.length != current.buildings.length,
             builder: (context, state) {
               if (state.status == BuildingsStatus.loading &&
                   state.buildings.isEmpty) {

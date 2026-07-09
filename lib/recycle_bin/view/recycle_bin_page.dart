@@ -257,7 +257,7 @@ class RecycleBinView extends StatelessWidget {
     required bool canHardDelete,
     required String Function(T) getTitle,
     required String Function(T) getSubtitle,
-    required String Function(T) getDeletedBy, // 🌟 لجلب من قام بالحذف
+    required String Function(T) getDeletedBy,
     required DateTime Function(T) getUpdatedAt,
     required void Function(T) onRestore,
     required void Function(T) onHardDelete,
@@ -448,13 +448,14 @@ class RecycleBinView extends StatelessWidget {
                               ),
                             ),
                             onPressed: () {
-                              onRestore(item);
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
-                                  content: Text('تمت الاستعادة بنجاح.'),
-                                  backgroundColor: Colors.green,
+                                  content: Text('جاري الاستعادة... ⏳'),
+                                  backgroundColor: Colors.teal,
                                 ),
                               );
+                              // 🌟 تم التعديل: لا نظهر رسالة النجاح إلا بعد انتهاء الدالة من الكيوبت بنجاح
+                              onRestore(item);
                             },
                           ),
                         if (canHardDelete)
