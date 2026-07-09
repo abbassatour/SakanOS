@@ -16,7 +16,6 @@ class AuthCubit extends Cubit<AuthState> {
   final ErpRepository _erpRepository;
 
   void _init() {
-    // نستخدم دالة فرعية لبدء التحقق وتجنب الاستدعاء العشوائي المعلق داخل المشيّد (Constructor)
     checkSession();
   }
 
@@ -26,18 +25,14 @@ class AuthCubit extends Cubit<AuthState> {
     try {
       final userId = _erpRepository.currentUserId;
 
-      // 1. إذا لم يكن هناك يوزر في السحابة، فهو غير مسجل دخول
       if (userId == null) {
         emit(state.copyWith(status: AuthStatus.unauthenticated));
         return;
       }
 
-      // 2. إذا كان مسجلاً، نجلب بياناته من قاعدة البيانات المحلية (Drift)
       final localUser = await _erpRepository.getLocalUserById(userId);
 
       if (localUser == null) {
-        // إذا كان مسجل دخول لكن بياناته لم تنزل بعد محلياً (أول مرة يفتح التطبيق)
-        // نقوم بإجبار مزامنة سريعة لجلب بياناته فوراً
         await _erpRepository.pullDataFromCloud();
         final retryUser = await _erpRepository.getLocalUserById(userId);
 
@@ -70,9 +65,50 @@ class AuthCubit extends Cubit<AuthState> {
     }
   }
 
-  // 🌟 محرك دمج الصلاحيات (الرياضيات الذكية والمحمية)
+  // ==========================================
+  // 🛡️ دالة سحرية لتنظيف وفك تشفير الـ JSON المعطوب يدوياً
+  // ==========================================
+  List<String> _safeParsePermissions(String? jsonString) {
+    if (jsonString == null ||
+        jsonString.trim().isEmpty ||
+        jsonString == 'null') {
+      return [];
+    }
+
+    final trimmed = jsonString.trim();
+
+    try {
+      // 1. المحاولة الأولى: فك تشفير نظامي
+      final decoded = jsonDecode(trimmed) as List<dynamic>;
+      return decoded.map((e) => e.toString()).toList();
+    } catch (e) {
+      // 2. المحاولة الثانية: إذا فشل بسبب إدخال يدوي خاطئ مثل [all_access] أو [admin, user]
+      log(
+        '⚠️ تم اكتشاف JSON غير قياسي، جاري تنظيفه واستخلاص الصلاحيات: $trimmed',
+      );
+
+      // إزالة الأقواس المربعة وعلامات التنصيص المفردة والمزدوجة
+      String cleaned = trimmed
+          .replaceAll('[', '')
+          .replaceAll(']', '')
+          .replaceAll('"', '')
+          .replaceAll("'", "");
+
+      if (cleaned.trim().isEmpty) return [];
+
+      // تقسيم النص بناءً على الفواصل وتنظيف الفراغات
+      return cleaned
+          .split(',')
+          .map((e) => e.trim())
+          .where((e) => e.isNotEmpty)
+          .toList();
+    }
+  }
+
+  // ==========================================
+  // 🌟 محرك دمج الصلاحيات
+  // ==========================================
   Future<void> _processUserPermissions(LocalUser localUser) async {
-    // 1. التحقق من حالة الحساب
     if (localUser.isActive == false) {
       emit(
         state.copyWith(
@@ -85,65 +121,31 @@ class AuthCubit extends Cubit<AuthState> {
 
     var roleName = 'بدون دور';
     var isSystemAdmin = false;
-    final finalPermissions = <String>{}; // نستخدم Set لمنع التكرار
+    final finalPermissions = <String>{};
 
-    // 2. جلب قالب الدور (Role)
+    // 1. جلب صلاحيات الدور (Role) بأمان تام
     if (localUser.roleId != null && localUser.roleId!.isNotEmpty) {
       final role = await _erpRepository.getRoleById(localUser.roleId!);
       if (role != null) {
         roleName = role.name;
         isSystemAdmin = role.isSystemRole;
 
-        // 🛡️ حماية فك تشفير صلاحيات الدور
-        final rolePermsStr = role.permissionsJson.trim();
-        if (rolePermsStr.isNotEmpty && rolePermsStr != 'null') {
-          try {
-            final rolePerms = jsonDecode(rolePermsStr) as List<dynamic>;
-            finalPermissions.addAll(rolePerms.cast<String>());
-          } catch (e, stackTrace) {
-            log(
-              '⚠️ خطأ في فك تشفير صلاحيات الدور',
-              error: e,
-              stackTrace: stackTrace,
-            );
-          }
-        }
+        final rolePerms = _safeParsePermissions(role.permissionsJson);
+        finalPermissions.addAll(rolePerms);
       }
     }
 
-    // 3. إضافة الاستثناءات (Extra)
-    // 🛡️ حماية فك تشفير الاستثناءات
-    final extraPermsStr = localUser.extraPermissionsJson.trim();
-    if (extraPermsStr.isNotEmpty && extraPermsStr != 'null') {
-      try {
-        final extraPerms = jsonDecode(extraPermsStr) as List<dynamic>;
-        finalPermissions.addAll(extraPerms.cast<String>());
-      } catch (e, stackTrace) {
-        log(
-          '⚠️ خطأ في فك تشفير الاستثناءات المضافة',
-          error: e,
-          stackTrace: stackTrace,
-        );
-      }
-    }
+    // 2. إضافة الاستثناءات (Extra) بأمان تام
+    final extraPerms = _safeParsePermissions(localUser.extraPermissionsJson);
+    finalPermissions.addAll(extraPerms);
 
-    // 4. طرح الصلاحيات المسحوبة (Revoked)
-    // 🛡️ حماية فك تشفير الممنوعات
-    final revokedPermsStr = localUser.revokedPermissionsJson.trim();
-    if (revokedPermsStr.isNotEmpty && revokedPermsStr != 'null') {
-      try {
-        final revokedPerms = jsonDecode(revokedPermsStr) as List<dynamic>;
-        finalPermissions.removeAll(revokedPerms.cast<String>());
-      } catch (e, stackTrace) {
-        log(
-          '⚠️ خطأ في فك تشفير الاستثناءات المسحوبة',
-          error: e,
-          stackTrace: stackTrace,
-        );
-      }
-    }
+    // 3. طرح الصلاحيات المسحوبة (Revoked) بأمان تام
+    final revokedPerms = _safeParsePermissions(
+      localUser.revokedPermissionsJson,
+    );
+    finalPermissions.removeAll(revokedPerms);
 
-    // 5. حفظ النتيجة النهائية النظيفة في الحالة (State)
+    // 4. حفظ النتيجة النهائية النظيفة في الحالة (State)
     emit(
       state.copyWith(
         status: AuthStatus.authenticated,
@@ -156,7 +158,6 @@ class AuthCubit extends Cubit<AuthState> {
     );
   }
 
-  // دالة لتسجيل الخروج يدوياً
   Future<void> logout() async {
     _gracePeriodTimer?.cancel();
     emit(state.copyWith(status: AuthStatus.loading));
@@ -164,30 +165,22 @@ class AuthCubit extends Cubit<AuthState> {
     emit(const AuthState(status: AuthStatus.unauthenticated));
   }
 
-  // 🌟 متغيرات الجلسة المفتوحة
   static const int gracePeriodMinutes = 5;
   Timer? _gracePeriodTimer;
 
-  // 🌟 بدء الجلسة المفتوحة
   void markPinVerified() {
     emit(state.copyWith(lastPinVerificationTime: DateTime.now()));
-
-    // إلغاء أي مؤقت سابق لضمان عدم التضارب
     _gracePeriodTimer?.cancel();
-
-    // تشغيل مؤقت لمدة 5 دقائق، يقوم بقفل الجلسة آلياً عند انتهائه
     _gracePeriodTimer = Timer(const Duration(minutes: gracePeriodMinutes), () {
       lockPinSession();
     });
   }
 
-  // 🌟 القفل اليدوي / الآلي
   void lockPinSession() {
     _gracePeriodTimer?.cancel();
-    emit(state.copyWith(clearGracePeriod: true)); // مسح الوقت من الـ State
+    emit(state.copyWith(clearGracePeriod: true));
   }
 
-  // يجب إلغاء المؤقت عند إغلاق التطبيق أو تسجيل الخروج
   @override
   Future<void> close() {
     _gracePeriodTimer?.cancel();
