@@ -50,7 +50,7 @@ class ChartsSection extends StatelessWidget {
         ),
         const SizedBox(height: 24),
 
-        // 🌟 الصف الأول (أموال وعملات)
+        // الصف الأول (أموال وعملات)
         ChartRow(
           children: [
             Expanded(
@@ -66,15 +66,12 @@ class ChartsSection extends StatelessWidget {
             Expanded(
               flex: 2,
               child: TrendLineChart(
-                // ==========================================
-                // 🌟 التعديل السحري: استبدال المخطط بسعر الدولار
-                // ==========================================
                 title: 'تطور سعر صرف الدولار',
                 description:
                     'يوضح التغير الزمني لمتوسط سعر صرف الدولار (USD) المعتمد في تقييم المدفوعات.',
-                data: state.dollarTrend, // 🌟 ربط المخطط ببيانات الدولار
-                color: Colors.green.shade600, // 🌟 لون أخضر أنيق للعملة
-                icon: Icons.currency_exchange, // 🌟 أيقونة الصرافة
+                data: state.dollarTrend,
+                color: Colors.green.shade600,
+                icon: Icons.currency_exchange,
                 peakLabel: 'أعلى سعر صرف:',
               ),
             ),
@@ -82,7 +79,7 @@ class ChartsSection extends StatelessWidget {
         ),
         const SizedBox(height: 16),
 
-        // 🌟 الصف الثاني (محافظ وتكاليف)
+        // الصف الثاني (محافظ وتكاليف)
         ChartRow(
           children: [
             Expanded(
@@ -123,7 +120,7 @@ class ChartsSection extends StatelessWidget {
 
         const SizedBox(height: 16),
 
-        // 🌟 الصف الثالث (الموقف التشغيلي والأمتار)
+        // الصف الثالث (الموقف التشغيلي والأمتار المفصول هيكلياً)
         ChartRow(
           children: [
             Expanded(
@@ -136,10 +133,12 @@ class ChartsSection extends StatelessWidget {
             Expanded(
               flex: 2,
               child: MetersProgressChart(
-                totalSold: state.totalAreaSold,
-                paid: state.totalPaidMeters,
-                unpaid: state.remainingMetersInDebt,
-                undelivered: state.totalUndeliveredMeters,
+                // تمرير المعاملات الجديدة المفصولة محاسبيّاً
+                allocatedSold: state.allocatedSoldMeters,
+                allocatedPaid: state.allocatedPaidMeters,
+                allocatedDebt: state.allocatedDebtMeters,
+                allocatedUndelivered: state.allocatedUndeliveredMeters,
+                unallocatedPaid: state.unallocatedPaidMeters,
               ),
             ),
           ],

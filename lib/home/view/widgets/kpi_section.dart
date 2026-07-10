@@ -17,63 +17,72 @@ class KpiSection extends StatelessWidget {
         gradient: const LinearGradient(
           colors: [Color(0xFF11998e), Color(0xFF38ef7d)],
         ),
-        title: 'إجمالي المحصّل',
+        title: 'السيولة النقدية المحصلة',
         value: '${numberFormatter.format(state.totalRevenue.toInt())} ل.س',
-        subtitle: 'إجمالي المدفوعات المسجلة',
+        subtitle: 'إجمالي أموال الصندوق الحقيقية',
         iconBg: const Color(0xFF11998e),
       ),
       _KpiData(
-        icon: Icons.square_foot_rounded,
+        icon: Icons.hourglass_bottom_rounded,
         gradient: const LinearGradient(
-          colors: [Color(0xFF1A237E), Color(0xFF3949AB)],
+          colors: [Color(0xFFf5af19), Color(0xFFf12711)],
         ),
-        title: 'إجمالي المباع',
-        value: '${numberFormatter.format(state.totalAreaSold)} م²',
-        subtitle: 'المساحة الكلية للعقود',
-        iconBg: const Color(0xFF1A237E),
+        title: 'ديون جارية (قيد الإنشاء)',
+        value:
+            '${numberFormatter.format(state.overduePreHandover.toInt())} ل.س',
+        subtitle: 'أقساط متأخرة على شقق لم تُسلّم',
+        iconBg: const Color(0xFFf5af19),
+        infoDetails:
+            'هذا الرقم يمثل الأقساط الشهرية المتأخرة على الزبائن الذين اشتروا شققاً مخصصة بالكامل (مثل شقة 5 في المحضر 12)، ولكن شققهم لا تزال تحت الإعمار والتشييد ولم يستلموها بعد.\n\n'
+            'لماذا نطلق عليها ديوناً "جارية وبسيطة"؟\n'
+            '• لأن الزبون لم يستلم بيته بعد، وبالتالي من غير العادل قانوناً فرض أي غرامات تأخير عليه.\n'
+            '• الأثر العملي: تُمثل هذه المبالغ نقصاً في السيولة النقدية التي يحتاجها مهندسو الموقع في هذا الوقت لشراء الإسمنت والحديد ومتابعة صب الأسقف في مواعيدها.\n'
+            '• الحل الإداري: يتطلب من موظفي التحصيل التواصل اللطيف مع الزبائن لتسديدها حفاظاً على سرعة سير المشروع.',
       ),
-
-      // ==========================================
-      // 🌟 بطاقة الديون المتأخرة مع شرح الخوارزمية
-      // ==========================================
       _KpiData(
         icon: Icons.warning_amber_rounded,
         gradient: const LinearGradient(
           colors: [Color(0xFFe53935), Color(0xFFe35d5b)],
         ),
-        title: 'الديون المتأخرة الفورية',
-        value: '${numberFormatter.format(state.totalOverdueDebts.toInt())} ل.س',
-        subtitle: 'أقساط تجاوزت موعد الاستحقاق',
+        title: 'ذمم مستحقة (شقق مُسلّمة)',
+        value:
+            '${numberFormatter.format(state.overduePostHandover.toInt())} ل.س',
+        subtitle: 'ديون عقارات تم تسليم مفاتيحها',
         iconBg: const Color(0xFFe53935),
-        // 🌟 الشرح التفصيلي الذي سيظهر للمدير
         infoDetails:
-            'يعتمد النظام في حساب هذا الرقم على (محرك هجين) دقيق جداً:\n\n'
-            '1️⃣ المطلوب رياضياً: يحسب النظام عدد الأشهر التي مرت منذ توقيع العقد ويضربها بالقسط الشهري.\n'
-            '2️⃣ الدفعات الاستثنائية: يبحث النظام عن أي دفعة استثنائية (مثل: صب سقف، كسوة) حان موعدها ويضيفها للمطلوب.\n'
-            '3️⃣ الخصم: يُطرح من المجموع كل المبالغ التي دفعها العميل فعلياً عبر الإيصالات.\n'
-            '4️⃣ الغرامات: تُضاف غرامات التأخير آلياً (إذا كانت مفعلة وتم تسليم الشقة للعميل).\n\n'
-            'النتيجة النهائية تمثل النقص الفعلي والسيولة الغائبة عن صندوق الشركة اليوم.',
-      ),
-
-      _KpiData(
-        icon: Icons.construction_rounded,
-        gradient: const LinearGradient(
-          colors: [Color(0xFFf5af19), Color(0xFFf12711)],
-        ),
-        title: 'الأمتار المتبقية ',
-        value: '${numberFormatter.format(state.remainingMetersInDebt)} م²',
-        subtitle: 'أمتار للشركة لم يتم قبض ثمنها',
-        iconBg: const Color(0xFFf5af19),
+            'هذا الرقم يمثل المبالغ المتأخرة على الزبائن الذين أتمت الشركة بناء شققهم وسلمتهم المفاتيح وسكنوا فيها بالفعل، ولكنهم تأخروا في دفع الأقساط المتبقية عليهم للشركة.\n\n'
+            'لماذا تُعامل هذه الديون بجدية وحزم؟\n'
+            '• لأن الشركة أتمت كافة التزاماتها وسلمت العقار كاملاً، والزبون يستثمر الشقة أو يسكنها بينما تقع أموال الشركة بذمته.\n'
+            '• الأثر المالي: حقوق مالية مؤكدة للشركة واجبة التحصيل بشكل فوري لتمويل مشاريع أخرى.\n'
+            '• الإجراء النظامي: يقوم النظام آلياً وبناءً على شروط العقد ببدء احتساب "غرامة التأخير المتفق عليها" وتراكمها على العميل لتشجيعه على السداد السريع.',
       ),
       _KpiData(
-        icon: Icons.vpn_key_rounded,
+        icon: Icons.home_work_rounded,
         gradient: const LinearGradient(
-          colors: [Color(0xFFf7971e), Color(0xFFffd200)],
+          colors: [Color(0xFF1A237E), Color(0xFF3949AB)],
         ),
-        title: 'أمتار قيد التسليم',
-        value: '${numberFormatter.format(state.totalUndeliveredMeters)} م²',
-        subtitle: 'مساحات مباعة لم تُسلم للعملاء بعد',
-        iconBg: const Color(0xFFf7971e),
+        title: 'التزام مخصص قيد الإنشاء',
+        value: '${numberFormatter.format(state.allocatedUndeliveredMeters)} m²',
+        subtitle: 'مساحات مخصصة لم تُسلم بعد',
+        iconBg: const Color(0xFF1A237E),
+        infoDetails:
+            'هذا الرقم يمثل إجمالي مساحات الشقق والمحلات التي قمنا ببيعها للزبائن وحددنا لهم رقم الشقة والمنسوب (الطابق) والاتجاه بشكل دقيق، ولكننا لم نسلمها لهم بعد لأنها ما زالت تحت الإعمار.\n\n'
+            '• ما دلالة هذا الرقم للشركة؟\n'
+            'يمثل حجم التزام العمل الفعلي والإنشائي المطلوب من مهندسي وعمال الشركة إنجازه في الورشات وتجهيزه للتسليم على أرض الواقع بموجب المواعيد المحددة في العقود المتخصصة.',
+      ),
+      _KpiData(
+        icon: Icons.pie_chart_rounded,
+        gradient: const LinearGradient(
+          colors: [Color(0xFF00695C), Color(0xFF00897B)],
+        ),
+        title: 'التزام أمتار المحافظ (المستثمرين)',
+        value: '${numberFormatter.format(state.unallocatedPaidMeters)} m²',
+        subtitle: 'أمتار الأسهم غير المخصصة',
+        iconBg: const Color(0xFF00695C),
+        infoDetails:
+            'هذه هي الأمتار التي اشتراها المستثمرون منا كحصص وأسهم مالية (لاحق التخصص) وقبضنا ثمنها بالكامل في الصندوق، ولكنهم لم يختاروا شقة عينية محددة بعد في محاضرنا.\n\n'
+            '• كيف نفهم هذا الرقم ماليّاً وتشغيليّاً؟\n'
+            'يعتبر هذا الرقم "ديناً إنشائياً عينيّاً" في ذمة الشركة؛ لقد استلمنا ثمن هذه الأمتار نقداً كاش في الصندوق لتمويل أعمالنا، ويتحتم علينا مستقبلاً توفير شقق ومساحات كافية في الأبنية والمحاضر الجديدة وتخصيصها لهؤلاء المستثمرين عندما يطلبون فرز وتخصيص أسهمهم.',
       ),
       _KpiData(
         icon: Icons.description_rounded,
@@ -82,7 +91,7 @@ class KpiSection extends StatelessWidget {
         ),
         title: 'العقود الفعّالة',
         value: numberFormatter.format(state.activeContractsCount),
-        subtitle: 'إجمالي العقود المبرمة غير المؤرشفة',
+        subtitle: 'إجمالي العقود الجارية المبرمة',
         iconBg: const Color(0xFF7b4397),
       ),
     ];
@@ -121,7 +130,7 @@ class _KpiData {
     required this.value,
     required this.subtitle,
     required this.iconBg,
-    this.infoDetails, // 🌟 الحقل الجديد
+    this.infoDetails,
   });
   final IconData icon;
   final LinearGradient gradient;
@@ -129,14 +138,13 @@ class _KpiData {
   final String value;
   final String subtitle;
   final Color iconBg;
-  final String? infoDetails; // 🌟
+  final String? infoDetails;
 }
 
 class _KpiCard extends StatelessWidget {
   const _KpiCard({required this.data});
   final _KpiData data;
 
-  // 🌟 دالة إظهار النافذة المنبثقة
   void _showInfoDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -152,7 +160,7 @@ class _KpiCard extends StatelessWidget {
             const SizedBox(width: 10),
             Expanded(
               child: Text(
-                'آلية حساب: ${data.title}',
+                'المنطق المالي لـ: ${data.title}',
                 style: const TextStyle(
                   color: Colors.indigo,
                   fontWeight: FontWeight.bold,
@@ -177,7 +185,7 @@ class _KpiCard extends StatelessWidget {
               foregroundColor: Colors.white,
             ),
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('مفهوم'),
+            child: const Text('مفهوم إداريّاً'),
           ),
         ],
       ),
@@ -222,11 +230,10 @@ class _KpiCard extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      // 🌟 الأيقونة السحرية (تظهر فقط إذا كان هناك شرح)
                       if (data.infoDetails != null) ...[
                         const SizedBox(width: 6),
                         Tooltip(
-                          message: 'انقر لمعرفة طريقة الحساب',
+                          message: 'انقر لمعرفة المفهوم المالي لمتخذ القرار',
                           child: InkWell(
                             onTap: () => _showInfoDialog(context),
                             borderRadius: BorderRadius.circular(12),

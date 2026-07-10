@@ -19,11 +19,13 @@ void main() {
   group('HomeCubit - CEO Dashboard & Analytics Engine', () {
     late MockErpRepository mockErpRepository;
 
-    // تجهيز مؤشرات وهمية قادمة من الداتابيز
+    // test/home/home_cubit_test.dart
+    // (تحديث كائن dummyMetrics بداخل الاختبار ليتطابق مع المشيد الجديد لـ DashboardMetrics)
+
     final dummyMetrics = DashboardMetrics(
-      totalRevenue: 50000000.0, // 50 مليون ل.س محصلة
-      totalAreaSold: 1200.5, // 1200.5 متر تم بيعها
-      totalPaidMeters: 600.0, // 600 متر تم دفع ثمنها بالكامل
+      totalRevenue: 50000000.0,
+      totalAreaSold: 1200.5,
+      totalPaidMeters: 600.0,
       totalOverdueDebts: 150000.0,
       totalUndeliveredMeters: 400.0,
       inventoryStatus: const {'متاحة': 10, 'مباعة': 5, 'مُسلّمة': 2},
@@ -34,6 +36,13 @@ void main() {
       costTrend: const {'2026-07': 1090000.0},
       contractsByType: const {'متخصص': 10, 'لاحق التخصص': 5},
       recentActivities: const [],
+      // 🌟 الحقول الجديدة الممررة في الاختبارات لضمان نجاح تجميع الكود (Compile-Time Test Safety)
+      allocatedSoldMeters: 1000.0,
+      allocatedPaidMeters: 400.0,
+      unallocatedPaidMeters: 200.0,
+      allocatedUndeliveredMeters: 400.0,
+      overduePreHandover: 100000.0,
+      overduePostHandover: 50000.0,
     );
 
     setUp(() {

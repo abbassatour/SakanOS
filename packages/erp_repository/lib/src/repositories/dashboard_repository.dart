@@ -34,10 +34,10 @@ class ActivityItem {
 class DashboardMetrics {
   DashboardMetrics({
     required this.totalRevenue,
-    required this.totalAreaSold,
-    required this.totalPaidMeters,
-    required this.totalOverdueDebts,
-    required this.totalUndeliveredMeters,
+    required this.totalAreaSold, // للحفاظ على التوافقية البرمجية
+    required this.totalPaidMeters, // للحفاظ على التوافقية البرمجية
+    required this.totalOverdueDebts, // للحفاظ على التوافقية البرمجية
+    required this.totalUndeliveredMeters, // للحفاظ على التوافقية البرمجية
     required this.inventoryStatus,
     required this.activeContractsCount,
     required this.latestPayments,
@@ -46,6 +46,13 @@ class DashboardMetrics {
     required this.costTrend,
     required this.contractsByType,
     required this.recentActivities,
+    // 🌟 الإضافات الجديدة للفصل المحاسبي الاحترافي بين الأصول والالتزامات
+    required this.allocatedSoldMeters,
+    required this.allocatedPaidMeters,
+    required this.unallocatedPaidMeters,
+    required this.allocatedUndeliveredMeters,
+    required this.overduePreHandover,
+    required this.overduePostHandover,
   });
 
   final double totalRevenue;
@@ -61,6 +68,14 @@ class DashboardMetrics {
   final Map<String, double> costTrend;
   final Map<String, int> contractsByType;
   final List<ActivityItem> recentActivities;
+
+  // 🌟 حقول التحليل المالي والفصل المحاسبي الجديد
+  final double allocatedSoldMeters;
+  final double allocatedPaidMeters;
+  final double unallocatedPaidMeters;
+  final double allocatedUndeliveredMeters;
+  final double overduePreHandover;
+  final double overduePostHandover;
 }
 
 class DashboardRepository {
@@ -160,7 +175,7 @@ class DashboardRepository {
   }
 
   // ==========================================
-  // 📊 محرك الإحصائيات (Metrics Engine)
+  // 📊 محرك الإحصائيات وفصل الأصول والالتزامات
   // ==========================================
   int _monthsBetween(DateTime from, DateTime to) {
     final years = to.year - from.year;
@@ -185,10 +200,15 @@ class DashboardRepository {
     final dollarPrices = await _localApi.getAllDollarPricesHistory();
 
     var totalRevenue = 0.0;
-    var totalAreaSold = 0.0;
-    var totalPaidMeters = 0.0;
-    var totalOverdueDebts = 0.0;
-    var totalUndeliveredMeters = 0.0;
+
+    // 🌟 تهيئة المتغيرات المفرزة الجديدة بدقة بالغة
+    var allocatedSoldMeters = 0.0;
+    var allocatedPaidMeters = 0.0;
+    var unallocatedPaidMeters = 0.0;
+    var allocatedUndeliveredMeters = 0.0;
+
+    var overduePreHandover = 0.0;
+    var overduePostHandover = 0.0;
 
     final inventoryStatus = {'متاحة': 0, 'مباعة': 0, 'مُسلّمة': 0};
     final tempGroupedRev = <String, double>{};
@@ -196,15 +216,12 @@ class DashboardRepository {
     final tempCostTrend = <String, List<double>>{};
 
     final now = DateTime.now().toUtc();
-
-    // 🌟 [الإضافة الجديدة]: حفظ تواريخ الفلتر اليومي الدقيقة (مع السنة)
     final validDailyDates = <DateTime>[];
 
     // تهيئة الخرائط الزمنية
     if (timeFilter == DashboardTimeFilter.daily) {
       for (var i = 6; i >= 0; i--) {
         final d = refDate.subtract(Duration(days: i));
-        // حفظ التاريخ بدون وقت للمطابقة الدقيقة
         validDailyDates.add(DateTime(d.year, d.month, d.day));
 
         final key = DateFormat('MM-dd').format(d);
@@ -234,24 +251,24 @@ class DashboardRepository {
       }
     }
 
-    // 1. حساب المدفوعات الإجمالية
+    // 1. حساب المدفوعات وتوزيع الأمتار المحصلة بين مخصص ومحفظة لاحق التخصص
     for (final p in payments) {
       totalRevenue += p.amountPaid;
 
-      // ✅ الحل: نتحقق من نوع العقد قبل إضافة الأمتار لخانة المحصّل
       final relatedContract = contracts.firstWhere(
         (c) => c.id == p.contractId,
         orElse: () => throw Exception('عقد مفقود'),
       );
 
-      // نجمع الأمتار في مؤشر (الأمتار المحصلة) فقط إذا كان العقد "متخصص"
-      // أو يمكننا جمع كل الأمتار ولكن يجب أن نعوض مساحتها في totalAreaSold
       if (!relatedContract.isDeleted) {
-        totalPaidMeters += p.convertedMeters;
+        if (relatedContract.contractType == 'متخصص') {
+          allocatedPaidMeters += p.convertedMeters;
+        } else {
+          unallocatedPaidMeters += p.convertedMeters;
+        }
       }
 
       if (timeFilter == DashboardTimeFilter.daily) {
-        // 🌟 [التحقق الصارم]: هل الدفعة حدثت فعلاً في أحد هذه الأيام الـ 7؟
         final pDate = DateTime(
           p.paymentDate.year,
           p.paymentDate.month,
@@ -286,31 +303,20 @@ class DashboardRepository {
 
     final byType = <String, int>{};
 
-    // 2. تحليل العقود
+    // 2. تحليل العقود وحساب التزامات البناء والذمم الجارية والمستحقة بدقة
     for (final c in contracts) {
       if (c.isDeleted) continue;
 
       if (c.contractType == 'متخصص') {
-        // بالنسبة للعقود العادية، نضيف المساحة الكلية
-        totalAreaSold += c.totalArea;
-        if (!c.isHandedOver) totalUndeliveredMeters += c.totalArea;
-      } else {
-        // ✅ الحل السحري لعقود "لاحق التخصص":
-        // بما أن المساحة الكلية صفر، يجب أن نعتبر أن "المساحة المباعة"
-        // تساوي تماماً "الأمتار التي دفع ثمنها العميل حتى اللحظة"
-        // لكي تتعادل الكفتان ولا ينتج عندنا ديون بالسالب!
-        final unallocatedPaidMeters = payments
-            .where((p) => p.contractId == c.id && !p.isDeleted)
-            .fold(0.0, (sum, p) => sum + p.convertedMeters);
-
-        totalAreaSold += unallocatedPaidMeters;
+        allocatedSoldMeters += c.totalArea;
+        if (!c.isHandedOver) {
+          allocatedUndeliveredMeters += c.totalArea;
+        }
       }
 
       byType[c.contractType] = (byType[c.contractType] ?? 0) + 1;
 
-      if (!c.isHandedOver) totalUndeliveredMeters += c.totalArea;
-
-      // 🌟 الكود الذي أصلحناه في الخطوة السابقة لحساب الأقساط الاستثنائية
+      // حساب المتأخرات والديون المالية وتوزيعها (ذمم مدينة مستحقة أو تحت الإنشاء)
       if (!c.isCompleted) {
         var monthsPassed = _monthsBetween(c.contractDate, now);
         if (monthsPassed > c.installmentsCount) {
@@ -359,7 +365,13 @@ class DashboardRepository {
         }
 
         if (overdue > 0) {
-          totalOverdueDebts += overdue;
+          if (c.isHandedOver) {
+            overduePostHandover +=
+                overdue; // ذمم مدينة مستحقة (مسلمة وبها فوائد)
+          } else {
+            overduePreHandover +=
+                overdue; // ذمم مدينة تحت الإنشاء (جارية وبدون غرامات)
+          }
         }
       }
     }
@@ -369,7 +381,6 @@ class DashboardRepository {
       if (d.isDeleted) continue;
 
       if (timeFilter == DashboardTimeFilter.daily) {
-        // 🌟 الحماية نفسها للدولار
         final dDate = DateTime(
           d.effectiveDate.year,
           d.effectiveDate.month,
@@ -423,7 +434,6 @@ class DashboardRepository {
           (price.ordinaryWorkerWage * 1.0);
 
       if (timeFilter == DashboardTimeFilter.daily) {
-        // 🌟 الحماية نفسها لتكاليف المواد
         final pDate = DateTime(
           price.effectiveDate.year,
           price.effectiveDate.month,
@@ -495,10 +505,12 @@ class DashboardRepository {
 
     return DashboardMetrics(
       totalRevenue: totalRevenue,
-      totalAreaSold: totalAreaSold,
-      totalPaidMeters: totalPaidMeters,
-      totalOverdueDebts: totalOverdueDebts,
-      totalUndeliveredMeters: totalUndeliveredMeters,
+      // تأمين التوافقية البرمجية مع الحفاظ على المنطق المحاسبي سليم
+      totalAreaSold: allocatedSoldMeters + unallocatedPaidMeters,
+      totalPaidMeters: allocatedPaidMeters + unallocatedPaidMeters,
+      totalOverdueDebts: overduePreHandover + overduePostHandover,
+      totalUndeliveredMeters:
+          allocatedUndeliveredMeters + unallocatedPaidMeters,
       inventoryStatus: inventoryStatus,
       activeContractsCount: contracts
           .where((c) => !c.isDeleted && !c.isCompleted)
@@ -509,6 +521,13 @@ class DashboardRepository {
       costTrend: finalCostTrend,
       contractsByType: byType,
       recentActivities: activities,
+      // 🌟 الحقول الاحترافية المفرزة والمكشوفة حديثاً للإحصائيات المتخصصة
+      allocatedSoldMeters: allocatedSoldMeters,
+      allocatedPaidMeters: allocatedPaidMeters,
+      unallocatedPaidMeters: unallocatedPaidMeters,
+      allocatedUndeliveredMeters: allocatedUndeliveredMeters,
+      overduePreHandover: overduePreHandover,
+      overduePostHandover: overduePostHandover,
     );
   }
 }

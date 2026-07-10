@@ -13,7 +13,6 @@ class HomeCubit extends Cubit<HomeState> {
 
   final ErpRepository _erpRepository;
 
-  // 🌟 دالة مساعدة لتحويل TimeFilter الخاص بالـ State إلى DashboardTimeFilter الخاص بالـ Repo
   DashboardTimeFilter _mapTimeFilter(TimeFilter filter) {
     switch (filter) {
       case TimeFilter.daily:
@@ -39,12 +38,14 @@ class HomeCubit extends Cubit<HomeState> {
         state.copyWith(
           status: HomeStatus.success,
           totalRevenue: metrics.totalRevenue,
-          totalAreaSold: metrics.totalAreaSold,
-          totalPaidMeters: metrics.totalPaidMeters,
-          totalOverdueDebts: metrics.totalOverdueDebts,
-          totalUndeliveredMeters: metrics.totalUndeliveredMeters,
-          inventoryStatus: metrics.inventoryStatus,
           activeContractsCount: metrics.activeContractsCount,
+          allocatedSoldMeters: metrics.allocatedSoldMeters,
+          allocatedPaidMeters: metrics.allocatedPaidMeters,
+          allocatedUndeliveredMeters: metrics.allocatedUndeliveredMeters,
+          unallocatedPaidMeters: metrics.unallocatedPaidMeters,
+          overduePreHandover: metrics.overduePreHandover,
+          overduePostHandover: metrics.overduePostHandover,
+          inventoryStatus: metrics.inventoryStatus,
           latestPayments: metrics.latestPayments,
           groupedRevenue: metrics.groupedRevenue,
           dollarTrend: metrics.dollarTrend,
@@ -67,7 +68,7 @@ class HomeCubit extends Cubit<HomeState> {
     emit(
       state.copyWith(timeFilter: newFilter, referenceDate: DateTime.now()),
     );
-    fetchDashboardData(); // جلب البيانات الجديدة من المستودع
+    fetchDashboardData();
   }
 
   void navigatePrevious() {
