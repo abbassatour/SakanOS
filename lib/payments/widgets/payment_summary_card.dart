@@ -1,8 +1,13 @@
-// مسار الملف: lib/payments/widgets/payment_summary_card.dart
+// lib/payments/widgets/payment_summary_card.dart
 
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import 'package:our_home_erp_app/core/utils/calculator_helper.dart';
 import 'package:our_home_erp_app/core/utils/formatters.dart';
 import 'package:our_home_erp_app/payments/cubit/payments_cubit.dart';
+import 'package:our_home_erp_app/settings/cubit/settings_cubit.dart';
 
 class PaymentSummaryCard extends StatelessWidget {
   const PaymentSummaryCard({super.key, required this.state});
@@ -23,7 +28,11 @@ class PaymentSummaryCard extends StatelessWidget {
     final contract = state.contracts[contractIdx];
     final isAllocated = contract.contractType == 'متخصص';
 
-    // حساب المجاميع
+    // 🌟 جلب الأسعار الحية من إعدادات النظام
+    final settingsState = context.watch<SettingsCubit>().state;
+    final currentPrices = settingsState.currentPrices;
+
+    // حساب المجاميع من دفتر المدفوعات
     double totalPaid = 0;
     double totalMeters = 0;
 
@@ -32,7 +41,7 @@ class PaymentSummaryCard extends StatelessWidget {
       totalMeters += entry.convertedMeters;
     }
 
-    // حساب النسب (للعقود المتخصصة فقط)
+    // حساب النسب والأمتار المتبقية (للعقود المتخصصة فقط)
     double percentage = 0.0;
     double remainingMeters = 0.0;
 
@@ -44,6 +53,42 @@ class PaymentSummaryCard extends StatelessWidget {
       remainingMeters = contract.totalArea - totalMeters;
       if (remainingMeters < 0) remainingMeters = 0.0;
     }
+
+    // ==========================================
+    // 🌟 الحساب الذكي للقيمة الحالية بناءً على أسعار اليوم
+    // ==========================================
+    double currentMeterPrice = 0.0;
+
+    if (currentPrices != null) {
+      try {
+        final coeffsMap =
+            jsonDecode(contract.coefficients) as Map<String, dynamic>;
+        final parsedCoeffs = coeffsMap.map(
+          (k, dynamic v) => MapEntry(k, (v as num).toDouble()),
+        );
+
+        final safeArea = (isAllocated && contract.totalArea > 0)
+            ? contract.totalArea
+            : 1.0;
+
+        final calculations = CalculatorHelper.calculateContractValues(
+          area: safeArea,
+          currentPrices: currentPrices,
+          coefficients: parsedCoeffs,
+        );
+
+        // نأخذ السعر الخام الدقيق للمتر
+        currentMeterPrice =
+            calculations['pricePerSqmRaw'] ??
+            calculations['pricePerSqm'] ??
+            0.0;
+      } catch (_) {
+        // تجاهل بصمت في حال فشل قراءة المعاملات
+      }
+    }
+
+    // القيمة المالية الإجمالية للأمتار التي يملكها العميل بأسعار اليوم!
+    final double currentValueBalance = totalMeters * currentMeterPrice;
 
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
@@ -61,6 +106,7 @@ class PaymentSummaryCard extends StatelessWidget {
         ],
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           // ==========================================
           // 📊 القسم الأيمن: المؤشر الدائري
@@ -108,11 +154,11 @@ class PaymentSummaryCard extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 24),
-          Container(width: 1, height: 80, color: Colors.grey.shade200),
+          Container(width: 1, height: 90, color: Colors.grey.shade200),
           const SizedBox(width: 24),
 
           // ==========================================
-          // 📝 القسم الأيسر: الإحصائيات والأرقام
+          // 📝 القسم الأيسر: الإحصائيات والأرقام (بإستخدام Wrap للاستجابة)
           // ==========================================
           Expanded(
             child: Column(
@@ -136,34 +182,47 @@ class PaymentSummaryCard extends StatelessWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
-                Row(
+                const SizedBox(height: 16),
+                Wrap(
+                  spacing: 32,
+                  runSpacing: 16,
                   children: [
                     _buildStatItem(
-                      title: 'إجمالي المدفوعات',
+                      title: 'إجمالي ما تم دفعه',
                       value:
                           '${NumberFormatters.formatWithCommas(totalPaid)} ل.س',
-                      color: Colors.green.shade700,
-                      icon: Icons.price_check,
+                      color: Colors
+                          .grey
+                          .shade700, // لون رمادي دلالة على التكلفة السابقة
+                      icon: Icons.history,
                     ),
-                    const SizedBox(width: 32),
                     _buildStatItem(
                       title: 'الأمتار المكتسبة',
                       value: '${totalMeters.toStringAsFixed(3)} م²',
                       color: Colors.blue.shade700,
                       icon: Icons.square_foot,
                     ),
-                    if (isAllocated) ...[
-                      const SizedBox(width: 32),
+                    // 🌟 المقياس الجديد الذهبي!
+                    _buildStatItem(
+                      title: 'القيمة الحالية (بأسعار اليوم)',
+                      value: currentPrices != null
+                          ? '${NumberFormatters.formatWithCommas(currentValueBalance)} ل.س'
+                          : 'جاري التحميل...',
+                      color: Colors
+                          .orange
+                          .shade800, // لون ذهبي/برتقالي يعطي شعوراً بالقيمة
+                      icon: Icons.trending_up,
+                      isHighlighted: true, // تضخيم الخط
+                    ),
+                    if (isAllocated)
                       _buildStatItem(
                         title: 'المتبقي للشركة',
                         value: '${remainingMeters.toStringAsFixed(3)} م²',
                         color: remainingMeters > 0
-                            ? Colors.deepOrange.shade600
-                            : Colors.grey,
+                            ? Colors.red.shade600
+                            : Colors.green.shade600,
                         icon: Icons.business,
                       ),
-                    ],
                   ],
                 ),
               ],
@@ -179,31 +238,50 @@ class PaymentSummaryCard extends StatelessWidget {
     required String value,
     required Color color,
     required IconData icon,
+    bool isHighlighted = false,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: [
         Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 14, color: Colors.grey.shade500),
+            Icon(
+              icon,
+              size: 14,
+              color: isHighlighted ? color : Colors.grey.shade500,
+            ),
             const SizedBox(width: 4),
             Text(
               title,
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
-                color: Colors.grey.shade600,
+                color: isHighlighted ? color : Colors.grey.shade600,
               ),
             ),
           ],
         ),
         const SizedBox(height: 4),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: color,
+        Container(
+          padding: isHighlighted
+              ? const EdgeInsets.symmetric(horizontal: 8, vertical: 2)
+              : null,
+          decoration: isHighlighted
+              ? BoxDecoration(
+                  color: color.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(color: color.withOpacity(0.3)),
+                )
+              : null,
+          child: Text(
+            value,
+            style: TextStyle(
+              fontSize: isHighlighted ? 18 : 16,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
           ),
         ),
       ],
