@@ -10,13 +10,18 @@ import '../cubit/client_profile_cubit.dart';
 import '../../payments/cubit/payments_cubit.dart';
 import '../../schedule/cubit/schedule_cubit.dart';
 
-// 🌟 استيراد الصلاحيات والشؤون القانونية
+// 🌟 استيراد الصلاحيات والشؤون القانونية والمحاضر
 import '../../auth/cubit/auth_cubit.dart';
 import '../../core/constants/app_permissions.dart';
 import '../../legal/cubit/legal_affairs_cubit.dart';
 import '../../legal/view/legal_attachments_page.dart';
 import '../../contracts/cubit/contracts_cubit.dart';
 import '../../buildings/cubit/buildings_cubit.dart';
+
+// 🌟 استيرادات التسليم والطباعة الجديدة
+import '../../core/utils/handover_pledge_pdf_helper.dart';
+import '../../core/utils/pdf_preview_page.dart';
+import '../../contracts/widgets/dialogs/verify_pin_dialog.dart';
 
 String formatWithCommas(num number) {
   RegExp reg = RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))');
@@ -26,7 +31,6 @@ String formatWithCommas(num number) {
   );
 }
 
-// دالة مساعدة لتنسيق التواريخ بشكل أنيق وحماية من القيم الفارغة
 String _formatDateSafely(DateTime? date) {
   if (date == null) return 'غير محدد';
   return '${date.year}/${date.month.toString().padLeft(2, '0')}/${date.day.toString().padLeft(2, '0')}';
@@ -44,6 +48,238 @@ class ContractDetailsPage extends StatelessWidget {
     this.summary,
   });
 
+  // ==========================================
+  // 🌟 دوال التسليم والطباعة
+  // ==========================================
+  void _showHandoverDialog(
+    BuildContext parentContext,
+    Contract contract,
+    Client client,
+  ) {
+    DateTime selectedDate = DateTime.now();
+    final notesController = TextEditingController();
+
+    showDialog(
+      context: parentContext,
+      builder: (dialogCtx) => StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            title: const Row(
+              children: [
+                Icon(Icons.vpn_key, color: Colors.teal),
+                SizedBox(width: 8),
+                Text(
+                  'إتمام تسليم العقار',
+                  style: TextStyle(color: Colors.teal),
+                ),
+              ],
+            ),
+            content: SizedBox(
+              width: 450,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.teal.shade50,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(Icons.info_outline, color: Colors.teal, size: 24),
+                        SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'عند تأكيد التسليم، سيبدأ النظام آلياً باحتساب غرامات التأخير (إن وجدت في العقد) بناءً على التاريخ المدخل هنا.',
+                            style: TextStyle(
+                              color: Colors.teal,
+                              fontSize: 13,
+                              height: 1.5,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'تاريخ التسليم الفعلي:',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      TextButton.icon(
+                        icon: const Icon(
+                          Icons.edit_calendar,
+                          color: Colors.teal,
+                        ),
+                        label: Text(
+                          '${selectedDate.year}/${selectedDate.month}/${selectedDate.day}',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                        onPressed: () async {
+                          final date = await showDatePicker(
+                            context: dialogCtx,
+                            initialDate: selectedDate,
+                            firstDate: DateTime(2020),
+                            lastDate: DateTime(2050),
+                          );
+                          if (date != null) setState(() => selectedDate = date);
+                        },
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: notesController,
+                    maxLines: 3,
+                    decoration: const InputDecoration(
+                      labelText: 'ملاحظات وتفاصيل النواقص (إن وجدت)',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.note_alt_outlined),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogCtx),
+                child: const Text('إلغاء'),
+              ),
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.teal,
+                  foregroundColor: Colors.white,
+                ),
+                icon: const Icon(Icons.check),
+                label: const Text('اعتماد التسليم'),
+                onPressed: () async {
+                  Navigator.pop(dialogCtx); // إغلاق النافذة
+                  final isAuth = await showVerifyPinDialog(parentContext);
+
+                  if (isAuth && parentContext.mounted) {
+                    parentContext
+                        .read<ContractsCubit>()
+                        .markContractAsHandedOver(
+                          contractId: contract.id,
+                          actualHandoverDate: selectedDate,
+                          notes: notesController.text.trim().isEmpty
+                              ? null
+                              : notesController.text.trim(),
+                        );
+
+                    // تحديث بيانات العميل لتطبيق الغرامات في الواجهة فوراً
+                    parentContext.read<ClientProfileCubit>().fetchClientData(
+                      client,
+                    );
+
+                    ScaffoldMessenger.of(parentContext).showSnackBar(
+                      const SnackBar(
+                        content: Text('تم تسليم العقار بنجاح! ✅'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  }
+                },
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Future<void> _cancelHandover(
+    BuildContext context,
+    Contract contract,
+    Client client,
+  ) async {
+    final isAuth = await showVerifyPinDialog(context);
+    if (isAuth && context.mounted) {
+      context.read<ContractsCubit>().cancelContractHandover(
+        contractId: contract.id,
+      );
+      context.read<ClientProfileCubit>().fetchClientData(client);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('تم إلغاء التسليم بنجاح.'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+    }
+  }
+
+  Future<void> _printHandoverPdf(
+    BuildContext context,
+    Contract contract,
+    Client client,
+  ) async {
+    final buildingsState = context.read<BuildingsCubit>().state;
+
+    final apartment = buildingsState.apartments
+        .where((a) => a.id == contract.apartmentId)
+        .firstOrNull;
+    if (apartment == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('بيانات الشقة غير متوفرة!'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    final building = buildingsState.buildings
+        .where((b) => b.id == apartment.buildingId)
+        .firstOrNull;
+    if (building == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('بيانات المحضر غير متوفرة!'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('جاري تجهيز محضر الاستلام... ⏳'),
+        backgroundColor: Colors.teal,
+      ),
+    );
+
+    final pdfBytes = await HandoverPledgePdfHelper.generatePdf(
+      contract: contract,
+      client: client,
+      apartment: apartment,
+      building: building,
+    );
+
+    if (context.mounted) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => PdfPreviewPage(
+            pdfBytes: pdfBytes,
+            title: 'محضر_استلام_${client.name}',
+          ),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final bool isAllocated = contract.contractType == 'متخصص';
@@ -54,7 +290,6 @@ class ContractDetailsPage extends StatelessWidget {
         ? Colors.amber.shade50
         : Colors.blue.shade50;
 
-    // فك تشفير المعاملات بأمان
     Map<String, dynamic> coefficientsMap = {};
     if (contract.coefficients.isNotEmpty && contract.coefficients != '{}') {
       try {
@@ -63,7 +298,6 @@ class ContractDetailsPage extends StatelessWidget {
       } catch (_) {}
     }
 
-    // استخراج بيانات الغرامة بأمان
     final bool isPenaltyActive = contract.isPenaltyActive ?? false;
     final double penaltyPct = contract.penaltyPercentage ?? 0.0;
     final int penaltyInterval = contract.penaltyIntervalMonths ?? 1;
@@ -347,6 +581,7 @@ class ContractDetailsPage extends StatelessWidget {
                       ),
                     ),
                   ),
+
                 // ==========================================
                 // 🚀 2. أزرار الإجراءات السريعة
                 // ==========================================
@@ -444,7 +679,6 @@ class ContractDetailsPage extends StatelessWidget {
 
                                 if (secureUrl != null) {
                                   if (secureUrl.startsWith('http')) {
-                                    // ملف سحابي
                                     final Uri url = Uri.parse(secureUrl);
                                     if (await canLaunchUrl(url)) {
                                       await launchUrl(url);
@@ -455,7 +689,7 @@ class ContractDetailsPage extends StatelessWidget {
                                         ).showSnackBar(
                                           const SnackBar(
                                             content: Text(
-                                              'لا يمكن فتح الرابط הסحابي.',
+                                              'لا يمكن فتح الرابط السحابي.',
                                             ),
                                             backgroundColor: Colors.red,
                                           ),
@@ -463,7 +697,6 @@ class ContractDetailsPage extends StatelessWidget {
                                       }
                                     }
                                   } else {
-                                    // ملف محلي (أوفلاين)
                                     final result = await OpenFilex.open(
                                       secureUrl,
                                     );
@@ -692,6 +925,83 @@ class ContractDetailsPage extends StatelessWidget {
                                 ),
                               ],
                             ],
+
+                            // ==========================================
+                            // 🌟 أزرار التحكم بالتسليم والطباعة
+                            // ==========================================
+                            if (!contract.isCompleted) ...[
+                              const SizedBox(height: 24),
+                              const Divider(height: 1),
+                              const SizedBox(height: 16),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  if (!contract.isHandedOver)
+                                    ElevatedButton.icon(
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.teal.shade700,
+                                        foregroundColor: Colors.white,
+                                      ),
+                                      icon: const Icon(Icons.vpn_key),
+                                      label: const Text(
+                                        'تسليم الشقة للعميل',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      onPressed: () => _showHandoverDialog(
+                                        context,
+                                        contract,
+                                        client,
+                                      ),
+                                    )
+                                  else ...[
+                                    OutlinedButton.icon(
+                                      style: OutlinedButton.styleFrom(
+                                        foregroundColor: Colors.red.shade700,
+                                        side: BorderSide(
+                                          color: Colors.red.shade300,
+                                        ),
+                                      ),
+                                      icon: const Icon(
+                                        Icons.cancel_schedule_send,
+                                      ),
+                                      label: const Text(
+                                        'إلغاء التسليم',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      onPressed: () => _cancelHandover(
+                                        context,
+                                        contract,
+                                        client,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    ElevatedButton.icon(
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor:
+                                            Colors.blueGrey.shade800,
+                                        foregroundColor: Colors.white,
+                                      ),
+                                      icon: const Icon(Icons.print),
+                                      label: const Text(
+                                        'طباعة محضر الاستلام',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      onPressed: () => _printHandoverPdf(
+                                        context,
+                                        contract,
+                                        client,
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ],
                           ],
                         ),
                       ),
@@ -804,7 +1114,6 @@ class ContractDetailsPage extends StatelessWidget {
                                           ),
                                         ],
                                         const SizedBox(height: 8),
-                                        // 🌟 زر فتح معرض المرفقات للإجراء
                                         Align(
                                           alignment: Alignment.centerLeft,
                                           child: TextButton.icon(
@@ -833,7 +1142,6 @@ class ContractDetailsPage extends StatelessWidget {
                                               ),
                                             ),
                                             onPressed: () {
-                                              // جلب الصلاحية لتمريرها للنافذة
                                               final authState = context
                                                   .read<AuthCubit>()
                                                   .state;
@@ -1001,7 +1309,6 @@ class ContractDetailsPage extends StatelessWidget {
   // الدوال المساعدة للـ UI
   // ==========================================
 
-  // دالة الشريطة الملونة للإجراء القانوني
   Widget _buildActionTypeChip(String type) {
     Color bgColor;
     Color textColor;
