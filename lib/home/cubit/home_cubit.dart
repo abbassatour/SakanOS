@@ -38,6 +38,7 @@ class HomeCubit extends Cubit<HomeState> {
         state.copyWith(
           status: HomeStatus.success,
           totalRevenue: metrics.totalRevenue,
+          totalRefundedAmount: metrics.totalRefundedAmount,
           activeContractsCount: metrics.activeContractsCount,
           allocatedSoldMeters: metrics.allocatedSoldMeters,
           allocatedPaidMeters: metrics.allocatedPaidMeters,

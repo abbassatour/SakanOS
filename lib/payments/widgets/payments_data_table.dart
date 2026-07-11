@@ -78,6 +78,16 @@ class PaymentsDataTable extends StatelessWidget {
                       ),
                     ),
                   ),
+                  // 🌟 العمود الجديد الخاص بالبونص
+                  DataColumn(
+                    label: Text(
+                      'البونص %',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.deepOrange,
+                      ),
+                    ),
+                  ),
                   DataColumn(
                     label: Text(
                       'الأمتار المحولة',
@@ -125,6 +135,11 @@ class PaymentsDataTable extends StatelessWidget {
                       .difference(entry.createdAt)
                       .inMinutes;
                   final isGracePeriod = minutesPassed <= 5;
+
+                  // 🌟 استخراج قيمة البونص / الغرامة
+                  final double bonusValue = entry.fees;
+                  final bool hasBonus = bonusValue != 0;
+
                   return DataRow(
                     color: WidgetStateProperty.resolveWith<Color?>(
                       (states) {
@@ -137,7 +152,6 @@ class PaymentsDataTable extends StatelessWidget {
                     cells: [
                       DataCell(
                         Text(
-                          // 🌟 تم تصحيح الخطأ الإملائي هنا
                           entry.receiptNumber != null
                               ? entry.receiptNumber.toString()
                               : entry.id.split('-').first.toUpperCase(),
@@ -181,6 +195,49 @@ class PaymentsDataTable extends StatelessWidget {
                           style: const TextStyle(color: Colors.black87),
                         ),
                       ),
+
+                      // 🌟 الخلية الجديدة الخاصة بالبونص
+                      DataCell(
+                        hasBonus
+                            ? Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: isRefund
+                                      ? Colors.red.shade50
+                                      : Colors.teal.shade50,
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(
+                                    color: isRefund
+                                        ? Colors.red.shade200
+                                        : Colors.teal.shade200,
+                                  ),
+                                ),
+                                child: Text(
+                                  '${isRefund ? "-" : "+"}${bonusValue.abs().toStringAsFixed(1)}%',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: isRefund
+                                        ? Colors.red.shade700
+                                        : Colors.teal.shade700,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              )
+                            : const Center(
+                                child: Text(
+                                  '-',
+                                  style: TextStyle(
+                                    color: Colors.grey,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                              ),
+                      ),
+
                       DataCell(
                         Container(
                           padding: const EdgeInsets.symmetric(
@@ -433,7 +490,6 @@ class PaymentsDataTable extends StatelessWidget {
                             if (canDelete)
                               IconButton(
                                 icon: Icon(
-                                  // تغيير الأيقونة بناءً على الوقت
                                   isLatestEntry
                                       ? (isGracePeriod
                                             ? Icons.delete_forever

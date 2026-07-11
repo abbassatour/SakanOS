@@ -34,10 +34,11 @@ class ActivityItem {
 class DashboardMetrics {
   DashboardMetrics({
     required this.totalRevenue,
-    required this.totalAreaSold, // للحفاظ على التوافقية البرمجية
-    required this.totalPaidMeters, // للحفاظ على التوافقية البرمجية
-    required this.totalOverdueDebts, // للحفاظ على التوافقية البرمجية
-    required this.totalUndeliveredMeters, // للحفاظ على التوافقية البرمجية
+    required this.totalRefundedAmount, // 🌟 الإضافة الجديدة
+    required this.totalAreaSold,
+    required this.totalPaidMeters,
+    required this.totalOverdueDebts,
+    required this.totalUndeliveredMeters,
     required this.inventoryStatus,
     required this.activeContractsCount,
     required this.latestPayments,
@@ -46,7 +47,6 @@ class DashboardMetrics {
     required this.costTrend,
     required this.contractsByType,
     required this.recentActivities,
-    // 🌟 الإضافات الجديدة للفصل المحاسبي الاحترافي بين الأصول والالتزامات
     required this.allocatedSoldMeters,
     required this.allocatedPaidMeters,
     required this.unallocatedPaidMeters,
@@ -56,6 +56,7 @@ class DashboardMetrics {
   });
 
   final double totalRevenue;
+  final double totalRefundedAmount; // 🌟 الإضافة الجديدة
   final double totalAreaSold;
   final double totalPaidMeters;
   final double totalOverdueDebts;
@@ -200,6 +201,7 @@ class DashboardRepository {
     final dollarPrices = await _localApi.getAllDollarPricesHistory();
 
     var totalRevenue = 0.0;
+    var totalRefundedAmount = 0.0;
 
     // 🌟 تهيئة المتغيرات المفرزة الجديدة بدقة بالغة
     var allocatedSoldMeters = 0.0;
@@ -253,8 +255,10 @@ class DashboardRepository {
 
     // 1. حساب المدفوعات وتوزيع الأمتار المحصلة بين مخصص ومحفظة لاحق التخصص
     for (final p in payments) {
-      totalRevenue += p.amountPaid;
-
+      totalRevenue += p.amountPaid; // سيبقى يمثل (صافي الصندوق)
+      if (p.amountPaid < 0) {
+        totalRefundedAmount += p.amountPaid.abs(); // 🌟 تتبع الأموال الخارجة
+      }
       final relatedContract = contracts.firstWhere(
         (c) => c.id == p.contractId,
         orElse: () => throw Exception('عقد مفقود'),
@@ -505,6 +509,7 @@ class DashboardRepository {
 
     return DashboardMetrics(
       totalRevenue: totalRevenue,
+      totalRefundedAmount: totalRefundedAmount, // 🌟 تمرير القيمة
       // تأمين التوافقية البرمجية مع الحفاظ على المنطق المحاسبي سليم
       totalAreaSold: allocatedSoldMeters + unallocatedPaidMeters,
       totalPaidMeters: allocatedPaidMeters + unallocatedPaidMeters,

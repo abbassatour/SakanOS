@@ -12,21 +12,20 @@ class HomeState extends Equatable {
     required this.referenceDate,
 
     this.totalRevenue = 0.0,
-    this.totalAreaSold = 0.0, // للحفاظ على التوافقية مع الاختبارات
+    this.totalRefundedAmount = 0.0, // 🌟 1. تم تعيين القيمة الافتراضية هنا
+    this.totalAreaSold = 0.0,
     this.activeContractsCount = 0,
 
-    this.totalPaidMeters = 0.0, // للحفاظ على التوافقية مع الاختبارات
-    this.totalOverdueDebts = 0.0, // للحفاظ على التوافقية مع الاختبارات
-    this.totalUndeliveredMeters = 0.0, // للحفاظ على التوافقية مع الاختبارات
-    // 🌟 1. تفاصيل محفظة التخصيص العيني (الشقق والمحلات)
+    this.totalPaidMeters = 0.0,
+    this.totalOverdueDebts = 0.0,
+    this.totalUndeliveredMeters = 0.0,
+
     this.allocatedSoldMeters = 0.0,
     this.allocatedPaidMeters = 0.0,
     this.allocatedUndeliveredMeters = 0.0,
 
-    // 🌟 2. تفاصيل محفظة الأسهم الاستثمارية (لاحق التخصص)
     this.unallocatedPaidMeters = 0.0,
 
-    // 🌟 3. تفاصيل الديون والذمم المدينة للعملاء (ل.س)
     this.overduePreHandover = 0.0,
     this.overduePostHandover = 0.0,
 
@@ -35,7 +34,7 @@ class HomeState extends Equatable {
     this.latestPayments = const [],
     this.groupedRevenue = const {},
 
-    this.dollarTrend = const {}, // المتغير الخاص بالدولار
+    this.dollarTrend = const {},
     this.costTrend = const {},
     this.contractsByType = const {},
     this.recentActivities = const [],
@@ -47,6 +46,7 @@ class HomeState extends Equatable {
   final DateTime referenceDate;
 
   final double totalRevenue;
+  final double totalRefundedAmount; // 🌟 2. تم تعريف الحقل الفعلي هنا
   final double totalAreaSold;
   final int activeContractsCount;
 
@@ -54,15 +54,12 @@ class HomeState extends Equatable {
   final double totalOverdueDebts;
   final double totalUndeliveredMeters;
 
-  // 🌟 حقول التخصيص العيني الجديدة
   final double allocatedSoldMeters;
   final double allocatedPaidMeters;
   final double allocatedUndeliveredMeters;
 
-  // 🌟 حقول لاحق التخصص (أسهم المحفظة) الجديدة
   final double unallocatedPaidMeters;
 
-  // 🌟 حقول الديون والذمم الجديدة
   final double overduePreHandover;
   final double overduePostHandover;
 
@@ -75,10 +72,8 @@ class HomeState extends Equatable {
   final List<ActivityItem> recentActivities;
   final String? errorMessage;
 
-  // 🌟 الجالب المطلوب لحساب ديون أمتار الشقق المخصصة وحل مشكلة الـ Compile Error
   double get allocatedDebtMeters => allocatedSoldMeters - allocatedPaidMeters;
 
-  // 🌟 الجالب لحساب المتأخرات الإجمالية للتوافقية العامة
   double get remainingMetersInDebt => totalAreaSold - totalPaidMeters;
 
   HomeState copyWith({
@@ -86,6 +81,7 @@ class HomeState extends Equatable {
     TimeFilter? timeFilter,
     DateTime? referenceDate,
     double? totalRevenue,
+    double? totalRefundedAmount, // 🌟 3. تم إضافته لبارامترات copyWith
     double? totalAreaSold,
     int? activeContractsCount,
     double? totalPaidMeters,
@@ -111,6 +107,9 @@ class HomeState extends Equatable {
       timeFilter: timeFilter ?? this.timeFilter,
       referenceDate: referenceDate ?? this.referenceDate,
       totalRevenue: totalRevenue ?? this.totalRevenue,
+      totalRefundedAmount:
+          totalRefundedAmount ??
+          this.totalRefundedAmount, // 🌟 4. تم إسناده هنا
       totalAreaSold: totalAreaSold ?? this.totalAreaSold,
       activeContractsCount: activeContractsCount ?? this.activeContractsCount,
       totalPaidMeters: totalPaidMeters ?? this.totalPaidMeters,
@@ -142,6 +141,7 @@ class HomeState extends Equatable {
     timeFilter,
     referenceDate,
     totalRevenue,
+    totalRefundedAmount, // 🌟 5. تم إضافته لبارامترات المقارنة
     totalAreaSold,
     activeContractsCount,
     totalPaidMeters,
