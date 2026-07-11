@@ -32,6 +32,18 @@ class SyncRepository {
   }
 
   Future<void> pullDataFromCloud() async {
+    // 🌟 فحص سريع للإنترنت لمنع تجميد التطبيق عند التشغيل بدون شبكة
+    try {
+      final result = await InternetAddress.lookup(
+        'google.com',
+      ).timeout(const Duration(seconds: 3));
+      if (result.isEmpty || result[0].rawAddress.isEmpty) {
+        throw Exception('لا يوجد اتصال بالإنترنت.');
+      }
+    } catch (_) {
+      throw Exception('لا يوجد اتصال بالإنترنت لجلب بياناتك.');
+    }
+
     try {
       final prefs = await SharedPreferences.getInstance();
       final lastSyncStr = prefs.getString('last_pull_timestamp');
@@ -511,10 +523,24 @@ class SyncRepository {
 
   Future<void> syncPendingData() async {
     if (_isSyncing || currentUserId == null) return;
+
+    // 🌟 فحص سريع للإنترنت، في حال عدم وجود شبكة، يخرج بصمت ليدعم وضع الـ Offline
+    try {
+      final result = await InternetAddress.lookup(
+        'google.com',
+      ).timeout(const Duration(seconds: 3));
+      if (result.isEmpty || result[0].rawAddress.isEmpty) {
+        return;
+      }
+    } catch (_) {
+      return;
+    }
+
     _isSyncing = true;
 
     bool hasErrors = false;
     final db = _localApi.database;
+    // ... باقي الكود يبقى كما هو ...
 
     double safeNum(double? val) {
       if (val == null) return 0.0;

@@ -50,6 +50,7 @@ class AuthCubit extends Cubit<AuthState> {
       } else {
         await _processUserPermissions(localUser);
       }
+      // lib/auth/cubit/auth_cubit.dart
     } catch (e, stackTrace) {
       log(
         'خطأ أثناء التحقق من جلسة المستخدم',
@@ -59,7 +60,8 @@ class AuthCubit extends Cubit<AuthState> {
       emit(
         state.copyWith(
           status: AuthStatus.error,
-          errorMessage: e.toString(),
+          // 🌟 التعديل هنا: إزالة كلمة Exception من رسالة الخطأ
+          errorMessage: e.toString().replaceAll('Exception: ', ''),
         ),
       );
     }
