@@ -46,6 +46,7 @@ class HomeCubit extends Cubit<HomeState> {
           unallocatedPaidMeters: metrics.unallocatedPaidMeters,
           overduePreHandover: metrics.overduePreHandover,
           overduePostHandover: metrics.overduePostHandover,
+          totalAvailableArea: metrics.totalAvailableArea,
           inventoryStatus: metrics.inventoryStatus,
           latestPayments: metrics.latestPayments,
           groupedRevenue: metrics.groupedRevenue,

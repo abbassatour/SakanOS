@@ -28,6 +28,7 @@ class HomeState extends Equatable {
 
     this.overduePreHandover = 0.0,
     this.overduePostHandover = 0.0,
+    this.totalAvailableArea = 0.0,
 
     this.inventoryStatus = const {},
 
@@ -62,6 +63,7 @@ class HomeState extends Equatable {
 
   final double overduePreHandover;
   final double overduePostHandover;
+  final double totalAvailableArea;
 
   final Map<String, int> inventoryStatus;
   final List<PaymentsLedgerData> latestPayments;
@@ -93,6 +95,7 @@ class HomeState extends Equatable {
     double? unallocatedPaidMeters,
     double? overduePreHandover,
     double? overduePostHandover,
+    double? totalAvailableArea, // 🌟 إضافة المتغير الجديد لـ copyWith
     Map<String, int>? inventoryStatus,
     List<PaymentsLedgerData>? latestPayments,
     Map<String, double>? groupedRevenue,
@@ -124,6 +127,9 @@ class HomeState extends Equatable {
           unallocatedPaidMeters ?? this.unallocatedPaidMeters,
       overduePreHandover: overduePreHandover ?? this.overduePreHandover,
       overduePostHandover: overduePostHandover ?? this.overduePostHandover,
+      totalAvailableArea:
+          totalAvailableArea ??
+          this.totalAvailableArea, // 🌟 التعيين للمتغير الجديد هنا
       inventoryStatus: inventoryStatus ?? this.inventoryStatus,
       latestPayments: latestPayments ?? this.latestPayments,
       groupedRevenue: groupedRevenue ?? this.groupedRevenue,
@@ -153,6 +159,7 @@ class HomeState extends Equatable {
     unallocatedPaidMeters,
     overduePreHandover,
     overduePostHandover,
+    totalAvailableArea, // 🌟 تمت إضافته لمصفوفة المقارنة (Props)
     inventoryStatus,
     latestPayments,
     groupedRevenue,

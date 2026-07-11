@@ -15,6 +15,7 @@ class MetersProgressChart extends StatelessWidget {
   final double allocatedDebt;
   final double allocatedUndelivered;
   final double unallocatedPaid;
+  final double totalAvailableArea;
 
   const MetersProgressChart({
     super.key,
@@ -27,6 +28,7 @@ class MetersProgressChart extends StatelessWidget {
     required this.allocatedDebt,
     required this.allocatedUndelivered,
     required this.unallocatedPaid,
+    required this.totalAvailableArea,
   });
 
   @override
@@ -124,15 +126,15 @@ class MetersProgressChart extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.blue.shade50.withOpacity(0.3),
+              color: Colors.amber.shade50.withOpacity(0.3),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.blue.shade200.withOpacity(0.5)),
+              border: Border.all(color: Colors.amber.shade200.withOpacity(0.5)),
             ),
             child: Row(
               children: [
                 Icon(
                   Icons.savings_rounded,
-                  color: Colors.blue.shade800,
+                  color: Colors.amber.shade900,
                   size: 20,
                 ),
                 const SizedBox(width: 8),
@@ -141,7 +143,7 @@ class MetersProgressChart extends StatelessWidget {
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 13,
-                    color: Colors.blue.shade900,
+                    color: Colors.amber.shade900,
                   ),
                 ),
               ],
@@ -161,8 +163,10 @@ class MetersProgressChart extends StatelessWidget {
         FooterRow(
           icon: Icons.architecture,
           iconColor: Colors.indigo,
-          label: 'إجمالي مساحات الشقق المعروضة بالمشاريع كمرجع:',
-          value: '${numberFormatter.format(allocatedSold.toInt())} m²',
+          label:
+              'إجمالي مساحات الشقق والمحلات المتاحة للبيع :', // 🌟 تعديل النص ليكون أوضح
+          value:
+              '${numberFormatter.format(totalAvailableArea.toInt())} m²', // 🌟 استخدام المتغير الصحيح
         ),
       ],
     );

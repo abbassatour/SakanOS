@@ -53,6 +53,7 @@ class DashboardMetrics {
     required this.allocatedUndeliveredMeters,
     required this.overduePreHandover,
     required this.overduePostHandover,
+    required this.totalAvailableArea,
   });
 
   final double totalRevenue;
@@ -77,6 +78,7 @@ class DashboardMetrics {
   final double allocatedUndeliveredMeters;
   final double overduePreHandover;
   final double overduePostHandover;
+  final double totalAvailableArea;
 }
 
 class DashboardRepository {
@@ -211,6 +213,7 @@ class DashboardRepository {
 
     var overduePreHandover = 0.0;
     var overduePostHandover = 0.0;
+    var totalAvailableArea = 0.0;
 
     final inventoryStatus = {'متاحة': 0, 'مباعة': 0, 'مُسلّمة': 0};
     final tempGroupedRev = <String, double>{};
@@ -420,6 +423,7 @@ class DashboardRepository {
     for (final apt in apartments) {
       if (apt.status == 'available') {
         inventoryStatus['متاحة'] = inventoryStatus['متاحة']! + 1;
+        totalAvailableArea += apt.area;
       } else if (apt.status == 'delivered') {
         inventoryStatus['مُسلّمة'] = inventoryStatus['مُسلّمة']! + 1;
       } else {
@@ -533,6 +537,7 @@ class DashboardRepository {
       allocatedUndeliveredMeters: allocatedUndeliveredMeters,
       overduePreHandover: overduePreHandover,
       overduePostHandover: overduePostHandover,
+      totalAvailableArea: totalAvailableArea,
     );
   }
 }

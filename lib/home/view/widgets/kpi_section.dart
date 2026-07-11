@@ -86,11 +86,16 @@ class KpiSection extends StatelessWidget {
     ];
     return LayoutBuilder(
       builder: (context, constraints) {
-        var crossAxisCount = 2;
-        if (constraints.maxWidth >= 1200) {
-          crossAxisCount = 6;
-        } else if (constraints.maxWidth >= 800) {
-          crossAxisCount = 3;
+        // 🌟 توزيع أذكى لنقاط توقف الشاشة (Breakpoints)
+        int crossAxisCount;
+        if (constraints.maxWidth >= 1300) {
+          crossAxisCount = 6; // شاشة كاملة: 6 بطاقات بجانب بعض
+        } else if (constraints.maxWidth >= 900) {
+          crossAxisCount = 3; // تصغير الشاشة قليلاً: 3 بطاقات
+        } else if (constraints.maxWidth >= 550) {
+          crossAxisCount = 2; // نصف الشاشة: بطاقتين
+        } else {
+          crossAxisCount = 1; // شاشة صغيرة جداً: بطاقة واحدة
         }
 
         return GridView.builder(
@@ -100,7 +105,8 @@ class KpiSection extends StatelessWidget {
             crossAxisCount: crossAxisCount,
             crossAxisSpacing: 16,
             mainAxisSpacing: 16,
-            childAspectRatio: constraints.maxWidth >= 1200 ? 1.4 : 1.6,
+            // 🌟 الحل هنا: تثبيت الارتفاع بـ 135 بكسل بدلاً من استخدام childAspectRatio
+            mainAxisExtent: 135,
           ),
           itemCount: kpis.length,
           itemBuilder: (context, index) => _KpiCard(data: kpis[index]),

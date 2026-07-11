@@ -139,6 +139,7 @@ class ChartsSection extends StatelessWidget {
                 allocatedDebt: state.allocatedDebtMeters,
                 allocatedUndelivered: state.allocatedUndeliveredMeters,
                 unallocatedPaid: state.unallocatedPaidMeters,
+                totalAvailableArea: state.totalAvailableArea,
               ),
             ),
           ],
