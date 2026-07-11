@@ -95,7 +95,7 @@ class ChartsSection extends StatelessWidget {
             Expanded(
               flex: 2,
               child: TrendLineChart(
-                title: 'تطور التكلفة الخام للمواد',
+                title: 'تطور سعر المتر لاحق التخصص',
                 description:
                     'يتتبع التغير في تكلفة بناء المتر المربع باستخدام المعادلة الهندسية. يعكس التكلفة المباشرة (الخام).',
                 data: state.costTrend,

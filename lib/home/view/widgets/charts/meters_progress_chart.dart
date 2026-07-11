@@ -52,7 +52,7 @@ class MetersProgressChart extends StatelessWidget {
           '• مساحات مخصصة مسددة: المساحات الفعلية للشقق التي سدد الملاك ثمنها ودخلت أموالاً في الصندوق لتمويل صب الأسقف والتشطيبات.\n'
           '• أمتار متبقية كديون: مساحات حجزها الزبائن في شققهم المحددة ولكنهم لم يسددوا ثمنها بعد (وتعتبر ديوناً على الزبائن لصالح الشركة).\n'
           '• التزام الإنشاء المخصص: المساحات الإنشائية للشقق قيد البناء والتجهيز حالياً ولم نسلمها بعد.\n\n'
-          '📊 2. محفظة الأسهم لاحقة التخصص (التزامات الشركة وديونها العينية تجاه مستثمريها):\n'
+          '📊 2. محفظة الأسهم لاحقة التخصص (التزامات الشركة وديونها ة تجاه مستثمريها):\n'
           '• أمتار الأسهم واجبة البناء والتخصيص: هي أمتار مجردة (حصص استثمارية) اشتراها مستثمرو المحافظ ودفعوا ثمنها بالكامل كاش في الصندوق، وهي غير مخصصة لعقار محدد بعد، والشركة ملتزمة ببنائها وتخصيص شقق لهم مستقبلاً (وتعتبر التزاماً عينيّاً ودائناً على عاتق الشركة للغير).',
       titleIcon: Icons.balance_rounded,
       iconColor: Colors.teal.shade800,
@@ -78,7 +78,7 @@ class MetersProgressChart extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  '1. محفظة التخصيص العيني (الشقق والمحلات المحددة للزبائن)',
+                  '1. محفظة الأمتار للعقود المتخصصة ',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 13,
@@ -90,7 +90,7 @@ class MetersProgressChart extends StatelessWidget {
           ),
           const SizedBox(height: 14),
           _buildProgressRow(
-            title: 'أمتار مخصصة مسددة (في الصندوق)',
+            title: 'أمتار مخصصة تم تسديد ثمنها',
             value: '${numberFormatter.format(allocatedPaid.toInt())} m²',
             percentage: allocatedPaidPct,
             color: Colors.teal.shade600,
@@ -98,7 +98,7 @@ class MetersProgressChart extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           _buildProgressRow(
-            title: 'أمتار بذمة العملاء (ديون عينية جارية على الملاك)',
+            title: 'أمتار بذمة العملاء ',
             value: '${numberFormatter.format(allocatedDebt.toInt())} m²',
             percentage: allocatedDebtPct,
             color: Colors.orange.shade700,
@@ -106,7 +106,7 @@ class MetersProgressChart extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           _buildProgressRow(
-            title: 'التزام الإنشاء العيني (لم يكتمل تسليم الشقق)',
+            title: 'أمتار لم يتم تسليمها للمتخصصين',
             value: '${numberFormatter.format(allocatedUndelivered.toInt())} m²',
             percentage: allocatedUndeliveredPct,
             color: Colors.purple.shade600,
@@ -137,7 +137,7 @@ class MetersProgressChart extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  '2. محفظة الأسهم لاحقة التخصص (التزامات الشركة للمستثمرين)',
+                  '2. محفظة الأمتار لاحقة التخصص ',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 13,
@@ -149,11 +149,11 @@ class MetersProgressChart extends StatelessWidget {
           ),
           const SizedBox(height: 14),
           _buildStaticPortfolioRow(
-            title: 'أمتار واجبة البناء والتخصيص للمستثمرين',
+            title: 'أمتار واجبة البناء والتخصيص ',
             value: '${numberFormatter.format(unallocatedPaid.toInt())} m²',
             color: Colors.blue.shade700,
             icon: Icons.pie_chart_rounded,
-            subtitle: 'دين إنشائي عيني والتزام تم قبض ثمنه كاش للشركة',
+            subtitle: 'دين إنشائي  والتزام تم قبض ثمنه كاش للشركة',
           ),
         ],
       ),
