@@ -171,7 +171,7 @@ class RefundPdfGenerator {
                           _buildFinancialRow(
                             font: arabicFont,
                             boldFont: arabicBoldFont,
-                            title: 'السعر بعد الغرامة:',
+                            title: 'سعر المتر بعد الغرامة :',
                             value: '${_fmtMoney(meterPriceAfterPenalty)} ل.س',
                             valueColor: PdfColors.red900,
                           ),

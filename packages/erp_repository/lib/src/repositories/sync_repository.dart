@@ -845,7 +845,6 @@ class SyncRepository {
                   fileUrl: drift.Value(finalFileUrl),
                 ),
               );
-              await localFile.delete();
             } else {
               await (db.delete(
                 db.legalActionAttachments,
@@ -924,7 +923,6 @@ class SyncRepository {
                   fileUrl: drift.Value(finalFileUrl),
                 ),
               );
-              await localFile.delete();
             } else {
               await (db.delete(
                 db.contractAttachments,
@@ -986,7 +984,6 @@ class SyncRepository {
                   fileUrl: drift.Value(finalFileUrl),
                 ),
               );
-              await localFile.delete();
             } else {
               await (db.delete(
                 db.apartmentAttachments,
@@ -1048,7 +1045,6 @@ class SyncRepository {
                   fileUrl: drift.Value(finalFileUrl),
                 ),
               );
-              await localFile.delete();
             } else {
               await (db.delete(
                 db.buildingAttachments,

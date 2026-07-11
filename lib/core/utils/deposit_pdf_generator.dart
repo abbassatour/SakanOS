@@ -183,7 +183,7 @@ class DepositPdfGenerator {
                             font: arabicFont,
                             boldFont: arabicBoldFont,
                             title: isPenalty
-                                ? 'السعر بعد الغرامة:'
+                                ? 'سعر المتر بعد الغرامة :'
                                 : 'السعر بعد البونص:',
                             value: '${_fmtMoney(meterPriceAfterBonus)} ل.س',
                             valueColor: PdfColors.blue800,
