@@ -147,7 +147,37 @@ class AuthCubit extends Cubit<AuthState> {
     );
     finalPermissions.removeAll(revokedPerms);
 
-    // 4. حفظ النتيجة النهائية النظيفة في الحالة (State)
+    // 👇👇 [الأسطر الجديدة للتحقق من النبضة (Heartbeat)] 👇👇
+    // 4. فحص نبض السحابة (Offline Limit) قبل السماح بالدخول للوحة التحكم
+    final lastHeartbeat = await _erpRepository.getLastHeartbeatTime();
+    final now = DateTime.now().toUtc();
+
+    // 🌟 حماية ضد التلاعب: إذا كان التاريخ المرجوع سالباً، يعني أن العميل أرجع ساعة الويندوز للوراء!
+    final int daysPassed = lastHeartbeat != null
+        ? now.difference(lastHeartbeat).inDays
+        : 999;
+    final bool isTimeTampered =
+        lastHeartbeat != null && now.isBefore(lastHeartbeat);
+
+    if (lastHeartbeat == null || daysPassed >= 7 || isTimeTampered) {
+      emit(
+        state.copyWith(
+          status: AuthStatus.offlineLock,
+          errorMessage: isTimeTampered
+              ? 'تم اكتشاف تلاعب في ساعة النظام. يرجى المزامنة لحل المشكلة.'
+              : 'تجاوزت الحد المسموح للعمل دون اتصال بالإنترنت (7 أيام). يرجى المزامنة.',
+          userId: localUser.id,
+          userName: localUser.fullName ?? localUser.email,
+          roleName: roleName,
+          isSystemAdmin: isSystemAdmin,
+          permissions: finalPermissions.toList(),
+        ),
+      );
+      return; // 🛑 خروج فوري ومنع الدخول للتطبيق
+    }
+    // 👆👆 [نهاية الإضافة] 👆👆
+
+    // 5. حفظ النتيجة النهائية النظيفة في الحالة (State) (في الوضع الطبيعي)
     emit(
       state.copyWith(
         status: AuthStatus.authenticated,

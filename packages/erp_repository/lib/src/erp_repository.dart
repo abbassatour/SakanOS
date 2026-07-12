@@ -170,6 +170,7 @@ class ErpRepository {
   Future<String> forceSyncWithCloud() => _syncRepo.forceSyncWithCloud();
   Future<void> pullDataFromCloud() => _syncRepo.pullDataFromCloud();
   Future<void> syncPendingData() => _syncRepo.syncPendingData();
+  Future<DateTime?> getLastHeartbeatTime() => _syncRepo.getLastHeartbeatTime();
 
   // ==========================================
   // 👥 العملاء (Clients Facade)

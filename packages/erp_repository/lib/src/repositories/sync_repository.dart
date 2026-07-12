@@ -1,6 +1,7 @@
 // packages/erp_repository/lib/src/repositories/sync_repository.dart
 // ignore_for_file: depend_on_referenced_packages
 import 'dart:io';
+import 'dart:convert';
 import 'package:path/path.dart' as p;
 import 'package:cloud_storage_api/cloud_storage_api.dart';
 import 'package:drift/drift.dart' as drift;
@@ -515,10 +516,22 @@ class SyncRepository {
           latestServerTimestamp!.toIso8601String(),
         );
       }
+
+      // 👇👇 [الأسطر الجديدة التي يجب إضافتها] 👇👇
+      // ==========================================
+      // 💓 تحديث نبض السحابة (بما أن السحب نجح، يعني الإنترنت متصل والرخصة تعمل)
+      // ==========================================
+      await _updateHeartbeat();
+      // 👆👆 [نهاية الإضافة] 👆👆
+
+    } on Exception catch (e) {
+      // ignore: avoid_print
+      print('❌ Cloud Pull Failed: $e');
     } on Exception catch (e) {
       // ignore: avoid_print
       print('❌ Cloud Pull Failed: $e');
     }
+
   }
 
   Future<void> syncPendingData() async {
@@ -1112,6 +1125,11 @@ class SyncRepository {
       throw Exception(
         'فشل رفع بعض التعديلات المحلية. تم إيقاف السحب من السحابة لحماية بياناتك من المسح.',
       );
+    } else {
+      // 👇👇 [الأسطر الجديدة التي يجب إضافتها] 👇👇
+      // 💓 تم رفع كل البيانات المعلقة بنجاح للسحابة، نحدث النبضة!
+      await _updateHeartbeat();
+      // 👆👆 [نهاية الإضافة] 👆👆
     }
   }
 
@@ -1149,4 +1167,75 @@ class SyncRepository {
       isSynced: const drift.Value(true),
     );
   }
-}
+// ==========================================
+  // 💓 دوال نبض السحابة المحصنة (Encrypted Heartbeat)
+  // ==========================================
+
+  // 1. المفتاح السري الديناميكي (يتغير حسب المستخدم لمنع نسخ الملفات بين الحواسيب)
+  String get _secretKey => '${currentUserId ?? "SYSTEM"}_ERP_OUR_HOME_2026_!@#';
+
+  // 2. خوارزمية التشفير (XOR + Base64)
+  String _encodeToken(String text) {
+    final textBytes = utf8.encode(text);
+    final keyBytes = utf8.encode(_secretKey);
+    final encrypted = <int>[];
+    for (int i = 0; i < textBytes.length; i++) {
+      encrypted.add(textBytes[i] ^ keyBytes[i % keyBytes.length]);
+    }
+    return base64.encode(encrypted);
+  }
+
+  // 3. خوارزمية فك التشفير
+  String? _decodeToken(String base64Text) {
+    try {
+      final encrypted = base64.decode(base64Text);
+      final keyBytes = utf8.encode(_secretKey);
+      final decrypted = <int>[];
+      for (int i = 0; i < encrypted.length; i++) {
+        decrypted.add(encrypted[i] ^ keyBytes[i % keyBytes.length]);
+      }
+      return utf8.decode(decrypted);
+    } catch (_) {
+      // 🚨 تم اكتشاف محاولة تلاعب بالملف!
+      return null; 
+    }
+  }
+
+  /// دالة تحديث التوقيت المشفر
+  Future<void> _updateHeartbeat() async {
+    final prefs = await SharedPreferences.getInstance();
+    final nowStr = DateTime.now().toUtc().toIso8601String();
+    
+    // تشفير التاريخ
+    final encryptedToken = _encodeToken(nowStr);
+    
+    // حفظ التوكن المشفر باسم مبهم
+    await prefs.setString('sys_pulse_token', encryptedToken);
+    
+    // مسح المفتاح القديم المكشوف (للتنظيف)
+    await prefs.remove('heartbeat_last_sync'); 
+  }
+
+  /// دالة استخراج التوقيت
+  Future<DateTime?> getLastHeartbeatTime() async {
+    final prefs = await SharedPreferences.getInstance();
+    
+    // 1. محاولة قراءة التوكن المشفر
+    final encryptedToken = prefs.getString('sys_pulse_token');
+    if (encryptedToken != null) {
+      final decryptedStr = _decodeToken(encryptedToken);
+      if (decryptedStr != null) {
+        return DateTime.tryParse(decryptedStr)?.toUtc();
+      }
+      // إذا فشل فك التشفير سيرجع null (وهذا سيقفل التطبيق فوراً في AuthCubit)
+      return null;
+    }
+    
+    // 2. التوافقية الرجعية: إذا كان المستخدم يملك النسخة القديمة المكشوفة ولم يزامن بعد
+    final oldTimeStr = prefs.getString('heartbeat_last_sync');
+    if (oldTimeStr != null) {
+      return DateTime.tryParse(oldTimeStr)?.toUtc();
+    }
+    
+    return null;
+  }
