@@ -53,7 +53,7 @@ class ContractDetailsPage extends StatelessWidget {
   // ==========================================
   void _showHandoverDialog(
     BuildContext parentContext,
-    Contract contract,
+    Contract currentContract,
     Client client,
   ) {
     DateTime selectedDate = DateTime.now();
@@ -168,17 +168,20 @@ class ContractDetailsPage extends StatelessWidget {
                   final isAuth = await showVerifyPinDialog(parentContext);
 
                   if (isAuth && parentContext.mounted) {
-                    parentContext
+                    // 🌟 1. وضع await للانتظار حتى ينتهي حفظ قاعدة البيانات بالكامل
+                    await parentContext
                         .read<ContractsCubit>()
                         .markContractAsHandedOver(
-                          contractId: contract.id,
+                          contractId: currentContract.id,
                           actualHandoverDate: selectedDate,
                           notes: notesController.text.trim().isEmpty
                               ? null
                               : notesController.text.trim(),
                         );
 
-                    // تحديث بيانات العميل لتطبيق الغرامات في الواجهة فوراً
+                    if (!parentContext.mounted) return;
+
+                    // 🌟 2. تحديث بيانات العميل لتطبيق الغرامات في الواجهة فوراً
                     parentContext.read<ClientProfileCubit>().fetchClientData(
                       client,
                     );
@@ -201,14 +204,19 @@ class ContractDetailsPage extends StatelessWidget {
 
   Future<void> _cancelHandover(
     BuildContext context,
-    Contract contract,
+    Contract currentContract,
     Client client,
   ) async {
     final isAuth = await showVerifyPinDialog(context);
     if (isAuth && context.mounted) {
-      context.read<ContractsCubit>().cancelContractHandover(
-        contractId: contract.id,
+      // 🌟 1. وضع await لتأكيد إلغاء التسليم أولاً
+      await context.read<ContractsCubit>().cancelContractHandover(
+        contractId: currentContract.id,
       );
+
+      if (!context.mounted) return;
+
+      // 🌟 2. سحب البيانات المحدثة
       context.read<ClientProfileCubit>().fetchClientData(client);
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -222,13 +230,13 @@ class ContractDetailsPage extends StatelessWidget {
 
   Future<void> _printHandoverPdf(
     BuildContext context,
-    Contract contract,
+    Contract currentContract,
     Client client,
   ) async {
     final buildingsState = context.read<BuildingsCubit>().state;
 
     final apartment = buildingsState.apartments
-        .where((a) => a.id == contract.apartmentId)
+        .where((a) => a.id == currentContract.apartmentId)
         .firstOrNull;
     if (apartment == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -261,7 +269,7 @@ class ContractDetailsPage extends StatelessWidget {
     );
 
     final pdfBytes = await HandoverPledgePdfHelper.generatePdf(
-      contract: contract,
+      contract: currentContract,
       client: client,
       apartment: apartment,
       building: building,
@@ -282,1024 +290,1097 @@ class ContractDetailsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool isAllocated = contract.contractType == 'متخصص';
-    final Color mainColor = isAllocated
-        ? Colors.amber.shade700
-        : Colors.blue.shade700;
-    final Color bgColor = isAllocated
-        ? Colors.amber.shade50
-        : Colors.blue.shade50;
-
-    Map<String, dynamic> coefficientsMap = {};
-    if (contract.coefficients.isNotEmpty && contract.coefficients != '{}') {
-      try {
-        coefficientsMap =
-            jsonDecode(contract.coefficients) as Map<String, dynamic>;
-      } catch (_) {}
-    }
-
-    final bool isPenaltyActive = contract.isPenaltyActive ?? false;
-    final double penaltyPct = contract.penaltyPercentage ?? 0.0;
-    final int penaltyInterval = contract.penaltyIntervalMonths ?? 1;
-
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
       body: SafeArea(
-        child: Center(
-          child: SizedBox(
-            width: 700,
-            child: CustomScrollView(
-              slivers: [
-                // ==========================================
-                // 🌟 1. قسم الهيدر والبطاقة الطافية
-                // ==========================================
-                SliverToBoxAdapter(
-                  child: Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      Container(
-                        height: 220,
-                        padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              mainColor,
-                              if (isAllocated)
-                                Colors.amber.shade900
-                              else
-                                Colors.blue.shade900,
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          borderRadius: const BorderRadius.only(
-                            bottomLeft: Radius.circular(24),
-                            bottomRight: Radius.circular(24),
-                          ),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                IconButton(
-                                  icon: const Icon(
-                                    Icons.arrow_forward_ios,
-                                    color: Colors.white,
-                                    size: 20,
-                                  ),
-                                  onPressed: () => Navigator.pop(context),
-                                ),
-                                const Expanded(
-                                  child: Text(
-                                    'تفاصيل العقد والمحفظة',
-                                    style: TextStyle(
-                                      color: Colors.white70,
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 6,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white24,
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      Icon(
-                                        isAllocated
-                                            ? Icons.apartment
-                                            : Icons.savings,
-                                        color: Colors.white,
-                                        size: 16,
-                                      ),
-                                      const SizedBox(width: 6),
-                                      Text(
-                                        contract.contractType,
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 13,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
+        // 🌟 تغليف الشاشة بالكامل بـ BlocBuilder ليستجيب لأي تحديث جديد
+        child: BlocBuilder<ClientProfileCubit, ClientProfileState>(
+          builder: (context, state) {
+            // 🌟 استخراج النسخة الأحدث من العقد من الـ state الحالي
+            ContractProfileSummary? currentSummary;
+            try {
+              currentSummary = state.contractsSummary.firstWhere(
+                (s) => s.contract.id == contract.id,
+              );
+            } catch (_) {
+              currentSummary = summary;
+            }
+
+            final currentContract = currentSummary?.contract ?? contract;
+
+            final bool isAllocated = currentContract.contractType == 'متخصص';
+            final Color mainColor = isAllocated
+                ? Colors.amber.shade700
+                : Colors.blue.shade700;
+            final Color bgColor = isAllocated
+                ? Colors.amber.shade50
+                : Colors.blue.shade50;
+
+            Map<String, dynamic> coefficientsMap = {};
+            if (currentContract.coefficients.isNotEmpty &&
+                currentContract.coefficients != '{}') {
+              try {
+                coefficientsMap =
+                    jsonDecode(currentContract.coefficients)
+                        as Map<String, dynamic>;
+              } catch (_) {}
+            }
+
+            final bool isPenaltyActive =
+                currentContract.isPenaltyActive ?? false;
+            final double penaltyPct = currentContract.penaltyPercentage ?? 0.0;
+            final int penaltyInterval =
+                currentContract.penaltyIntervalMonths ?? 1;
+
+            return Center(
+              child: SizedBox(
+                width: 700,
+                child: CustomScrollView(
+                  slivers: [
+                    // ==========================================
+                    // 🌟 1. قسم الهيدر والبطاقة الطافية
+                    // ==========================================
+                    SliverToBoxAdapter(
+                      child: Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          Container(
+                            height: 220,
+                            padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  mainColor,
+                                  if (isAllocated)
+                                    Colors.amber.shade900
+                                  else
+                                    Colors.blue.shade900,
+                                ],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              borderRadius: const BorderRadius.only(
+                                bottomLeft: Radius.circular(24),
+                                bottomRight: Radius.circular(24),
+                              ),
                             ),
-                            const SizedBox(height: 16),
-                            Row(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Container(
-                                  padding: const EdgeInsets.all(12),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withOpacity(0.2),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: const Icon(
-                                    Icons.description,
-                                    color: Colors.white,
-                                    size: 32,
-                                  ),
-                                ),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'عقد العميل: ${client.name}',
-                                        style: const TextStyle(
-                                          fontSize: 20,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.white,
-                                        ),
+                                Row(
+                                  children: [
+                                    IconButton(
+                                      icon: const Icon(
+                                        Icons.arrow_forward_ios,
+                                        color: Colors.white,
+                                        size: 20,
                                       ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        'رقم العقد: ${contract.id.split('-').first.toUpperCase()}',
-                                        style: const TextStyle(
+                                      onPressed: () => Navigator.pop(context),
+                                    ),
+                                    const Expanded(
+                                      child: Text(
+                                        'تفاصيل العقد والمحفظة',
+                                        style: TextStyle(
                                           color: Colors.white70,
                                           fontSize: 14,
-                                          letterSpacing: 1,
+                                          fontWeight: FontWeight.bold,
                                         ),
                                       ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      Positioned(
-                        top: 160,
-                        left: 20,
-                        right: 20,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 20,
-                            horizontal: 16,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(16),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.05),
-                                blurRadius: 10,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                            border: Border.all(color: Colors.grey.shade100),
-                          ),
-                          child: Row(
-                            children: [
-                              _buildTopStat(
-                                'المطلوب شهرياً',
-                                formatWithCommas(contract.agreedMonthlyAmount),
-                                'ل.س',
-                                Icons.payments,
-                                Colors.deepOrange,
-                              ),
-                              Container(
-                                height: 40,
-                                width: 1,
-                                color: Colors.grey.shade200,
-                              ),
-                              if (isAllocated) ...[
-                                _buildTopStat(
-                                  'سعر المتر عند التوقيع',
-                                  formatWithCommas(
-                                    contract.baseMeterPriceAtSigning,
-                                  ),
-                                  'ل.س',
-                                  Icons.price_change,
-                                  Colors.teal,
-                                ),
-                                Container(
-                                  height: 40,
-                                  width: 1,
-                                  color: Colors.grey.shade200,
-                                ),
-                                _buildTopStat(
-                                  'المساحة الإجمالية',
-                                  contract.totalArea.toStringAsFixed(2),
-                                  'م²',
-                                  Icons.architecture,
-                                  Colors.indigo,
-                                ),
-                              ] else ...[
-                                _buildTopStat(
-                                  'سعر المتر',
-                                  'حسب السوق',
-                                  'يوم الدفع',
-                                  Icons.trending_up,
-                                  Colors.blue,
-                                ),
-                                Container(
-                                  height: 40,
-                                  width: 1,
-                                  color: Colors.grey.shade200,
-                                ),
-                                _buildTopStat(
-                                  'المساحة',
-                                  'أسهم',
-                                  'غير مخصصة',
-                                  Icons.pie_chart,
-                                  Colors.indigo,
-                                ),
-                              ],
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SliverToBoxAdapter(child: SizedBox(height: 80)),
-                // ==========================================
-                // 🔒 رسالة توضيحية تظهر فقط للعقود المؤرشفة
-                // ==========================================
-                if (contract.isCompleted)
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
-                      child: Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.green.shade50,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: Colors.green.shade200,
-                            width: 2,
-                          ),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Icon(
-                                  Icons.archive_rounded,
-                                  color: Colors.green.shade700,
-                                  size: 28,
-                                ),
-                                const SizedBox(width: 10),
-                                Text(
-                                  'هذا العقد مُغلق ومؤرشف 🔒',
-                                  style: TextStyle(
-                                    color: Colors.green.shade900,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 12),
-                            const Text(
-                              '• السجل المالي: محفوظ بالكامل للاطلاع والتدقيق المحاسبي.\n'
-                              '• المدفوعات: تم إيقاف إضافة أو تعديل الدفعات لمنع التلاعب في الحسابات المنتهية.\n'
-                              '• المراقبة: تم سحب العقد من "رادار المراقبة" ولن تظهر له أي مطالبات أو متأخرات.\n'
-                              '• الإجراءات: يمكن للإدارة العليا فقط النقر على زر "إلغاء الأرشفة" من جدول العقود لإعادة فتحه عند الضرورة.',
-                              style: TextStyle(
-                                color: Colors.black87,
-                                height: 1.6,
-                                fontSize: 13,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-
-                // ==========================================
-                // 🚀 2. أزرار الإجراءات السريعة
-                // ==========================================
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'الإجراءات التشغيلية',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.blueGrey,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: _buildActionButton(
-                                icon: Icons.account_balance_wallet,
-                                label: 'صفحة الأقساط',
-                                color: Colors.deepOrange.shade600,
-                                onTap: () {
-                                  context.read<PaymentsCubit>().selectContract(
-                                    contract.id,
-                                  );
-                                  context.read<DashboardCubit>().changeTab(4);
-                                  Navigator.of(
-                                    context,
-                                  ).popUntil((route) => route.isFirst);
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                        'تم تحويلك لالأقساط الخاص بهذا العقد!',
+                                    ),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 12,
+                                        vertical: 6,
                                       ),
-                                      backgroundColor: Colors.green,
-                                    ),
-                                  );
-                                },
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: _buildActionButton(
-                                icon: Icons.radar,
-                                label: 'جدول المراقبة والمستحقات',
-                                color: Colors.indigo.shade600,
-                                onTap: () {
-                                  context.read<ScheduleCubit>().selectContract(
-                                    contract.id,
-                                  );
-                                  context.read<DashboardCubit>().changeTab(5);
-                                  Navigator.of(
-                                    context,
-                                  ).popUntil((route) => route.isFirst);
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                        'تم تحويلك لجدول المراقبة الخاص بهذا العقد!',
+                                      decoration: BoxDecoration(
+                                        color: Colors.white24,
+                                        borderRadius: BorderRadius.circular(20),
                                       ),
-                                      backgroundColor: Colors.green,
-                                    ),
-                                  );
-                                },
-                              ),
-                            ),
-                          ],
-                        ),
-                        if (contract.contractFileUrl != null &&
-                            contract.contractFileUrl!.isNotEmpty) ...[
-                          const SizedBox(height: 12),
-                          SizedBox(
-                            width: double.infinity,
-                            child: _buildActionButton(
-                              icon: Icons.attachment,
-                              label: 'عرض ملف العقد المرفق (PDF/Word)',
-                              color: Colors.green.shade700,
-                              onTap: () async {
-                                final urlString = contract.contractFileUrl!;
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                      'جاري إنشاء رابط وصول آمن... ⏳',
-                                    ),
-                                    backgroundColor: Colors.teal,
-                                  ),
-                                );
-
-                                final secureUrl = await context
-                                    .read<ContractsCubit>()
-                                    .getSecureContractUrl(urlString);
-
-                                if (secureUrl != null) {
-                                  if (secureUrl.startsWith('http')) {
-                                    final Uri url = Uri.parse(secureUrl);
-                                    if (await canLaunchUrl(url)) {
-                                      await launchUrl(url);
-                                    } else {
-                                      if (context.mounted) {
-                                        ScaffoldMessenger.of(
-                                          context,
-                                        ).showSnackBar(
-                                          const SnackBar(
-                                            content: Text(
-                                              'لا يمكن فتح الرابط السحابي.',
+                                      child: Row(
+                                        children: [
+                                          Icon(
+                                            isAllocated
+                                                ? Icons.apartment
+                                                : Icons.savings,
+                                            color: Colors.white,
+                                            size: 16,
+                                          ),
+                                          const SizedBox(width: 6),
+                                          Text(
+                                            currentContract.contractType,
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 13,
                                             ),
-                                            backgroundColor: Colors.red,
                                           ),
-                                        );
-                                      }
-                                    }
-                                  } else {
-                                    final result = await OpenFilex.open(
-                                      secureUrl,
-                                    );
-                                    if (result.type != ResultType.done &&
-                                        context.mounted) {
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        SnackBar(
-                                          content: Text(
-                                            '⚠️ تعذر فتح الملف المحلي: ${result.message}',
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 16),
+                                Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(12),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white.withOpacity(0.2),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: const Icon(
+                                        Icons.description,
+                                        color: Colors.white,
+                                        size: 32,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 16),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'عقد العميل: ${client.name}',
+                                            style: const TextStyle(
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.white,
+                                            ),
                                           ),
-                                          backgroundColor: Colors.orange,
-                                        ),
-                                      );
-                                    }
-                                  }
-                                }
-                              },
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            'رقم العقد: ${currentContract.id.split('-').first.toUpperCase()}',
+                                            style: const TextStyle(
+                                              color: Colors.white70,
+                                              fontSize: 14,
+                                              letterSpacing: 1,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
                             ),
                           ),
-                        ],
-                      ],
-                    ),
-                  ),
-                ),
 
-                const SliverToBoxAdapter(child: SizedBox(height: 32)),
-
-                // ==========================================
-                // 📄 3. تفاصيل العقد والوصف
-                // ==========================================
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: _buildSectionCard(
-                      title: 'تفاصيل العقد والوحدة',
-                      icon: Icons.info_outline,
-                      color: mainColor,
-                      bgColor: bgColor,
-                      child: Column(
-                        children: [
-                          _buildInfoRow(
-                            'تاريخ توقيع العقد:',
-                            _formatDateSafely(contract.contractDate),
-                            Icons.calendar_month,
-                          ),
-                          const Divider(height: 24),
-                          _buildInfoRow(
-                            'المدة المسجلة:',
-                            '${contract.installmentsCount} أشهر',
-                            Icons.timer,
-                          ),
-                          const Divider(height: 24),
-                          _buildInfoRow(
-                            'اسم الكفيل الضامن:',
-                            contract.guarantorName,
-                            Icons.person_pin,
-                          ),
-                          const Divider(height: 24),
-                          _buildInfoRow(
-                            'الوصف العقاري:',
-                            contract.apartmentDetails,
-                            Icons.apartment,
-                            isBold: true,
-                            valueColor: Colors.black87,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-
-                const SliverToBoxAdapter(child: SizedBox(height: 24)),
-
-                // ==========================================
-                // 🔑 4. حالة تسليم العقار + الغرامات (للمتخصص فقط)
-                // ==========================================
-                if (isAllocated) ...[
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: _buildSectionCard(
-                        title: 'حالة تسليم العقار (المفتاح)',
-                        icon: Icons.vpn_key,
-                        color: contract.isHandedOver
-                            ? Colors.teal.shade700
-                            : Colors.orange.shade700,
-                        bgColor: contract.isHandedOver
-                            ? Colors.teal.shade50
-                            : Colors.orange.shade50,
-                        child: Column(
-                          children: [
-                            Container(
+                          Positioned(
+                            top: 160,
+                            left: 20,
+                            right: 20,
+                            child: Container(
                               padding: const EdgeInsets.symmetric(
+                                vertical: 20,
                                 horizontal: 16,
-                                vertical: 12,
                               ),
                               decoration: BoxDecoration(
-                                color: contract.isHandedOver
-                                    ? Colors.teal.shade100
-                                    : Colors.orange.shade100,
-                                borderRadius: BorderRadius.circular(8),
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(16),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.05),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                                border: Border.all(color: Colors.grey.shade100),
                               ),
                               child: Row(
                                 children: [
-                                  Icon(
-                                    contract.isHandedOver
-                                        ? Icons.check_circle
-                                        : Icons.hourglass_top,
-                                    color: contract.isHandedOver
-                                        ? Colors.teal.shade800
-                                        : Colors.orange.shade800,
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Text(
-                                    contract.isHandedOver
-                                        ? 'تم تسليم الشقة للعميل'
-                                        : 'قيد الإنشاء / لم يتم التسليم بعد',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 15,
-                                      color: contract.isHandedOver
-                                          ? Colors.teal.shade900
-                                          : Colors.orange.shade900,
+                                  _buildTopStat(
+                                    'المطلوب شهرياً',
+                                    formatWithCommas(
+                                      currentContract.agreedMonthlyAmount,
                                     ),
+                                    'ل.س',
+                                    Icons.payments,
+                                    Colors.deepOrange,
                                   ),
-                                ],
-                              ),
-                            ),
-                            const Divider(height: 24),
-                            _buildInfoRow(
-                              'الموعد المتفق عليه بالعقد:',
-                              _formatDateSafely(contract.agreedHandoverDate),
-                              Icons.event,
-                            ),
-                            const Divider(height: 24),
-                            _buildInfoRow(
-                              'فترة السماح (للمطور):',
-                              '${contract.gracePeriodMonths} أشهر',
-                              Icons.hourglass_empty,
-                            ),
-                            const Divider(height: 24),
-                            _buildInfoRow(
-                              'نظام الفائدة (بعد التسليم):',
-                              isPenaltyActive
-                                  ? 'مُفعّل ($penaltyPct% كل $penaltyInterval أشهر)'
-                                  : 'غير مُفعّل',
-                              Icons.local_fire_department,
-                              isBold: isPenaltyActive,
-                              valueColor: isPenaltyActive
-                                  ? Colors.deepOrange.shade700
-                                  : Colors.grey,
-                            ),
-
-                            if (contract.isHandedOver) ...[
-                              const Divider(height: 24),
-                              _buildInfoRow(
-                                'تاريخ التسليم الفعلي:',
-                                _formatDateSafely(contract.actualHandoverDate),
-                                Icons.event_available,
-                                isBold: true,
-                                valueColor: Colors.teal.shade800,
-                              ),
-                              if (contract.handoverNotes != null &&
-                                  contract.handoverNotes!.isNotEmpty) ...[
-                                const Divider(height: 24),
-                                _buildInfoRow(
-                                  'ملاحظات / نواقص التسليم:',
-                                  contract.handoverNotes!,
-                                  Icons.note_alt,
-                                  valueColor: Colors.red.shade700,
-                                ),
-                              ],
-
-                              if (summary != null &&
-                                  summary!.penaltyAmount > 0) ...[
-                                const SizedBox(height: 16),
-                                Container(
-                                  padding: const EdgeInsets.all(16),
-                                  decoration: BoxDecoration(
-                                    color: Colors.red.shade50,
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(
-                                      color: Colors.red.shade300,
-                                      width: 2,
+                                  Container(
+                                    height: 40,
+                                    width: 1,
+                                    color: Colors.grey.shade200,
+                                  ),
+                                  if (isAllocated) ...[
+                                    _buildTopStat(
+                                      'سعر المتر عند التوقيع',
+                                      formatWithCommas(
+                                        currentContract.baseMeterPriceAtSigning,
+                                      ),
+                                      'ل.س',
+                                      Icons.price_change,
+                                      Colors.teal,
                                     ),
-                                  ),
-                                  child: Row(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Icon(
-                                        Icons.warning_amber_rounded,
-                                        color: Colors.red.shade700,
-                                        size: 28,
-                                      ),
-                                      const SizedBox(width: 12),
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              'تنبيه محاسبي: غرامات متراكمة',
-                                              style: TextStyle(
-                                                color: Colors.red.shade900,
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 14,
-                                              ),
-                                            ),
-                                            const SizedBox(height: 4),
-                                            Text(
-                                              'لقد مر الزمن المحدد بعد الاستلام والعميل لا يزال مديناً. النظام أضاف آلياً غرامة بقيمة ${formatWithCommas(summary!.penaltyAmount)} ل.س إلى ديونه.',
-                                              style: TextStyle(
-                                                color: Colors.red.shade800,
-                                                fontSize: 13,
-                                                height: 1.5,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ],
-
-                            // ==========================================
-                            // 🌟 أزرار التحكم بالتسليم والطباعة
-                            // ==========================================
-                            if (!contract.isCompleted) ...[
-                              const SizedBox(height: 24),
-                              const Divider(height: 1),
-                              const SizedBox(height: 16),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.end,
-                                children: [
-                                  if (!contract.isHandedOver)
-                                    ElevatedButton.icon(
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.teal.shade700,
-                                        foregroundColor: Colors.white,
-                                      ),
-                                      icon: const Icon(Icons.vpn_key),
-                                      label: const Text(
-                                        'تسليم الشقة للعميل',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      onPressed: () => _showHandoverDialog(
-                                        context,
-                                        contract,
-                                        client,
-                                      ),
-                                    )
-                                  else ...[
-                                    OutlinedButton.icon(
-                                      style: OutlinedButton.styleFrom(
-                                        foregroundColor: Colors.red.shade700,
-                                        side: BorderSide(
-                                          color: Colors.red.shade300,
-                                        ),
-                                      ),
-                                      icon: const Icon(
-                                        Icons.cancel_schedule_send,
-                                      ),
-                                      label: const Text(
-                                        'إلغاء التسليم',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      onPressed: () => _cancelHandover(
-                                        context,
-                                        contract,
-                                        client,
-                                      ),
+                                    Container(
+                                      height: 40,
+                                      width: 1,
+                                      color: Colors.grey.shade200,
                                     ),
-                                    const SizedBox(width: 12),
-                                    ElevatedButton.icon(
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor:
-                                            Colors.blueGrey.shade800,
-                                        foregroundColor: Colors.white,
+                                    _buildTopStat(
+                                      'المساحة الإجمالية',
+                                      currentContract.totalArea.toStringAsFixed(
+                                        2,
                                       ),
-                                      icon: const Icon(Icons.print),
-                                      label: const Text(
-                                        'طباعة محضر الاستلام',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      onPressed: () => _printHandoverPdf(
-                                        context,
-                                        contract,
-                                        client,
-                                      ),
+                                      'م²',
+                                      Icons.architecture,
+                                      Colors.indigo,
+                                    ),
+                                  ] else ...[
+                                    _buildTopStat(
+                                      'سعر المتر',
+                                      'حسب السوق',
+                                      'يوم الدفع',
+                                      Icons.trending_up,
+                                      Colors.blue,
+                                    ),
+                                    Container(
+                                      height: 40,
+                                      width: 1,
+                                      color: Colors.grey.shade200,
+                                    ),
+                                    _buildTopStat(
+                                      'المساحة',
+                                      'أسهم',
+                                      'غير مخصصة',
+                                      Icons.pie_chart,
+                                      Colors.indigo,
                                     ),
                                   ],
                                 ],
                               ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SliverToBoxAdapter(child: SizedBox(height: 80)),
+                    // ==========================================
+                    // 🔒 رسالة توضيحية تظهر فقط للعقود المؤرشفة
+                    // ==========================================
+                    if (currentContract.isCompleted)
+                      SliverToBoxAdapter(
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
+                          child: Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.green.shade50,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: Colors.green.shade200,
+                                width: 2,
+                              ),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.archive_rounded,
+                                      color: Colors.green.shade700,
+                                      size: 28,
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Text(
+                                      'هذا العقد مُغلق ومؤرشف 🔒',
+                                      style: TextStyle(
+                                        color: Colors.green.shade900,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+                                const Text(
+                                  '• السجل المالي: محفوظ بالكامل للاطلاع والتدقيق المحاسبي.\n'
+                                  '• المدفوعات: تم إيقاف إضافة أو تعديل الدفعات لمنع التلاعب في الحسابات المنتهية.\n'
+                                  '• المراقبة: تم سحب العقد من "رادار المراقبة" ولن تظهر له أي مطالبات أو متأخرات.\n'
+                                  '• الإجراءات: يمكن للإدارة العليا فقط النقر على زر "إلغاء الأرشفة" من جدول العقود لإعادة فتحه عند الضرورة.',
+                                  style: TextStyle(
+                                    color: Colors.black87,
+                                    height: 1.6,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+
+                    // ==========================================
+                    // 🚀 2. أزرار الإجراءات السريعة
+                    // ==========================================
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'الإجراءات التشغيلية',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.blueGrey,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _buildActionButton(
+                                    icon: Icons.account_balance_wallet,
+                                    label: 'صفحة الأقساط',
+                                    color: Colors.deepOrange.shade600,
+                                    onTap: () {
+                                      context
+                                          .read<PaymentsCubit>()
+                                          .selectContract(
+                                            currentContract.id,
+                                          );
+                                      context.read<DashboardCubit>().changeTab(
+                                        4,
+                                      );
+                                      Navigator.of(
+                                        context,
+                                      ).popUntil((route) => route.isFirst);
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        const SnackBar(
+                                          content: Text(
+                                            'تم تحويلك لالأقساط الخاص بهذا العقد!',
+                                          ),
+                                          backgroundColor: Colors.green,
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: _buildActionButton(
+                                    icon: Icons.radar,
+                                    label: 'جدول المراقبة والمستحقات',
+                                    color: Colors.indigo.shade600,
+                                    onTap: () {
+                                      context
+                                          .read<ScheduleCubit>()
+                                          .selectContract(
+                                            currentContract.id,
+                                          );
+                                      context.read<DashboardCubit>().changeTab(
+                                        5,
+                                      );
+                                      Navigator.of(
+                                        context,
+                                      ).popUntil((route) => route.isFirst);
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        const SnackBar(
+                                          content: Text(
+                                            'تم تحويلك لجدول المراقبة الخاص بهذا العقد!',
+                                          ),
+                                          backgroundColor: Colors.green,
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
+                            if (currentContract.contractFileUrl != null &&
+                                currentContract
+                                    .contractFileUrl!
+                                    .isNotEmpty) ...[
+                              const SizedBox(height: 12),
+                              SizedBox(
+                                width: double.infinity,
+                                child: _buildActionButton(
+                                  icon: Icons.attachment,
+                                  label: 'عرض ملف العقد المرفق (PDF/Word)',
+                                  color: Colors.green.shade700,
+                                  onTap: () async {
+                                    final urlString =
+                                        currentContract.contractFileUrl!;
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          'جاري إنشاء رابط وصول آمن... ⏳',
+                                        ),
+                                        backgroundColor: Colors.teal,
+                                      ),
+                                    );
+
+                                    final secureUrl = await context
+                                        .read<ContractsCubit>()
+                                        .getSecureContractUrl(urlString);
+
+                                    if (secureUrl != null) {
+                                      if (secureUrl.startsWith('http')) {
+                                        final Uri url = Uri.parse(secureUrl);
+                                        if (await canLaunchUrl(url)) {
+                                          await launchUrl(url);
+                                        } else {
+                                          if (context.mounted) {
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              const SnackBar(
+                                                content: Text(
+                                                  'لا يمكن فتح الرابط السحابي.',
+                                                ),
+                                                backgroundColor: Colors.red,
+                                              ),
+                                            );
+                                          }
+                                        }
+                                      } else {
+                                        final result = await OpenFilex.open(
+                                          secureUrl,
+                                        );
+                                        if (result.type != ResultType.done &&
+                                            context.mounted) {
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                '⚠️ تعذر فتح الملف المحلي: ${result.message}',
+                                              ),
+                                              backgroundColor: Colors.orange,
+                                            ),
+                                          );
+                                        }
+                                      }
+                                    }
+                                  },
+                                ),
+                              ),
                             ],
                           ],
                         ),
                       ),
                     ),
-                  ),
-                  const SliverToBoxAdapter(child: SizedBox(height: 24)),
-                ],
 
-                // ==========================================
-                // ⚖️ 5. السجل القانوني والإجراءات (Legal Section)
-                // ==========================================
-                if (summary != null)
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: _buildSectionCard(
-                        title: 'السجل القانوني والإجراءات',
-                        icon: Icons.gavel,
-                        color: Colors.brown.shade700,
-                        bgColor: Colors.brown.shade50,
-                        child: summary!.legalActions.isEmpty
-                            ? const Center(
-                                child: Padding(
-                                  padding: EdgeInsets.all(16.0),
-                                  child: Text(
-                                    'السجل نظيف. لا توجد أي إجراءات قانونية مسجلة.',
-                                    style: TextStyle(
-                                      color: Colors.grey,
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                    const SliverToBoxAdapter(child: SizedBox(height: 32)),
+
+                    // ==========================================
+                    // 📄 3. تفاصيل العقد والوصف
+                    // ==========================================
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: _buildSectionCard(
+                          title: 'تفاصيل العقد والوحدة',
+                          icon: Icons.info_outline,
+                          color: mainColor,
+                          bgColor: bgColor,
+                          child: Column(
+                            children: [
+                              _buildInfoRow(
+                                'تاريخ توقيع العقد:',
+                                _formatDateSafely(currentContract.contractDate),
+                                Icons.calendar_month,
+                              ),
+                              const Divider(height: 24),
+                              _buildInfoRow(
+                                'المدة المسجلة:',
+                                '${currentContract.installmentsCount} أشهر',
+                                Icons.timer,
+                              ),
+                              const Divider(height: 24),
+                              _buildInfoRow(
+                                'اسم الكفيل الضامن:',
+                                currentContract.guarantorName,
+                                Icons.person_pin,
+                              ),
+                              const Divider(height: 24),
+                              _buildInfoRow(
+                                'الوصف العقاري:',
+                                currentContract.apartmentDetails,
+                                Icons.apartment,
+                                isBold: true,
+                                valueColor: Colors.black87,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    const SliverToBoxAdapter(child: SizedBox(height: 24)),
+
+                    // ==========================================
+                    // 🔑 4. حالة تسليم العقار + الغرامات (للمتخصص فقط)
+                    // ==========================================
+                    if (isAllocated) ...[
+                      SliverToBoxAdapter(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: _buildSectionCard(
+                            title: 'حالة تسليم العقار (المفتاح)',
+                            icon: Icons.vpn_key,
+                            color: currentContract.isHandedOver
+                                ? Colors.teal.shade700
+                                : Colors.orange.shade700,
+                            bgColor: currentContract.isHandedOver
+                                ? Colors.teal.shade50
+                                : Colors.orange.shade50,
+                            child: Column(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 12,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: currentContract.isHandedOver
+                                        ? Colors.teal.shade100
+                                        : Colors.orange.shade100,
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        currentContract.isHandedOver
+                                            ? Icons.check_circle
+                                            : Icons.hourglass_top,
+                                        color: currentContract.isHandedOver
+                                            ? Colors.teal.shade800
+                                            : Colors.orange.shade800,
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Text(
+                                        currentContract.isHandedOver
+                                            ? 'تم تسليم الشقة للعميل'
+                                            : 'قيد الإنشاء / لم يتم التسليم بعد',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 15,
+                                          color: currentContract.isHandedOver
+                                              ? Colors.teal.shade900
+                                              : Colors.orange.shade900,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
-                              )
-                            : Column(
-                                children: summary!.legalActions.map((action) {
-                                  return Container(
-                                    margin: const EdgeInsets.only(bottom: 12),
-                                    padding: const EdgeInsets.all(12),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      border: Border.all(
-                                        color: Colors.brown.shade200,
-                                      ),
-                                      borderRadius: BorderRadius.circular(8),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.brown.shade100
-                                              .withOpacity(0.5),
-                                          blurRadius: 4,
-                                          offset: const Offset(0, 2),
-                                        ),
-                                      ],
+                                const Divider(height: 24),
+                                _buildInfoRow(
+                                  'الموعد المتفق عليه بالعقد:',
+                                  _formatDateSafely(
+                                    currentContract.agreedHandoverDate,
+                                  ),
+                                  Icons.event,
+                                ),
+                                const Divider(height: 24),
+                                _buildInfoRow(
+                                  'فترة السماح (للمطور):',
+                                  '${currentContract.gracePeriodMonths} أشهر',
+                                  Icons.hourglass_empty,
+                                ),
+                                const Divider(height: 24),
+                                _buildInfoRow(
+                                  'نظام الفائدة (بعد التسليم):',
+                                  isPenaltyActive
+                                      ? 'مُفعّل ($penaltyPct% كل $penaltyInterval أشهر)'
+                                      : 'غير مُفعّل',
+                                  Icons.local_fire_department,
+                                  isBold: isPenaltyActive,
+                                  valueColor: isPenaltyActive
+                                      ? Colors.deepOrange.shade700
+                                      : Colors.grey,
+                                ),
+
+                                if (currentContract.isHandedOver) ...[
+                                  const Divider(height: 24),
+                                  _buildInfoRow(
+                                    'تاريخ التسليم الفعلي:',
+                                    _formatDateSafely(
+                                      currentContract.actualHandoverDate,
                                     ),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            _buildActionTypeChip(
-                                              action.actionType,
-                                            ),
-                                            Row(
+                                    Icons.event_available,
+                                    isBold: true,
+                                    valueColor: Colors.teal.shade800,
+                                  ),
+                                  if (currentContract.handoverNotes != null &&
+                                      currentContract
+                                          .handoverNotes!
+                                          .isNotEmpty) ...[
+                                    const Divider(height: 24),
+                                    _buildInfoRow(
+                                      'ملاحظات / نواقص التسليم:',
+                                      currentContract.handoverNotes!,
+                                      Icons.note_alt,
+                                      valueColor: Colors.red.shade700,
+                                    ),
+                                  ],
+
+                                  if (currentSummary != null &&
+                                      currentSummary.penaltyAmount > 0) ...[
+                                    const SizedBox(height: 16),
+                                    Container(
+                                      padding: const EdgeInsets.all(16),
+                                      decoration: BoxDecoration(
+                                        color: Colors.red.shade50,
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(
+                                          color: Colors.red.shade300,
+                                          width: 2,
+                                        ),
+                                      ),
+                                      child: Row(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Icon(
+                                            Icons.warning_amber_rounded,
+                                            color: Colors.red.shade700,
+                                            size: 28,
+                                          ),
+                                          const SizedBox(width: 12),
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
                                               children: [
-                                                const Icon(
-                                                  Icons.event,
-                                                  size: 14,
-                                                  color: Colors.brown,
-                                                ),
-                                                const SizedBox(width: 4),
                                                 Text(
-                                                  _formatDateSafely(
-                                                    action.actionDate,
-                                                  ),
-                                                  style: const TextStyle(
+                                                  'تنبيه محاسبي: غرامات متراكمة',
+                                                  style: TextStyle(
+                                                    color: Colors.red.shade900,
                                                     fontWeight: FontWeight.bold,
-                                                    color: Colors.brown,
+                                                    fontSize: 14,
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 4),
+                                                Text(
+                                                  'لقد مر الزمن المحدد بعد الاستلام والعميل لا يزال مديناً. النظام أضاف آلياً غرامة بقيمة ${formatWithCommas(currentSummary.penaltyAmount)} ل.س إلى ديونه.',
+                                                  style: TextStyle(
+                                                    color: Colors.red.shade800,
                                                     fontSize: 13,
+                                                    height: 1.5,
                                                   ),
                                                 ),
                                               ],
                                             ),
-                                          ],
-                                        ),
-                                        if (action.notes != null &&
-                                            action.notes!.isNotEmpty) ...[
-                                          const SizedBox(height: 12),
-                                          Container(
-                                            width: double.infinity,
-                                            padding: const EdgeInsets.all(10),
-                                            decoration: BoxDecoration(
-                                              color: Colors.grey.shade50,
-                                              borderRadius:
-                                                  BorderRadius.circular(6),
-                                              border: Border.all(
-                                                color: Colors.grey.shade200,
-                                              ),
-                                            ),
-                                            child: Text(
-                                              action.notes!,
-                                              style: TextStyle(
-                                                color: Colors.grey.shade800,
-                                                fontSize: 13,
-                                                height: 1.5,
-                                              ),
-                                            ),
                                           ),
                                         ],
-                                        const SizedBox(height: 8),
-                                        Align(
-                                          alignment: Alignment.centerLeft,
-                                          child: TextButton.icon(
-                                            icon: const Icon(
-                                              Icons.perm_media,
-                                              size: 16,
-                                            ),
-                                            label: const Text(
-                                              'معرض المرفقات',
-                                              style: TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                            style: TextButton.styleFrom(
-                                              foregroundColor: Colors.indigo,
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                    horizontal: 12,
-                                                    vertical: 8,
-                                                  ),
-                                              backgroundColor:
-                                                  Colors.indigo.shade50,
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(8),
-                                              ),
-                                            ),
-                                            onPressed: () {
-                                              final authState = context
-                                                  .read<AuthCubit>()
-                                                  .state;
-                                              final canManageAttachments =
-                                                  authState.hasPermission(
-                                                    AppPermissions
-                                                        .manageLegalAttachments,
-                                                  );
-
-                                              Navigator.push(
-                                                context,
-                                                LegalAttachmentsPage.route(
-                                                  action,
-                                                  canManageAttachments,
-                                                  context
-                                                      .read<
-                                                        LegalAffairsCubit
-                                                      >(),
-                                                ),
-                                              );
-                                            },
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                }).toList(),
-                              ),
-                      ),
-                    ),
-                  ),
-
-                const SliverToBoxAdapter(child: SizedBox(height: 24)),
-
-                // ==========================================
-                // 📊 6. التحليل المالي والمعاملات
-                // ==========================================
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: _buildSectionCard(
-                      title: 'التحليل المالي والمعاملات (التميز)',
-                      icon: Icons.analytics,
-                      color: Colors.teal.shade700,
-                      bgColor: Colors.teal.shade50,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          if (isAllocated) ...[
-                            if (coefficientsMap.isEmpty)
-                              Container(
-                                width: double.infinity,
-                                padding: const EdgeInsets.all(16),
-                                decoration: BoxDecoration(
-                                  color: Colors.grey.shade50,
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: const Text(
-                                  'لا يوجد معاملات تميز إضافية مسجلة لهذا العقد.',
-                                  style: TextStyle(
-                                    color: Colors.grey,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                              )
-                            else
-                              Wrap(
-                                spacing: 10,
-                                runSpacing: 10,
-                                children: coefficientsMap.entries.map((entry) {
-                                  double percentage =
-                                      (entry.value as num).toDouble() * 100;
-                                  return Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 12,
-                                      vertical: 8,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: Colors.teal.shade50.withOpacity(
-                                        0.5,
-                                      ),
-                                      borderRadius: BorderRadius.circular(8),
-                                      border: Border.all(
-                                        color: Colors.teal.shade100,
                                       ),
                                     ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Text(
-                                          entry.key,
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.teal.shade900,
-                                            fontSize: 13,
+                                  ],
+                                ],
+
+                                // ==========================================
+                                // 🌟 أزرار التحكم بالتسليم والطباعة
+                                // ==========================================
+                                if (!currentContract.isCompleted) ...[
+                                  const SizedBox(height: 24),
+                                  const Divider(height: 1),
+                                  const SizedBox(height: 16),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.end,
+                                    children: [
+                                      if (!currentContract.isHandedOver)
+                                        ElevatedButton.icon(
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor:
+                                                Colors.teal.shade700,
+                                            foregroundColor: Colors.white,
                                           ),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 6,
-                                            vertical: 2,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: Colors.white,
-                                            borderRadius: BorderRadius.circular(
-                                              4,
-                                            ),
-                                          ),
-                                          child: Text(
-                                            '${percentage.toStringAsFixed(1)}%',
+                                          icon: const Icon(Icons.vpn_key),
+                                          label: const Text(
+                                            'تسليم الشقة للعميل',
                                             style: TextStyle(
                                               fontWeight: FontWeight.bold,
-                                              color: Colors.teal.shade700,
                                             ),
+                                          ),
+                                          onPressed: () => _showHandoverDialog(
+                                            context,
+                                            currentContract,
+                                            client,
+                                          ),
+                                        )
+                                      else ...[
+                                        OutlinedButton.icon(
+                                          style: OutlinedButton.styleFrom(
+                                            foregroundColor:
+                                                Colors.red.shade700,
+                                            side: BorderSide(
+                                              color: Colors.red.shade300,
+                                            ),
+                                          ),
+                                          icon: const Icon(
+                                            Icons.cancel_schedule_send,
+                                          ),
+                                          label: const Text(
+                                            'إلغاء التسليم',
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          onPressed: () => _cancelHandover(
+                                            context,
+                                            currentContract,
+                                            client,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        ElevatedButton.icon(
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor:
+                                                Colors.blueGrey.shade800,
+                                            foregroundColor: Colors.white,
+                                          ),
+                                          icon: const Icon(Icons.print),
+                                          label: const Text(
+                                            'طباعة محضر الاستلام',
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          onPressed: () => _printHandoverPdf(
+                                            context,
+                                            currentContract,
+                                            client,
                                           ),
                                         ),
                                       ],
-                                    ),
-                                  );
-                                }).toList(),
-                              ),
-                          ] else ...[
-                            Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: Colors.blue.shade50,
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: Colors.blue.shade100),
-                              ),
-                              child: Row(
-                                children: [
-                                  Icon(Icons.info, color: Colors.blue.shade700),
-                                  const SizedBox(width: 12),
-                                  const Expanded(
-                                    child: Text(
-                                      'لا يوجد معاملات لتسعير المتر. المحفظة الاستثمارية تحسب السعر آلياً لحظة كل دفعة بناءً على أسعار المواد في يوم الدفع.',
-                                      style: TextStyle(
-                                        color: Colors.black87,
-                                        fontSize: 13,
-                                        height: 1.5,
-                                      ),
-                                    ),
+                                    ],
                                   ),
                                 ],
-                              ),
+                              ],
                             ),
-                          ],
-                        ],
+                          ),
+                        ),
+                      ),
+                      const SliverToBoxAdapter(child: SizedBox(height: 24)),
+                    ],
+
+                    // ==========================================
+                    // ⚖️ 5. السجل القانوني والإجراءات (Legal Section)
+                    // ==========================================
+                    if (currentSummary != null)
+                      SliverToBoxAdapter(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: _buildSectionCard(
+                            title: 'السجل القانوني والإجراءات',
+                            icon: Icons.gavel,
+                            color: Colors.brown.shade700,
+                            bgColor: Colors.brown.shade50,
+                            child: currentSummary.legalActions.isEmpty
+                                ? const Center(
+                                    child: Padding(
+                                      padding: EdgeInsets.all(16.0),
+                                      child: Text(
+                                        'السجل نظيف. لا توجد أي إجراءات قانونية مسجلة.',
+                                        style: TextStyle(
+                                          color: Colors.grey,
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  )
+                                : Column(
+                                    children: currentSummary.legalActions.map((
+                                      action,
+                                    ) {
+                                      return Container(
+                                        margin: const EdgeInsets.only(
+                                          bottom: 12,
+                                        ),
+                                        padding: const EdgeInsets.all(12),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          border: Border.all(
+                                            color: Colors.brown.shade200,
+                                          ),
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.brown.shade100
+                                                  .withOpacity(0.5),
+                                              blurRadius: 4,
+                                              offset: const Offset(0, 2),
+                                            ),
+                                          ],
+                                        ),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              children: [
+                                                _buildActionTypeChip(
+                                                  action.actionType,
+                                                ),
+                                                Row(
+                                                  children: [
+                                                    const Icon(
+                                                      Icons.event,
+                                                      size: 14,
+                                                      color: Colors.brown,
+                                                    ),
+                                                    const SizedBox(width: 4),
+                                                    Text(
+                                                      _formatDateSafely(
+                                                        action.actionDate,
+                                                      ),
+                                                      style: const TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        color: Colors.brown,
+                                                        fontSize: 13,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ],
+                                            ),
+                                            if (action.notes != null &&
+                                                action.notes!.isNotEmpty) ...[
+                                              const SizedBox(height: 12),
+                                              Container(
+                                                width: double.infinity,
+                                                padding: const EdgeInsets.all(
+                                                  10,
+                                                ),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.grey.shade50,
+                                                  borderRadius:
+                                                      BorderRadius.circular(6),
+                                                  border: Border.all(
+                                                    color: Colors.grey.shade200,
+                                                  ),
+                                                ),
+                                                child: Text(
+                                                  action.notes!,
+                                                  style: TextStyle(
+                                                    color: Colors.grey.shade800,
+                                                    fontSize: 13,
+                                                    height: 1.5,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                            const SizedBox(height: 8),
+                                            Align(
+                                              alignment: Alignment.centerLeft,
+                                              child: TextButton.icon(
+                                                icon: const Icon(
+                                                  Icons.perm_media,
+                                                  size: 16,
+                                                ),
+                                                label: const Text(
+                                                  'معرض المرفقات',
+                                                  style: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                                style: TextButton.styleFrom(
+                                                  foregroundColor:
+                                                      Colors.indigo,
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 12,
+                                                        vertical: 8,
+                                                      ),
+                                                  backgroundColor:
+                                                      Colors.indigo.shade50,
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          8,
+                                                        ),
+                                                  ),
+                                                ),
+                                                onPressed: () {
+                                                  final authState = context
+                                                      .read<AuthCubit>()
+                                                      .state;
+                                                  final canManageAttachments =
+                                                      authState.hasPermission(
+                                                        AppPermissions
+                                                            .manageLegalAttachments,
+                                                      );
+
+                                                  Navigator.push(
+                                                    context,
+                                                    LegalAttachmentsPage.route(
+                                                      action,
+                                                      canManageAttachments,
+                                                      context
+                                                          .read<
+                                                            LegalAffairsCubit
+                                                          >(),
+                                                    ),
+                                                  );
+                                                },
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    }).toList(),
+                                  ),
+                          ),
+                        ),
+                      ),
+
+                    const SliverToBoxAdapter(child: SizedBox(height: 24)),
+
+                    // ==========================================
+                    // 📊 6. التحليل المالي والمعاملات
+                    // ==========================================
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: _buildSectionCard(
+                          title: 'التحليل المالي والمعاملات (التميز)',
+                          icon: Icons.analytics,
+                          color: Colors.teal.shade700,
+                          bgColor: Colors.teal.shade50,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (isAllocated) ...[
+                                if (coefficientsMap.isEmpty)
+                                  Container(
+                                    width: double.infinity,
+                                    padding: const EdgeInsets.all(16),
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey.shade50,
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: const Text(
+                                      'لا يوجد معاملات تميز إضافية مسجلة لهذا العقد.',
+                                      style: TextStyle(
+                                        color: Colors.grey,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                  )
+                                else
+                                  Wrap(
+                                    spacing: 10,
+                                    runSpacing: 10,
+                                    children: coefficientsMap.entries.map((
+                                      entry,
+                                    ) {
+                                      double percentage =
+                                          (entry.value as num).toDouble() * 100;
+                                      return Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 12,
+                                          vertical: 8,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: Colors.teal.shade50
+                                              .withOpacity(
+                                                0.5,
+                                              ),
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
+                                          border: Border.all(
+                                            color: Colors.teal.shade100,
+                                          ),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Text(
+                                              entry.key,
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.teal.shade900,
+                                                fontSize: 13,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 6,
+                                                    vertical: 2,
+                                                  ),
+                                              decoration: BoxDecoration(
+                                                color: Colors.white,
+                                                borderRadius:
+                                                    BorderRadius.circular(
+                                                      4,
+                                                    ),
+                                              ),
+                                              child: Text(
+                                                '${percentage.toStringAsFixed(1)}%',
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.teal.shade700,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    }).toList(),
+                                  ),
+                              ] else ...[
+                                Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    color: Colors.blue.shade50,
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(
+                                      color: Colors.blue.shade100,
+                                    ),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        Icons.info,
+                                        color: Colors.blue.shade700,
+                                      ),
+                                      const SizedBox(width: 12),
+                                      const Expanded(
+                                        child: Text(
+                                          'لا يوجد معاملات لتسعير المتر. المحفظة الاستثمارية تحسب السعر آلياً لحظة كل دفعة بناءً على أسعار المواد في يوم الدفع.',
+                                          style: TextStyle(
+                                            color: Colors.black87,
+                                            fontSize: 13,
+                                            height: 1.5,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
                       ),
                     ),
-                  ),
+                    const SliverToBoxAdapter(child: SizedBox(height: 40)),
+                  ],
                 ),
-                const SliverToBoxAdapter(child: SizedBox(height: 40)),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         ),
       ),
     );

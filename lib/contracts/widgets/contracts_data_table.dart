@@ -12,7 +12,7 @@ import 'package:our_home_erp_app/profile/view/contract_details_page.dart';
 import 'package:our_home_erp_app/schedule/cubit/schedule_cubit.dart';
 import 'package:our_home_erp_app/contracts/cubit/contracts_cubit.dart';
 import 'package:our_home_erp_app/contracts/view/contract_attachments_page.dart';
-
+import 'package:our_home_erp_app/buildings/cubit/buildings_cubit.dart';
 import 'package:our_home_erp_app/auth/cubit/auth_cubit.dart';
 import 'package:our_home_erp_app/core/constants/app_permissions.dart';
 import 'package:our_home_erp_app/contracts/widgets/dialogs/edit_contract_dialog.dart';
@@ -72,6 +72,10 @@ class ContractsDataTable extends StatelessWidget {
               BlocProvider.value(value: context.read<DashboardCubit>()),
               BlocProvider.value(value: context.read<PaymentsCubit>()),
               BlocProvider.value(value: context.read<ScheduleCubit>()),
+              // 🌟 أضف السطرين التاليين:
+              BlocProvider.value(value: context.read<ContractsCubit>()),
+              BlocProvider.value(value: context.read<BuildingsCubit>()),
+
               BlocProvider(create: (_) => clientProfileCubit),
             ],
             child: ContractDetailsPage(

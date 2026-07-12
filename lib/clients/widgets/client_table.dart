@@ -1,6 +1,7 @@
 // مسار الملف: lib/clients/widgets/client_table.dart
 import 'dart:async';
-
+import 'package:our_home_erp_app/contracts/cubit/contracts_cubit.dart';
+import 'package:our_home_erp_app/buildings/cubit/buildings_cubit.dart';
 import 'package:erp_repository/erp_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -178,6 +179,14 @@ class ClientTable extends StatelessWidget {
                                         BlocProvider.value(
                                           value: context.read<ScheduleCubit>(),
                                         ),
+                                        // 🌟 أضف السطرين التاليين:
+                                        BlocProvider.value(
+                                          value: context.read<ContractsCubit>(),
+                                        ),
+                                        BlocProvider.value(
+                                          value: context.read<BuildingsCubit>(),
+                                        ),
+
                                         BlocProvider(
                                           create: (ctx) {
                                             final cubit = ClientProfileCubit(

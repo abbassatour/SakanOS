@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:local_storage_api/local_storage_api.dart' show Client;
 import '../cubit/client_profile_cubit.dart';
-
+import '../../contracts/cubit/contracts_cubit.dart';
+import '../../buildings/cubit/buildings_cubit.dart';
 import '../../dashboard/cubit/dashboard_cubit.dart';
 import '../../payments/cubit/payments_cubit.dart';
 import '../../schedule/cubit/schedule_cubit.dart';
@@ -321,6 +322,11 @@ class ClientProfilePage extends StatelessWidget {
                                       .read<PaymentsCubit>();
                                   final scheduleCubit = context
                                       .read<ScheduleCubit>();
+                                  // 🌟 1. أضف السطرين التاليين لجلب الكيوبتات قبل الانتقال
+                                  final contractsCubit = context
+                                      .read<ContractsCubit>();
+                                  final buildingsCubit = context
+                                      .read<BuildingsCubit>();
 
                                   Navigator.push(
                                     context,
@@ -335,6 +341,13 @@ class ClientProfilePage extends StatelessWidget {
                                           ),
                                           BlocProvider.value(
                                             value: scheduleCubit,
+                                          ),
+                                          // 🌟 2. قم بتمريرها للشاشة الجديدة هنا
+                                          BlocProvider.value(
+                                            value: contractsCubit,
+                                          ),
+                                          BlocProvider.value(
+                                            value: buildingsCubit,
                                           ),
                                         ],
                                         child: ContractDetailsPage(
