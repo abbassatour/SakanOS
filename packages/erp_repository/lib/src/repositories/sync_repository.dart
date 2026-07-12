@@ -47,7 +47,28 @@ class SyncRepository {
 
     try {
       final prefs = await SharedPreferences.getInstance();
+
+      // 👇👇 [الأسطر الجديدة الخاصة بالاشتراك] 👇👇
+      // 💳 جلب حالة الاشتراك من السحابة وتحديثها محلياً
+      final subStatus = await _cloudApi.getSubscriptionStatus();
+      if (subStatus != null) {
+        final isSuspended = subStatus['is_suspended'] == true;
+        final expiryStr = subStatus['subscription_end_date']?.toString();
+
+        if (isSuspended) {
+          // إذا قمت بإيقافهم يدوياً من السيرفر، نعين التاريخ للماضي ليُقفل التطبيق فوراً
+          await _updateSubscriptionExpiryLocally(DateTime(2000).toUtc());
+        } else if (expiryStr != null) {
+          final expiryDate = DateTime.tryParse(expiryStr)?.toUtc();
+          if (expiryDate != null) {
+            await _updateSubscriptionExpiryLocally(expiryDate);
+          }
+        }
+      }
+      // 👆👆 [نهاية إضافة الاشتراك] 👆👆
+
       final lastSyncStr = prefs.getString('last_pull_timestamp');
+      // ... باقي الكود يبقى كما هو (سحب العملاء، العقود، الخ)...
       DateTime? lastSyncTime;
 
       final existingClients = await _localApi.getClients();
@@ -523,7 +544,6 @@ class SyncRepository {
       // ==========================================
       await _updateHeartbeat();
       // 👆👆 [نهاية الإضافة] 👆👆
-
     } on Exception catch (e) {
       // ignore: avoid_print
       print('❌ Cloud Pull Failed: $e');
@@ -531,7 +551,6 @@ class SyncRepository {
       // ignore: avoid_print
       print('❌ Cloud Pull Failed: $e');
     }
-
   }
 
   Future<void> syncPendingData() async {
@@ -1167,7 +1186,7 @@ class SyncRepository {
       isSynced: const drift.Value(true),
     );
   }
-// ==========================================
+  // ==========================================
   // 💓 دوال نبض السحابة المحصنة (Encrypted Heartbeat)
   // ==========================================
 
@@ -1197,7 +1216,7 @@ class SyncRepository {
       return utf8.decode(decrypted);
     } catch (_) {
       // 🚨 تم اكتشاف محاولة تلاعب بالملف!
-      return null; 
+      return null;
     }
   }
 
@@ -1205,21 +1224,21 @@ class SyncRepository {
   Future<void> _updateHeartbeat() async {
     final prefs = await SharedPreferences.getInstance();
     final nowStr = DateTime.now().toUtc().toIso8601String();
-    
+
     // تشفير التاريخ
     final encryptedToken = _encodeToken(nowStr);
-    
+
     // حفظ التوكن المشفر باسم مبهم
     await prefs.setString('sys_pulse_token', encryptedToken);
-    
+
     // مسح المفتاح القديم المكشوف (للتنظيف)
-    await prefs.remove('heartbeat_last_sync'); 
+    await prefs.remove('heartbeat_last_sync');
   }
 
   /// دالة استخراج التوقيت
   Future<DateTime?> getLastHeartbeatTime() async {
     final prefs = await SharedPreferences.getInstance();
-    
+
     // 1. محاولة قراءة التوكن المشفر
     final encryptedToken = prefs.getString('sys_pulse_token');
     if (encryptedToken != null) {
@@ -1230,12 +1249,36 @@ class SyncRepository {
       // إذا فشل فك التشفير سيرجع null (وهذا سيقفل التطبيق فوراً في AuthCubit)
       return null;
     }
-    
+
     // 2. التوافقية الرجعية: إذا كان المستخدم يملك النسخة القديمة المكشوفة ولم يزامن بعد
     final oldTimeStr = prefs.getString('heartbeat_last_sync');
     if (oldTimeStr != null) {
       return DateTime.tryParse(oldTimeStr)?.toUtc();
     }
-    
+
     return null;
   }
+
+  /// 💳 دالة حفظ توقيت انتهاء الاشتراك السحابي بشكل مشفر
+  Future<void> _updateSubscriptionExpiryLocally(DateTime expiryDate) async {
+    final prefs = await SharedPreferences.getInstance();
+    // تشفير التاريخ
+    final encryptedToken = _encodeToken(expiryDate.toUtc().toIso8601String());
+    // حفظه باسم مبهم لا يلفت الانتباه
+    await prefs.setString('sys_config_node_exp', encryptedToken);
+  }
+
+  /// 💳 دالة استخراج توقيت انتهاء الاشتراك محلياً
+  Future<DateTime?> getLocalSubscriptionExpiry() async {
+    final prefs = await SharedPreferences.getInstance();
+    final encryptedToken = prefs.getString('sys_config_node_exp');
+
+    if (encryptedToken != null) {
+      final decryptedStr = _decodeToken(encryptedToken);
+      if (decryptedStr != null) {
+        return DateTime.tryParse(decryptedStr)?.toUtc();
+      }
+    }
+    return null; // إذا فشل أو تم التلاعب به
+  }
+}

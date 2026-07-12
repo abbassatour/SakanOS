@@ -1,6 +1,7 @@
 // lib/auth/cubit/auth_state.dart
 part of 'auth_cubit.dart';
 
+// 🌟 التعديل هنا: إضافة subscriptionExpired
 enum AuthStatus {
   initial,
   loading,
@@ -8,6 +9,7 @@ enum AuthStatus {
   unauthenticated,
   error,
   offlineLock,
+  subscriptionExpired,
 }
 
 class AuthState extends Equatable {

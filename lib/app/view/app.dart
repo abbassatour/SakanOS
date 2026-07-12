@@ -105,6 +105,12 @@ class AppView extends StatelessWidget {
           }
           // 👆👆 [نهاية الإضافة] 👆👆
 
+          // 👇👇 [السطرين الجديدين] 👇👇
+          if (state.status == AuthStatus.subscriptionExpired) {
+            return const _SubscriptionLockScreen();
+          }
+          // 👆👆 [نهاية الإضافة] 👆👆
+
           if (state.status == AuthStatus.authenticated) {
             return const DashboardPage();
           }
@@ -139,6 +145,180 @@ class _OfflineLockScreen extends StatefulWidget {
 
   @override
   State<_OfflineLockScreen> createState() => _OfflineLockScreenState();
+}
+
+// ==========================================
+// 💸 شاشة انتهاء الاشتراك (Subscription Expired)
+// ==========================================
+class _SubscriptionLockScreen extends StatefulWidget {
+  const _SubscriptionLockScreen();
+
+  @override
+  State<_SubscriptionLockScreen> createState() =>
+      _SubscriptionLockScreenState();
+}
+
+class _SubscriptionLockScreenState extends State<_SubscriptionLockScreen> {
+  bool _isSyncing = false;
+
+  Future<void> _checkSubscriptionUpdate() async {
+    setState(() => _isSyncing = true);
+
+    try {
+      final result = await InternetAddress.lookup(
+        'google.com',
+      ).timeout(const Duration(seconds: 5));
+      if (result.isEmpty || result[0].rawAddress.isEmpty) {
+        throw Exception('لا يوجد اتصال بالإنترنت للتحقق من الرخصة.');
+      }
+
+      // 🌟 سحب البيانات (ومن ضمنها تاريخ الاشتراك الجديد) من Supabase
+      final msg = await context.read<ErpRepository>().forceSyncWithCloud();
+
+      if (!msg.contains('بنجاح')) {
+        throw Exception(msg);
+      }
+
+      // إعادة فحص الجلسة (ستختفي هذه الشاشة تلقائياً إذا قام المطور بتمديد التاريخ)
+      if (mounted) {
+        await context.read<AuthCubit>().checkSession();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString().replaceAll('Exception: ', '')),
+            backgroundColor: Colors.red.shade800,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isSyncing = false);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final state = context.watch<AuthCubit>().state;
+
+    return Scaffold(
+      backgroundColor: Colors.black87, // لون خلفية مظلم يدل على الإيقاف
+      body: Center(
+        child: Container(
+          width: 500,
+          padding: const EdgeInsets.all(40.0),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: const [
+              BoxShadow(
+                color: Colors.black54,
+                blurRadius: 30,
+                offset: Offset(0, 10),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.purple.shade50,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.credit_card_off_rounded,
+                  size: 80,
+                  color: Colors.purple.shade700,
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              const Text(
+                'انتهت صلاحية الرخصة',
+                style: TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.red.shade50,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.red.shade200),
+                ),
+                child: Text(
+                  state.errorMessage ??
+                      'انتهت فترة الاشتراك. يرجى التواصل مع الدعم الفني.',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.red.shade900,
+                    fontWeight: FontWeight.bold,
+                    height: 1.5,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              const SizedBox(height: 32),
+
+              SizedBox(
+                width: double.infinity,
+                height: 55,
+                child: ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.purple.shade700,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  onPressed: _isSyncing ? null : _checkSubscriptionUpdate,
+                  icon: _isSyncing
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2.5,
+                          ),
+                        )
+                      : const Icon(Icons.refresh),
+                  label: Text(
+                    _isSyncing
+                        ? 'جاري التحقق مع السيرفر...'
+                        : 'التحقق من تجديد الاشتراك',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              TextButton.icon(
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.grey.shade600,
+                ),
+                onPressed: _isSyncing
+                    ? null
+                    : () => context.read<AuthCubit>().logout(),
+                icon: const Icon(Icons.logout),
+                label: const Text('تسجيل الخروج وإقفال الحساب'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class _OfflineLockScreenState extends State<_OfflineLockScreen> {

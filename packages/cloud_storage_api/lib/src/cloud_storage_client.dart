@@ -188,6 +188,22 @@ class CloudStorageClient {
   }) => _fetchAllPaginated('building_attachments', lastSync: lastSync);
 
   // ==========================================
+  // 💳 جلب حالة الاشتراك من السحابة
+  // ==========================================
+  Future<Map<String, dynamic>?> getSubscriptionStatus() async {
+    try {
+      final response = await _supabase
+          .from('company_subscription')
+          .select()
+          .eq('id', 1)
+          .maybeSingle(); // يجلب الصف الأول والوحيد
+      return response;
+    } catch (e) {
+      print('⚠️ فشل جلب حالة الاشتراك: $e');
+      return null;
+    }
+  }
+  // ==========================================
   // 📤 دوال رفع البيانات (PUSH to Cloud) - (UPSERT)
   // ==========================================
   // 🌍 تنبيه هندسي (UTC Warning):

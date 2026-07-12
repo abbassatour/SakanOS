@@ -146,11 +146,31 @@ class AuthCubit extends Cubit<AuthState> {
       localUser.revokedPermissionsJson,
     );
     finalPermissions.removeAll(revokedPerms);
+    // 👇👇 [التحقق من اشتراك الشركة السحابي] 👇👇
+    final expiryDate = await _erpRepository.getLocalSubscriptionExpiry();
+    final now = DateTime.now().toUtc();
+
+    // 1. إذا لم يجد تاريخ (تلاعب)، أو 2. إذا تجاوز تاريخ اليوم تاريخ الانتهاء (انتهى الاشتراك)
+    if (expiryDate == null || now.isAfter(expiryDate)) {
+      emit(
+        state.copyWith(
+          status: AuthStatus.subscriptionExpired,
+          errorMessage:
+              'انتهت صلاحية اشتراك الشركة في النظام. يرجى التواصل مع المطور لتسوية الدفعات وتجديد رخصة العمل.',
+          userId: localUser.id,
+          userName: localUser.fullName ?? localUser.email,
+          roleName: roleName,
+          isSystemAdmin: isSystemAdmin,
+          permissions: finalPermissions.toList(),
+        ),
+      );
+      return; // 🛑 منع الدخول تماماً
+    }
+    // 👆👆 [نهاية فحص الاشتراك] 👆👆
 
     // 👇👇 [الأسطر الجديدة للتحقق من النبضة (Heartbeat)] 👇👇
     // 4. فحص نبض السحابة (Offline Limit) قبل السماح بالدخول للوحة التحكم
     final lastHeartbeat = await _erpRepository.getLastHeartbeatTime();
-    final now = DateTime.now().toUtc();
 
     // 🌟 حماية ضد التلاعب: إذا كان التاريخ المرجوع سالباً، يعني أن العميل أرجع ساعة الويندوز للوراء!
     final int daysPassed = lastHeartbeat != null
