@@ -753,7 +753,7 @@ class _AddContractPageState extends State<AddContractPage> {
                   controller: gracePeriodCtrl,
                   keyboardType: TextInputType.number,
                   decoration: const InputDecoration(
-                    labelText: 'فترة السماح (أشهر)',
+                    labelText: 'فترة السماح للمطور (أشهر)',
                     border: OutlineInputBorder(),
                     filled: true,
                     fillColor: Colors.white,

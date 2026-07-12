@@ -67,7 +67,7 @@ Future<void> showDeletePaymentDialog(
               children: [
                 if (isGracePeriod) ...[
                   const Text(
-                    '⚠️ أنت ضمن فترة السماح (5 دقائق).',
+                    '⚠️ أنت ضمن فترة السماح للمطور (5 دقائق).',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       color: Colors.red,
@@ -80,7 +80,7 @@ Future<void> showDeletePaymentDialog(
                   ),
                 ] else ...[
                   Text(
-                    '🔒 انتهت فترة السماح (مر ${minutesPassed ~/ 60} ساعة و ${minutesPassed % 60} دقيقة).',
+                    '🔒 انتهت فترة السماح للمطور (مر ${minutesPassed ~/ 60} ساعة و ${minutesPassed % 60} دقيقة).',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       color: Colors.deepOrange,

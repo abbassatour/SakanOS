@@ -6,7 +6,7 @@ import 'package:our_home_erp_app/auth/cubit/auth_cubit.dart';
 Future<bool> showVerifyPinDialog(BuildContext context) async {
   final authCubit = context.read<AuthCubit>();
 
-  // 🌟 التحقق من فترة السماح
+  // 🌟 التحقق من فترة السماح للمطور
   if (authCubit.state.isPinGracePeriodActive) {
     return true;
   }

@@ -883,7 +883,7 @@ class ContractDetailsPage extends StatelessWidget {
                                 ),
                                 const Divider(height: 24),
                                 _buildInfoRow(
-                                  'فترة السماح (للمطور):',
+                                  'فترة السماح للمطور (للمطور):',
                                   '${currentContract.gracePeriodMonths} أشهر',
                                   Icons.hourglass_empty,
                                 ),
