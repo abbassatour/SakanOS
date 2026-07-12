@@ -62,6 +62,7 @@ class SettingsCubit extends Cubit<SettingsState> {
   Future<void> fetchPrices() async {
     emit(state.copyWith(status: SettingsStatus.loading));
     try {
+      await fetchSubscriptionInfo(); // 🌟 أضف هذا السطر هنا
       await _erpRepository.pullDataFromCloud();
     } on Exception catch (_) {
       emit(
@@ -264,6 +265,19 @@ class SettingsCubit extends Cubit<SettingsState> {
       _erpRepository.backupDatabaseManually();
 
   Future<String> restoreDatabase() async => _erpRepository.restoreDatabase();
+
+  // أضف هذه الدالة داخل كلاس SettingsCubit في ملف lib/settings/cubit/settings_cubit.dart
+
+  Future<void> fetchSubscriptionInfo() async {
+    try {
+      final expiryDate = await _erpRepository.getLocalSubscriptionExpiry();
+      emit(state.copyWith(subscriptionExpiryDate: expiryDate));
+    } catch (_) {
+      // تجاهل الخطأ بصمت، فقط لن تظهر معلومات الرخصة
+    }
+  }
+
+  // 🌟 قم بتعديل دالة fetchPrices لتستدعي دالة الاشتراك أيضاً
 
   @override
   Future<void> close() {

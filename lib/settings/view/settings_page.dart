@@ -320,10 +320,15 @@ class _SettingsViewState extends State<SettingsView> {
                           // 🔐 بطاقة رمز الأمان (تم نقلها لتكون فوق النسخ الاحتياطي)
                           // ==========================================
                           if (authState.isSystemAdmin) ...[
+                            // 🌟 أضف بطاقة معلومات الرخصة هنا
+                            _buildSubscriptionCard(
+                              context,
+                              state.subscriptionExpiryDate,
+                            ),
+                            const SizedBox(height: 24),
+
                             _buildSecurityCard(context, authState.securityPin),
-                            const SizedBox(
-                              height: 36,
-                            ), // زيادة المسافة بين رمز الأمان والنسخ الاحتياطي
+                            const SizedBox(height: 36),
                           ],
 
                           // ==========================================
@@ -1020,6 +1025,149 @@ class _SettingsViewState extends State<SettingsView> {
           borderRadius: BorderRadius.circular(10),
           borderSide: BorderSide(color: Colors.blueGrey.shade500, width: 2),
         ),
+      ),
+    );
+  }
+
+  // ==========================================
+  // 📜 بطاقة معلومات الرخصة والاشتراك (للمدير فقط)
+  // ==========================================
+  Widget _buildSubscriptionCard(BuildContext context, DateTime? expiryDate) {
+    if (expiryDate == null) return const SizedBox.shrink();
+
+    final now = DateTime.now();
+    final remainingDays = expiryDate.difference(now).inDays;
+
+    // تحديد لون وحالة البطاقة بناءً على الأيام المتبقية
+    Color statusColor;
+    IconData statusIcon;
+    String statusText;
+
+    if (remainingDays < 0) {
+      statusColor = Colors.red.shade700;
+      statusIcon = Icons.cancel;
+      statusText = 'الرخصة منتهية الصلاحية!';
+    } else if (remainingDays <= 15) {
+      statusColor = Colors.orange.shade700;
+      statusIcon = Icons.warning_amber_rounded;
+      statusText = 'الرخصة تقترب من الانتهاء';
+    } else {
+      statusColor = Colors.teal.shade700;
+      statusIcon = Icons.verified_user;
+      statusText = 'الرخصة فعّالة وسارية';
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.purple.shade100, width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.purple.withOpacity(0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.workspace_premium,
+                color: Colors.purple.shade600,
+                size: 28,
+              ),
+              const SizedBox(width: 12),
+              const Text(
+                'معلومات ترخيص النظام (License)',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.purple,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          Row(
+            children: [
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade50,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey.shade200),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'تاريخ انتهاء الاشتراك:',
+                        style: TextStyle(color: Colors.grey, fontSize: 13),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${expiryDate.year}/${expiryDate.month.toString().padLeft(2, '0')}/${expiryDate.day.toString().padLeft(2, '0')}',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: statusColor.withOpacity(0.05),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: statusColor.withOpacity(0.3)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        statusText,
+                        style: TextStyle(
+                          color: statusColor,
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Icon(statusIcon, color: statusColor, size: 20),
+                          const SizedBox(width: 8),
+                          Text(
+                            remainingDays >= 0
+                                ? 'متبقي $remainingDays يوم'
+                                : 'منتهية منذ ${remainingDays.abs()} يوم',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: statusColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
