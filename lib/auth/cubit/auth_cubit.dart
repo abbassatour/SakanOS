@@ -169,24 +169,29 @@ class AuthCubit extends Cubit<AuthState> {
     // 👆👆 [نهاية فحص الاشتراك] 👆👆
 
     // 👇👇 [الأسطر الجديدة للتحقق من النبضة (Heartbeat)] 👇👇
-    // 4. فحص نبض السحابة (Offline Limit) قبل السماح بالدخول للوحة التحكم
+    // ========================================================
+    // 🛡️ 1. فحص نبض السحابة (Offline Limit) والتلاعب بالوقت أولاً!
+    // ========================================================
     final lastHeartbeat = await _erpRepository.getLastHeartbeatTime();
 
-    // 🌟 حماية ضد التلاعب: إذا كان التاريخ المرجوع سالباً، يعني أن العميل أرجع ساعة الويندوز للوراء!
-    final int daysPassed = lastHeartbeat != null
-        ? now.difference(lastHeartbeat).inDays
-        : 999;
-    // 🌟 التعديل هنا: إضافة هامش تسامح (24 ساعة) لاستيعاب أي فرق في الدقة أو التأخير بين سيرفر جوجل وساعة الويندوز المحلية.
+    // نستخدم التوقيت الآمن بدلاً من التوقيت المحلي المزور
+
+    // تقليص فترة السماح إلى 5 دقائق بدلاً من 24 ساعة لسد الثغرة الأولى بالكامل
     final bool isTimeTampered =
         lastHeartbeat != null &&
         now.isBefore(lastHeartbeat.subtract(const Duration(minutes: 5)));
 
+    final int daysPassed = lastHeartbeat != null
+        ? now.difference(lastHeartbeat).inDays
+        : 999;
+
+    // الطرد الفوري إذا تم إرجاع الزمن للوراء أو تجاوز 7 أيام
     if (lastHeartbeat == null || daysPassed >= 7 || isTimeTampered) {
       emit(
         state.copyWith(
           status: AuthStatus.offlineLock,
           errorMessage: isTimeTampered
-              ? 'تم اكتشاف تلاعب في ساعة النظام. يرجى المزامنة لحل المشكلة.'
+              ? 'تم اكتشاف تلاعب في ساعة النظام (محاولة إرجاع الزمن). يرجى المزامنة لفك القفل.'
               : 'تجاوزت الحد المسموح للعمل دون اتصال بالإنترنت (7 أيام). يرجى المزامنة.',
           userId: localUser.id,
           userName: localUser.fullName ?? localUser.email,
@@ -197,9 +202,32 @@ class AuthCubit extends Cubit<AuthState> {
       );
       return; // 🛑 خروج فوري ومنع الدخول للتطبيق
     }
-    // 👆👆 [نهاية الإضافة] 👆👆
 
-    // 5. حفظ النتيجة النهائية النظيفة في الحالة (State) (في الوضع الطبيعي)
+    // ========================================================
+    // 💳 2. فحص رخصة اشتراك الشركة (بعد التأكد من سلامة الوقت)
+    // ========================================================
+
+    // السحر المحاسبي: نقارن تاريخ الانتهاء مع (أحدث وقت موثوق به)
+    // سواء كان الآن، أو آخر نبضة حقيقية من السيرفر، أيهما أحدث.
+    final referenceTime = now.isAfter(lastHeartbeat) ? now : lastHeartbeat;
+
+    if (expiryDate == null || referenceTime.isAfter(expiryDate)) {
+      emit(
+        state.copyWith(
+          status: AuthStatus.subscriptionExpired,
+          errorMessage:
+              'انتهت صلاحية رخصة النظام. يرجى التواصل مع المطور لتسوية الدفعات وتجديد رخصة العمل.',
+          userId: localUser.id,
+          userName: localUser.fullName ?? localUser.email,
+          roleName: roleName,
+          isSystemAdmin: isSystemAdmin,
+          permissions: finalPermissions.toList(),
+        ),
+      );
+      return; // 🛑 منع الدخول تماماً
+    }
+
+    // 3. حفظ النتيجة النهائية النظيفة في الحالة (State) (في الوضع الطبيعي)
     emit(
       state.copyWith(
         status: AuthStatus.authenticated,

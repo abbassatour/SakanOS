@@ -28,8 +28,14 @@ class SyncRepository {
       await syncPendingData();
       await pullDataFromCloud();
 
-      // 🌟 لا يتم تحديث النبضة إلا إذا نجحت العمليتان السابقتان دون أي خطأ
+      // لا يتم تحديث النبضة والوقت إلا إذا نجحت العمليتان
       await _updateHeartbeat();
+
+      // 🌟 المكان الآمن: الآن نحن متأكدون أن الوقت المعتمد حقيقي وليس مزوراً
+      await _localApi.autoCleanOldDeletedClients();
+      await _localApi.autoCleanOldDeletedContracts();
+      await _localApi.autoCleanOldDeletedLedgerEntries();
+      await _localApi.database.autoCleanOldDeletedBuildingsAndApartments();
 
       return 'تمت المزامنة مع السحابة بنجاح! ☁️✓';
     } on Exception catch (e) {
@@ -1227,59 +1233,85 @@ class SyncRepository {
   }
 
   // ==========================================
-  // 💓 دوال نبض السحابة المحصنة (Encrypted Heartbeat)
+  // 💓 دوال نبض السحابة والوقت الآمن المحصنة
   // ==========================================
 
-  // 🌟 دالة جديدة: تجلب التوقيت الحقيقي من سيرفرات جوجل متجاهلة ساعة الكمبيوتر
+  // 🌟 (الثغرة الثالثة) جلب التوقيت الحقيقي من عدة سيرفرات لمنع حجب الخدمة
   Future<DateTime> _getTrueNetworkTime() async {
-    try {
-      final response = await http
-          .head(Uri.parse('https://google.com'))
-          .timeout(const Duration(seconds: 5));
-      final dateHeader = response.headers['date'];
-      if (dateHeader != null) {
-        return HttpDate.parse(dateHeader).toUtc();
+    final testUrls = [
+      'https://google.com',
+      'https://cloudflare.com',
+      'https://microsoft.com',
+    ];
+
+    for (final url in testUrls) {
+      try {
+        final response = await http
+            .head(Uri.parse(url))
+            .timeout(const Duration(seconds: 4));
+        final dateHeader = response.headers['date'];
+        if (dateHeader != null) {
+          return HttpDate.parse(dateHeader).toUtc();
+        }
+      } catch (_) {
+        continue; // إذا فشل أو تم حجبه، جرب السيرفر الذي يليه
       }
-    } catch (_) {}
-    // إذا فشل جلب الوقت الحقيقي، نرفض العملية أمنياً
+    }
     throw Exception(
-      'لا يمكن التحقق من الوقت الفعلي. يرجى ضبط ساعة الكمبيوتر بشكل صحيح ليتطابق مع التوقيت العالمي.',
+      'لا يمكن التحقق من الوقت الفعلي. تأكد من أنك لست متصلاً بشبكة مقيدة (Captive Portal).',
     );
   }
 
-  /// دالة تحديث التوقيت المشفر (تم ترقيتها)
+  /// دالة تحديث التوقيت المشفر وتحديث الفجوة (Offset)
   Future<void> _updateHeartbeat() async {
     final prefs = await SharedPreferences.getInstance();
 
-    // 🌟 السحر هنا: نستخدم وقت السيرفر الحقيقي وليس وقت الويندوز المزور!
+    // 1. جلب الوقت الحقيقي
     final realTime = await _getTrueNetworkTime();
     final localTime = DateTime.now().toUtc();
+
+    // 2. حساب الفجوة الزمنية (Offset) بين السيرفر والجهاز
     final offset = realTime.difference(localTime);
+    SecureTime.setOffset(offset); // تحديثها في الذاكرة الحية
 
-    // تشفير التاريخ
+    // حفظ الفجوة مشفرة (نحفظ الثواني)
+    final encryptedOffset = _encodeToken(offset.inSeconds.toString());
+    await prefs.setString('sys_time_drift_offset', encryptedOffset);
+
+    // 3. تشفير تاريخ النبضة (Heartbeat)
     final encryptedToken = _encodeToken(realTime.toIso8601String());
-
-    // حفظ التوكن المشفر باسم مبهم
     await prefs.setString('sys_pulse_token', encryptedToken);
     await prefs.remove('heartbeat_last_sync');
   }
 
-  /// دالة استخراج التوقيت
+  /// دالة لتحميل الـ Offset فور فتح التطبيق
+  Future<void> loadSecureTimeOffsetLocally() async {
+    final prefs = await SharedPreferences.getInstance();
+    final encryptedOffset = prefs.getString('sys_time_drift_offset');
+
+    if (encryptedOffset != null) {
+      // 🌟 التصحيح هنا: استخدام encryptedOffset بدلاً من encryptedToken
+      final decryptedStr = _decodeToken(encryptedOffset);
+      if (decryptedStr != null) {
+        final seconds = int.tryParse(decryptedStr) ?? 0;
+        SecureTime.setOffset(Duration(seconds: seconds));
+      }
+    }
+  }
+
+  /// دالة استخراج التوقيت (نبضة السحابة)
   Future<DateTime?> getLastHeartbeatTime() async {
     final prefs = await SharedPreferences.getInstance();
 
-    // 1. محاولة قراءة التوكن المشفر
     final encryptedToken = prefs.getString('sys_pulse_token');
     if (encryptedToken != null) {
       final decryptedStr = _decodeToken(encryptedToken);
       if (decryptedStr != null) {
         return DateTime.tryParse(decryptedStr)?.toUtc();
       }
-      // إذا فشل فك التشفير سيرجع null (وهذا سيقفل التطبيق فوراً في AuthCubit)
       return null;
     }
 
-    // 2. التوافقية الرجعية: إذا كان المستخدم يملك النسخة القديمة المكشوفة ولم يزامن بعد
     final oldTimeStr = prefs.getString('heartbeat_last_sync');
     if (oldTimeStr != null) {
       return DateTime.tryParse(oldTimeStr)?.toUtc();

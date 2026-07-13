@@ -99,13 +99,9 @@ class ErpRepository {
     _dashboardRepo = DashboardRepository(localApi: _localApi);
 
     if (currentUserId != null) {
+      _syncRepo.loadSecureTimeOffsetLocally();
       _startCloudListener();
       _backupRepo.autoBackupSilent(); // 🌟 توجيه النداء للمستودع الفرعي
-
-      _localApi.autoCleanOldDeletedClients();
-      _localApi.autoCleanOldDeletedContracts();
-      _localApi.autoCleanOldDeletedLedgerEntries();
-      _localApi.database.autoCleanOldDeletedBuildingsAndApartments();
     }
   }
 
