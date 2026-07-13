@@ -129,7 +129,16 @@ class _LoginViewState extends State<LoginView> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.apartment, size: 80, color: Colors.blueGrey),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(
+                      12.0,
+                    ), // يمكنك تغيير الرقم 12 لتعديل درجة انحناء الحواف
+                    child: Image.asset(
+                      'assets/images/logo.png',
+                      height: 80,
+                      fit: BoxFit.contain,
+                    ),
+                  ),
                   const SizedBox(height: 16),
                   const Text(
                     'نظام بيتنا العقاري',

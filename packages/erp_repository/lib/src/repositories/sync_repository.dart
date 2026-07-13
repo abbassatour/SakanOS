@@ -1343,16 +1343,3 @@ class SyncRepository {
     return null; // إذا فشل أو تم التلاعب به
   }
 }
-
-class SecureTime {
-  static Duration _offset = Duration.zero;
-
-  static void setOffset(Duration offset) {
-    _offset = offset;
-  }
-
-  // استخدم هذه الدالة في كل مكان في التطبيق بدلاً من DateTime.now()
-  static DateTime now() {
-    return SecureTime.now().add(_offset);
-  }
-}

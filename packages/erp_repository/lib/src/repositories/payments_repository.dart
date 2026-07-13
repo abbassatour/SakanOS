@@ -2,9 +2,9 @@
 // ignore_for_file: depend_on_referenced_packages
 
 import 'package:drift/drift.dart' as drift;
+import 'package:erp_repository/src/repositories/sync_repository.dart';
 import 'package:local_storage_api/local_storage_api.dart';
-
-import 'sync_repository.dart' hide SecureTime;
+import 'sync_repository.dart';
 
 class PaymentsRepository {
   const PaymentsRepository({

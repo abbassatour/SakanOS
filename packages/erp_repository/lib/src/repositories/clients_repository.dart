@@ -3,8 +3,7 @@
 
 import 'package:drift/drift.dart' as drift;
 import 'package:local_storage_api/local_storage_api.dart';
-
-import 'sync_repository.dart' hide SecureTime;
+import 'sync_repository.dart';
 
 class ClientsRepository {
   const ClientsRepository({

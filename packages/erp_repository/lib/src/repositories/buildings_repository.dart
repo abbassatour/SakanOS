@@ -3,13 +3,12 @@
 
 import 'dart:convert';
 import 'dart:io';
+import 'sync_repository.dart';
 import 'package:uuid/uuid.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import 'package:drift/drift.dart' as drift;
 import 'package:local_storage_api/local_storage_api.dart';
-
-import 'sync_repository.dart' hide SecureTime;
 
 class BuildingsRepository {
   const BuildingsRepository({

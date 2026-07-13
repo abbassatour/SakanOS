@@ -212,7 +212,10 @@ class AuthCubit extends Cubit<AuthState> {
     // سواء كان الآن، أو آخر نبضة حقيقية من السيرفر، أيهما أحدث.
     final referenceTime = now.isAfter(lastHeartbeat) ? now : lastHeartbeat;
 
-    if (expiryDate == null || referenceTime.isAfter(expiryDate)) {
+    final bool isFreshInstall = lastHeartbeat == null && expiryDate == null;
+
+    if (!isFreshInstall &&
+        (expiryDate == null || referenceTime.isAfter(expiryDate))) {
       emit(
         state.copyWith(
           status: AuthStatus.subscriptionExpired,
