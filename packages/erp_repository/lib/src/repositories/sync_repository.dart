@@ -2,6 +2,7 @@
 // ignore_for_file: depend_on_referenced_packages
 import 'dart:io';
 import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
 import 'package:cloud_storage_api/cloud_storage_api.dart';
 import 'package:drift/drift.dart' as drift;
@@ -26,6 +27,10 @@ class SyncRepository {
     try {
       await syncPendingData();
       await pullDataFromCloud();
+
+      // 🌟 لا يتم تحديث النبضة إلا إذا نجحت العمليتان السابقتان دون أي خطأ
+      await _updateHeartbeat();
+
       return 'تمت المزامنة مع السحابة بنجاح! ☁️✓';
     } on Exception catch (e) {
       return 'حدث خطأ أثناء المزامنة: $e';
@@ -538,20 +543,25 @@ class SyncRepository {
         );
       }
 
-      // 👇👇 [الأسطر الجديدة التي يجب إضافتها] 👇👇
       // ==========================================
-      // 💓 تحديث نبض السحابة (بما أن السحب نجح، يعني الإنترنت متصل والرخصة تعمل)
+      // 🌟 حفظ أحدث توقيت سيرفر للمزامنة القادمة (إن وُجد)
       // ==========================================
-      await _updateHeartbeat();
-      // 👆👆 [نهاية الإضافة] 👆👆
+      if (latestServerTimestamp != null) {
+        await prefs.setString(
+          'last_pull_timestamp',
+          latestServerTimestamp!.toIso8601String(),
+        );
+      }
+
+      // ❌ تم إزالة _updateHeartbeat() من هنا ❌
     } on Exception catch (e) {
-      // ignore: avoid_print
       print('❌ Cloud Pull Failed: $e');
-    } on Exception catch (e) {
-      // ignore: avoid_print
-      print('❌ Cloud Pull Failed: $e');
+      // 🌟 إجبار الدالة على رمي الخطأ ليوقفه forceSyncWithCloud
+      throw Exception(
+        'تعذر استرداد البيانات من السحابة. تحقق من اتصالك أو من صحة تاريخ الكمبيوتر.',
+      );
     }
-  }
+  } // ✅ هذا القوس فقط لإنهاء دالة pullDataFromCloud
 
   Future<void> syncPendingData() async {
     if (_isSyncing || currentUserId == null) return;
@@ -1144,12 +1154,8 @@ class SyncRepository {
       throw Exception(
         'فشل رفع بعض التعديلات المحلية. تم إيقاف السحب من السحابة لحماية بياناتك من المسح.',
       );
-    } else {
-      // 👇👇 [الأسطر الجديدة التي يجب إضافتها] 👇👇
-      // 💓 تم رفع كل البيانات المعلقة بنجاح للسحابة، نحدث النبضة!
-      await _updateHeartbeat();
-      // 👆👆 [نهاية الإضافة] 👆👆
     }
+    // ❌ تم إزالة _updateHeartbeat() من هنا ❌
   }
 
   Map<String, dynamic> _mapDollarPriceToCloud(
@@ -1220,18 +1226,41 @@ class SyncRepository {
     }
   }
 
-  /// دالة تحديث التوقيت المشفر
+  // ==========================================
+  // 💓 دوال نبض السحابة المحصنة (Encrypted Heartbeat)
+  // ==========================================
+
+  // 🌟 دالة جديدة: تجلب التوقيت الحقيقي من سيرفرات جوجل متجاهلة ساعة الكمبيوتر
+  Future<DateTime> _getTrueNetworkTime() async {
+    try {
+      final response = await http
+          .head(Uri.parse('https://google.com'))
+          .timeout(const Duration(seconds: 5));
+      final dateHeader = response.headers['date'];
+      if (dateHeader != null) {
+        return HttpDate.parse(dateHeader).toUtc();
+      }
+    } catch (_) {}
+    // إذا فشل جلب الوقت الحقيقي، نرفض العملية أمنياً
+    throw Exception(
+      'لا يمكن التحقق من الوقت الفعلي. يرجى ضبط ساعة الكمبيوتر بشكل صحيح ليتطابق مع التوقيت العالمي.',
+    );
+  }
+
+  /// دالة تحديث التوقيت المشفر (تم ترقيتها)
   Future<void> _updateHeartbeat() async {
     final prefs = await SharedPreferences.getInstance();
-    final nowStr = DateTime.now().toUtc().toIso8601String();
+
+    // 🌟 السحر هنا: نستخدم وقت السيرفر الحقيقي وليس وقت الويندوز المزور!
+    final realTime = await _getTrueNetworkTime();
+    final localTime = DateTime.now().toUtc();
+    final offset = realTime.difference(localTime);
 
     // تشفير التاريخ
-    final encryptedToken = _encodeToken(nowStr);
+    final encryptedToken = _encodeToken(realTime.toIso8601String());
 
     // حفظ التوكن المشفر باسم مبهم
     await prefs.setString('sys_pulse_token', encryptedToken);
-
-    // مسح المفتاح القديم المكشوف (للتنظيف)
     await prefs.remove('heartbeat_last_sync');
   }
 
@@ -1280,5 +1309,18 @@ class SyncRepository {
       }
     }
     return null; // إذا فشل أو تم التلاعب به
+  }
+}
+
+class SecureTime {
+  static Duration _offset = Duration.zero;
+
+  static void setOffset(Duration offset) {
+    _offset = offset;
+  }
+
+  // استخدم هذه الدالة في كل مكان في التطبيق بدلاً من DateTime.now()
+  static DateTime now() {
+    return DateTime.now().toUtc().add(_offset);
   }
 }

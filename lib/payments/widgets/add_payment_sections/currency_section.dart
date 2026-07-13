@@ -29,40 +29,45 @@ class CurrencySection extends StatelessWidget {
         ),
         borderRadius: BorderRadius.circular(8),
       ),
-      child: SwitchListTile(
-        title: Text(
-          'إدخال المبلغ بالدولار الأمريكي (USD)',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: isDollarPayment ? Colors.green.shade700 : Colors.black87,
-            fontSize: 14,
+      child: Material(
+        // 🌟 أضفنا Material هنا
+        color: Colors.transparent, // 🌟 بخلفية شفافة
+        child: SwitchListTile(
+          title: Text(
+            'إدخال المبلغ بالدولار الأمريكي (USD)',
+
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: isDollarPayment ? Colors.green.shade700 : Colors.black87,
+              fontSize: 14,
+            ),
           ),
+          subtitle: isHistoricalPayment
+              ? const Text(
+                  'أدخل سعر صرف الدولار القديم في الأسفل',
+                  style: TextStyle(color: Colors.green),
+                )
+              : (currentDollarRate != null
+                    ? Text(
+                        'سعر الصرف: '
+                        '${NumberFormatters.formatWithCommas(currentDollarRate!)} '
+                        'ل.س',
+                        style: TextStyle(
+                          color: isDollarPayment
+                              ? Colors.green.shade900
+                              : Colors.grey,
+                        ),
+                      )
+                    : const Text(
+                        '⚠️ جاري تحميل التسعيرة أو لم يتم تعيينها',
+                        style: TextStyle(color: Colors.red),
+                      )),
+          value: isDollarPayment,
+          activeThumbColor: Colors.green,
+          onChanged: (isHistoricalPayment || currentDollarRate != null)
+              ? onToggle
+              : null,
         ),
-        subtitle: isHistoricalPayment
-            ? const Text(
-                'أدخل سعر صرف الدولار القديم في الأسفل',
-                style: TextStyle(color: Colors.green),
-              )
-            : (currentDollarRate != null
-                  ? Text(
-                      'سعر الصرف: '
-                      '${NumberFormatters.formatWithCommas(currentDollarRate!)} '
-                      'ل.س',
-                      style: TextStyle(
-                        color: isDollarPayment
-                            ? Colors.green.shade900
-                            : Colors.grey,
-                      ),
-                    )
-                  : const Text(
-                      '⚠️ جاري تحميل التسعيرة أو لم يتم تعيينها',
-                      style: TextStyle(color: Colors.red),
-                    )),
-        value: isDollarPayment,
-        activeThumbColor: Colors.green,
-        onChanged: (isHistoricalPayment || currentDollarRate != null)
-            ? onToggle
-            : null,
       ),
     );
   }

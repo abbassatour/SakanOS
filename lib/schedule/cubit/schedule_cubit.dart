@@ -32,6 +32,9 @@ class ScheduleCubit extends Cubit<ScheduleState> {
 
       final overdueAlerts = await _generateOverdueRadar(contracts, clients);
 
+      // 🌟 الحماية هنا: إذا تم إقفال التطبيق أو تسجيل الخروج أثناء الحساب، توقف!
+      if (isClosed) return;
+
       emit(
         state.copyWith(
           status: ScheduleStatus.success,
@@ -42,6 +45,7 @@ class ScheduleCubit extends Cubit<ScheduleState> {
         ),
       );
     } on Exception catch (e) {
+      if (isClosed) return; // 🌟 وهنا أيضاً
       emit(
         state.copyWith(
           status: ScheduleStatus.failure,

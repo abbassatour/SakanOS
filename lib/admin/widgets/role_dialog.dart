@@ -257,7 +257,7 @@ class _RoleDialogContentState extends State<_RoleDialogContent> {
                           ),
                         ),
                         children: [
-                          Container(
+                          Material(
                             color: Colors.grey.shade50,
                             child: CheckboxListTile(
                               title: const Text(

@@ -176,8 +176,10 @@ class AuthCubit extends Cubit<AuthState> {
     final int daysPassed = lastHeartbeat != null
         ? now.difference(lastHeartbeat).inDays
         : 999;
+    // 🌟 التعديل هنا: إضافة هامش تسامح (24 ساعة) لاستيعاب أي فرق في الدقة أو التأخير بين سيرفر جوجل وساعة الويندوز المحلية.
     final bool isTimeTampered =
-        lastHeartbeat != null && now.isBefore(lastHeartbeat);
+        lastHeartbeat != null &&
+        now.isBefore(lastHeartbeat.subtract(const Duration(minutes: 5)));
 
     if (lastHeartbeat == null || daysPassed >= 7 || isTimeTampered) {
       emit(

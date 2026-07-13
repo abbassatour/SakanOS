@@ -46,6 +46,7 @@ class HistoricalSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
+        // 🌟 التصحيح هنا: الأقواس مرتبة بشكل سليم
         Container(
           decoration: BoxDecoration(
             color: isHistoricalPayment
@@ -56,22 +57,26 @@ class HistoricalSection extends StatelessWidget {
             ),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: SwitchListTile(
-            title: const Text(
-              'إدخال عملية قديمة (تاريخية)',
-              style: TextStyle(
-                color: Colors.blue,
-                fontWeight: FontWeight.bold,
+          child: Material(
+            color: Colors.transparent,
+            child: SwitchListTile(
+              title: const Text(
+                'إدخال عملية قديمة (تاريخية)',
+                style: TextStyle(
+                  color: Colors.blue,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
+              subtitle: const Text(
+                'لتسجيل حركات سابقة وإدخال سعر المتر يدوياً.',
+              ),
+              value: isHistoricalPayment,
+              activeThumbColor: Colors.blue,
+              onChanged: onHistoricalToggle,
             ),
-            subtitle: const Text(
-              'لتسجيل حركات سابقة وإدخال سعر المتر يدوياً.',
-            ),
-            value: isHistoricalPayment,
-            activeThumbColor: Colors.blue,
-            onChanged: onHistoricalToggle,
           ),
-        ),
+        ), // 🌟 هذا القوس كان مفقوداً في الكود الخاص بك!
+
         if (isHistoricalPayment) ...[
           const SizedBox(height: 12),
           Container(
