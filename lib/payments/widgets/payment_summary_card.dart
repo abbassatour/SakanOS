@@ -216,7 +216,7 @@ class PaymentSummaryCard extends StatelessWidget {
                     ),
                     if (isAllocated)
                       _buildStatItem(
-                        title: 'المتبقي للشركة',
+                        title: 'المتبقي للمكتب',
                         value: '${remainingMeters.toStringAsFixed(3)} م²',
                         color: remainingMeters > 0
                             ? Colors.red.shade600

@@ -92,7 +92,7 @@ class PdfGenerator {
           children: [
             pw.Center(
               child: pw.Text(
-                'بيتنا Our Home',
+                ' SakanOS',
                 style: pw.TextStyle(
                   font: arabicBoldFont,
                   fontSize: 11,
@@ -304,7 +304,7 @@ class PdfGenerator {
                   crossAxisAlignment: pw.CrossAxisAlignment.center,
                   children: [
                     pw.Text(
-                      'توقيع الشركة',
+                      'توقيع المكتب',
                       style: pw.TextStyle(
                         font: arabicBoldFont,
                         fontSize: 8,
@@ -350,7 +350,7 @@ class PdfGenerator {
               child: pw.Row(
                 crossAxisAlignment: pw.CrossAxisAlignment.stretch,
                 children: [
-                  pw.Expanded(child: buildCompactReceipt('نسخة الشركة')),
+                  pw.Expanded(child: buildCompactReceipt('نسخة المكتب')),
                   pw.SizedBox(width: 20),
                   pw.Expanded(child: buildCompactReceipt('نسخة العميل')),
                 ],

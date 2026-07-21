@@ -157,7 +157,7 @@ class UnallocatedLedgerPdf {
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
                     pw.Text(
-                      'Our Home',
+                      'SakanOS',
                       style: pw.TextStyle(
                         font: arabicBoldFont,
                         fontSize: 18,
@@ -218,7 +218,7 @@ class UnallocatedLedgerPdf {
               mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
               children: [
                 pw.Text(
-                  'نظام Our Home العقاري لإدارة الأملاك',
+                  'نظام SakanOS العقاري لإدارة الأملاك',
                   style: pw.TextStyle(
                     font: arabicFont,
                     color: PdfColors.grey600,

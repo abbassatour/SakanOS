@@ -158,7 +158,7 @@ class AllocatedLedgerPdf {
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
                     pw.Text(
-                      'Our Home',
+                      'SakanOS',
                       style: pw.TextStyle(
                         font: arabicBoldFont,
                         fontSize: 18,
@@ -219,7 +219,7 @@ class AllocatedLedgerPdf {
               mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
               children: [
                 pw.Text(
-                  'نظام Our Home العقاري لإدارة الأملاك',
+                  'نظام SakanOS العقاري لإدارة الأملاك',
                   style: pw.TextStyle(
                     font: arabicFont,
                     color: PdfColors.grey600,
@@ -391,7 +391,7 @@ class AllocatedLedgerPdf {
                 ),
                 pw.Container(width: 1, height: 24, color: PdfColors.grey500),
                 buildSummaryCol(
-                  'الأمتار المتبقية لصالح الشركة',
+                  'الأمتار المتبقية لصالح المكتب',
                   '${remainingMeters > 0 ? remainingMeters.toStringAsFixed(3) : "0 (مكتمل)"} م²',
                   remainingMeters > 0 ? PdfColors.red300 : PdfColors.green400,
                 ),

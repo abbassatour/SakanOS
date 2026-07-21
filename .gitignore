@@ -14,7 +14,12 @@ migrate_working_dir/
 # Security Keys
 .env
 env.g.dart
-
+# SakanOS custom excludes
+Output/
+Output/**
+*.exe
+*.msi
+*.iss
 # IntelliJ related
 *.iml
 *.ipr

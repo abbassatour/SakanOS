@@ -147,7 +147,7 @@ class AuthCubit extends Cubit<AuthState> {
       localUser.revokedPermissionsJson,
     );
     finalPermissions.removeAll(revokedPerms);
-    // 👇👇 [التحقق من اشتراك الشركة السحابي] 👇👇
+    // 👇👇 [التحقق من اشتراك المكتب السحابي] 👇👇
     final expiryDate = await _erpRepository.getLocalSubscriptionExpiry();
     final now = SecureTime.now();
 
@@ -157,7 +157,7 @@ class AuthCubit extends Cubit<AuthState> {
         state.copyWith(
           status: AuthStatus.subscriptionExpired,
           errorMessage:
-              'انتهت صلاحية اشتراك الشركة في النظام. يرجى التواصل مع المطور لتسوية الدفعات وتجديد رخصة العمل.',
+              'انتهت صلاحية اشتراك المكتب في النظام. يرجى التواصل مع المطور لتسوية الدفعات وتجديد رخصة العمل.',
           userId: localUser.id,
           userName: localUser.fullName ?? localUser.email,
           roleName: roleName,
@@ -205,7 +205,7 @@ class AuthCubit extends Cubit<AuthState> {
     }
 
     // ========================================================
-    // 💳 2. فحص رخصة اشتراك الشركة (بعد التأكد من سلامة الوقت)
+    // 💳 2. فحص رخصة اشتراك المكتب (بعد التأكد من سلامة الوقت)
     // ========================================================
 
     // السحر المحاسبي: نقارن تاريخ الانتهاء مع (أحدث وقت موثوق به)

@@ -141,7 +141,7 @@ class _LoginViewState extends State<LoginView> {
                   ),
                   const SizedBox(height: 16),
                   const Text(
-                    'نظام بيتنا العقاري',
+                    'SakanOS',
                     style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,

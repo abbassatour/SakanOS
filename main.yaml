@@ -1,4 +1,4 @@
-name: Our Home ERP CI
+name: SakanOS CI
 
 on:
   push:

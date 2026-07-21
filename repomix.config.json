@@ -34,7 +34,23 @@
       ".flutter-plugins",
       ".flutter-plugins-dependencies",
       ".metadata",
-      "repomix-output.xml"
+      "repomix-output.xml",
+      
+      "/* --- الاستثناءات الإضافية المقترحة لمشروعك --- */",
+      "Output/**",
+      "**/*.exe",
+      "**/*.msi",
+      "**/*.md",
+      "repomix.config.json",
+      ".coderabbit.yaml",
+      "**/.gitignore",
+      "analysis_options.yaml",
+      "devtools_options.yaml",
+      "l10n.yaml",
+      "**/*.ttf",
+      "**/*.otf",
+      "lib/l10n/arb/**",
+      "test/**"
     ]
   }
 }

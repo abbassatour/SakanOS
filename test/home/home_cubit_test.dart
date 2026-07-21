@@ -50,7 +50,7 @@ void main() {
     });
 
     // =========================================================
-    // 📊 اختبار جلب المؤشرات الحيوية للشركة (KPIs)
+    // 📊 اختبار جلب المؤشرات الحيوية للمكتب (KPIs)
     // =========================================================
     blocTest<HomeCubit, HomeState>(
       'emits [loading, success] and securely calculates derived metrics for the CEO dashboard',

@@ -3,7 +3,7 @@
 AppId={{D8E5F3B2-7A6C-4B9F-8D1E-123456789ABC}
 AppName=Our Home ERP
 AppVersion=1.0.0
-AppPublisher=Our Home Real Estate ; 🌟 تم تعديل اسم الناشر
+AppPublisher=Our Home Real Estate 
 DefaultDirName={autopf}\Our Home ERP
 DefaultGroupName=Our Home ERP
 

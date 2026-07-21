@@ -54,7 +54,7 @@ class RefundPdfGenerator {
           children: [
             pw.Center(
               child: pw.Text(
-                'بيتنا Our Home',
+                ' SakanOS',
                 style: pw.TextStyle(
                   font: arabicBoldFont,
                   fontSize: 11,
@@ -223,7 +223,7 @@ class RefundPdfGenerator {
                 pw.Column(
                   children: [
                     pw.Text(
-                      'توقيع الشركة',
+                      'توقيع المكتب',
                       style: pw.TextStyle(
                         font: arabicBoldFont,
                         fontSize: 8,
@@ -265,7 +265,7 @@ class RefundPdfGenerator {
             height: 148 * PdfPageFormat.mm,
             child: pw.Row(
               children: [
-                pw.Expanded(child: buildCompactReceipt('نسخة الشركة')),
+                pw.Expanded(child: buildCompactReceipt('نسخة المكتب')),
                 pw.SizedBox(width: 20),
                 pw.Expanded(child: buildCompactReceipt('نسخة العميل')),
               ],

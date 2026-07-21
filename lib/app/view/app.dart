@@ -49,7 +49,7 @@ class AppView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Our Home ERP',
+      title: 'SakanOS',
       debugShowCheckedModeBanner: false,
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
@@ -78,10 +78,10 @@ class AppView extends StatelessWidget {
           if (state.status == AuthStatus.authenticated &&
               state.userName != null) {
             await windowManager.setTitle(
-              ' بيتنا Our Home - [ ${state.userName} | ${state.roleName} ]',
+              '  SakanOS - [ ${state.userName} | ${state.roleName} ]',
             );
           } else {
-            await windowManager.setTitle(' بيتنا Our Home');
+            await windowManager.setTitle('  SakanOS');
           }
         },
         buildWhen: (previous, current) {
