@@ -14,88 +14,70 @@ class KpiSection extends StatelessWidget {
     final kpis = [
       _KpiData(
         icon: Icons.account_balance_wallet_rounded,
-        gradient: const LinearGradient(
-          colors: [Color(0xFF11998e), Color(0xFF38ef7d)],
-        ),
+        mainColor: Colors.teal.shade600, // لون يعبر عن النقد
         title: 'السيولة النقدية (الصافي)',
         value: '${numberFormatter.format(state.totalRevenue.toInt())} ل.س',
         subtitle: 'إجمالي أموال الصندوق الحقيقية',
-        iconBg: const Color(0xFF11998e),
       ),
       _KpiData(
         icon: Icons.money_off_rounded,
-        gradient: const LinearGradient(
-          colors: [Color(0xFFcb2d3e), Color(0xFFef473a)],
-        ),
+        mainColor: Colors.red.shade600, // أحمر للمسحوبات
         title: 'الأموال المستردة (سحوبات)',
         value:
             '${numberFormatter.format(state.totalRefundedAmount.toInt())} ل.س',
         subtitle: 'إجمالي المبالغ الخارجة من الصندوق',
-        iconBg: const Color(0xFFcb2d3e),
         infoDetails:
             'يمثل هذا الرقم إجمالي المبالغ التي تم دفعها من الصندوق (Cash Outflow) كاستردادات للعملاء المنسحبين، أو كقيود عكسية وتسويات محاسبية.',
       ),
       _KpiData(
         icon: Icons.hourglass_bottom_rounded,
-        gradient: const LinearGradient(
-          colors: [Color(0xFFf5af19), Color(0xFFf12711)],
-        ),
+        mainColor: Colors.orange.shade600, // برتقالي للديون الجارية
         title: 'ديون جارية (قيد الإنشاء)',
         value:
             '${numberFormatter.format(state.overduePreHandover.toInt())} ل.س',
         subtitle: 'أقساط متأخرة على شقق لم تُسلّم',
-        iconBg: const Color(0xFFf5af19),
         infoDetails:
             'يمثل الأقساط الشهرية المتأخرة على الزبائن الذين اشتروا شققاً مخصصة، ولكن شققهم لا تزال تحت الإعمار ولم يستلموها بعد. (لا يُطبق عليها غرامات).',
       ),
       _KpiData(
         icon: Icons.warning_amber_rounded,
-        gradient: const LinearGradient(
-          colors: [Color(0xFFe53935), Color(0xFFe35d5b)],
-        ),
+        mainColor: Colors.red.shade800, // أحمر داكن للذمم المستحقة الخطرة
         title: 'ذمم مستحقة (شقق مُسلّمة)',
         value:
             '${numberFormatter.format(state.overduePostHandover.toInt())} ل.س',
         subtitle: 'ديون عقارات تم تسليم مفاتيحها',
-        iconBg: const Color(0xFFe53935),
         infoDetails:
             'يمثل المبالغ المتأخرة على الزبائن الذين أتمت المكتب بناء شققهم وسلمتهم المفاتيح. يُعامل هذا الرقم بجدية ويُطبق عليه غرامات تأخير آلياً.',
       ),
       _KpiData(
         icon: Icons.vpn_key_outlined,
-        gradient: const LinearGradient(
-          colors: [Color(0xFF00695C), Color(0xFF00897B)],
-        ),
+        mainColor: Colors.blue.shade600, // أزرق للوحدات المتاحة
         title: 'الوحدات المتاحة للبيع',
         value: numberFormatter.format(state.inventoryStatus['متاحة'] ?? 0),
         subtitle: 'شقق ومحلات جاهزة للتعاقد',
-        iconBg: const Color(0xFF00695C),
         infoDetails:
             'يعرض عدد الوحدات العقارية (شقق/محلات) المُسجلة في كتالوج المحاضر والتي لم يتم ربطها بأي عقد مبيع حتى الآن.',
       ),
       _KpiData(
         icon: Icons.description_rounded,
-        gradient: const LinearGradient(
-          colors: [Color(0xFF7b4397), Color(0xFFdc2430)],
-        ),
+        mainColor: Colors.purple.shade600, // بنفسجي للعقود
         title: 'العقود الفعّالة',
         value: numberFormatter.format(state.activeContractsCount),
         subtitle: 'إجمالي العقود الجارية المبرمة',
-        iconBg: const Color(0xFF7b4397),
       ),
     ];
+
     return LayoutBuilder(
       builder: (context, constraints) {
-        // 🌟 توزيع أذكى لنقاط توقف الشاشة (Breakpoints)
         int crossAxisCount;
         if (constraints.maxWidth >= 1300) {
-          crossAxisCount = 6; // شاشة كاملة: 6 بطاقات بجانب بعض
+          crossAxisCount = 6;
         } else if (constraints.maxWidth >= 900) {
-          crossAxisCount = 3; // تصغير الشاشة قليلاً: 3 بطاقات
+          crossAxisCount = 3;
         } else if (constraints.maxWidth >= 550) {
-          crossAxisCount = 2; // نصف الشاشة: بطاقتين
+          crossAxisCount = 2;
         } else {
-          crossAxisCount = 1; // شاشة صغيرة جداً: بطاقة واحدة
+          crossAxisCount = 1;
         }
 
         return GridView.builder(
@@ -105,7 +87,6 @@ class KpiSection extends StatelessWidget {
             crossAxisCount: crossAxisCount,
             crossAxisSpacing: 16,
             mainAxisSpacing: 16,
-            // 🌟 الحل هنا: تثبيت الارتفاع بـ 135 بكسل بدلاً من استخدام childAspectRatio
             mainAxisExtent: 135,
           ),
           itemCount: kpis.length,
@@ -116,22 +97,21 @@ class KpiSection extends StatelessWidget {
   }
 }
 
+// 🌟 تعديل الكلاس ليقبل لوناً رئيسياً بدلاً من التدرج
 class _KpiData {
   const _KpiData({
     required this.icon,
-    required this.gradient,
+    required this.mainColor,
     required this.title,
     required this.value,
     required this.subtitle,
-    required this.iconBg,
     this.infoDetails,
   });
   final IconData icon;
-  final LinearGradient gradient;
+  final Color mainColor;
   final String title;
   final String value;
   final String subtitle;
-  final Color iconBg;
   final String? infoDetails;
 }
 
@@ -146,17 +126,17 @@ class _KpiCard extends StatelessWidget {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(
           children: [
-            const Icon(
+            Icon(
               Icons.analytics_outlined,
-              color: Colors.indigo,
+              color: Colors.blue.shade700,
               size: 28,
             ),
             const SizedBox(width: 10),
             Expanded(
               child: Text(
                 'المنطق المالي لـ: ${data.title}',
-                style: const TextStyle(
-                  color: Colors.indigo,
+                style: TextStyle(
+                  color: Colors.blue.shade900,
                   fontWeight: FontWeight.bold,
                   fontSize: 18,
                 ),
@@ -175,7 +155,7 @@ class _KpiCard extends StatelessWidget {
         actions: [
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.indigo,
+              backgroundColor: Colors.blue.shade700,
               foregroundColor: Colors.white,
             ),
             onPressed: () => Navigator.pop(ctx),
@@ -190,18 +170,22 @@ class _KpiCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        gradient: data.gradient,
+        color: Colors.white, // 🌟 خلفية بيضاء
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: Colors.lightBlue.shade100, // 🌟 حدود زرقاء فاتحة كما طلبت
+          width: 1.5,
+        ),
         boxShadow: [
           BoxShadow(
-            color: data.iconBg.withOpacity(0.35),
-            blurRadius: 12,
-            offset: const Offset(0, 6),
+            color: Colors.blue.shade900.withOpacity(0.04), // ظل أزرق خفيف جداً
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -216,10 +200,12 @@ class _KpiCard extends StatelessWidget {
                       Flexible(
                         child: Text(
                           data.title,
-                          style: const TextStyle(
-                            color: Colors.white70,
+                          style: TextStyle(
+                            color: Colors
+                                .blueGrey
+                                .shade600, // 🌟 نص رمادي مزرق للعنوان
                             fontSize: 13,
-                            fontWeight: FontWeight.w500,
+                            fontWeight: FontWeight.bold,
                           ),
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -231,9 +217,9 @@ class _KpiCard extends StatelessWidget {
                           child: InkWell(
                             onTap: () => _showInfoDialog(context),
                             borderRadius: BorderRadius.circular(12),
-                            child: const Icon(
+                            child: Icon(
                               Icons.info_outline,
-                              color: Colors.white70,
+                              color: Colors.blue.shade300,
                               size: 16,
                             ),
                           ),
@@ -242,20 +228,22 @@ class _KpiCard extends StatelessWidget {
                     ],
                   ),
                 ),
+                // 🌟 الأيقونة أصبحت بخلفية شفافة بلون الدلالة (أحمر، أخضر، الخ)
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
+                    color: data.mainColor.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Icon(data.icon, color: Colors.white, size: 20),
+                  child: Icon(data.icon, color: data.mainColor, size: 20),
                 ),
               ],
             ),
             Text(
               data.value,
-              style: const TextStyle(
-                color: Colors.white,
+              style: TextStyle(
+                color:
+                    Colors.blue.shade900, // 🌟 الرقم بلون أزرق داكن ليبرز بوضوح
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
                 letterSpacing: 0.3,
@@ -264,8 +252,8 @@ class _KpiCard extends StatelessWidget {
             ),
             Text(
               data.subtitle,
-              style: const TextStyle(
-                color: Colors.white60,
+              style: TextStyle(
+                color: Colors.grey.shade500, // 🌟 نص فاتح للوصف الفرعي
                 fontSize: 11,
               ),
               overflow: TextOverflow.ellipsis,

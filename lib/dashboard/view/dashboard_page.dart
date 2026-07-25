@@ -1,6 +1,4 @@
-// مسار الملف: lib/dashboard/view/dashboard_page.dart
-// المسؤولية: إدارة التبويبات الرئيسية وحقن جميع كلاسات إدارة الحالة (Cubits) في بداية التطبيق.
-
+// lib/dashboard/view/dashboard_page.dart
 import 'dart:io';
 
 import 'package:erp_repository/erp_repository.dart';
@@ -58,7 +56,6 @@ class DashboardPage extends StatelessWidget {
       providers: [
         BlocProvider(create: (_) => DashboardCubit()),
         BlocProvider(create: (_) => HomeCubit(repo)..fetchDashboardData()),
-        // 🌟 هنا تم الإصلاح: استخدام المعامل المسمى (erpRepository: repo)
         BlocProvider(
           create: (_) => ClientsCubit(erpRepository: repo)..fetchClients(),
         ),
@@ -200,7 +197,6 @@ class DashboardView extends StatelessWidget {
       );
     }
 
-    // حماية إضافية: إذا كان الـ index المحفوظ أكبر من عدد التبويبات المتاحة
     var safeIndex = selectedIndex;
     if (safeIndex >= availableTabs.length) {
       safeIndex = 0;
@@ -216,15 +212,26 @@ class DashboardView extends StatelessWidget {
               availableTabs[index].onSelected(context);
             },
             labelType: NavigationRailLabelType.all,
-            backgroundColor: Colors.blue.shade900,
-            unselectedIconTheme: const IconThemeData(color: Colors.white70),
-            unselectedLabelTextStyle: const TextStyle(color: Colors.white70),
-            selectedIconTheme: const IconThemeData(
-              color: Colors.white,
+            // ==========================================
+            // 🌟 التعديلات اللونية للشريط الجانبي
+            // ==========================================
+            backgroundColor: Colors.blue.shade50, // 🌟 خلفية أزرق فاتح جداً
+            indicatorColor:
+                Colors.white, // 🌟 لون دائرة/مربع التحديد (أبيض ليعطي بروزاً)
+            unselectedIconTheme: IconThemeData(
+              color: Colors.blueGrey.shade400,
+            ), // 🌟 أيقونات غير محددة (رمادي مزرق)
+            unselectedLabelTextStyle: TextStyle(
+              color: Colors.blueGrey.shade600,
+            ), // 🌟 نصوص غير محددة
+            selectedIconTheme: IconThemeData(
+              color: Colors
+                  .blue
+                  .shade700, // 🌟 لون الأيقونة المحددة (أزرق داكن ليكون واضحاً)
               size: 30,
             ),
-            selectedLabelTextStyle: const TextStyle(
-              color: Colors.white,
+            selectedLabelTextStyle: TextStyle(
+              color: Colors.blue.shade800, // 🌟 النص المحدد
               fontWeight: FontWeight.bold,
             ),
             destinations: availableTabs
@@ -246,22 +253,25 @@ class DashboardView extends StatelessWidget {
                     children: [
                       Text(
                         authState.roleName ?? '',
-                        style: const TextStyle(
-                          color: Colors.amber,
+                        style: TextStyle(
+                          color: Colors
+                              .blue
+                              .shade800, // 🌟 تغيير اللون ليتناسب مع الخلفية الفاتحة
                           fontWeight: FontWeight.bold,
                           fontSize: 12,
                         ),
                       ),
 
                       const SizedBox(height: 8),
-                      // 🌟 تم إضافة أيقونة ومؤشر الجلسة המفتوحة هنا! 🌟
                       const _PinSessionIndicator(),
                       const SizedBox(height: 16),
 
                       IconButton(
-                        icon: const Icon(
+                        icon: Icon(
                           Icons.sync,
-                          color: Colors.greenAccent,
+                          color: Colors
+                              .teal
+                              .shade600, // 🌟 الأخضر الداكن ليتناسب مع الخلفية الفاتحة
                           size: 28,
                         ),
                         tooltip: 'مزامنة يدوية مع السحابة (Pull & Push)',
@@ -360,9 +370,11 @@ class DashboardView extends StatelessWidget {
                       ),
                       const SizedBox(height: 16),
                       IconButton(
-                        icon: const Icon(
+                        icon: Icon(
                           Icons.logout,
-                          color: Colors.redAccent,
+                          color: Colors
+                              .red
+                              .shade400, // 🌟 أحمر هادئ يتناسب مع الخلفية الفاتحة
                           size: 28,
                         ),
                         tooltip: 'تسجيل الخروج (وإقفال النظام)',
@@ -404,7 +416,11 @@ class DashboardView extends StatelessWidget {
               ),
             ),
           ),
-          const VerticalDivider(thickness: 1, width: 1),
+          // 🌟 إضافة خط فاصل أنيق بين الـ Sidebar ومحتوى الشاشة
+          Container(
+            width: 1,
+            color: Colors.blue.shade100, // لون الخط الفاصل
+          ),
           Expanded(
             child: IndexedStack(
               index: safeIndex,
@@ -431,7 +447,10 @@ class _PinSessionIndicator extends StatelessWidget {
           return Tooltip(
             message: 'صلاحيات الإدارة مقفلة بأمان 🔒',
             child: IconButton(
-              icon: const Icon(Icons.lock_outline, color: Colors.white38),
+              icon: Icon(
+                Icons.lock_outline,
+                color: Colors.blueGrey.shade400,
+              ), // 🌟 تم التعديل
               onPressed: () {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
@@ -447,7 +466,6 @@ class _PinSessionIndicator extends StatelessWidget {
         }
 
         // 🔓 الحالة الثانية: الجلسة مفتوحة (نحسب الوقت المتبقي للأنميشن)
-        // 5 دقائق = 300 ثانية
         final expiryTime = state.lastPinVerificationTime!.add(
           const Duration(minutes: 5),
         );
@@ -470,7 +488,8 @@ class _PinSessionIndicator extends StatelessWidget {
                   builder: (context, value, child) {
                     return CircularProgressIndicator(
                       value: value,
-                      color: Colors.greenAccent,
+                      color:
+                          Colors.teal.shade500, // 🌟 لون أوضح للخلفية الفاتحة
                       backgroundColor: Colors.transparent,
                       strokeWidth: 2.5,
                     );
@@ -479,7 +498,10 @@ class _PinSessionIndicator extends StatelessWidget {
               ),
               // 🌟 زر القفل المفتوح
               IconButton(
-                icon: const Icon(Icons.lock_open, color: Colors.greenAccent),
+                icon: Icon(
+                  Icons.lock_open,
+                  color: Colors.teal.shade700,
+                ), // 🌟 لون داكن
                 onPressed: () {
                   context.read<AuthCubit>().lockPinSession();
                   ScaffoldMessenger.of(context).showSnackBar(
