@@ -613,6 +613,94 @@
   "shopCoeffStreet": "Street %",
   "shopCoeffFacade": "Facade Multiplier %",
   "shopBtnSave": "Save Shop",
-  "shopValidationIncomplete": "⚠️ Incomplete data or invalid area!"
+  "shopValidationIncomplete": "⚠️ Incomplete data or invalid area!",
+
+  "attErrorNoInternet": "❌ No internet connection! Check network and try again.",
+  "attBtnUpload": "Upload Files",
+  "attBtnUploadNew": "Upload New Files",
+  "attUploadProgress": "Processing & uploading file {current} of {total}",
+  "@attUploadProgress": {
+    "placeholders": {
+      "current": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "attUploadSpeed": "Avg speed: {speed}",
+  "@attUploadSpeed": {
+    "placeholders": {
+      "speed": { "type": "String" }
+    }
+  },
+  "attBtnCancelling": "Cancelling...",
+  "attBtnCancel": "Cancel Operation",
+  "attUnnamed": "Unnamed",
+  "attOpeningFile": "Opening \"{fileName}\"... ⏳",
+  "@attOpeningFile": {
+    "placeholders": {
+      "fileName": { "type": "String" }
+    }
+  },
+  "attLocalFileError": "⚠️ Could not open local file: {error}",
+  "@attLocalFileError": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+  "attFileError": "⚠️ Could not open file: {error}",
+  "@attFileError": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+  "attOpenError": "❌ Error opening file: {error}",
+  "@attOpenError": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+  "attUploadCancelled": "⚠️ Upload cancelled. Only {count} file(s) uploaded.",
+  "@attUploadCancelled": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "attInternetLostDuringUpload": "❌ Internet connection lost during upload!",
+  "attUploadError": "❌ Error uploading file ({fileName}): {error}",
+  "@attUploadError": {
+    "placeholders": {
+      "fileName": { "type": "String" },
+      "error": { "type": "String" }
+    }
+  },
+  "attUploadSuccess": "{count} file(s) uploaded successfully! ✅",
+  "@attUploadSuccess": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "attWaitUploadNotice": "⚠️ Please wait until upload completes.",
+  "attImageLoadError": "Could not load image",
+
+  "bldAttPageTitle": "Building Attachments: {name}",
+  "@bldAttPageTitle": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "bldAttEmptyGallery": "Gallery is empty. No attachments for this building.",
+
+  "aptAttPageTitleShop": "Shop Attachments ({number})",
+  "@aptAttPageTitleShop": {
+    "placeholders": {
+      "number": { "type": "String" }
+    }
+  },
+  "aptAttPageTitleApartment": "Apartment Attachments ({number})",
+  "@aptAttPageTitleApartment": {
+    "placeholders": {
+      "number": { "type": "String" }
+    }
+  },
+  "aptAttEmptyGallery": "Gallery is empty. No attachments for this unit."
   
 }

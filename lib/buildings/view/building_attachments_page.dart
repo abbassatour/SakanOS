@@ -9,6 +9,7 @@ import 'package:local_storage_api/local_storage_api.dart'
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:open_filex/open_filex.dart';
+import 'package:our_home_erp_app/l10n/l10n.dart';
 
 import '../cubit/buildings_cubit.dart';
 
@@ -22,7 +23,6 @@ class BuildingAttachmentsPage extends StatefulWidget {
     required this.canManage,
   });
 
-  // 🌟 دالة مساعدة سحرية للانتقال لهذه الصفحة مع الحفاظ على الـ Cubit
   static Route<void> route(
     Building building,
     bool canManage,
@@ -55,6 +55,8 @@ class _BuildingAttachmentsPageState extends State<BuildingAttachmentsPage> {
   String? errorMessage;
 
   void _openImageInApp(String urlOrPath, String fileName, bool isLocal) {
+    final l10n = context.l10n;
+
     showDialog(
       context: context,
       builder: (dialogCtx) => Dialog(
@@ -85,16 +87,16 @@ class _BuildingAttachmentsPageState extends State<BuildingAttachmentsPage> {
                         errorBuilder: (c, e, s) => Container(
                           color: Colors.white,
                           padding: const EdgeInsets.all(20),
-                          child: const Column(
+                          child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(
+                              const Icon(
                                 Icons.broken_image,
                                 color: Colors.red,
                                 size: 50,
                               ),
-                              SizedBox(height: 10),
-                              Text('تعذر تحميل الصورة'),
+                              const SizedBox(height: 10),
+                              Text(l10n.attImageLoadError),
                             ],
                           ),
                         ),
@@ -139,9 +141,11 @@ class _BuildingAttachmentsPageState extends State<BuildingAttachmentsPage> {
   }
 
   Future<void> _downloadAndOpenFile(String urlOrPath, String fileName) async {
+    final l10n = context.l10n;
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('جاري فتح "$fileName"... ⏳'),
+        content: Text(l10n.attOpeningFile(fileName)),
         backgroundColor: Colors.indigo,
         duration: const Duration(seconds: 2),
       ),
@@ -153,7 +157,7 @@ class _BuildingAttachmentsPageState extends State<BuildingAttachmentsPage> {
         if (result.type != ResultType.done && mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('⚠️ تعذر فتح الملف المحلي: ${result.message}'),
+              content: Text(l10n.attLocalFileError(result.message)),
               backgroundColor: Colors.orange,
             ),
           );
@@ -170,7 +174,7 @@ class _BuildingAttachmentsPageState extends State<BuildingAttachmentsPage> {
         if (response.statusCode == 200) {
           await file.writeAsBytes(response.bodyBytes);
         } else {
-          throw Exception('فشل التحميل من السيرفر');
+          throw Exception('Failed to download');
         }
       }
 
@@ -178,7 +182,7 @@ class _BuildingAttachmentsPageState extends State<BuildingAttachmentsPage> {
       if (result.type != ResultType.done && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('⚠️ تعذر فتح الملف: ${result.message}'),
+            content: Text(l10n.attFileError(result.message)),
             backgroundColor: Colors.orange,
           ),
         );
@@ -187,7 +191,7 @@ class _BuildingAttachmentsPageState extends State<BuildingAttachmentsPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('❌ خطأ في فتح الملف: $e'),
+            content: Text(l10n.attOpenError(e.toString())),
             backgroundColor: Colors.red,
           ),
         );
@@ -205,12 +209,11 @@ class _BuildingAttachmentsPageState extends State<BuildingAttachmentsPage> {
   }
 
   Future<void> _startUploadProcess() async {
+    final l10n = context.l10n;
+
     bool hasNet = await _hasInternetConnection();
     if (!hasNet) {
-      setState(
-        () => errorMessage =
-            '❌ لا يوجد اتصال بالإنترنت! تأكد من الشبكة وحاول مجدداً.',
-      );
+      setState(() => errorMessage = l10n.attErrorNoInternet);
       return;
     }
 
@@ -251,8 +254,7 @@ class _BuildingAttachmentsPageState extends State<BuildingAttachmentsPage> {
     for (int i = 0; i < result.files.length; i++) {
       if (isCancelling) {
         setState(
-          () => errorMessage =
-              '⚠️ تم إلغاء الرفع. تم رفع $currentUploadIndex ملفات فقط.',
+          () => errorMessage = l10n.attUploadCancelled(currentUploadIndex),
         );
         break;
       }
@@ -281,13 +283,11 @@ class _BuildingAttachmentsPageState extends State<BuildingAttachmentsPage> {
           if (mounted) {
             if (e is SocketException ||
                 e.toString().toLowerCase().contains('socket')) {
-              setState(
-                () => errorMessage = '❌ انقطع الاتصال بالإنترنت أثناء الرفع!',
-              );
+              setState(() => errorMessage = l10n.attInternetLostDuringUpload);
             } else {
               setState(
-                () => errorMessage =
-                    '❌ حدث خطأ أثناء رفع الملف (${file.name}): $e',
+                () =>
+                    errorMessage = l10n.attUploadError(file.name, e.toString()),
               );
             }
           }
@@ -302,7 +302,7 @@ class _BuildingAttachmentsPageState extends State<BuildingAttachmentsPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('تم رفع $totalFilesToUpload ملفات بنجاح! ✅'),
+            content: Text(l10n.attUploadSuccess(totalFilesToUpload)),
             backgroundColor: Colors.green,
           ),
         );
@@ -315,13 +315,15 @@ class _BuildingAttachmentsPageState extends State<BuildingAttachmentsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return PopScope(
       canPop: !isUploading,
       onPopInvoked: (didPop) {
         if (!didPop && mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('⚠️ الرجاء الانتظار حتى يكتمل الرفع.'),
+            SnackBar(
+              content: Text(l10n.attWaitUploadNotice),
               backgroundColor: Colors.orange,
             ),
           );
@@ -331,7 +333,7 @@ class _BuildingAttachmentsPageState extends State<BuildingAttachmentsPage> {
         backgroundColor: Colors.grey.shade50,
         appBar: AppBar(
           title: Text(
-            'مرفقات المحضر: ${widget.building.name}',
+            l10n.bldAttPageTitle(widget.building.name),
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
           backgroundColor: Colors.indigo.shade700,
@@ -347,9 +349,9 @@ class _BuildingAttachmentsPageState extends State<BuildingAttachmentsPage> {
                 ),
                 child: ElevatedButton.icon(
                   icon: const Icon(Icons.add_photo_alternate, size: 18),
-                  label: const Text(
-                    'رفع ملفات',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                  label: Text(
+                    l10n.attBtnUpload,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white,
@@ -377,6 +379,8 @@ class _BuildingAttachmentsPageState extends State<BuildingAttachmentsPage> {
   }
 
   Widget _buildUploadProgressView() {
+    final l10n = context.l10n;
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 40.0),
@@ -386,7 +390,7 @@ class _BuildingAttachmentsPageState extends State<BuildingAttachmentsPage> {
             const CircularProgressIndicator(color: Colors.indigo),
             const SizedBox(height: 24),
             Text(
-              'جاري معالجة ورفع الملف $currentUploadIndex من $totalFilesToUpload',
+              l10n.attUploadProgress(currentUploadIndex, totalFilesToUpload),
               style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
@@ -411,7 +415,7 @@ class _BuildingAttachmentsPageState extends State<BuildingAttachmentsPage> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'متوسط السرعة: $currentSpeedStr',
+                    l10n.attUploadSpeed(currentSpeedStr),
                     style: const TextStyle(
                       color: Colors.green,
                       fontWeight: FontWeight.bold,
@@ -439,7 +443,7 @@ class _BuildingAttachmentsPageState extends State<BuildingAttachmentsPage> {
               ),
               icon: const Icon(Icons.cancel),
               label: Text(
-                isCancelling ? 'جاري الإيقاف...' : 'إلغاء العملية',
+                isCancelling ? l10n.attBtnCancelling : l10n.attBtnCancel,
                 style: const TextStyle(fontSize: 16),
               ),
               onPressed: isCancelling
@@ -453,6 +457,8 @@ class _BuildingAttachmentsPageState extends State<BuildingAttachmentsPage> {
   }
 
   Widget _buildGalleryView(List<BuildingAttachment> attachments) {
+    final l10n = context.l10n;
+
     return Column(
       children: [
         if (errorMessage != null)
@@ -481,20 +487,20 @@ class _BuildingAttachmentsPageState extends State<BuildingAttachmentsPage> {
             ),
           ),
         if (attachments.isEmpty)
-          const Expanded(
+          Expanded(
             child: Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.photo_library_outlined,
                     size: 100,
                     color: Colors.black12,
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   Text(
-                    'المعرض فارغ. لا توجد مرفقات لهذا المحضر.',
-                    style: TextStyle(color: Colors.grey, fontSize: 20),
+                    l10n.bldAttEmptyGallery,
+                    style: const TextStyle(color: Colors.grey, fontSize: 20),
                   ),
                 ],
               ),
@@ -558,13 +564,13 @@ class _BuildingAttachmentsPageState extends State<BuildingAttachmentsPage> {
                                     if (isImage) {
                                       _openImageInApp(
                                         secureUrl,
-                                        att.fileName ?? 'صورة',
+                                        att.fileName ?? l10n.attUnnamed,
                                         isLocal,
                                       );
                                     } else {
                                       _downloadAndOpenFile(
                                         secureUrl,
-                                        att.fileName ?? 'ملف.$ext',
+                                        att.fileName ?? 'file.$ext',
                                       );
                                     }
                                   },
@@ -613,7 +619,7 @@ class _BuildingAttachmentsPageState extends State<BuildingAttachmentsPage> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        att.fileName ?? 'بدون اسم',
+                                        att.fileName ?? l10n.attUnnamed,
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                         style: const TextStyle(

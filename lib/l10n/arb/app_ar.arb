@@ -611,5 +611,91 @@
   "shopValidationIncomplete": "⚠️ بيانات غير مكتملة أو مساحة غير صالحة!",
 
 
-  
+  "attErrorNoInternet": "❌ لا يوجد اتصال بالإنترنت! تأكد من الشبكة وحاول مجدداً.",
+  "attBtnUpload": "رفع ملفات",
+  "attBtnUploadNew": "رفع ملفات جديدة",
+  "attUploadProgress": "جاري معالجة ورفع الملف {current} من {total}",
+  "@attUploadProgress": {
+    "placeholders": {
+      "current": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "attUploadSpeed": "متوسط السرعة: {speed}",
+  "@attUploadSpeed": {
+    "placeholders": {
+      "speed": { "type": "String" }
+    }
+  },
+  "attBtnCancelling": "جاري الإيقاف...",
+  "attBtnCancel": "إلغاء العملية",
+  "attUnnamed": "بدون اسم",
+  "attOpeningFile": "جاري فتح \"{fileName}\"... ⏳",
+  "@attOpeningFile": {
+    "placeholders": {
+      "fileName": { "type": "String" }
+    }
+  },
+  "attLocalFileError": "⚠️ تعذر فتح الملف المحلي: {error}",
+  "@attLocalFileError": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+  "attFileError": "⚠️ تعذر فتح الملف: {error}",
+  "@attFileError": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+  "attOpenError": "❌ خطأ في فتح الملف: {error}",
+  "@attOpenError": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+  "attUploadCancelled": "⚠️ تم إلغاء الرفع. تم رفع {count} ملفات فقط.",
+  "@attUploadCancelled": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "attInternetLostDuringUpload": "❌ انقطع الاتصال بالإنترنت أثناء الرفع!",
+  "attUploadError": "❌ حدث خطأ أثناء رفع الملف ({fileName}): {error}",
+  "@attUploadError": {
+    "placeholders": {
+      "fileName": { "type": "String" },
+      "error": { "type": "String" }
+    }
+  },
+  "attUploadSuccess": "تم رفع {count} ملفات بنجاح! ✅",
+  "@attUploadSuccess": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "attWaitUploadNotice": "⚠️ الرجاء الانتظار حتى يكتمل الرفع.",
+  "attImageLoadError": "تعذر تحميل الصورة",
+
+  "bldAttPageTitle": "مرفقات المحضر: {name}",
+  "@bldAttPageTitle": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "bldAttEmptyGallery": "المعرض فارغ. لا توجد مرفقات لهذا المحضر.",
+
+  "aptAttPageTitleShop": "مرفقات المحل ({number})",
+  "@aptAttPageTitleShop": {
+    "placeholders": {
+      "number": { "type": "String" }
+    }
+  },
+  "aptAttPageTitleApartment": "مرفقات الشقة ({number})",
+  "@aptAttPageTitleApartment": {
+    "placeholders": {
+      "number": { "type": "String" }
+    }
+  },
+  "aptAttEmptyGallery": "المعرض فارغ. لا توجد مرفقات للوحدة."
 }
