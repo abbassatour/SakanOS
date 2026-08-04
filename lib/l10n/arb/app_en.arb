@@ -51,5 +51,38 @@
     "placeholders": {
       "days": { "type": "int" }
     }
-  }
+  },
+
+  "navHome": "Home",
+  "navClients": "Clients",
+  "navProjects": "Projects",
+  "navContracts": "Contracts",
+  "navInstallments": "Installments",
+  "navMonitoring": "Monitoring",
+  "navSettings": "Settings",
+  "navLegal": "Legal",
+  "navAdmin": "Admin",
+
+  "navSyncTooltip": "Manual Cloud Sync (Pull & Push)",
+  "navLogoutTooltip": "Logout & Lock System",
+
+  "navCheckingInternet": "Checking internet connection... 📡",
+  "navNoInternet": "No internet connection! Please check your network. 🌐❌",
+  "navSyncingData": "Internet connected ✅ Syncing data, please wait... ☁️🔄",
+  "navSyncError": "Unexpected sync error: {error}",
+  "@navSyncError": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+
+  "logoutDialogTitle": "Logout",
+  "logoutDialogMessage": "Are you sure you want to log out? Temporary data will be cleared from this device for protection.",
+  "logoutCancel": "Cancel",
+  "logoutConfirm": "Confirm Logout",
+
+  "pinLockedTooltip": "Admin permissions securely locked 🔒",
+  "pinLockedMessage": "System locked. PIN will be required for sensitive tasks.",
+  "pinUnlockedTooltip": "Admin permissions unlocked.\nClick to lock immediately.",
+  "pinLockedSuccess": "Sensitive permissions locked successfully 🔒"
 }

@@ -16,6 +16,7 @@ import '../../contracts/view/contracts_page.dart';
 import '../../core/constants/app_permissions.dart';
 import '../../home/cubit/home_cubit.dart';
 import '../../home/view/home_page.dart';
+import '../../l10n/l10n.dart'; // 🌟 استدعاء مكتبة الترجمة
 import '../../legal/cubit/legal_affairs_cubit.dart';
 import '../../legal/view/legal_affairs_page.dart';
 import '../../payments/cubit/payments_cubit.dart';
@@ -26,9 +27,6 @@ import '../../settings/cubit/settings_cubit.dart';
 import '../../settings/view/settings_page.dart';
 import '../cubit/dashboard_cubit.dart';
 
-// ==========================================
-// 🧩 كلاس مساعد لتعريف التبويبات بمرونة
-// ==========================================
 class NavTab {
   NavTab({
     required this.label,
@@ -78,14 +76,12 @@ class DashboardView extends StatelessWidget {
   Widget build(BuildContext context) {
     final selectedIndex = context.watch<DashboardCubit>().state;
     final authState = context.watch<AuthCubit>().state;
+    final l10n = context.l10n; // 🌟 استخدام اختصار الترجمة
 
-    // ==========================================
-    // 🌟 بناء قائمة التبويبات بناءً على الصلاحيات
-    // ==========================================
     final availableTabs = <NavTab>[
-      // 1. الرئيسية (الكل يراها)
+      // 1. الرئيسية
       NavTab(
-        label: 'الرئيسية',
+        label: l10n.navHome,
         icon: Icons.dashboard_outlined,
         selectedIcon: Icons.dashboard,
         page: const HomePage(),
@@ -97,7 +93,7 @@ class DashboardView extends StatelessWidget {
     if (authState.hasPermission(AppPermissions.viewClients)) {
       availableTabs.add(
         NavTab(
-          label: 'العملاء',
+          label: l10n.navClients,
           icon: Icons.people_alt_outlined,
           selectedIcon: Icons.people_alt,
           page: const ClientsPage(),
@@ -110,7 +106,7 @@ class DashboardView extends StatelessWidget {
     if (authState.hasPermission(AppPermissions.manageBuildings)) {
       availableTabs.add(
         NavTab(
-          label: 'المشاريع',
+          label: l10n.navProjects,
           icon: Icons.domain_outlined,
           selectedIcon: Icons.domain,
           page: const BuildingsPage(),
@@ -123,7 +119,7 @@ class DashboardView extends StatelessWidget {
     if (authState.hasPermission(AppPermissions.viewContracts)) {
       availableTabs.add(
         NavTab(
-          label: 'العقود',
+          label: l10n.navContracts,
           icon: Icons.description_outlined,
           selectedIcon: Icons.description,
           page: const ContractsPage(),
@@ -132,11 +128,11 @@ class DashboardView extends StatelessWidget {
       );
     }
 
-    // 5. الأقساط والدفعات
+    // 5. الأقساط
     if (authState.hasPermission(AppPermissions.viewPayments)) {
       availableTabs.add(
         NavTab(
-          label: 'الأقساط',
+          label: l10n.navInstallments,
           icon: Icons.receipt_long_outlined,
           selectedIcon: Icons.receipt_long,
           page: const PaymentsPage(),
@@ -149,7 +145,7 @@ class DashboardView extends StatelessWidget {
     if (authState.hasPermission(AppPermissions.viewPayments)) {
       availableTabs.add(
         NavTab(
-          label: 'المراقبة',
+          label: l10n.navMonitoring,
           icon: Icons.calendar_month_outlined,
           selectedIcon: Icons.calendar_month,
           page: const SchedulePage(),
@@ -162,7 +158,7 @@ class DashboardView extends StatelessWidget {
     if (authState.hasPermission(AppPermissions.viewPrices)) {
       availableTabs.add(
         NavTab(
-          label: 'الإعدادات',
+          label: l10n.navSettings,
           icon: Icons.settings_outlined,
           selectedIcon: Icons.settings,
           page: const SettingsPage(),
@@ -171,11 +167,11 @@ class DashboardView extends StatelessWidget {
       );
     }
 
-    // 8. الشؤون القانونية والأرشيف
+    // 8. الشؤون القانونية
     if (authState.hasPermission(AppPermissions.viewLegalAffairs)) {
       availableTabs.add(
         NavTab(
-          label: 'القانونية',
+          label: l10n.navLegal,
           icon: Icons.gavel_outlined,
           selectedIcon: Icons.gavel,
           page: const LegalAffairsPage(),
@@ -184,11 +180,11 @@ class DashboardView extends StatelessWidget {
       );
     }
 
-    // 9. لوحة تحكم الإدارة (خاصة بالـ Super Admin فقط)
+    // 9. لوحة الإدارة
     if (authState.isSystemAdmin) {
       availableTabs.add(
         NavTab(
-          label: 'الإدارة',
+          label: l10n.navAdmin,
           icon: Icons.admin_panel_settings_outlined,
           selectedIcon: Icons.admin_panel_settings,
           page: const AdminPage(),
@@ -212,26 +208,20 @@ class DashboardView extends StatelessWidget {
               availableTabs[index].onSelected(context);
             },
             labelType: NavigationRailLabelType.all,
-            // ==========================================
-            // 🌟 التعديلات اللونية للشريط الجانبي
-            // ==========================================
-            backgroundColor: Colors.blue.shade50, // 🌟 خلفية أزرق فاتح جداً
-            indicatorColor:
-                Colors.white, // 🌟 لون دائرة/مربع التحديد (أبيض ليعطي بروزاً)
+            backgroundColor: Colors.blue.shade50,
+            indicatorColor: Colors.white,
             unselectedIconTheme: IconThemeData(
               color: Colors.blueGrey.shade400,
-            ), // 🌟 أيقونات غير محددة (رمادي مزرق)
+            ),
             unselectedLabelTextStyle: TextStyle(
               color: Colors.blueGrey.shade600,
-            ), // 🌟 نصوص غير محددة
+            ),
             selectedIconTheme: IconThemeData(
-              color: Colors
-                  .blue
-                  .shade700, // 🌟 لون الأيقونة المحددة (أزرق داكن ليكون واضحاً)
+              color: Colors.blue.shade700,
               size: 30,
             ),
             selectedLabelTextStyle: TextStyle(
-              color: Colors.blue.shade800, // 🌟 النص المحدد
+              color: Colors.blue.shade800,
               fontWeight: FontWeight.bold,
             ),
             destinations: availableTabs
@@ -254,32 +244,26 @@ class DashboardView extends StatelessWidget {
                       Text(
                         authState.roleName ?? '',
                         style: TextStyle(
-                          color: Colors
-                              .blue
-                              .shade800, // 🌟 تغيير اللون ليتناسب مع الخلفية الفاتحة
+                          color: Colors.blue.shade800,
                           fontWeight: FontWeight.bold,
                           fontSize: 12,
                         ),
                       ),
-
                       const SizedBox(height: 8),
                       const _PinSessionIndicator(),
                       const SizedBox(height: 16),
-
                       IconButton(
                         icon: Icon(
                           Icons.sync,
-                          color: Colors
-                              .teal
-                              .shade600, // 🌟 الأخضر الداكن ليتناسب مع الخلفية الفاتحة
+                          color: Colors.teal.shade600,
                           size: 28,
                         ),
-                        tooltip: 'مزامنة يدوية مع السحابة (Pull & Push)',
+                        tooltip: l10n.navSyncTooltip,
                         onPressed: () async {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('جاري فحص الاتصال بالإنترنت... 📡'),
-                              duration: Duration(seconds: 2),
+                            SnackBar(
+                              content: Text(l10n.navCheckingInternet),
+                              duration: const Duration(seconds: 2),
                             ),
                           );
 
@@ -301,14 +285,15 @@ class DashboardView extends StatelessWidget {
                             if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
-                                  content: const Row(
+                                  content: Row(
                                     children: [
-                                      Icon(Icons.wifi_off, color: Colors.white),
-                                      SizedBox(width: 12),
+                                      const Icon(
+                                        Icons.wifi_off,
+                                        color: Colors.white,
+                                      ),
+                                      const SizedBox(width: 12),
                                       Expanded(
-                                        child: Text(
-                                          'لا يوجد اتصال بالإنترنت! يرجى التحقق من الشبكة. 🌐❌',
-                                        ),
+                                        child: Text(l10n.navNoInternet),
                                       ),
                                     ],
                                   ),
@@ -322,11 +307,9 @@ class DashboardView extends StatelessWidget {
 
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                  'الإنترنت متصل ✅ جاري مزامنة البيانات، يرجى الانتظار... ☁️🔄',
-                                ),
-                                duration: Duration(seconds: 10),
+                              SnackBar(
+                                content: Text(l10n.navSyncingData),
+                                duration: const Duration(seconds: 10),
                               ),
                             );
                           }
@@ -358,7 +341,7 @@ class DashboardView extends StatelessWidget {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(
-                                    'حدث خطأ غير متوقع أثناء المزامنة: $e',
+                                    l10n.navSyncError(e.toString()),
                                   ),
                                   backgroundColor: Colors.red.shade900,
                                   behavior: SnackBarBehavior.floating,
@@ -372,27 +355,23 @@ class DashboardView extends StatelessWidget {
                       IconButton(
                         icon: Icon(
                           Icons.logout,
-                          color: Colors
-                              .red
-                              .shade400, // 🌟 أحمر هادئ يتناسب مع الخلفية الفاتحة
+                          color: Colors.red.shade400,
                           size: 28,
                         ),
-                        tooltip: 'تسجيل الخروج (وإقفال النظام)',
+                        tooltip: l10n.navLogoutTooltip,
                         onPressed: () {
                           showDialog<void>(
                             context: context,
                             builder: (ctx) => AlertDialog(
-                              title: const Text(
-                                'تسجيل الخروج',
-                                style: TextStyle(color: Colors.red),
+                              title: Text(
+                                l10n.logoutDialogTitle,
+                                style: const TextStyle(color: Colors.red),
                               ),
-                              content: const Text(
-                                'هل أنت متأكد أنك تريد تسجيل الخروج؟ سيتم إقفال ومسح البيانات المؤقتة من هذا الجهاز لحمايتها.',
-                              ),
+                              content: Text(l10n.logoutDialogMessage),
                               actions: [
                                 TextButton(
                                   onPressed: () => Navigator.pop(ctx),
-                                  child: const Text('إلغاء'),
+                                  child: Text(l10n.logoutCancel),
                                 ),
                                 ElevatedButton(
                                   style: ElevatedButton.styleFrom(
@@ -403,7 +382,7 @@ class DashboardView extends StatelessWidget {
                                     Navigator.pop(ctx);
                                     await context.read<AuthCubit>().logout();
                                   },
-                                  child: const Text('تأكيد الخروج'),
+                                  child: Text(l10n.logoutConfirm),
                                 ),
                               ],
                             ),
@@ -416,10 +395,9 @@ class DashboardView extends StatelessWidget {
               ),
             ),
           ),
-          // 🌟 إضافة خط فاصل أنيق بين الـ Sidebar ومحتوى الشاشة
           Container(
             width: 1,
-            color: Colors.blue.shade100, // لون الخط الفاصل
+            color: Colors.blue.shade100,
           ),
           Expanded(
             child: IndexedStack(
@@ -438,26 +416,25 @@ class _PinSessionIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return BlocBuilder<AuthCubit, AuthState>(
       builder: (context, state) {
         final isActive = state.isPinGracePeriodActive;
 
-        // 🔒 الحالة الأولى: الجلسة مقفلة
         if (!isActive) {
           return Tooltip(
-            message: 'صلاحيات الإدارة مقفلة بأمان 🔒',
+            message: l10n.pinLockedTooltip,
             child: IconButton(
               icon: Icon(
                 Icons.lock_outline,
                 color: Colors.blueGrey.shade400,
-              ), // 🌟 تم التعديل
+              ),
               onPressed: () {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text(
-                      'النظام مقفل. سيُطلب الرمز عند أي عملية حساسة.',
-                    ),
-                    duration: Duration(seconds: 2),
+                  SnackBar(
+                    content: Text(l10n.pinLockedMessage),
+                    duration: const Duration(seconds: 2),
                   ),
                 );
               },
@@ -465,7 +442,6 @@ class _PinSessionIndicator extends StatelessWidget {
           );
         }
 
-        // 🔓 الحالة الثانية: الجلسة مفتوحة (نحسب الوقت المتبقي للأنميشن)
         final expiryTime = state.lastPinVerificationTime!.add(
           const Duration(minutes: 5),
         );
@@ -474,11 +450,10 @@ class _PinSessionIndicator extends StatelessWidget {
         final percentage = remainingSeconds / 300.0;
 
         return Tooltip(
-          message: 'صلاحيات الإدارة مفتوحة.\nانقر للقفل فوراً.',
+          message: l10n.pinUnlockedTooltip,
           child: Stack(
             alignment: Alignment.center,
             children: [
-              // 🌟 شريط التقدم الدائري المتناقص
               SizedBox(
                 width: 38,
                 height: 38,
@@ -488,25 +463,23 @@ class _PinSessionIndicator extends StatelessWidget {
                   builder: (context, value, child) {
                     return CircularProgressIndicator(
                       value: value,
-                      color:
-                          Colors.teal.shade500, // 🌟 لون أوضح للخلفية الفاتحة
+                      color: Colors.teal.shade500,
                       backgroundColor: Colors.transparent,
                       strokeWidth: 2.5,
                     );
                   },
                 ),
               ),
-              // 🌟 زر القفل المفتوح
               IconButton(
                 icon: Icon(
                   Icons.lock_open,
                   color: Colors.teal.shade700,
-                ), // 🌟 لون داكن
+                ),
                 onPressed: () {
                   context.read<AuthCubit>().lockPinSession();
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('تم قفل الصلاحيات الحساسة بنجاح 🔒'),
+                    SnackBar(
+                      content: Text(l10n.pinLockedSuccess),
                       backgroundColor: Colors.blueGrey,
                     ),
                   );

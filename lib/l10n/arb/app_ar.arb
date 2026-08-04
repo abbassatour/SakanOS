@@ -51,5 +51,38 @@
     "placeholders": {
       "days": { "type": "int" }
     }
-  }
+  },
+
+  "navHome": "الرئيسية",
+  "navClients": "العملاء",
+  "navProjects": "المشاريع",
+  "navContracts": "العقود",
+  "navInstallments": "الأقساط",
+  "navMonitoring": "المراقبة",
+  "navSettings": "الإعدادات",
+  "navLegal": "القانونية",
+  "navAdmin": "الإدارة",
+
+  "navSyncTooltip": "مزامنة يدوية مع السحابة (Pull & Push)",
+  "navLogoutTooltip": "تسجيل الخروج (وإقفال النظام)",
+
+  "navCheckingInternet": "جاري فحص الاتصال بالإنترنت... 📡",
+  "navNoInternet": "لا يوجد اتصال بالإنترنت! يرجى التحقق من الشبكة. 🌐❌",
+  "navSyncingData": "الإنترنت متصل ✅ جاري مزامنة البيانات، يرجى الانتظار... ☁️🔄",
+  "navSyncError": "حدث خطأ غير متوقع أثناء المزامنة: {error}",
+  "@navSyncError": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+
+  "logoutDialogTitle": "تسجيل الخروج",
+  "logoutDialogMessage": "هل أنت متأكد أنك تريد تسجيل الخروج؟ سيتم إقفال ومسح البيانات المؤقتة من هذا الجهاز لحمايتها.",
+  "logoutCancel": "إلغاء",
+  "logoutConfirm": "تأكيد الخروج",
+
+  "pinLockedTooltip": "صلاحيات الإدارة مقفلة بأمان 🔒",
+  "pinLockedMessage": "النظام مقفل. سيُطلب الرمز عند أي عملية حساسة.",
+  "pinUnlockedTooltip": "صلاحيات الإدارة مفتوحة.\nانقر للقفل فوراً.",
+  "pinLockedSuccess": "تم قفل الصلاحيات الحساسة بنجاح 🔒"
 }
