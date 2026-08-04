@@ -154,5 +154,86 @@
   "activityPaymentTitle": "حركة مالية (دفعة/تعديل)",
   "activityContractTitle": "إضافة/تعديل عقد",
   "activityAdminActionTitle": "إجراء إداري (ملاحظة)",
-  "activityClientTitle": "إضافة/تعديل عميل"
+  "activityClientTitle": "إضافة/تعديل عميل",
+
+  "chartAboutTitle": "عن المخطط: {title}",
+  "@chartAboutTitle": {
+    "placeholders": {
+      "title": { "type": "String" }
+    }
+  },
+  "chartDialogUnderstand": "حسناً، فهمت",
+  "chartOpenDetailsTooltip": "فتح التفاصيل",
+  "chartExplainTooltip": "شرح المخطط",
+  "chartNoData": "لا توجد بيانات في هذه الفترة",
+
+  "chartRevenueTitle": "التدفق النقدي والتحصيل",
+  "chartRevenueDesc": "يعرض إجمالي الأموال الفعلية التي دخلت الصندوق في كل فترة. يتم حسابه بناءً على (تاريخ الدفع) في إيصالات الزبائن.",
+  "chartRevenuePeak": "أعلى فترة تحصيل:",
+  "chartRevenueNone": "لا يوجد",
+  "chartRevenueNet": "صافي التدفق (الإجمالي):",
+
+  "chartDollarTrendTitle": "تطور سعر صرف الدولار",
+  "chartDollarTrendDesc": "يوضح التغير الزمني لمتوسط سعر صرف الدولار (USD) المعتمد في تقييم المدفوعات.",
+  "chartDollarTrendPeak": "أعلى سعر صرف:",
+
+  "chartContractsTypeTitle": "محفظة العقود حسب النوع",
+  "chartContractsTypeDesc": "يعرض التوزيع العددي والنسبي لأنواع العقود الموقعة.",
+  "chartContractsTopType": "الأكثر مبيعاً:",
+  "chartContractsTotal": "إجمالي العقود:",
+  "chartContractsUnit": "عقد",
+
+  "chartCostTrendTitle": "تطور سعر المتر لاحق التخصص",
+  "chartCostTrendDesc": "يتتبع التغير في تكلفة بناء المتر المربع باستخدام المعادلة الهندسية. يعكس التكلفة المباشرة (الخام).",
+  "chartCostTrendPeak": "أعلى فترة تكلفةً:",
+  "chartCostTrendActionTooltip": "تحليل تفصيلي لأسعار المواد الستة",
+
+  "chartTrendPeriodsCount": "عدد الفترات المدروسة:",
+  "chartTrendPeriodsUnit": "فترة",
+
+  "chartInventoryTitle": "المخزون العقاري (الوحدات)",
+  "chartInventoryDesc": "يوضح حالة جميع الشقق والمحلات التجارية المُسجلة في النظام. يُعتبر هذا المخطط (جرداً شاملاً وتراكمياً) ولا يتأثر بالفلتر الزمني العلوي.",
+  "chartInventoryUnit": "وحدة عقارية",
+  "chartInventoryStatusAvailable": "متاحة",
+  "chartInventoryStatusSold": "مباعة",
+  "chartInventoryStatusDelivered": "مُسلّمة",
+
+  "chartMetersProgressTitle": "ميزان حركة الأمتار المربعة والمحفظة الاستثمارية",
+  "chartMetersProgressDesc": "هذا المؤشر يقوم بفصل الأمتار والأسهم المباعة في المكتب إلى مجموعتين مستقلتين تماماً لتسهيل المتابعة على متخذ القرار وجدولة أعمال الكسوة الإنشائية:\n\n1. محفظة الشقق المخصصة (حقوق المكتب وأصولها على زبائنها):\n• مساحات مخصصة مسددة: المساحات الفعلية للشقق التي سدد الملاك ثمنها ودخلت أموالاً في الصندوق لتمويل صب الأسقف والتشطيبات.\n• أمتار متبقية كديون: مساحات حجزها الزبائن في شققهم المحددة ولكنهم لم يسددوا ثمنها بعد (وتعتبر ديوناً على الزبائن لصالح المكتب).\n• التزام الإنشاء المخصص: المساحات الإنشائية للشقق قيد البناء والتجهيز حالياً ولم نسلمها بعد.\n\n2. محفظة الأسهم لاحقة التخصص (التزامات المكتب وديونها تجاه مستثمريها):\n• أمتار الأسهم واجبة البناء والتخصيص: هي أمتار مجردة (حصص استثمارية) اشتراها مستثمرو المحافظ ودفعوا ثمنها بالكامل كاش في الصندوق، وهي غير مخصصة لعقار محدد بعد، والمكتب ملتزمة ببنائها وتخصيص شقق لهم مستقبلاً (وتعتبر التزاماً عينيّاً ودائناً على عاتق المكتب للغير).",
+  "chartMetersSectionAllocated": "1. محفظة الأمتار للعقود المتخصصة",
+  "chartMetersAllocatedPaid": "أمتار مخصصة تم تسديد ثمنها",
+  "chartMetersAllocatedDebt": "أمتار بذمة العملاء",
+  "chartMetersAllocatedUndelivered": "أمتار لم يتم تسليمها للمتخصصين",
+  "chartMetersSectionUnallocated": "2. محفظة الأمتار لاحقة التخصص",
+  "chartMetersUnallocatedPaid": "أمتار واجبة البناء والتخصيص",
+  "chartMetersUnallocatedSubtitle": "دين إنشائي والتزام تم قبض ثمنه كاش للمكتب",
+  "chartMetersTotalAvailable": "إجمالي مساحات الشقق والمحلات المتاحة للبيع:",
+
+
+  "clientAddButton": "إضافة عميل",
+  "clientAddTooltip": "إضافة عميل جديد",
+  "clientNoAddPermissionTooltip": "لا تملك صلاحية إضافة عملاء",
+  "clientUnexpectedError": "حدث خطأ غير متوقع",
+  "clientEmptyList": "لا يوجد عملاء مضافين حتى الآن.",
+  "clientNoSearchHits": "لا يوجد نتائج مطابقة لبحثك.",
+
+  "clientSearchHint": "ابحث عن اسم، هاتف، أو رقم وطني...",
+  "clientSearchCount": "{count} عملاء",
+  "@clientSearchCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+
+  "clientColId": "مُعرّف (ID)",
+  "clientColName": "الاسم / الملف التعريفي",
+  "clientColPhone": "رقم الهاتف",
+  "clientColNationalId": "الرقم الوطني",
+  "clientColCreatedAt": "تاريخ الإضافة",
+  "clientColUpdatedAt": "آخر تعديل بواسطة",
+  "clientColActions": "إجراءات",
+
+  "clientUnknownUser": "مجهول",
+  "clientEditTooltip": "تعديل بيانات",
+  "clientNoEditPermissionTooltip": "لا تملك الصلاحية"
 }

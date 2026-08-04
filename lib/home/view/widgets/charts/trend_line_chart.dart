@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
+import 'package:our_home_erp_app/l10n/l10n.dart';
 import 'chart_colors.dart';
 import 'chart_shared_widgets.dart';
 
@@ -14,7 +15,6 @@ class TrendLineChart extends StatelessWidget {
   final String peakLabel;
   final bool isCost;
 
-  // 🌟 أضفناها كمتغيرات اختيارية (Nullable)
   final VoidCallback? onActionTap;
   final IconData? actionIcon;
   final String? actionTooltip;
@@ -28,7 +28,6 @@ class TrendLineChart extends StatelessWidget {
     required this.icon,
     required this.peakLabel,
     this.isCost = false,
-    // 🌟 أضفناها للمُشيد (Constructor)
     this.onActionTap,
     this.actionIcon,
     this.actionTooltip,
@@ -36,8 +35,10 @@ class TrendLineChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final axisFormatter = NumberFormat.compact(locale: 'en_US');
-    final textFormatter = NumberFormat.currency(locale: 'ar_SY', symbol: 'ل.س');
+    final l10n = context.l10n;
+    final locale = Localizations.localeOf(context).languageCode;
+    final axisFormatter = NumberFormat.compact(locale: locale);
+    final textFormatter = NumberFormat.currency(locale: locale, symbol: '');
 
     String peakPeriod = '—';
     double maxValue = 0;
@@ -77,12 +78,9 @@ class TrendLineChart extends StatelessWidget {
       description: description,
       titleIcon: icon,
       iconColor: color,
-
-      // 🌟 تمرير المتغيرات الجديدة للغلاف المشترك لكي يرسم الزر
       onActionTap: onActionTap,
       actionIcon: actionIcon,
       actionTooltip: actionTooltip,
-
       chart: SizedBox(
         height: 230,
         child: data.isEmpty
@@ -152,10 +150,10 @@ class TrendLineChart extends StatelessWidget {
                           if (value != value.toInt()) {
                             return const SizedBox.shrink();
                           }
-
                           final i = value.toInt();
-                          if (i < 0 || i >= data.length)
+                          if (i < 0 || i >= data.length) {
                             return const SizedBox.shrink();
+                          }
 
                           return Padding(
                             padding: const EdgeInsets.only(top: 8),
@@ -176,8 +174,9 @@ class TrendLineChart extends StatelessWidget {
                         reservedSize: 52,
                         interval: yInterval,
                         getTitlesWidget: (value, meta) {
-                          if (value == minY || value == maxY)
+                          if (value == minY || value == maxY) {
                             return const SizedBox.shrink();
+                          }
                           return Text(
                             axisFormatter.format(value),
                             style: const TextStyle(
@@ -219,8 +218,8 @@ class TrendLineChart extends StatelessWidget {
         FooterRow(
           icon: Icons.bar_chart_rounded,
           iconColor: ChartColors.axisLabel,
-          label: 'عدد الفترات المدروسة:',
-          value: '${data.length} فترة',
+          label: l10n.chartTrendPeriodsCount,
+          value: '${data.length} ${l10n.chartTrendPeriodsUnit}',
         ),
       ],
     );

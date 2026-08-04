@@ -155,5 +155,87 @@
   "activityPaymentTitle": "Financial Activity (Payment/Edit)",
   "activityContractTitle": "Contract Added/Edited",
   "activityAdminActionTitle": "Admin Action (Note)",
-  "activityClientTitle": "Client Added/Edited"
+  "activityClientTitle": "Client Added/Edited",
+
+
+  "chartAboutTitle": "About chart: {title}",
+  "@chartAboutTitle": {
+    "placeholders": {
+      "title": { "type": "String" }
+    }
+  },
+  "chartDialogUnderstand": "Understood",
+  "chartOpenDetailsTooltip": "Open Details",
+  "chartExplainTooltip": "Explain Chart",
+  "chartNoData": "No data in this period",
+
+  "chartRevenueTitle": "Cash Flow & Collections",
+  "chartRevenueDesc": "Shows total actual cash collected in each period based on receipt payment dates.",
+  "chartRevenuePeak": "Peak Collection Period:",
+  "chartRevenueNone": "None",
+  "chartRevenueNet": "Net Cash Flow (Total):",
+
+  "chartDollarTrendTitle": "USD Exchange Rate Trend",
+  "chartDollarTrendDesc": "Shows the change over time of the average USD exchange rate used in payment evaluations.",
+  "chartDollarTrendPeak": "Highest Exchange Rate:",
+
+  "chartContractsTypeTitle": "Contract Portfolio by Type",
+  "chartContractsTypeDesc": "Shows the numerical and percentage distribution of signed contract types.",
+  "chartContractsTopType": "Top Selling:",
+  "chartContractsTotal": "Total Contracts:",
+  "chartContractsUnit": "contract(s)",
+
+  "chartCostTrendTitle": "Meter Cost Trend (Unallocated)",
+  "chartCostTrendDesc": "Tracks changes in construction cost per square meter using the engineering formula. Reflects direct raw costs.",
+  "chartCostTrendPeak": "Highest Cost Period:",
+  "chartCostTrendActionTooltip": "Detailed analysis of 6 material prices",
+
+  "chartTrendPeriodsCount": "Studied Periods:",
+  "chartTrendPeriodsUnit": "period(s)",
+
+  "chartInventoryTitle": "Real Estate Inventory (Units)",
+  "chartInventoryDesc": "Shows the status of all apartments and commercial shops registered in the system. This chart is a comprehensive cumulative inventory unaffected by the top time filter.",
+  "chartInventoryUnit": "real estate unit(s)",
+  "chartInventoryStatusAvailable": "Available",
+  "chartInventoryStatusSold": "Sold",
+  "chartInventoryStatusDelivered": "Delivered",
+
+  "chartMetersProgressTitle": "Square Meters Movement & Portfolio Balance",
+  "chartMetersProgressDesc": "This indicator separates sold meters and shares into two independent groups for decision-makers and construction scheduling:\n\n1. Assigned Units Portfolio (Office rights & client assets):\n• Paid assigned area: Actual apartment areas paid for by owners.\n• Remaining debt meters: Reserved areas not yet paid.\n• Assigned construction commitment: Units currently under construction.\n\n2. Unallocated Shares Portfolio (Office obligations to investors):\n• Meters to build & assign: Abstract investment shares paid in cash, awaiting unit assignment.",
+  "chartMetersSectionAllocated": "1. Allocated Contracts Meter Portfolio",
+  "chartMetersAllocatedPaid": "Paid Assigned Meters",
+  "chartMetersAllocatedDebt": "Client Debt Meters",
+  "chartMetersAllocatedUndelivered": "Undelivered Assigned Meters",
+  "chartMetersSectionUnallocated": "2. Unallocated Contracts Meter Portfolio",
+  "chartMetersUnallocatedPaid": "Meters to Build & Assign",
+  "chartMetersUnallocatedSubtitle": "Construction liability & cash-collected obligation",
+  "chartMetersTotalAvailable": "Total Available Apartment & Shop Area:",
+
+
+  "clientAddButton": "Add Client",
+  "clientAddTooltip": "Add a new client",
+  "clientNoAddPermissionTooltip": "You do not have permission to add clients",
+  "clientUnexpectedError": "An unexpected error occurred",
+  "clientEmptyList": "No clients added yet.",
+  "clientNoSearchHits": "No results match your search.",
+
+  "clientSearchHint": "Search name, phone, or national ID...",
+  "clientSearchCount": "{count} client(s)",
+  "@clientSearchCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+
+  "clientColId": "ID",
+  "clientColName": "Name / Profile",
+  "clientColPhone": "Phone Number",
+  "clientColNationalId": "National ID",
+  "clientColCreatedAt": "Date Added",
+  "clientColUpdatedAt": "Last Updated By",
+  "clientColActions": "Actions",
+
+  "clientUnknownUser": "Unknown",
+  "clientEditTooltip": "Edit Data",
+  "clientNoEditPermissionTooltip": "No Permission",
 }

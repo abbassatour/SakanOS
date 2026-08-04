@@ -1,5 +1,6 @@
 // lib/home/view/widgets/charts/chart_shared_widgets.dart
 import 'package:flutter/material.dart';
+import 'package:our_home_erp_app/l10n/l10n.dart';
 import 'chart_colors.dart';
 
 class ChartCard extends StatelessWidget {
@@ -10,7 +11,6 @@ class ChartCard extends StatelessWidget {
   final Widget chart;
   final List<Widget> footerRows;
 
-  // 🌟 [الإضافات الجديدة]: لدعم زر التوسيع أو الانتقال لصفحات تفصيلية
   final VoidCallback? onActionTap;
   final IconData? actionIcon;
   final String? actionTooltip;
@@ -23,12 +23,14 @@ class ChartCard extends StatelessWidget {
     required this.iconColor,
     required this.chart,
     this.footerRows = const [],
-    this.onActionTap, // 🌟
-    this.actionIcon, // 🌟
-    this.actionTooltip, // 🌟
+    this.onActionTap,
+    this.actionIcon,
+    this.actionTooltip,
   });
 
   void _showInfoDialog(BuildContext context) {
+    final l10n = context.l10n;
+
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -39,7 +41,7 @@ class ChartCard extends StatelessWidget {
             const SizedBox(width: 12),
             Expanded(
               child: Text(
-                'عن المخطط: $title',
+                l10n.chartAboutTitle(title),
                 style: const TextStyle(
                   color: Colors.blueGrey,
                   fontSize: 16,
@@ -64,7 +66,7 @@ class ChartCard extends StatelessWidget {
               foregroundColor: Colors.white,
             ),
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('حسناً، فهمت'),
+            child: Text(l10n.chartDialogUnderstand),
           ),
         ],
       ),
@@ -73,6 +75,8 @@ class ChartCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return Container(
       decoration: BoxDecoration(
         color: ChartColors.cardBg,
@@ -111,8 +115,6 @@ class ChartCard extends StatelessWidget {
                     ),
                   ),
                 ),
-
-                // 🌟 زر الإجراء الإضافي (مثل الانتقال للتفاصيل)
                 if (onActionTap != null && actionIcon != null) ...[
                   IconButton(
                     icon: Icon(
@@ -120,7 +122,7 @@ class ChartCard extends StatelessWidget {
                       color: Colors.indigo.shade400,
                       size: 22,
                     ),
-                    tooltip: actionTooltip ?? 'فتح التفاصيل',
+                    tooltip: actionTooltip ?? l10n.chartOpenDetailsTooltip,
                     splashRadius: 20,
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
@@ -128,15 +130,13 @@ class ChartCard extends StatelessWidget {
                   ),
                   const SizedBox(width: 8),
                 ],
-
-                // زر المعلومات الأساسي
                 IconButton(
                   icon: const Icon(
                     Icons.info_outline,
                     color: Colors.grey,
                     size: 22,
                   ),
-                  tooltip: 'شرح المخطط',
+                  tooltip: l10n.chartExplainTooltip,
                   splashRadius: 20,
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
@@ -213,6 +213,8 @@ class EmptyChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return SizedBox(
       height: 180,
       child: Center(
@@ -226,7 +228,7 @@ class EmptyChart extends StatelessWidget {
             ),
             const SizedBox(height: 10),
             Text(
-              'لا توجد بيانات في هذه الفترة',
+              l10n.chartNoData,
               style: TextStyle(color: Colors.grey.shade400, fontSize: 13),
             ),
           ],

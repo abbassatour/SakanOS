@@ -1,6 +1,7 @@
 // lib/home/view/widgets/charts/meters_progress_chart.dart
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:our_home_erp_app/l10n/l10n.dart';
 import 'chart_shared_widgets.dart';
 
 class MetersProgressChart extends StatelessWidget {
@@ -9,7 +10,6 @@ class MetersProgressChart extends StatelessWidget {
   final double unpaid;
   final double undelivered;
 
-  // المعاملات المفرزة الجديدة لتطبيق دلالة الفصل المحاسبي
   final double allocatedSold;
   final double allocatedPaid;
   final double allocatedDebt;
@@ -33,9 +33,10 @@ class MetersProgressChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final numberFormatter = NumberFormat.decimalPattern('ar_AR');
+    final l10n = context.l10n;
+    final locale = Localizations.localeOf(context).languageCode;
+    final numberFormatter = NumberFormat.decimalPattern(locale);
 
-    // حساب النسب لمحفظة الشقق المخصصة وحمايتها من القسمة على صفر
     final double allocatedPaidPct = allocatedSold == 0
         ? 0
         : (allocatedPaid / allocatedSold).clamp(0.0, 1.0);
@@ -47,23 +48,13 @@ class MetersProgressChart extends StatelessWidget {
         : (allocatedUndelivered / allocatedSold).clamp(0.0, 1.0);
 
     return ChartCard(
-      title: 'ميزان حركة الأمتار المربعة والمحفظة الاستثمارية',
-      description:
-          'هذا المؤشر يقوم بفصل الأمتار والأسهم المباعة في المكتب إلى مجموعتين مستقلتين تماماً لتسهيل المتابعة على متخذ القرار وجدولة أعمال الكسوة الإنشائية:\n\n'
-          '🏢 1. محفظة الشقق المخصصة (حقوق المكتب وأصولها على زبائنها):\n'
-          '• مساحات مخصصة مسددة: المساحات الفعلية للشقق التي سدد الملاك ثمنها ودخلت أموالاً في الصندوق لتمويل صب الأسقف والتشطيبات.\n'
-          '• أمتار متبقية كديون: مساحات حجزها الزبائن في شققهم المحددة ولكنهم لم يسددوا ثمنها بعد (وتعتبر ديوناً على الزبائن لصالح المكتب).\n'
-          '• التزام الإنشاء المخصص: المساحات الإنشائية للشقق قيد البناء والتجهيز حالياً ولم نسلمها بعد.\n\n'
-          '📊 2. محفظة الأسهم لاحقة التخصص (التزامات المكتب وديونها ة تجاه مستثمريها):\n'
-          '• أمتار الأسهم واجبة البناء والتخصيص: هي أمتار مجردة (حصص استثمارية) اشتراها مستثمرو المحافظ ودفعوا ثمنها بالكامل كاش في الصندوق، وهي غير مخصصة لعقار محدد بعد، والمكتب ملتزمة ببنائها وتخصيص شقق لهم مستقبلاً (وتعتبر التزاماً عينيّاً ودائناً على عاتق المكتب للغير).',
+      title: l10n.chartMetersProgressTitle,
+      description: l10n.chartMetersProgressDesc,
       titleIcon: Icons.balance_rounded,
       iconColor: Colors.teal.shade800,
       chart: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ==========================================
-          // 🏢 القسم الأول: الشقق المخصصة
-          // ==========================================
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
@@ -80,7 +71,7 @@ class MetersProgressChart extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  '1. محفظة الأمتار للعقود المتخصصة ',
+                  l10n.chartMetersSectionAllocated,
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 13,
@@ -92,7 +83,7 @@ class MetersProgressChart extends StatelessWidget {
           ),
           const SizedBox(height: 14),
           _buildProgressRow(
-            title: 'أمتار مخصصة تم تسديد ثمنها',
+            title: l10n.chartMetersAllocatedPaid,
             value: '${numberFormatter.format(allocatedPaid.toInt())} m²',
             percentage: allocatedPaidPct,
             color: Colors.teal.shade600,
@@ -100,7 +91,7 @@ class MetersProgressChart extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           _buildProgressRow(
-            title: 'أمتار بذمة العملاء ',
+            title: l10n.chartMetersAllocatedDebt,
             value: '${numberFormatter.format(allocatedDebt.toInt())} m²',
             percentage: allocatedDebtPct,
             color: Colors.orange.shade700,
@@ -108,21 +99,16 @@ class MetersProgressChart extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           _buildProgressRow(
-            title: 'أمتار لم يتم تسليمها للمتخصصين',
+            title: l10n.chartMetersAllocatedUndelivered,
             value: '${numberFormatter.format(allocatedUndelivered.toInt())} m²',
             percentage: allocatedUndeliveredPct,
             color: Colors.purple.shade600,
             icon: Icons.construction_rounded,
           ),
-
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 16.0),
             child: Divider(color: Colors.black12, height: 1),
           ),
-
-          // ==========================================
-          // 📊 القسم الثاني: لاحق التخصص
-          // ==========================================
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
@@ -139,7 +125,7 @@ class MetersProgressChart extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  '2. محفظة الأمتار لاحقة التخصص ',
+                  l10n.chartMetersSectionUnallocated,
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 13,
@@ -151,11 +137,11 @@ class MetersProgressChart extends StatelessWidget {
           ),
           const SizedBox(height: 14),
           _buildStaticPortfolioRow(
-            title: 'أمتار واجبة البناء والتخصيص ',
+            title: l10n.chartMetersUnallocatedPaid,
             value: '${numberFormatter.format(unallocatedPaid.toInt())} m²',
             color: Colors.blue.shade700,
             icon: Icons.pie_chart_rounded,
-            subtitle: 'دين إنشائي  والتزام تم قبض ثمنه كاش للمكتب',
+            subtitle: l10n.chartMetersUnallocatedSubtitle,
           ),
         ],
       ),
@@ -163,10 +149,8 @@ class MetersProgressChart extends StatelessWidget {
         FooterRow(
           icon: Icons.architecture,
           iconColor: Colors.indigo,
-          label:
-              'إجمالي مساحات الشقق والمحلات المتاحة للبيع :', // 🌟 تعديل النص ليكون أوضح
-          value:
-              '${numberFormatter.format(totalAvailableArea.toInt())} m²', // 🌟 استخدام المتغير الصحيح
+          label: l10n.chartMetersTotalAvailable,
+          value: '${numberFormatter.format(totalAvailableArea.toInt())} m²',
         ),
       ],
     );
