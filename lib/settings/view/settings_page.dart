@@ -376,8 +376,14 @@ class _SettingsViewState extends State<SettingsView> {
   // 🧩 تصميم الأجزاء (Components) المنفصلة
   // ==========================================
 
+  // ==========================================
+  // 🧩 تصميم الأجزاء (Components) المنفصلة
+  // ==========================================
+
   // 💵 1. بطاقة الدولار
   Widget _buildDollarCard(BuildContext context, bool hasPermission) {
+    final l10n = context.l10n; // 🌟 جلب الترجمة
+
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -401,9 +407,9 @@ class _SettingsViewState extends State<SettingsView> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'سعر صرف الدولار (مبيع)',
-                    style: TextStyle(
+                  Text(
+                    l10n.settingsDollarCardTitle,
+                    style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                       color: Colors.green,
@@ -411,7 +417,7 @@ class _SettingsViewState extends State<SettingsView> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'يُستخدم لتقييم الدفعات، الأقساط، والتحويلات النقدية.',
+                    l10n.settingsDollarCardSubtitle,
                     style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
                   ),
                 ],
@@ -442,9 +448,9 @@ class _SettingsViewState extends State<SettingsView> {
                   );
                 },
                 icon: const Icon(Icons.history, size: 20),
-                label: const Text(
-                  'سجل الدولار',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                label: Text(
+                  l10n.settingsDollarHistoryBtn,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
               ),
             ],
@@ -455,7 +461,7 @@ class _SettingsViewState extends State<SettingsView> {
               Expanded(
                 child: _buildPriceField(
                   controller: dollarController,
-                  label: 'سعر 1 دولار (USD)',
+                  label: l10n.settingsDollarInputLabel,
                   icon: Icons.attach_money,
                   textInputAction: TextInputAction.done,
                   onSubmitted: (_) =>
@@ -479,9 +485,9 @@ class _SettingsViewState extends State<SettingsView> {
                         ? () => _saveDollarPrice(context)
                         : null,
                     icon: const Icon(Icons.save),
-                    label: const Text(
-                      'اعتماد سعر الصرف',
-                      style: TextStyle(
+                    label: Text(
+                      l10n.settingsDollarSaveBtn,
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
@@ -498,6 +504,8 @@ class _SettingsViewState extends State<SettingsView> {
 
   // 🧱 2. بطاقة أسعار المواد
   Widget _buildMaterialPricesCard(BuildContext context, bool hasPermission) {
+    final l10n = context.l10n; // 🌟 جلب الترجمة
+
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -518,21 +526,21 @@ class _SettingsViewState extends State<SettingsView> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Column(
+              Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'الأسعار الافرادية للمواد',
-                    style: TextStyle(
+                    l10n.settingsMaterialsCardTitle,
+                    style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                       color: Colors.blueGrey,
                     ),
                   ),
-                  SizedBox(height: 4),
+                  const SizedBox(height: 4),
                   Text(
-                    'النظام سيضرب هذه الأرقام بالكميات الثابتة لحساب سعر المتر',
-                    style: TextStyle(color: Colors.grey, fontSize: 13),
+                    l10n.settingsMaterialsCardSubtitle,
+                    style: const TextStyle(color: Colors.grey, fontSize: 13),
                   ),
                 ],
               ),
@@ -562,9 +570,9 @@ class _SettingsViewState extends State<SettingsView> {
                   );
                 },
                 icon: const Icon(Icons.history, size: 20),
-                label: const Text(
-                  'سجل أسعار المواد',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                label: Text(
+                  l10n.settingsMaterialsHistoryBtn,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
               ),
             ],
@@ -575,7 +583,7 @@ class _SettingsViewState extends State<SettingsView> {
               Expanded(
                 child: _buildPriceField(
                   controller: ironController,
-                  label: 'سعر (1 كغ) حديد مبروم',
+                  label: l10n.settingsIronLabel,
                   icon: Icons.hardware,
                   textInputAction: TextInputAction.next,
                 ),
@@ -584,7 +592,7 @@ class _SettingsViewState extends State<SettingsView> {
               Expanded(
                 child: _buildPriceField(
                   controller: cementController,
-                  label: 'سعر (1 كيس) اسمنت',
+                  label: l10n.settingsCementLabel,
                   icon: Icons.foundation,
                   textInputAction: TextInputAction.next,
                 ),
@@ -597,7 +605,7 @@ class _SettingsViewState extends State<SettingsView> {
               Expanded(
                 child: _buildPriceField(
                   controller: blockController,
-                  label: 'سعر (1 بلوكة) سماكة 15',
+                  label: l10n.settingsBlockLabel,
                   icon: Icons.view_in_ar,
                   textInputAction: TextInputAction.next,
                 ),
@@ -606,7 +614,7 @@ class _SettingsViewState extends State<SettingsView> {
               Expanded(
                 child: _buildPriceField(
                   controller: formworkController,
-                  label: 'أجور كوفراج وبيتون (1 م³)',
+                  label: l10n.settingsFormworkLabel,
                   icon: Icons.architecture,
                   textInputAction: TextInputAction.next,
                 ),
@@ -619,7 +627,7 @@ class _SettingsViewState extends State<SettingsView> {
               Expanded(
                 child: _buildPriceField(
                   controller: aggregatesController,
-                  label: 'سعر (1 م³) مواد حصوية',
+                  label: l10n.settingsAggregatesLabel,
                   icon: Icons.landslide,
                   textInputAction: TextInputAction.next,
                 ),
@@ -628,7 +636,7 @@ class _SettingsViewState extends State<SettingsView> {
               Expanded(
                 child: _buildPriceField(
                   controller: workerController,
-                  label: 'أجرة (يوم) عامل 7 ساعات',
+                  label: l10n.settingsWorkerLabel,
                   icon: Icons.engineering,
                   textInputAction: TextInputAction.done,
                   onSubmitted: (_) =>
@@ -654,9 +662,12 @@ class _SettingsViewState extends State<SettingsView> {
                   ? () => _saveMaterialPrices(context)
                   : null,
               icon: const Icon(Icons.save),
-              label: const Text(
-                'اعتماد وحفظ الأسعار',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              label: Text(
+                l10n.settingsMaterialsSaveBtn,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ),
@@ -667,6 +678,8 @@ class _SettingsViewState extends State<SettingsView> {
 
   // 🗑️ 3. بطاقة سلة المحذوفات
   Widget _buildRecycleBinCard(BuildContext context) {
+    final l10n = context.l10n;
+
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -688,9 +701,9 @@ class _SettingsViewState extends State<SettingsView> {
             children: [
               Icon(Icons.delete_sweep, color: Colors.red.shade600, size: 28),
               const SizedBox(width: 12),
-              const Text(
-                'إدارة المحذوفات (سلة المهملات)',
-                style: TextStyle(
+              Text(
+                l10n.settingsRecycleBinCardTitle,
+                style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: Colors.red,
@@ -700,7 +713,7 @@ class _SettingsViewState extends State<SettingsView> {
           ),
           const SizedBox(height: 8),
           Text(
-            'استعادة العملاء، العقود، المحاضر، الشقق والإيصالات الملغاة أو حذفها نهائياً.',
+            l10n.settingsRecycleBinCardSubtitle,
             style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
           ),
           const SizedBox(height: 20),
@@ -722,9 +735,12 @@ class _SettingsViewState extends State<SettingsView> {
                 MaterialPageRoute(builder: (_) => const RecycleBinPage()),
               ),
               icon: const Icon(Icons.recycling, size: 24),
-              label: const Text(
-                'فتح سلة المحذوفات الشاملة',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              label: Text(
+                l10n.settingsRecycleBinOpenBtn,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ),
@@ -735,6 +751,8 @@ class _SettingsViewState extends State<SettingsView> {
 
   // 🔐 بطاقة رمز الأمان
   Widget _buildSecurityCard(BuildContext context, String currentPin) {
+    final l10n = context.l10n;
+
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -756,9 +774,9 @@ class _SettingsViewState extends State<SettingsView> {
             children: [
               Icon(Icons.password, color: Colors.red.shade600, size: 28),
               const SizedBox(width: 12),
-              const Text(
-                'رمز الأمان وحماية العمليات الحساسة',
-                style: TextStyle(
+              Text(
+                l10n.settingsSecurityCardTitle,
+                style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: Colors.red,
@@ -768,7 +786,7 @@ class _SettingsViewState extends State<SettingsView> {
           ),
           const SizedBox(height: 8),
           Text(
-            'هذا الرمز يُطلب عند الحذف أو استرجاع الأموال والعمليات الإدارية الحساسة. (الرمز الافتراضي 0000)',
+            l10n.settingsSecurityCardSubtitle,
             style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
           ),
           const SizedBox(height: 20),
@@ -787,9 +805,12 @@ class _SettingsViewState extends State<SettingsView> {
               ),
               onPressed: () => _showChangePinDialog(context, currentPin),
               icon: const Icon(Icons.edit_attributes, size: 24),
-              label: const Text(
-                'تغيير رمز الأمان (PIN)',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              label: Text(
+                l10n.settingsSecurityChangeBtn,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ),
@@ -891,6 +912,8 @@ class _SettingsViewState extends State<SettingsView> {
 
   // 🛡️ 4. بطاقة النسخ الاحتياطي
   Widget _buildBackupRestoreCard(BuildContext context, bool isAdmin) {
+    final l10n = context.l10n;
+
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -912,9 +935,9 @@ class _SettingsViewState extends State<SettingsView> {
             children: [
               Icon(Icons.security, color: Colors.teal.shade600, size: 28),
               const SizedBox(width: 12),
-              const Text(
-                'أمان قاعدة البيانات المحلية',
-                style: TextStyle(
+              Text(
+                l10n.settingsBackupCardTitle,
+                style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: Colors.teal,
@@ -924,7 +947,7 @@ class _SettingsViewState extends State<SettingsView> {
           ),
           const SizedBox(height: 8),
           Text(
-            'أخذ نسخة احتياطية يدوية أو استعادة بيانات سابقة.',
+            l10n.settingsBackupCardSubtitle,
             style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
           ),
           const SizedBox(height: 20),
@@ -954,9 +977,9 @@ class _SettingsViewState extends State<SettingsView> {
                             ),
                           )
                         : const Icon(Icons.save_alt),
-                    label: const Text(
-                      'نسخ احتياطي يدوي',
-                      style: TextStyle(
+                    label: Text(
+                      l10n.settingsBackupManualBtn,
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
@@ -981,9 +1004,9 @@ class _SettingsViewState extends State<SettingsView> {
                         ? null
                         : () => _handleRestore(context),
                     icon: const Icon(Icons.restore_page),
-                    label: const Text(
-                      'استعادة البيانات',
-                      style: TextStyle(
+                    label: Text(
+                      l10n.settingsBackupRestoreBtn,
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
@@ -1054,10 +1077,10 @@ class _SettingsViewState extends State<SettingsView> {
   Widget _buildSubscriptionCard(BuildContext context, DateTime? expiryDate) {
     if (expiryDate == null) return const SizedBox.shrink();
 
+    final l10n = context.l10n; // 🌟
     final now = DateTime.now();
     final remainingDays = expiryDate.difference(now).inDays;
 
-    // تحديد لون وحالة البطاقة بناءً على الأيام المتبقية
     Color statusColor;
     IconData statusIcon;
     String statusText;
@@ -1065,15 +1088,15 @@ class _SettingsViewState extends State<SettingsView> {
     if (remainingDays < 0) {
       statusColor = Colors.red.shade700;
       statusIcon = Icons.cancel;
-      statusText = 'الرخصة منتهية الصلاحية!';
+      statusText = l10n.settingsLicenseExpired;
     } else if (remainingDays <= 15) {
       statusColor = Colors.orange.shade700;
       statusIcon = Icons.warning_amber_rounded;
-      statusText = 'الرخصة تقترب من الانتهاء';
+      statusText = l10n.settingsLicenseExpiringSoon;
     } else {
       statusColor = Colors.teal.shade700;
       statusIcon = Icons.verified_user;
-      statusText = 'الرخصة فعّالة وسارية';
+      statusText = l10n.settingsLicenseActive;
     }
 
     return Container(
@@ -1101,9 +1124,9 @@ class _SettingsViewState extends State<SettingsView> {
                 size: 28,
               ),
               const SizedBox(width: 12),
-              const Text(
-                'معلومات ترخيص النظام (License)',
-                style: TextStyle(
+              Text(
+                l10n.settingsLicenseCardTitle,
+                style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: Colors.purple,
@@ -1126,9 +1149,12 @@ class _SettingsViewState extends State<SettingsView> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'تاريخ انتهاء الاشتراك:',
-                        style: TextStyle(color: Colors.grey, fontSize: 13),
+                      Text(
+                        l10n.settingsLicenseExpiryLabel,
+                        style: const TextStyle(
+                          color: Colors.grey,
+                          fontSize: 13,
+                        ),
                       ),
                       const SizedBox(height: 4),
                       Text(
@@ -1170,8 +1196,10 @@ class _SettingsViewState extends State<SettingsView> {
                           const SizedBox(width: 8),
                           Text(
                             remainingDays >= 0
-                                ? 'متبقي $remainingDays يوم'
-                                : 'منتهية منذ ${remainingDays.abs()} يوم',
+                                ? l10n.settingsLicenseDaysLeft(remainingDays)
+                                : l10n.settingsLicenseDaysAgo(
+                                    remainingDays.abs(),
+                                  ),
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
@@ -1196,7 +1224,7 @@ class _SettingsViewState extends State<SettingsView> {
   // ==========================================
   Widget _buildLanguageCard(BuildContext context) {
     final currentLocale = context.watch<LocaleCubit>().state;
-    final l10n = context.l10n; // 🌟 الوصول للنصوص المترجمة
+    final l10n = context.l10n;
 
     return Container(
       padding: const EdgeInsets.all(24),

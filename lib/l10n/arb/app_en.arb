@@ -4,5 +4,52 @@
   "settingsLanguageTitle": "App Interface Language",
   "settingsLanguageSubtitle": "Choose default language for UI screens and reports",
   "languageArabic": "العربية (Arabic)",
-  "languageEnglish": "English"
+  "languageEnglish": "English",
+  "settingsDollarCardTitle": "Dollar Exchange Rate (Sell)",
+  "settingsDollarCardSubtitle": "Used to evaluate payments, installments, and cash transfers.",
+  "settingsDollarHistoryBtn": "Dollar History",
+  "settingsDollarInputLabel": "Price of 1 Dollar (USD)",
+  "settingsDollarSaveBtn": "Apply Exchange Rate",
+
+  "settingsMaterialsCardTitle": "Individual Material Prices",
+  "settingsMaterialsCardSubtitle": "The system multiplies these figures by fixed quantities to calculate the meter price.",
+  "settingsMaterialsHistoryBtn": "Prices History",
+  "settingsIronLabel": "Price (1 kg) Rebar Iron",
+  "settingsCementLabel": "Price (1 bag) Cement",
+  "settingsBlockLabel": "Price (1 block) 15cm",
+  "settingsFormworkLabel": "Formwork & Pouring (1 m³)",
+  "settingsAggregatesLabel": "Price (1 m³) Aggregates",
+  "settingsWorkerLabel": "Worker Wage (7 hours/day)",
+  "settingsMaterialsSaveBtn": "Apply & Save Prices",
+
+  "settingsRecycleBinCardTitle": "Recycle Bin Management",
+  "settingsRecycleBinCardSubtitle": "Restore deleted clients, contracts, buildings, apartments, and receipts, or permanently delete them.",
+  "settingsRecycleBinOpenBtn": "Open Global Recycle Bin",
+
+  "settingsSecurityCardTitle": "Security PIN & Sensitive Operations",
+  "settingsSecurityCardSubtitle": "Required for deletion, refunds, and sensitive admin tasks. (Default: 0000)",
+  "settingsSecurityChangeBtn": "Change Security PIN",
+
+  "settingsBackupCardTitle": "Local Database Security",
+  "settingsBackupCardSubtitle": "Create a manual backup or restore previous data.",
+  "settingsBackupManualBtn": "Manual Backup",
+  "settingsBackupRestoreBtn": "Restore Data",
+
+  "settingsLicenseCardTitle": "System License Information",
+  "settingsLicenseExpiryLabel": "Subscription Expiry Date:",
+  "settingsLicenseExpired": "License Expired!",
+  "settingsLicenseExpiringSoon": "License Expiring Soon",
+  "settingsLicenseActive": "License is Active & Valid",
+  "settingsLicenseDaysLeft": "{days} days left",
+  "@settingsLicenseDaysLeft": {
+    "placeholders": {
+      "days": { "type": "int" }
+    }
+  },
+  "settingsLicenseDaysAgo": "Expired {days} days ago",
+  "@settingsLicenseDaysAgo": {
+    "placeholders": {
+      "days": { "type": "int" }
+    }
+  }
 }

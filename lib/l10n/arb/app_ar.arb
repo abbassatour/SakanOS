@@ -4,5 +4,52 @@
   "settingsLanguageTitle": "لغة واجهة التطبيق",
   "settingsLanguageSubtitle": "اختر اللغة المعتمدة لشاشات وتقارير النظام",
   "languageArabic": "العربية (افتراضي)",
-  "languageEnglish": "English"
+  "languageEnglish": "English",
+  "settingsDollarCardTitle": "سعر صرف الدولار (مبيع)",
+  "settingsDollarCardSubtitle": "يُستخدم لتقييم الدفعات، الأقساط، والتحويلات النقدية.",
+  "settingsDollarHistoryBtn": "سجل الدولار",
+  "settingsDollarInputLabel": "سعر 1 دولار (USD)",
+  "settingsDollarSaveBtn": "اعتماد سعر الصرف",
+
+  "settingsMaterialsCardTitle": "الأسعار الافرادية للمواد",
+  "settingsMaterialsCardSubtitle": "النظام سيضرب هذه الأرقام بالكميات الثابتة لحساب سعر المتر",
+  "settingsMaterialsHistoryBtn": "سجل أسعار المواد",
+  "settingsIronLabel": "سعر (1 كغ) حديد مبروم",
+  "settingsCementLabel": "سعر (1 كيس) اسمنت",
+  "settingsBlockLabel": "سعر (1 بلوكة) سماكة 15",
+  "settingsFormworkLabel": "أجور كوفراج وبيتون (1 م³)",
+  "settingsAggregatesLabel": "سعر (1 م³) مواد حصوية",
+  "settingsWorkerLabel": "أجرة (يوم) عامل 7 ساعات",
+  "settingsMaterialsSaveBtn": "اعتماد وحفظ الأسعار",
+
+  "settingsRecycleBinCardTitle": "إدارة المحذوفات (سلة المهملات)",
+  "settingsRecycleBinCardSubtitle": "استعادة العملاء، العقود، المحاضر، الشقق والإيصالات الملغاة أو حذفها نهائياً.",
+  "settingsRecycleBinOpenBtn": "فتح سلة المحذوفات الشاملة",
+
+  "settingsSecurityCardTitle": "رمز الأمان وحماية العمليات الحساسة",
+  "settingsSecurityCardSubtitle": "هذا الرمز يُطلب عند الحذف أو استرجاع الأموال والعمليات الإدارية الحساسة. (الرمز الافتراضي 0000)",
+  "settingsSecurityChangeBtn": "تغيير رمز الأمان (PIN)",
+
+  "settingsBackupCardTitle": "أمان قاعدة البيانات المحلية",
+  "settingsBackupCardSubtitle": "أخذ نسخة احتياطية يدوية أو استعادة بيانات سابقة.",
+  "settingsBackupManualBtn": "نسخ احتياطي يدوي",
+  "settingsBackupRestoreBtn": "استعادة البيانات",
+
+  "settingsLicenseCardTitle": "معلومات ترخيص النظام (License)",
+  "settingsLicenseExpiryLabel": "تاريخ انتهاء الاشتراك:",
+  "settingsLicenseExpired": "الرخصة منتهية الصلاحية!",
+  "settingsLicenseExpiringSoon": "الرخصة تقترب من الانتهاء",
+  "settingsLicenseActive": "الرخصة فعّالة وسارية",
+  "settingsLicenseDaysLeft": "متبقي {days} يوم",
+  "@settingsLicenseDaysLeft": {
+    "placeholders": {
+      "days": { "type": "int" }
+    }
+  },
+  "settingsLicenseDaysAgo": "منتهية منذ {days} يوم",
+  "@settingsLicenseDaysAgo": {
+    "placeholders": {
+      "days": { "type": "int" }
+    }
+  }
 }
