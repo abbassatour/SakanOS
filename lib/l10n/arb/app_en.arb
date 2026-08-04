@@ -267,5 +267,125 @@
   "pinDialogTitle": "Verify Authority",
   "pinDialogSubtitle": "This operation is sensitive and monitored. Please enter your security PIN to proceed.",
   "pinErrorInvalid": "Incorrect PIN! ❌",
-  "btnConfirmPin": "Confirm Authority"
+  "btnConfirmPin": "Confirm Authority",
+
+
+  "clientProfileTitle": "Client Profile",
+  "clientProfileTotalContracts": "Total Contracts",
+  "clientProfileTotalPayments": "Total Payments",
+  "clientProfileOverdueDebts": "Overdue Debts",
+  "clientProfilePortfolioTitle": "Client Real Estate Portfolio",
+  "clientProfileNoContracts": "This client has no contracts currently.",
+  "clientProfileContractDate": "Signed:",
+  "clientProfileContractPaid": "Paid:",
+  "clientProfileContractOverdue": "Overdue",
+  "clientProfileContractHasPenalty": "Has Penalties",
+  "clientProfileContractGoodStanding": "Good Standing ✓",
+  "clientProfilePaidInstallmentsCount": "{count} paid installments",
+  "@clientProfilePaidInstallmentsCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+
+  "contractHandoverDialogTitle": "Complete Property Handover",
+  "contractHandoverDialogInfo": "Upon confirming handover, the system will automatically calculate delay penalties (if applicable) based on the date entered here.",
+  "contractHandoverActualDate": "Actual Handover Date:",
+  "contractHandoverNotesHint": "Notes and missing items (if any)",
+  "contractHandoverConfirmBtn": "Confirm Handover",
+  "contractHandoverSuccess": "Property handed over successfully! ✅",
+  "contractHandoverCancelSuccess": "Handover cancelled successfully.",
+  "contractHandoverAptMissing": "Apartment data not available!",
+  "contractHandoverBldMissing": "Building data not available!",
+  "contractHandoverPdfGenerating": "Generating handover record... ⏳",
+
+  "contractDetailsTitle": "Contract & Portfolio Details",
+  "contractDetailsClientName": "Client Contract: {name}",
+  "@contractDetailsClientName": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "contractDetailsContractNumber": "Contract No: {id}",
+  "@contractDetailsContractNumber": {
+    "placeholders": {
+      "id": { "type": "String" }
+    }
+  },
+  "contractDetailsMonthlyDue": "Monthly Due",
+  "contractDetailsBaseMeterPrice": "Meter Price at Signing",
+  "contractDetailsTotalArea": "Total Area",
+  "contractDetailsMeterPrice": "Meter Price",
+  "contractDetailsMarketPrice": "Market Rate",
+  "contractDetailsPayDay": "Pay Day",
+  "contractDetailsArea": "Area",
+  "contractDetailsShares": "Shares",
+  "contractDetailsUnallocated": "Unallocated",
+
+  "contractDetailsArchivedTitle": "This contract is closed and archived 🔒",
+  "contractDetailsArchivedDesc": "• Financial Record: Fully preserved for review and auditing.\n• Payments: Adding, editing, or deleting payments is disabled to prevent tampering.\n• Monitoring: The contract is removed from the \"Monitoring Radar\" and will not show overdue claims.\n• Actions: Only Top Management can click \"Unarchive\" from the contracts table to reopen it if necessary.",
+
+  "contractDetailsOperationalActions": "Operational Actions",
+  "contractDetailsInstallmentsPageBtn": "Installments Page",
+  "contractDetailsNavToInstallments": "Redirected to installments page for this contract!",
+  "contractDetailsSchedulePageBtn": "Monitoring & Dues Table",
+  "contractDetailsNavToSchedule": "Redirected to monitoring schedule for this contract!",
+  "contractDetailsViewAttachmentBtn": "View Attached Contract (PDF/Word)",
+  "contractDetailsGeneratingLink": "Generating secure access link... ⏳",
+  "contractDetailsCannotOpenLink": "Cannot open the cloud link.",
+  "contractDetailsLocalFileError": "⚠️ Failed to open local file: {error}",
+  "@contractDetailsLocalFileError": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+
+  "contractDetailsInfoTitle": "Contract & Unit Details",
+  "contractDetailsSignDate": "Contract Sign Date:",
+  "contractDetailsDuration": "Registered Duration:",
+  "contractDetailsMonths": "{count} months",
+  "@contractDetailsMonths": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "contractDetailsGuarantor": "Guarantor Name:",
+  "contractDetailsPropertyDesc": "Property Description:",
+
+  "contractDetailsHandoverStatusTitle": "Property Handover Status (Keys)",
+  "contractDetailsHandoverDone": "Apartment delivered to client",
+  "contractDetailsHandoverPending": "Under Construction / Not delivered yet",
+  "contractDetailsAgreedHandoverDate": "Agreed Handover Date:",
+  "contractDetailsGracePeriod": "Developer Grace Period:",
+  "contractDetailsPenaltySystem": "Penalty System (Post Handover):",
+  "contractDetailsPenaltyActive": "Active ({pct}% every {interval} months)",
+  "@contractDetailsPenaltyActive": {
+    "placeholders": {
+      "pct": { "type": "String" },
+      "interval": { "type": "int" }
+    }
+  },
+  "contractDetailsPenaltyInactive": "Inactive",
+  "contractDetailsActualHandoverDate": "Actual Handover Date:",
+  "contractDetailsHandoverNotes": "Handover Notes / Missing items:",
+
+  "contractDetailsPenaltyAlertTitle": "Accounting Alert: Accumulated Penalties",
+  "contractDetailsPenaltyAlertDesc": "The specified time post-handover has passed and the client is still in debt. The system automatically added a penalty of {amount} to their debt.",
+  "@contractDetailsPenaltyAlertDesc": {
+    "placeholders": {
+      "amount": { "type": "String" }
+    }
+  },
+
+  "contractDetailsHandoverBtn": "Deliver Apartment to Client",
+  "contractDetailsCancelHandoverBtn": "Cancel Handover",
+  "contractDetailsPrintHandoverBtn": "Print Handover Record",
+
+  "contractDetailsLegalSectionTitle": "Legal Record & Actions",
+  "contractDetailsLegalClean": "Clean record. No legal actions registered.",
+  "contractDetailsLegalGalleryBtn": "Attachments Gallery",
+
+  "contractDetailsFinancialAnalysisTitle": "Financial Analysis & Multipliers",
+  "contractDetailsNoCoefficients": "No extra excellence multipliers registered for this contract.",
+  "contractDetailsUnallocatedPricingNote": "No meter pricing multipliers. The investment portfolio calculates the price automatically at the moment of each payment based on material prices on the pay day."
 }

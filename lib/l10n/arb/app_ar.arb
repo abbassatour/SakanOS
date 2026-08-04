@@ -263,5 +263,127 @@
   "pinDialogTitle": "تأكيد الصلاحية",
   "pinDialogSubtitle": "هذه العملية حساسة ومراقبة. يرجى إدخال رمز الأمان (PIN) الخاص بك للمتابعة.",
   "pinErrorInvalid": "الرمز غير صحيح! ❌",
-  "btnConfirmPin": "تأكيد الصلاحية"
+  "btnConfirmPin": "تأكيد الصلاحية",
+
+
+
+
+  "clientProfileTitle": "الملف التعريفي للعميل",
+  "clientProfileTotalContracts": "إجمالي العقود",
+  "clientProfileTotalPayments": "إجمالي المدفوعات",
+  "clientProfileOverdueDebts": "ديون متأخرة",
+  "clientProfilePortfolioTitle": "المحفظة العقارية للعميل",
+  "clientProfileNoContracts": "هذا العميل لا يملك أي عقود حالياً.",
+  "clientProfileContractDate": "توقيع:",
+  "clientProfileContractPaid": "المدفوع:",
+  "clientProfileContractOverdue": "متأخر",
+  "clientProfileContractHasPenalty": "يحتوي غرامات",
+  "clientProfileContractGoodStanding": "منتظم مالياً ✓",
+  "clientProfilePaidInstallmentsCount": "{count} حركات مسددة",
+  "@clientProfilePaidInstallmentsCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+
+  "contractHandoverDialogTitle": "إتمام تسليم العقار",
+  "contractHandoverDialogInfo": "عند تأكيد التسليم، سيبدأ النظام آلياً باحتساب غرامات التأخير (إن وجدت في العقد) بناءً على التاريخ المدخل هنا.",
+  "contractHandoverActualDate": "تاريخ التسليم الفعلي:",
+  "contractHandoverNotesHint": "ملاحظات وتفاصيل النواقص (إن وجدت)",
+  "contractHandoverConfirmBtn": "اعتماد التسليم",
+  "contractHandoverSuccess": "تم تسليم العقار بنجاح! ✅",
+  "contractHandoverCancelSuccess": "تم إلغاء التسليم بنجاح.",
+  "contractHandoverAptMissing": "بيانات الشقة غير متوفرة!",
+  "contractHandoverBldMissing": "بيانات المحضر غير متوفرة!",
+  "contractHandoverPdfGenerating": "جاري تجهيز محضر الاستلام... ⏳",
+
+  "contractDetailsTitle": "تفاصيل العقد والمحفظة",
+  "contractDetailsClientName": "عقد العميل: {name}",
+  "@contractDetailsClientName": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "contractDetailsContractNumber": "رقم العقد: {id}",
+  "@contractDetailsContractNumber": {
+    "placeholders": {
+      "id": { "type": "String" }
+    }
+  },
+  "contractDetailsMonthlyDue": "المطلوب شهرياً",
+  "contractDetailsBaseMeterPrice": "سعر المتر عند التوقيع",
+  "contractDetailsTotalArea": "المساحة الإجمالية",
+  "contractDetailsMeterPrice": "سعر المتر",
+  "contractDetailsMarketPrice": "حسب السوق",
+  "contractDetailsPayDay": "يوم الدفع",
+  "contractDetailsArea": "المساحة",
+  "contractDetailsShares": "أسهم",
+  "contractDetailsUnallocated": "غير مخصصة",
+
+  "contractDetailsArchivedTitle": "هذا العقد مُغلق ومؤرشف 🔒",
+  "contractDetailsArchivedDesc": "• السجل المالي: محفوظ بالكامل للاطلاع والتدقيق المحاسبي.\n• المدفوعات: تم إيقاف إضافة أو تعديل الدفعات لمنع التلاعب في الحسابات المنتهية.\n• المراقبة: تم سحب العقد من \"رادار المراقبة\" ولن تظهر له أي مطالبات أو متأخرات.\n• الإجراءات: يمكن للإدارة العليا فقط النقر على زر \"إلغاء الأرشفة\" من جدول العقود لإعادة فتحه عند الضرورة.",
+
+  "contractDetailsOperationalActions": "الإجراءات التشغيلية",
+  "contractDetailsInstallmentsPageBtn": "صفحة الأقساط",
+  "contractDetailsNavToInstallments": "تم تحويلك لصفحة الأقساط الخاصة بهذا العقد!",
+  "contractDetailsSchedulePageBtn": "جدول المراقبة والمستحقات",
+  "contractDetailsNavToSchedule": "تم تحويلك لجدول المراقبة الخاص بهذا العقد!",
+  "contractDetailsViewAttachmentBtn": "عرض ملف العقد المرفق (PDF/Word)",
+  "contractDetailsGeneratingLink": "جاري إنشاء رابط وصول آمن... ⏳",
+  "contractDetailsCannotOpenLink": "لا يمكن فتح الرابط السحابي.",
+  "contractDetailsLocalFileError": "⚠️ تعذر فتح الملف المحلي: {error}",
+  "@contractDetailsLocalFileError": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+
+  "contractDetailsInfoTitle": "تفاصيل العقد والوحدة",
+  "contractDetailsSignDate": "تاريخ توقيع العقد:",
+  "contractDetailsDuration": "المدة المسجلة:",
+  "contractDetailsMonths": "{count} أشهر",
+  "@contractDetailsMonths": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "contractDetailsGuarantor": "اسم الكفيل الضامن:",
+  "contractDetailsPropertyDesc": "الوصف العقاري:",
+
+  "contractDetailsHandoverStatusTitle": "حالة تسليم العقار (المفتاح)",
+  "contractDetailsHandoverDone": "تم تسليم الشقة للعميل",
+  "contractDetailsHandoverPending": "قيد الإنشاء / لم يتم التسليم بعد",
+  "contractDetailsAgreedHandoverDate": "الموعد المتفق عليه بالعقد:",
+  "contractDetailsGracePeriod": "فترة السماح (للمطور):",
+  "contractDetailsPenaltySystem": "نظام الفائدة (بعد التسليم):",
+  "contractDetailsPenaltyActive": "مُفعّل ({pct}% كل {interval} أشهر)",
+  "@contractDetailsPenaltyActive": {
+    "placeholders": {
+      "pct": { "type": "String" },
+      "interval": { "type": "int" }
+    }
+  },
+  "contractDetailsPenaltyInactive": "غير مُفعّل",
+  "contractDetailsActualHandoverDate": "تاريخ التسليم الفعلي:",
+  "contractDetailsHandoverNotes": "ملاحظات / نواقص التسليم:",
+
+  "contractDetailsPenaltyAlertTitle": "تنبيه محاسبي: غرامات متراكمة",
+  "contractDetailsPenaltyAlertDesc": "لقد مر الزمن المحدد بعد الاستلام والعميل لا يزال مديناً. النظام أضاف آلياً غرامة بقيمة {amount} ل.س إلى ديونه.",
+  "@contractDetailsPenaltyAlertDesc": {
+    "placeholders": {
+      "amount": { "type": "String" }
+    }
+  },
+
+  "contractDetailsHandoverBtn": "تسليم الشقة للعميل",
+  "contractDetailsCancelHandoverBtn": "إلغاء التسليم",
+  "contractDetailsPrintHandoverBtn": "طباعة محضر الاستلام",
+
+  "contractDetailsLegalSectionTitle": "السجل القانوني والإجراءات",
+  "contractDetailsLegalClean": "السجل نظيف. لا توجد أي إجراءات قانونية مسجلة.",
+  "contractDetailsLegalGalleryBtn": "معرض المرفقات",
+
+  "contractDetailsFinancialAnalysisTitle": "التحليل المالي والمعاملات (التميز)",
+  "contractDetailsNoCoefficients": "لا يوجد معاملات تميز إضافية مسجلة لهذا العقد.",
+  "contractDetailsUnallocatedPricingNote": "لا يوجد معاملات لتسعير المتر. المحفظة الاستثمارية تحسب السعر آلياً لحظة كل دفعة بناءً على أسعار المواد في يوم الدفع."
 }

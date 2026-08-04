@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:local_storage_api/local_storage_api.dart' show Client;
+import 'package:our_home_erp_app/l10n/l10n.dart';
 import '../cubit/client_profile_cubit.dart';
 import '../../contracts/cubit/contracts_cubit.dart';
 import '../../buildings/cubit/buildings_cubit.dart';
@@ -25,6 +26,8 @@ class ClientProfilePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
       body: SafeArea(
@@ -38,7 +41,7 @@ class ClientProfilePage extends StatelessWidget {
             if (state.status == ClientProfileStatus.failure) {
               return Center(
                 child: Text(
-                  state.errorMessage ?? 'حدث خطأ',
+                  state.errorMessage ?? l10n.clientUnexpectedError,
                   style: const TextStyle(color: Colors.red),
                 ),
               );
@@ -48,14 +51,10 @@ class ClientProfilePage extends StatelessWidget {
 
             return CustomScrollView(
               slivers: [
-                // ==========================================
-                // 🌟 قسم الهيدر الاحترافي (Overlapping Layout)
-                // ==========================================
                 SliverToBoxAdapter(
                   child: Stack(
                     clipBehavior: Clip.none,
                     children: [
-                      // 1. الخلفية الزرقاء المدمجة
                       Container(
                         height: 200,
                         padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
@@ -85,9 +84,9 @@ class ClientProfilePage extends StatelessWidget {
                                   ),
                                   onPressed: () => Navigator.pop(context),
                                 ),
-                                const Text(
-                                  'الملف التعريفي للعميل',
-                                  style: TextStyle(
+                                Text(
+                                  l10n.clientProfileTitle,
+                                  style: const TextStyle(
                                     color: Colors.white70,
                                     fontSize: 14,
                                     fontWeight: FontWeight.bold,
@@ -178,7 +177,6 @@ class ClientProfilePage extends StatelessWidget {
                         ),
                       ),
 
-                      // 2. بطاقة الإحصائيات الطافية
                       Positioned(
                         top: 150,
                         left: 20,
@@ -203,7 +201,7 @@ class ClientProfilePage extends StatelessWidget {
                           child: Row(
                             children: [
                               _buildTopStat(
-                                'إجمالي العقود',
+                                l10n.clientProfileTotalContracts,
                                 summaries.length.toString(),
                                 Icons.folder_shared,
                                 Colors.indigo,
@@ -214,8 +212,8 @@ class ClientProfilePage extends StatelessWidget {
                                 color: Colors.grey.shade200,
                               ),
                               _buildTopStat(
-                                'إجمالي المدفوعات',
-                                '${formatWithCommas(state.grandTotalPaid)} ل.س',
+                                l10n.clientProfileTotalPayments,
+                                formatWithCommas(state.grandTotalPaid),
                                 Icons.account_balance_wallet,
                                 Colors.green,
                               ),
@@ -224,10 +222,9 @@ class ClientProfilePage extends StatelessWidget {
                                 width: 1,
                                 color: Colors.grey.shade200,
                               ),
-                              // 🌟 [التعديل 1]: تحويل إجمالي المتأخرات إلى مبلغ مالي بدلاً من عدد أقساط
                               _buildTopStat(
-                                'ديون متأخرة',
-                                '${formatWithCommas(state.totalOverdueAcrossAll)} ل.س',
+                                l10n.clientProfileOverdueDebts,
+                                formatWithCommas(state.totalOverdueAcrossAll),
                                 Icons.warning_rounded,
                                 state.totalOverdueAcrossAll > 0
                                     ? Colors.red
@@ -243,9 +240,6 @@ class ClientProfilePage extends StatelessWidget {
 
                 const SliverToBoxAdapter(child: SizedBox(height: 70)),
 
-                // ==========================================
-                // 🌟 قائمة العقود (المحفظة)
-                // ==========================================
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
@@ -260,9 +254,9 @@ class ClientProfilePage extends StatelessWidget {
                           size: 22,
                         ),
                         const SizedBox(width: 8),
-                        const Text(
-                          'المحفظة العقارية للعميل',
-                          style: TextStyle(
+                        Text(
+                          l10n.clientProfilePortfolioTitle,
+                          style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                             color: Colors.blueGrey,
@@ -286,9 +280,9 @@ class ClientProfilePage extends StatelessWidget {
                               color: Colors.grey.shade300,
                             ),
                             const SizedBox(height: 16),
-                            const Text(
-                              'هذا العميل لا يملك أي عقود حالياً.',
-                              style: TextStyle(
+                            Text(
+                              l10n.clientProfileNoContracts,
+                              style: const TextStyle(
                                 color: Colors.grey,
                                 fontSize: 16,
                               ),
@@ -322,11 +316,13 @@ class ClientProfilePage extends StatelessWidget {
                                       .read<PaymentsCubit>();
                                   final scheduleCubit = context
                                       .read<ScheduleCubit>();
-                                  // 🌟 1. أضف السطرين التاليين لجلب الكيوبتات قبل الانتقال
                                   final contractsCubit = context
                                       .read<ContractsCubit>();
                                   final buildingsCubit = context
                                       .read<BuildingsCubit>();
+                                  // 🌟 الحل هنا: جلب الـ Cubit الحالي
+                                  final clientProfileCubit = context
+                                      .read<ClientProfileCubit>();
 
                                   Navigator.push(
                                     context,
@@ -342,12 +338,15 @@ class ClientProfilePage extends StatelessWidget {
                                           BlocProvider.value(
                                             value: scheduleCubit,
                                           ),
-                                          // 🌟 2. قم بتمريرها للشاشة الجديدة هنا
                                           BlocProvider.value(
                                             value: contractsCubit,
                                           ),
                                           BlocProvider.value(
                                             value: buildingsCubit,
+                                          ),
+                                          // 🌟 وتمريره للصفحة الجديدة
+                                          BlocProvider.value(
+                                            value: clientProfileCubit,
                                           ),
                                         ],
                                         child: ContractDetailsPage(
@@ -373,7 +372,6 @@ class ClientProfilePage extends StatelessWidget {
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                       children: [
-                                        // الأيقونة (تقوم بتمييز نوع العقد لغوياً وبصرياً بأمان)
                                         Container(
                                           padding: const EdgeInsets.all(8),
                                           decoration: BoxDecoration(
@@ -395,8 +393,6 @@ class ClientProfilePage extends StatelessWidget {
                                           ),
                                         ),
                                         const SizedBox(width: 16),
-
-                                        // التفاصيل الأساسية
                                         Expanded(
                                           flex: 3,
                                           child: Column(
@@ -433,7 +429,7 @@ class ClientProfilePage extends StatelessWidget {
                                                   ),
                                                   const SizedBox(width: 8),
                                                   Text(
-                                                    '•  توقيع: ${contract.contractDate.year}/${contract.contractDate.month}/${contract.contractDate.day}',
+                                                    '•  ${l10n.clientProfileContractDate} ${contract.contractDate.year}/${contract.contractDate.month}/${contract.contractDate.day}',
                                                     style: TextStyle(
                                                       color:
                                                           Colors.grey.shade600,
@@ -452,7 +448,7 @@ class ClientProfilePage extends StatelessWidget {
                                                   ),
                                                   const SizedBox(width: 4),
                                                   Text(
-                                                    'المدفوع: ${formatWithCommas(summary.totalPaid)} ل.س',
+                                                    '${l10n.clientProfileContractPaid} ${formatWithCommas(summary.totalPaid)}',
                                                     style: const TextStyle(
                                                       color: Colors.green,
                                                       fontSize: 13,
@@ -465,8 +461,6 @@ class ClientProfilePage extends StatelessWidget {
                                             ],
                                           ),
                                         ),
-
-                                        // خط فاصل خفيف
                                         Container(
                                           width: 1,
                                           height: 50,
@@ -475,13 +469,8 @@ class ClientProfilePage extends StatelessWidget {
                                             horizontal: 12,
                                           ),
                                         ),
-
-                                        // ==========================================
-                                        // 🌟 [التعديل 2]: حالة الديون المتأخرة والغرامات
-                                        // ==========================================
                                         Expanded(
-                                          flex:
-                                              2, // تم التوسيع لتستوعب الأرقام الكبيرة
+                                          flex: 2,
                                           child: Column(
                                             mainAxisAlignment:
                                                 MainAxisAlignment.center,
@@ -505,7 +494,7 @@ class ClientProfilePage extends StatelessWidget {
                                                         ),
                                                   ),
                                                   child: Text(
-                                                    '${formatWithCommas(summary.totalOverdueWithPenalty)} متأخر',
+                                                    '${formatWithCommas(summary.totalOverdueWithPenalty)} ${l10n.clientProfileContractOverdue}',
                                                     style: const TextStyle(
                                                       color: Colors.red,
                                                       fontWeight:
@@ -517,7 +506,6 @@ class ClientProfilePage extends StatelessWidget {
                                                         TextOverflow.ellipsis,
                                                   ),
                                                 ),
-                                                // 🌟 مؤشر وجود غرامة
                                                 if (summary.penaltyAmount > 0)
                                                   Padding(
                                                     padding:
@@ -541,7 +529,7 @@ class ClientProfilePage extends StatelessWidget {
                                                           width: 2,
                                                         ),
                                                         Text(
-                                                          'يحتوي غرامات',
+                                                          l10n.clientProfileContractHasPenalty,
                                                           style: TextStyle(
                                                             color: Colors
                                                                 .deepOrange
@@ -568,9 +556,9 @@ class ClientProfilePage extends StatelessWidget {
                                                           6,
                                                         ),
                                                   ),
-                                                  child: const Text(
-                                                    'منتظم مالياً ✓',
-                                                    style: TextStyle(
+                                                  child: Text(
+                                                    l10n.clientProfileContractGoodStanding,
+                                                    style: const TextStyle(
                                                       color: Colors.green,
                                                       fontWeight:
                                                           FontWeight.bold,
@@ -581,7 +569,9 @@ class ClientProfilePage extends StatelessWidget {
                                               ],
                                               const SizedBox(height: 6),
                                               Text(
-                                                '${summary.paidSchedulesCount} حركات مسددة',
+                                                l10n.clientProfilePaidInstallmentsCount(
+                                                  summary.paidSchedulesCount,
+                                                ),
                                                 style: const TextStyle(
                                                   color: Colors.grey,
                                                   fontSize: 11,
@@ -617,7 +607,6 @@ class ClientProfilePage extends StatelessWidget {
     );
   }
 
-  // دالة مساعدة لبطاقة الإحصائيات بتصميم مضغوط
   Widget _buildTopStat(String label, String value, IconData icon, Color color) {
     return Expanded(
       child: Column(
@@ -625,7 +614,6 @@ class ClientProfilePage extends StatelessWidget {
         children: [
           Icon(icon, color: color.withOpacity(0.8), size: 22),
           const SizedBox(height: 6),
-          // 🌟 وضعنا TextOverflow و maxLines لحماية التصميم من الأرقام الكبيرة
           Text(
             value,
             style: TextStyle(
