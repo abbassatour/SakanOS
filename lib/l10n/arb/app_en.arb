@@ -237,5 +237,35 @@
 
   "clientUnknownUser": "Unknown",
   "clientEditTooltip": "Edit Data",
-  "clientNoEditPermissionTooltip": "No Permission"
+  "clientNoEditPermissionTooltip": "No Permission",
+
+
+  "clientAddDialogTitle": "Add New Client",
+  "clientAddDialogSubtitle": "Please enter client details accurately for communication and contract preparation.",
+  "clientEditDialogTitle": "Edit Client Details",
+  "clientSecurityWarning": "Security Alert: Modifying or deleting client records requires admin security PIN to maintain contract integrity.",
+  "clientLabelFullName": "Full Name",
+  "clientLabelPhone": "Phone Number",
+  "clientLabelNationalId": "National ID",
+  "clientValidationFillNamePhone": "⚠️ Please enter at least the full name and phone number!",
+  "clientSuccessAdd": "Client added successfully ✅",
+  "clientSuccessUpdated": "Client details updated successfully ✅",
+  "clientSuccessDeleted": "Client moved to recycle bin",
+  "clientErrorSave": "Error while saving: {error}",
+  "@clientErrorSave": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+
+  "btnCancel": "Cancel",
+  "btnSaveClient": "Save Client",
+  "btnSave": "Save",
+  "btnSaving": "Saving...",
+  "btnDeleteAndBin": "Delete & Move to Bin",
+
+  "pinDialogTitle": "Verify Authority",
+  "pinDialogSubtitle": "This operation is sensitive and monitored. Please enter your security PIN to proceed.",
+  "pinErrorInvalid": "Incorrect PIN! ❌",
+  "btnConfirmPin": "Confirm Authority"
 }

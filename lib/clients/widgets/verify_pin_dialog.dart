@@ -1,12 +1,12 @@
-// مسار الملف: lib/clients/widgets/verify_pin_dialog.dart
+// lib/clients/widgets/verify_pin_dialog.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:our_home_erp_app/auth/cubit/auth_cubit.dart';
+import 'package:our_home_erp_app/l10n/l10n.dart';
 
 Future<bool> showVerifyPinDialog(BuildContext context) async {
   final authCubit = context.read<AuthCubit>();
 
-  // 🌟 التحقق من فترة السماح للمطور
   if (authCubit.state.isPinGracePeriodActive) {
     return true;
   }
@@ -18,7 +18,6 @@ Future<bool> showVerifyPinDialog(BuildContext context) async {
     builder: (ctx) => _VerifyPinDialogContent(correctPin: correctPin),
   );
 
-  // 🌟 تفعيل الجلسة
   if (result == true) {
     authCubit.markPinVerified();
   }
@@ -51,14 +50,15 @@ class _VerifyPinDialogContentState extends State<_VerifyPinDialogContent> {
   }
 
   void _verifyPin() {
+    final l10n = context.l10n;
     if (_pinController.text == widget.correctPin) {
       Navigator.pop(context, true);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text(
-            'الرمز غير صحيح! ❌',
-            style: TextStyle(fontWeight: FontWeight.bold),
+            l10n.pinErrorInvalid,
+            style: const TextStyle(fontWeight: FontWeight.bold),
           ),
           backgroundColor: Colors.red,
         ),
@@ -69,6 +69,8 @@ class _VerifyPinDialogContentState extends State<_VerifyPinDialogContent> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       titlePadding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
@@ -84,9 +86,9 @@ class _VerifyPinDialogContentState extends State<_VerifyPinDialogContent> {
             child: Icon(Icons.security, color: Colors.red.shade700, size: 28),
           ),
           const SizedBox(width: 16),
-          const Text(
-            'تأكيد الصلاحية',
-            style: TextStyle(
+          Text(
+            l10n.pinDialogTitle,
+            style: const TextStyle(
               color: Colors.black87,
               fontWeight: FontWeight.bold,
               fontSize: 22,
@@ -100,9 +102,13 @@ class _VerifyPinDialogContentState extends State<_VerifyPinDialogContent> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'هذه العملية حساسة ومراقبة. يرجى إدخال رمز الأمان (PIN) الخاص بك للمتابعة.',
-              style: TextStyle(color: Colors.grey, fontSize: 14, height: 1.5),
+            Text(
+              l10n.pinDialogSubtitle,
+              style: const TextStyle(
+                color: Colors.grey,
+                fontSize: 14,
+                height: 1.5,
+              ),
             ),
             const SizedBox(height: 24),
             TextField(
@@ -153,9 +159,9 @@ class _VerifyPinDialogContentState extends State<_VerifyPinDialogContent> {
           style: TextButton.styleFrom(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
           ),
-          child: const Text(
-            'إلغاء',
-            style: TextStyle(
+          child: Text(
+            l10n.btnCancel,
+            style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
               color: Colors.grey,
@@ -173,9 +179,9 @@ class _VerifyPinDialogContentState extends State<_VerifyPinDialogContent> {
           ),
           onPressed: _verifyPin,
           icon: const Icon(Icons.check_circle),
-          label: const Text(
-            'تأكيد الصلاحية',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          label: Text(
+            l10n.btnConfirmPin,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
         ),
       ],

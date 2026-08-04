@@ -235,5 +235,33 @@
 
   "clientUnknownUser": "مجهول",
   "clientEditTooltip": "تعديل بيانات",
-  "clientNoEditPermissionTooltip": "لا تملك الصلاحية"
+  "clientNoEditPermissionTooltip": "لا تملك الصلاحية",
+  "clientAddDialogTitle": "إضافة عميل جديد",
+  "clientAddDialogSubtitle": "يرجى إدخال بيانات العميل بدقة للتواصل وإعداد العقود.",
+  "clientEditDialogTitle": "تعديل بيانات العميل",
+  "clientSecurityWarning": "تنبيه أمني: إجراءات التعديل أو الحذف للعملاء تتطلب إدخال رمز الأمان الخاص بالإدارة للحفاظ على موثوقية العقود.",
+  "clientLabelFullName": "الاسم الثلاثي",
+  "clientLabelPhone": "رقم الهاتف",
+  "clientLabelNationalId": "الرقم الوطني",
+  "clientValidationFillNamePhone": "⚠️ يرجى إدخال الاسم ورقم الهاتف على الأقل!",
+  "clientSuccessAdd": "تمت إضافة العميل بنجاح ✅",
+  "clientSuccessUpdated": "تم تحديث بيانات العميل بنجاح ✅",
+  "clientSuccessDeleted": "تم نقل العميل لسلة المحذوفات",
+  "clientErrorSave": "حدث خطأ أثناء الحفظ: {error}",
+  "@clientErrorSave": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+
+  "btnCancel": "إلغاء",
+  "btnSaveClient": "حفظ العميل",
+  "btnSave": "حفظ",
+  "btnSaving": "جاري الحفظ...",
+  "btnDeleteAndBin": "حذف ونقل للسلة",
+
+  "pinDialogTitle": "تأكيد الصلاحية",
+  "pinDialogSubtitle": "هذه العملية حساسة ومراقبة. يرجى إدخال رمز الأمان (PIN) الخاص بك للمتابعة.",
+  "pinErrorInvalid": "الرمز غير صحيح! ❌",
+  "btnConfirmPin": "تأكيد الصلاحية"
 }

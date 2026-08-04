@@ -1,4 +1,4 @@
-//lib/clients/widgets/edit_client_dialog.dart
+// lib/clients/widgets/edit_client_dialog.dart
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -8,6 +8,7 @@ import 'package:our_home_erp_app/auth/cubit/auth_cubit.dart';
 import 'package:our_home_erp_app/clients/cubit/clients_cubit.dart';
 import 'package:our_home_erp_app/clients/widgets/verify_pin_dialog.dart';
 import 'package:our_home_erp_app/core/constants/app_permissions.dart';
+import 'package:our_home_erp_app/l10n/l10n.dart';
 
 void showEditClientDialog(BuildContext parentContext, Client client) {
   final authState = parentContext.read<AuthCubit>().state;
@@ -109,6 +110,7 @@ class _EditClientDialogContentState extends State<_EditClientDialogContent> {
   }
 
   Future<void> _handleDelete() async {
+    final l10n = widget.parentContext.l10n;
     Navigator.pop(context);
     final isAuthorized = await showVerifyPinDialog(widget.parentContext);
 
@@ -119,8 +121,8 @@ class _EditClientDialogContentState extends State<_EditClientDialogContent> {
 
       if (widget.parentContext.mounted) {
         ScaffoldMessenger.of(widget.parentContext).showSnackBar(
-          const SnackBar(
-            content: Text('تم نقل العميل لسلة المحذوفات'),
+          SnackBar(
+            content: Text(l10n.clientSuccessDeleted),
             backgroundColor: Colors.green,
           ),
         );
@@ -129,14 +131,15 @@ class _EditClientDialogContentState extends State<_EditClientDialogContent> {
   }
 
   Future<void> _handleSave() async {
+    final l10n = context.l10n;
     final name = _nameController.text.trim();
     final phone = _phoneController.text.trim();
     final nationalId = _nationalIdController.text.trim();
 
     if (name.isEmpty || phone.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('⚠️ يرجى إدخال الاسم ورقم الهاتف على الأقل!'),
+        SnackBar(
+          content: Text(l10n.clientValidationFillNamePhone),
           backgroundColor: Colors.red,
         ),
       );
@@ -156,8 +159,8 @@ class _EditClientDialogContentState extends State<_EditClientDialogContent> {
 
       if (widget.parentContext.mounted) {
         ScaffoldMessenger.of(widget.parentContext).showSnackBar(
-          const SnackBar(
-            content: Text('تم تحديث بيانات العميل بنجاح ✅'),
+          SnackBar(
+            content: Text(l10n.clientSuccessUpdated),
             backgroundColor: Colors.green,
           ),
         );
@@ -167,6 +170,8 @@ class _EditClientDialogContentState extends State<_EditClientDialogContent> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       titlePadding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
@@ -186,9 +191,9 @@ class _EditClientDialogContentState extends State<_EditClientDialogContent> {
             ),
           ),
           const SizedBox(width: 16),
-          const Text(
-            'تعديل بيانات العميل',
-            style: TextStyle(
+          Text(
+            l10n.clientEditDialogTitle,
+            style: const TextStyle(
               color: Colors.black87,
               fontWeight: FontWeight.bold,
               fontSize: 22,
@@ -221,9 +226,7 @@ class _EditClientDialogContentState extends State<_EditClientDialogContent> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        'تنبيه أمني: إجراءات التعديل أو الحذف للعملاء '
-                        'تتطلب إدخال رمز الأمان الخاص بالإدارة للحفاظ '
-                        'على موثوقية العقود.',
+                        l10n.clientSecurityWarning,
                         style: TextStyle(
                           color: Colors.amber.shade900,
                           fontWeight: FontWeight.w600,
@@ -237,7 +240,7 @@ class _EditClientDialogContentState extends State<_EditClientDialogContent> {
               const SizedBox(height: 24),
               _buildField(
                 controller: _nameController,
-                label: 'الاسم الثلاثي',
+                label: l10n.clientLabelFullName,
                 icon: Icons.person,
               ),
               const SizedBox(height: 16),
@@ -246,7 +249,7 @@ class _EditClientDialogContentState extends State<_EditClientDialogContent> {
                   Expanded(
                     child: _buildField(
                       controller: _phoneController,
-                      label: 'رقم الهاتف',
+                      label: l10n.clientLabelPhone,
                       icon: Icons.phone_android,
                       keyboardType: TextInputType.phone,
                     ),
@@ -255,7 +258,7 @@ class _EditClientDialogContentState extends State<_EditClientDialogContent> {
                   Expanded(
                     child: _buildField(
                       controller: _nationalIdController,
-                      label: 'الرقم الوطني',
+                      label: l10n.clientLabelNationalId,
                       icon: Icons.badge,
                       keyboardType: TextInputType.number,
                     ),
@@ -284,9 +287,9 @@ class _EditClientDialogContentState extends State<_EditClientDialogContent> {
                   ),
                 ),
                 icon: const Icon(Icons.delete_forever, color: Colors.red),
-                label: const Text(
-                  'حذف ونقل للسلة',
-                  style: TextStyle(
+                label: Text(
+                  l10n.btnDeleteAndBin,
+                  style: const TextStyle(
                     color: Colors.red,
                     fontWeight: FontWeight.bold,
                   ),
@@ -306,9 +309,9 @@ class _EditClientDialogContentState extends State<_EditClientDialogContent> {
                       vertical: 12,
                     ),
                   ),
-                  child: const Text(
-                    'إلغاء',
-                    style: TextStyle(
+                  child: Text(
+                    l10n.btnCancel,
+                    style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                       color: Colors.grey,
@@ -330,9 +333,9 @@ class _EditClientDialogContentState extends State<_EditClientDialogContent> {
                   ),
                   onPressed: _handleSave,
                   icon: const Icon(Icons.save),
-                  label: const Text(
-                    'حفظ',
-                    style: TextStyle(
+                  label: Text(
+                    l10n.btnSave,
+                    style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
