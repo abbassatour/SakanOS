@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:erp_repository/erp_repository.dart';
-
+// 🌟 استيراد ملفات الترجمة والـ Cubit
+import '../../l10n/cubit/locale_cubit.dart';
+import '../../l10n/l10n.dart';
 import '../cubit/settings_cubit.dart';
 import 'price_history_page.dart';
 // 🌟 استدعاء شاشة سجل الدولار (سننشئها في الخطوة القادمة)
@@ -275,10 +277,12 @@ class _SettingsViewState extends State<SettingsView> {
                                 ),
                               ),
                               const SizedBox(width: 16),
-                              const Expanded(
+                              Expanded(
                                 child: Text(
-                                  'إعدادات النظام والأسعار',
-                                  style: TextStyle(
+                                  context
+                                      .l10n
+                                      .settingsTitle, // 🌟 العنوان المترجم
+                                  style: const TextStyle(
                                     fontSize: 26,
                                     fontWeight: FontWeight.bold,
                                     color: Colors.black87,
@@ -287,6 +291,21 @@ class _SettingsViewState extends State<SettingsView> {
                               ),
                             ],
                           ),
+                          const SizedBox(height: 24),
+
+                          // 👇👇 أضف هذين السطرين هنا تحديداً 👇👇
+                          // ==========================================
+                          // 🌍 بطاقة تبديل اللغة (Language Switcher)
+                          // ==========================================
+                          _buildLanguageCard(context),
+                          const SizedBox(height: 24),
+                          // 👆👆 ============================== 👆👆
+
+                          // ==========================================
+                          // 💵 بطاقة إعداد سعر الدولار (مستقلة ومنظمة)
+                          // ==========================================
+                          _buildDollarCard(context, hasUpdatePermission),
+
                           const SizedBox(height: 24),
 
                           // ==========================================
@@ -1166,6 +1185,83 @@ class _SettingsViewState extends State<SettingsView> {
                 ),
               ),
             ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ==========================================
+  // 🌍 بطاقة تبديل اللغة (Language Switcher)
+  // ==========================================
+  Widget _buildLanguageCard(BuildContext context) {
+    final currentLocale = context.watch<LocaleCubit>().state;
+    final l10n = context.l10n; // 🌟 الوصول للنصوص المترجمة
+
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.blue.shade100, width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.02),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.language, color: Colors.blue.shade700, size: 28),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.settingsLanguageTitle,
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue.shade900,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      l10n.settingsLanguageSubtitle,
+                      style: TextStyle(
+                        color: Colors.grey.shade600,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          SegmentedButton<String>(
+            segments: [
+              ButtonSegment(
+                value: 'ar',
+                label: Text(l10n.languageArabic),
+                icon: const Icon(Icons.flag),
+              ),
+              ButtonSegment(
+                value: 'en',
+                label: Text(l10n.languageEnglish),
+                icon: const Icon(Icons.language),
+              ),
+            ],
+            selected: {currentLocale.languageCode},
+            onSelectionChanged: (Set<String> newSelection) {
+              context.read<LocaleCubit>().changeLanguage(newSelection.first);
+            },
           ),
         ],
       ),

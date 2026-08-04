@@ -1,11 +1,17 @@
-//lib\app\view\app.dart
-import 'dart:io' show Platform, InternetAddress; // 🌟 أضفنا InternetAddress هنا
+// lib/app/view/app.dart
+import 'dart:io' show Platform, InternetAddress;
 
+import 'package:cloud_storage_api/cloud_storage_api.dart';
 import 'package:erp_repository/erp_repository.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+
+// 🌟 استيراد ملفات الترجمة والـ Cubit الخاصة بنا
+import 'package:our_home_erp_app/l10n/cubit/locale_cubit.dart';
+import 'package:our_home_erp_app/l10n/l10n.dart';
+
 import 'package:our_home_erp_app/auth/cubit/auth_cubit.dart';
 import 'package:our_home_erp_app/dashboard/view/dashboard_page.dart';
 import 'package:our_home_erp_app/login/view/login_page.dart';
@@ -21,20 +27,21 @@ class App extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocProvider(
-      providers: [
-        RepositoryProvider<ErpRepository>.value(
-          value: erpRepository,
-          // الدالة التي ستعمل عند التخلص من الـ Provider
-          // للأسف RepositoryProvider.value لا يملك خاصية dispose تلقائية،
-          // لذلك هذا الإجراء كافٍ بما أن الـ ErpRepository يعيش طوال دورة حياة التطبيق.
-          // لكن دالة dispose التي أضفناها ستكون جاهزة للاستخدام في الـ main أو الـ teardown إذا احتجنا.
-        ),
-        BlocProvider(
-          create: (context) => AuthCubit(erpRepository),
-        ),
-      ],
-      child: const AppView(),
+    return RepositoryProvider<ErpRepository>.value(
+      value: erpRepository,
+      child: MultiBlocProvider(
+        providers: [
+          // 🌟 1. مزود حالة اللغة
+          BlocProvider(
+            create: (context) => LocaleCubit(),
+          ),
+          // 🌟 2. مزود حالة المصادقة
+          BlocProvider(
+            create: (context) => AuthCubit(erpRepository),
+          ),
+        ],
+        child: const AppView(),
+      ),
     );
   }
 }
@@ -48,18 +55,20 @@ class AppView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 🌟 قراءة حالة اللغة الحالية من الـ LocaleCubit
+    final currentLocale = context.watch<LocaleCubit>().state;
+
     return MaterialApp(
       title: 'SakanOS',
       debugShowCheckedModeBanner: false,
+      locale: currentLocale, // 🌟 القراءة الحية للغة
       localizationsDelegates: const [
+        AppLocalizations.delegate, // 🌟 المترجم التلقائي
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      supportedLocales: const [
-        Locale('ar', 'AE'),
-      ],
-      locale: const Locale('ar', 'AE'),
+      supportedLocales: AppLocalizations.supportedLocales, // 🌟 اللغات المدعومة
       theme: ThemeData(
         primaryColor: const Color(0xFF13B9FF),
         useMaterial3: true,
@@ -98,18 +107,15 @@ class AppView extends StatelessWidget {
             return const _LoadingScreen();
           }
 
-          // 👇👇 [الأسطر الجديدة] 👇👇
           // 🛑 إذا كان التطبيق مقفلاً بسبب انتهاء فترة الأوفلاين
           if (state.status == AuthStatus.offlineLock) {
             return const _OfflineLockScreen();
           }
-          // 👆👆 [نهاية الإضافة] 👆👆
 
-          // 👇👇 [السطرين الجديدين] 👇👇
+          // 💸 إذا انتهت فترة الاشتراك
           if (state.status == AuthStatus.subscriptionExpired) {
             return const _SubscriptionLockScreen();
           }
-          // 👆👆 [نهاية الإضافة] 👆👆
 
           if (state.status == AuthStatus.authenticated) {
             return const DashboardPage();
@@ -179,7 +185,7 @@ class _SubscriptionLockScreenState extends State<_SubscriptionLockScreen> {
         throw Exception(msg);
       }
 
-      // إعادة فحص الجلسة (ستختفي هذه الشاشة تلقائياً إذا قام المطور بتمديد التاريخ)
+      // إعادة فحص الجلسة
       if (mounted) {
         await context.read<AuthCubit>().checkSession();
       }
@@ -204,7 +210,7 @@ class _SubscriptionLockScreenState extends State<_SubscriptionLockScreen> {
     final state = context.watch<AuthCubit>().state;
 
     return Scaffold(
-      backgroundColor: Colors.black87, // لون خلفية مظلم يدل على الإيقاف
+      backgroundColor: Colors.black87,
       body: Center(
         child: Container(
           width: 500,
@@ -236,7 +242,6 @@ class _SubscriptionLockScreenState extends State<_SubscriptionLockScreen> {
                 ),
               ),
               const SizedBox(height: 24),
-
               const Text(
                 'انتهت صلاحية الرخصة',
                 style: TextStyle(
@@ -246,7 +251,6 @@ class _SubscriptionLockScreenState extends State<_SubscriptionLockScreen> {
                 ),
               ),
               const SizedBox(height: 12),
-
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -267,7 +271,6 @@ class _SubscriptionLockScreenState extends State<_SubscriptionLockScreen> {
                 ),
               ),
               const SizedBox(height: 32),
-
               SizedBox(
                 width: double.infinity,
                 height: 55,
@@ -302,7 +305,6 @@ class _SubscriptionLockScreenState extends State<_SubscriptionLockScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-
               TextButton.icon(
                 style: TextButton.styleFrom(
                   foregroundColor: Colors.grey.shade600,
@@ -328,7 +330,6 @@ class _OfflineLockScreenState extends State<_OfflineLockScreen> {
     setState(() => _isSyncing = true);
 
     try {
-      // 1. فحص اتصال الإنترنت
       final result = await InternetAddress.lookup(
         'google.com',
       ).timeout(const Duration(seconds: 5));
@@ -336,14 +337,12 @@ class _OfflineLockScreenState extends State<_OfflineLockScreen> {
         throw Exception('لا يوجد اتصال بالإنترنت. يرجى التحقق من الشبكة.');
       }
 
-      // 2. محاولة المزامنة الإجبارية
       final msg = await context.read<ErpRepository>().forceSyncWithCloud();
 
       if (!msg.contains('بنجاح')) {
         throw Exception(msg);
       }
 
-      // 3. إعادة فحص الجلسة (التي ستقرأ تاريخ النبضة الجديد وتفتح التطبيق)
       if (mounted) {
         await context.read<AuthCubit>().checkSession();
       }
@@ -396,7 +395,6 @@ class _OfflineLockScreenState extends State<_OfflineLockScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // أيقونة القفل
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
@@ -410,8 +408,6 @@ class _OfflineLockScreenState extends State<_OfflineLockScreen> {
                 ),
               ),
               const SizedBox(height: 24),
-
-              // العنوان
               const Text(
                 'النظام مقفل مؤقتاً',
                 style: TextStyle(
@@ -421,8 +417,6 @@ class _OfflineLockScreenState extends State<_OfflineLockScreen> {
                 ),
               ),
               const SizedBox(height: 12),
-
-              // رسالة الخطأ القادمة من الـ AuthCubit
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -443,8 +437,6 @@ class _OfflineLockScreenState extends State<_OfflineLockScreen> {
                 ),
               ),
               const SizedBox(height: 32),
-
-              // زر المزامنة
               SizedBox(
                 width: double.infinity,
                 height: 55,
@@ -479,8 +471,6 @@ class _OfflineLockScreenState extends State<_OfflineLockScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-
-              // زر تسجيل الخروج الإجباري
               TextButton.icon(
                 style: TextButton.styleFrom(
                   foregroundColor: Colors.grey.shade600,
