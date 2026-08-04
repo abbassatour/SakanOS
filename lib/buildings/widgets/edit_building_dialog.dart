@@ -1,11 +1,10 @@
 // lib/buildings/widgets/edit_building_dialog.dart
-// ignore_for_file: always_use_package_imports, depend_on_referenced_packages
-
 import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:local_storage_api/local_storage_api.dart' show Building;
+import 'package:our_home_erp_app/l10n/l10n.dart';
 
 import '../cubit/buildings_cubit.dart';
 
@@ -53,6 +52,8 @@ class _EditBuildingDialogContentState
   }
 
   void _confirmDelete() {
+    final l10n = context.l10n;
+
     unawaited(
       showDialog<void>(
         context: context,
@@ -60,31 +61,33 @@ class _EditBuildingDialogContentState
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
-          title: const Row(
+          title: Row(
             children: [
-              Icon(Icons.warning_amber_rounded, color: Colors.red, size: 28),
-              SizedBox(width: 8),
+              const Icon(
+                Icons.warning_amber_rounded,
+                color: Colors.red,
+                size: 28,
+              ),
+              const SizedBox(width: 8),
               Text(
-                'تأكيد الحذف',
-                style: TextStyle(
+                l10n.bldDeleteConfirmTitle,
+                style: const TextStyle(
                   color: Colors.red,
                   fontWeight: FontWeight.bold,
                 ),
               ),
             ],
           ),
-          content: const Text(
-            'هل أنت متأكد من رغبتك في حذف هذا المحضر ونقله إلى سلة '
-            'المحذوفات؟\n\n(سيتم حذف جميع الوحدات المتاحة داخله آلياً. '
-            'ولن تتمكن من حذفه إذا كان يحتوي على وحدات مباعة)',
-            style: TextStyle(fontSize: 15, height: 1.5),
+          content: Text(
+            l10n.bldDeleteConfirmMessage,
+            style: const TextStyle(fontSize: 15, height: 1.5),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(confirmCtx),
-              child: const Text(
-                'إلغاء',
-                style: TextStyle(
+              child: Text(
+                l10n.btnCancel,
+                style: const TextStyle(
                   color: Colors.grey,
                   fontWeight: FontWeight.bold,
                 ),
@@ -107,9 +110,9 @@ class _EditBuildingDialogContentState
                   Navigator.pop(context);
                 }
               },
-              child: const Text(
-                'نعم، احذف المحضر',
-                style: TextStyle(fontWeight: FontWeight.bold),
+              child: Text(
+                l10n.bldBtnConfirmDelete,
+                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
             ),
           ],
@@ -119,6 +122,8 @@ class _EditBuildingDialogContentState
   }
 
   void _handleSave() {
+    final l10n = context.l10n;
+
     if (_nameCtrl.text.trim().isNotEmpty) {
       unawaited(
         context.read<BuildingsCubit>().updateBuilding(
@@ -129,15 +134,15 @@ class _EditBuildingDialogContentState
       );
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('تم حفظ التعديلات بنجاح ✅'),
+        SnackBar(
+          content: Text(l10n.bldSuccessUpdate),
           backgroundColor: Colors.green,
         ),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('اسم المحضر مطلوب!'),
+        SnackBar(
+          content: Text(l10n.bldValidationFillName),
           backgroundColor: Colors.red,
         ),
       );
@@ -146,6 +151,8 @@ class _EditBuildingDialogContentState
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       titlePadding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
@@ -168,9 +175,9 @@ class _EditBuildingDialogContentState
                 ),
               ),
               const SizedBox(width: 16),
-              const Text(
-                'تعديل بيانات المحضر',
-                style: TextStyle(
+              Text(
+                l10n.bldEditDialogTitle,
+                style: const TextStyle(
                   color: Colors.black87,
                   fontWeight: FontWeight.bold,
                   fontSize: 22,
@@ -184,7 +191,7 @@ class _EditBuildingDialogContentState
               color: Colors.red,
               size: 28,
             ),
-            tooltip: 'حذف المحضر',
+            tooltip: l10n.bldEditTooltip,
             onPressed: _confirmDelete,
           ),
         ],
@@ -214,8 +221,7 @@ class _EditBuildingDialogContentState
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        'يمكنك تعديل اسم المحضر وموقعه بحرية. '
-                        'لن يؤثر ذلك على العقود أو الحسابات المالية.',
+                        l10n.bldEditInfoBanner,
                         style: TextStyle(
                           color: Colors.blue.shade900,
                           fontWeight: FontWeight.w600,
@@ -234,7 +240,7 @@ class _EditBuildingDialogContentState
                   fontSize: 16,
                 ),
                 decoration: InputDecoration(
-                  labelText: 'اسم المحضر / المشروع',
+                  labelText: l10n.bldLabelName,
                   prefixIcon: const Icon(Icons.business, color: Colors.indigo),
                   filled: true,
                   fillColor: Colors.white,
@@ -258,7 +264,7 @@ class _EditBuildingDialogContentState
                   fontSize: 16,
                 ),
                 decoration: InputDecoration(
-                  labelText: 'الموقع / العنوان',
+                  labelText: l10n.bldLabelLocation,
                   prefixIcon: const Icon(
                     Icons.location_on,
                     color: Colors.indigo,
@@ -288,9 +294,9 @@ class _EditBuildingDialogContentState
           style: TextButton.styleFrom(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
           ),
-          child: const Text(
-            'إلغاء',
-            style: TextStyle(
+          child: Text(
+            l10n.btnCancel,
+            style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
               color: Colors.grey,
@@ -309,9 +315,9 @@ class _EditBuildingDialogContentState
           ),
           onPressed: _handleSave,
           icon: const Icon(Icons.save),
-          label: const Text(
-            'حفظ التعديلات',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          label: Text(
+            l10n.bldBtnSaveEdits,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
         ),
       ],

@@ -517,5 +517,99 @@
       "targetFloor": { "type": "String" }
     }
   },
-  "btnConfirmCopy": "اعتماد وحفظ النسخ"
+  "btnConfirmCopy": "اعتماد وحفظ النسخ",
+
+  "bldAddDialogTitle": "إضافة محضر جديد (إعداد الهيكل)",
+  "bldLabelName": "اسم المحضر / المشروع",
+  "bldLabelLocation": "الموقع / العنوان",
+  "bldGeneralCoeffsTitle": "معاملات المحضر العامة (%)",
+  "bldCoeffLocation": "الموقع %",
+  "bldCoeffStreet": "الشارع %",
+  "bldCoeffElevator": "المصعد %",
+  "bldDirCoeffsTitle": "معاملات الجهات الجغرافية للمحضر (%)",
+  "bldCoeffNorth": "شمالي %",
+  "bldCoeffSouth": "جنوبي %",
+  "bldCoeffEast": "شرقي %",
+  "bldCoeffWest": "غربي %",
+  "bldFloorStructureTitle": "هيكل الطوابق ونسب التمييز لكل طابق",
+  "bldLabelBasementsCount": "عدد الأقبية (تحت الأرض)",
+  "bldBasementCountOption": "{count} قبو",
+  "@bldBasementCountOption": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "bldLabelFloorsCount": "عدد الطوابق (فوق الأرضي)",
+  "bldFloorCountOption": "{count} طابق",
+  "@bldFloorCountOption": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "bldFloorCoeffLabel": "نسبة التمييز المالي %",
+  "bldValidationFillName": "⚠️ الرجاء إدخال اسم المحضر!",
+  "bldBtnSave": "اعتماد وحفظ المحضر",
+
+  "bldEditDialogTitle": "تعديل بيانات المحضر",
+  "bldDeleteConfirmTitle": "تأكيد الحذف",
+  "bldDeleteConfirmMessage": "هل أنت متأكد من رغبتك في حذف هذا المحضر ونقله إلى سلة المحذوفات؟\n\n(سيتم حذف جميع الوحدات المتاحة داخله آلياً. ولن تتمكن من حذفه إذا كان يحتوي على وحدات مباعة)",
+  "bldBtnConfirmDelete": "نعم، احذف المحضر",
+  "bldEditInfoBanner": "يمكنك تعديل اسم المحضر وموقعه بحرية. لن يؤثر ذلك على العقود أو الحسابات المالية.",
+  "bldSuccessUpdate": "تم حفظ التعديلات بنجاح ✅",
+
+  "aptAddDialogTitle": "إضافة شقة للكتالوج",
+  "aptLabelNumber": "رقم الشقة / الرمز",
+  "aptLabelSelectFloor": "اختر الطابق (يحدد النسبة آلياً)",
+  "aptAreaHeader": "حساب المساحة البيعية (م²)",
+  "aptLabelSlabArea": "مساحة البلاطة (المسقوفة) م²",
+  "aptLabelTerraceArea": "مساحة التراس م²",
+  "aptLabelYardArea": "مساحة الوجيبة م²",
+  "aptSalesAreaResultTitle": "المساحة البيعية المعتمدة للعقد",
+  "aptDirectionHeaderTitle": "اختيار اتجاهات الشقة",
+  "aptFinancialCoeffsHeaderTitle": "المعاملات المالية الخاصة بالشقة",
+  "aptCoeffYard": "معامل الوجيبة %",
+  "aptCoeffProfit": "هامش الربح %",
+  "aptBtnSave": "حفظ الشقة",
+  "aptValidationFillNumber": "⚠️ الرجاء إدخال رقم الشقة!",
+  "aptValidationSelectFloor": "⚠️ الرجاء تحديد الطابق!",
+  "aptValidationFillSlab": "⚠️ الرجاء إدخال مساحة البلاطة!",
+  "aptValidationInvalidArea": "⚠️ المساحة المحسوبة غير صالحة!",
+
+  "aptEditDialogTitle": "تعديل الوحدة ( {number} )",
+  "@aptEditDialogTitle": {
+    "placeholders": {
+      "number": { "type": "String" }
+    }
+  },
+  "aptDeleteConfirmTitle": "تأكيد الحذف",
+  "aptDeleteConfirmMessage": "هل أنت متأكد من رغبتك في حذف هذه الوحدة ونقلها إلى سلة المحذوفات؟",
+  "aptBtnConfirmDelete": "نعم، احذف",
+  "aptSuccessDeleted": "تم نقل الوحدة لسلة المحذوفات",
+  "aptSuccessUpdated": "تم تحديث رقم الوحدة بنجاح",
+  "aptValidationEmptyNumber": "الرقم لا يمكن أن يكون فارغاً!",
+  "aptEditBannerAvailable": "للحفاظ على سلامة الحسابات والمعاملات المالية، يُسمح لك بتعديل \"الرقم/الرمز\" فقط. لتغيير المساحة أو الاتجاه، يرجى حذف الوحدة وإضافتها من جديد.",
+  "aptEditBannerDelivered": "هذه الوحدة تم تسليمها للعميل نهائياً وانتهت دورتها. يُمنع منعاً باتاً تعديل بياناتها أو حذفها للحفاظ على استقرار العقود والبيانات المالية.",
+  "aptEditBannerSold": "هذه الوحدة مباعة أو محجوزة بعقد نشط. يُمنع منعاً باتاً تعديل بياناتها أو حذفها للحفاظ على استقرار العقود المالية.",
+  "aptTagLockedDelivered": "مقفلة (مُسلّمة)",
+  "aptTagLockedSold": "مقفلة (مباعة)",
+  "aptLabelApprovedArea": "المساحة المعتمدة",
+  "aptLabelDirection": "الاتجاه / الواجهة",
+  "aptBtnSaveEdit": "حفظ التعديل",
+  "btnClose": "إغلاق",
+
+  "shopAddDialogTitle": "إضافة محل تجاري",
+  "shopLabelNumber": "رقم المحل / الرمز",
+  "shopEngineeringHeader": "البيانات الهندسية (المساحات والأبعاد)",
+  "shopLabelGroundArea": "مساحة الأرضي م²",
+  "shopLabelFacadeLength": "عرض الواجهة (متر)",
+  "shopSalesAreaResultTitle": "المساحة البيعية الإجمالية للمحل",
+  "shopFinancialCoeffsHeader": "المعاملات المالية المئوية",
+  "shopCoeffLocation": "نسبة الموقع %",
+  "shopCoeffStreet": "نسبة الشارع %",
+  "shopCoeffFacade": "نسبة التميز للواجهة %",
+  "shopBtnSave": "حفظ المحل",
+  "shopValidationIncomplete": "⚠️ بيانات غير مكتملة أو مساحة غير صالحة!",
+
+
+  
 }

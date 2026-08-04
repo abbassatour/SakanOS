@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:local_storage_api/local_storage_api.dart' show Building;
 import 'package:our_home_erp_app/buildings/cubit/buildings_cubit.dart';
+import 'package:our_home_erp_app/l10n/l10n.dart';
 
 void showAddApartmentDialog(
   BuildContext parentContext,
@@ -157,10 +158,12 @@ class _AddApartmentDialogContentState
   }
 
   void _handleSave() {
+    final l10n = context.l10n;
+
     if (_numCtrl.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('⚠️ الرجاء إدخال رقم الشقة!'),
+        SnackBar(
+          content: Text(l10n.aptValidationFillNumber),
           backgroundColor: Colors.red,
         ),
       );
@@ -169,8 +172,8 @@ class _AddApartmentDialogContentState
 
     if (_selectedFloorName == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('⚠️ الرجاء تحديد الطابق!'),
+        SnackBar(
+          content: Text(l10n.aptValidationSelectFloor),
           backgroundColor: Colors.red,
         ),
       );
@@ -179,8 +182,8 @@ class _AddApartmentDialogContentState
 
     if (_slabAreaCtrl.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('⚠️ الرجاء إدخال مساحة البلاطة!'),
+        SnackBar(
+          content: Text(l10n.aptValidationFillSlab),
           backgroundColor: Colors.red,
         ),
       );
@@ -191,8 +194,8 @@ class _AddApartmentDialogContentState
 
     if (_calculatedTotalArea <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('⚠️ المساحة المحسوبة غير صالحة!'),
+        SnackBar(
+          content: Text(l10n.aptValidationInvalidArea),
           backgroundColor: Colors.red,
         ),
       );
@@ -255,6 +258,8 @@ class _AddApartmentDialogContentState
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       titlePadding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
@@ -274,9 +279,9 @@ class _AddApartmentDialogContentState
             ),
           ),
           const SizedBox(width: 16),
-          const Text(
-            'إضافة شقة للكتالوج',
-            style: TextStyle(
+          Text(
+            l10n.aptAddDialogTitle,
+            style: const TextStyle(
               color: Colors.black87,
               fontWeight: FontWeight.bold,
               fontSize: 22,
@@ -296,7 +301,7 @@ class _AddApartmentDialogContentState
                   Expanded(
                     child: _buildField(
                       controller: _numCtrl,
-                      label: 'رقم الشقة / الرمز',
+                      label: l10n.aptLabelNumber,
                       icon: Icons.tag,
                       keyboardType: TextInputType.text,
                       fillColor: Colors.white,
@@ -312,7 +317,7 @@ class _AddApartmentDialogContentState
                         color: Colors.black87,
                       ),
                       decoration: InputDecoration(
-                        labelText: 'اختر الطابق (يحدد النسبة آلياً)',
+                        labelText: l10n.aptLabelSelectFloor,
                         prefixIcon: Icon(
                           Icons.layers,
                           size: 20,
@@ -376,9 +381,9 @@ class _AddApartmentDialogContentState
                       children: [
                         Icon(Icons.architecture, color: Colors.indigo.shade400),
                         const SizedBox(width: 8),
-                        const Text(
-                          'حساب المساحة البيعية (م²)',
-                          style: TextStyle(
+                        Text(
+                          l10n.aptAreaHeader,
+                          style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
                             color: Colors.indigo,
@@ -389,7 +394,7 @@ class _AddApartmentDialogContentState
                     const SizedBox(height: 16),
                     _buildField(
                       controller: _slabAreaCtrl,
-                      label: 'مساحة البلاطة (المسقوفة) م²',
+                      label: l10n.aptLabelSlabArea,
                       icon: Icons.crop_square,
                       fillColor: Colors.white,
                       onChanged: (_) => _updateCalculatedArea(),
@@ -400,7 +405,7 @@ class _AddApartmentDialogContentState
                         Expanded(
                           child: _buildField(
                             controller: _terraceAreaCtrl,
-                            label: 'مساحة التراس م²',
+                            label: l10n.aptLabelTerraceArea,
                             icon: Icons.balcony,
                             fillColor: Colors.white,
                             onChanged: (_) => _updateCalculatedArea(),
@@ -410,7 +415,7 @@ class _AddApartmentDialogContentState
                         Expanded(
                           child: _buildField(
                             controller: _physicalYardAreaCtrl,
-                            label: 'مساحة الوجيبة م²',
+                            label: l10n.aptLabelYardArea,
                             icon: Icons.grass,
                             fillColor: Colors.white,
                             onChanged: (_) => _updateCalculatedArea(),
@@ -440,9 +445,9 @@ class _AddApartmentDialogContentState
                       ),
                       child: Column(
                         children: [
-                          const Text(
-                            'المساحة البيعية المعتمدة للعقد',
-                            style: TextStyle(
+                          Text(
+                            l10n.aptSalesAreaResultTitle,
+                            style: const TextStyle(
                               color: Colors.white70,
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
@@ -450,7 +455,7 @@ class _AddApartmentDialogContentState
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            '${_calculatedTotalArea.toStringAsFixed(2)} م²',
+                            '${_calculatedTotalArea.toStringAsFixed(2)} m²',
                             style: const TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
@@ -486,9 +491,9 @@ class _AddApartmentDialogContentState
                       children: [
                         Icon(Icons.explore, color: Colors.teal.shade600),
                         const SizedBox(width: 8),
-                        const Text(
-                          'اختيار اتجاهات الشقة',
-                          style: TextStyle(
+                        Text(
+                          l10n.aptDirectionHeaderTitle,
+                          style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
                             color: Colors.teal,
@@ -549,9 +554,9 @@ class _AddApartmentDialogContentState
                       children: [
                         Icon(Icons.percent, color: Colors.green.shade600),
                         const SizedBox(width: 8),
-                        const Text(
-                          'المعاملات المالية الخاصة بالشقة',
-                          style: TextStyle(
+                        Text(
+                          l10n.aptFinancialCoeffsHeaderTitle,
+                          style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
                             color: Colors.green,
@@ -565,7 +570,7 @@ class _AddApartmentDialogContentState
                         Expanded(
                           child: _buildField(
                             controller: _yardCoeffCtrl,
-                            label: 'معامل الوجيبة  %',
+                            label: l10n.aptCoeffYard,
                             icon: Icons.yard_outlined,
                             fillColor: Colors.white,
                           ),
@@ -574,7 +579,7 @@ class _AddApartmentDialogContentState
                         Expanded(
                           child: _buildField(
                             controller: _profitCoeffCtrl,
-                            label: 'هامش الربح %',
+                            label: l10n.aptCoeffProfit,
                             icon: Icons.trending_up,
                             fillColor: const Color(0xFFE8F5E9),
                           ),
@@ -595,9 +600,9 @@ class _AddApartmentDialogContentState
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
           ),
           onPressed: () => Navigator.pop(context),
-          child: const Text(
-            'إلغاء',
-            style: TextStyle(
+          child: Text(
+            l10n.btnCancel,
+            style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
               color: Colors.grey,
@@ -619,9 +624,9 @@ class _AddApartmentDialogContentState
           ),
           onPressed: _handleSave,
           icon: const Icon(Icons.check_circle_outline),
-          label: const Text(
-            'حفظ الشقة',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          label: Text(
+            l10n.aptBtnSave,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
         ),
       ],

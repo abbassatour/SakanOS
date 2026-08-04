@@ -519,5 +519,100 @@
       "targetFloor": { "type": "String" }
     }
   },
-  "btnConfirmCopy": "Confirm & Save Clones"
+  "btnConfirmCopy": "Confirm & Save Clones",
+
+
+
+  "bldAddDialogTitle": "Add New Building (Structure Setup)",
+  "bldLabelName": "Building / Project Name",
+  "bldLabelLocation": "Location / Address",
+  "bldGeneralCoeffsTitle": "Building General Multipliers (%)",
+  "bldCoeffLocation": "Location %",
+  "bldCoeffStreet": "Street %",
+  "bldCoeffElevator": "Elevator %",
+  "bldDirCoeffsTitle": "Directional Multipliers (%)",
+  "bldCoeffNorth": "North %",
+  "bldCoeffSouth": "South %",
+  "bldCoeffEast": "East %",
+  "bldCoeffWest": "West %",
+  "bldFloorStructureTitle": "Floor Structure & Price Multipliers per Floor",
+  "bldLabelBasementsCount": "Number of Basements (Underground)",
+  "bldBasementCountOption": "{count} basement(s)",
+  "@bldBasementCountOption": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "bldLabelFloorsCount": "Number of Floors (Above Ground)",
+  "bldFloorCountOption": "{count} floor(s)",
+  "@bldFloorCountOption": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "bldFloorCoeffLabel": "Price Multiplier %",
+  "bldValidationFillName": "⚠️ Please enter the building name!",
+  "bldBtnSave": "Confirm & Save Building",
+
+  "bldEditDialogTitle": "Edit Building Details",
+  "bldDeleteConfirmTitle": "Confirm Deletion",
+  "bldDeleteConfirmMessage": "Are you sure you want to delete this building and move it to the recycle bin?\n\n(All available units inside it will be deleted automatically. You cannot delete it if it contains sold units)",
+  "bldBtnConfirmDelete": "Yes, Delete Building",
+  "bldEditInfoBanner": "You can freely edit the building name and location. This will not affect contracts or financial accounts.",
+  "bldSuccessUpdate": "Changes saved successfully ✅",
+  "bldBtnSaveEdits": "Save Edits",
+
+  "aptAddDialogTitle": "Add Apartment to Catalog",
+  "aptLabelNumber": "Apartment Number / Symbol",
+  "aptLabelSelectFloor": "Select Floor (Auto-sets multiplier)",
+  "aptAreaHeader": "Sales Area Calculation (m²)",
+  "aptLabelSlabArea": "Slab (Covered) Area m²",
+  "aptLabelTerraceArea": "Terrace Area m²",
+  "aptLabelYardArea": "Yard Area m²",
+  "aptSalesAreaResultTitle": "Approved Sales Area for Contract",
+  "aptDirectionHeaderTitle": "Select Apartment Directions",
+  "aptFinancialCoeffsHeaderTitle": "Financial Multipliers for Apartment",
+  "aptCoeffYard": "Yard Multiplier %",
+  "aptCoeffProfit": "Profit Margin %",
+  "aptBtnSave": "Save Apartment",
+  "aptValidationFillNumber": "⚠️ Please enter the apartment number!",
+  "aptValidationSelectFloor": "⚠️ Please select a floor!",
+  "aptValidationFillSlab": "⚠️ Please enter slab area!",
+  "aptValidationInvalidArea": "⚠️ Calculated area is invalid!",
+
+  "aptEditDialogTitle": "Edit Unit ( {number} )",
+  "@aptEditDialogTitle": {
+    "placeholders": {
+      "number": { "type": "String" }
+    }
+  },
+  "aptDeleteConfirmTitle": "Confirm Deletion",
+  "aptDeleteConfirmMessage": "Are you sure you want to delete this unit and move it to the recycle bin?",
+  "aptBtnConfirmDelete": "Yes, Delete",
+  "aptSuccessDeleted": "Unit moved to recycle bin",
+  "aptSuccessUpdated": "Unit number updated successfully",
+  "aptValidationEmptyNumber": "Number cannot be empty!",
+  "aptEditBannerAvailable": "To maintain financial integrity, you are only allowed to edit the 'Number/Symbol'. To change area or direction, please delete the unit and add it again.",
+  "aptEditBannerDelivered": "This unit has been delivered to the client. Modifying or deleting its data is strictly prohibited to preserve financial records.",
+  "aptEditBannerSold": "This unit is sold or reserved under an active contract. Modifying or deleting its data is strictly prohibited.",
+  "aptTagLockedDelivered": "Locked (Delivered)",
+  "aptTagLockedSold": "Locked (Sold)",
+  "aptLabelApprovedArea": "Approved Area",
+  "aptLabelDirection": "Direction / Facade",
+  "aptBtnSaveEdit": "Save Edits",
+  "btnClose": "Close",
+
+  "shopAddDialogTitle": "Add Commercial Shop",
+  "shopLabelNumber": "Shop Number / Symbol",
+  "shopEngineeringHeader": "Engineering Data (Areas & Dimensions)",
+  "shopLabelGroundArea": "Ground Area m²",
+  "shopLabelFacadeLength": "Facade Width (meters)",
+  "shopSalesAreaResultTitle": "Total Sales Area for Shop",
+  "shopFinancialCoeffsHeader": "Percentage Financial Multipliers",
+  "shopCoeffLocation": "Location %",
+  "shopCoeffStreet": "Street %",
+  "shopCoeffFacade": "Facade Multiplier %",
+  "shopBtnSave": "Save Shop",
+  "shopValidationIncomplete": "⚠️ Incomplete data or invalid area!"
+  
 }

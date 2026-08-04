@@ -4,6 +4,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:our_home_erp_app/buildings/cubit/buildings_cubit.dart';
+import 'package:our_home_erp_app/l10n/l10n.dart';
 
 String _getArabicFloorName(int floorNumber) {
   if (floorNumber == 0) return 'الطابق الأرضي';
@@ -150,7 +151,7 @@ class _AddBuildingDialogContentState extends State<_AddBuildingDialogContent> {
     );
   }
 
-  List<Widget> _buildFloorInputs() {
+  List<Widget> _buildFloorInputs(AppLocalizations l10n) {
     final widgets = <Widget>[];
     for (var i = -_basementsCount; i <= _floorsCount; i++) {
       _floorControllers.putIfAbsent(
@@ -202,7 +203,7 @@ class _AddBuildingDialogContentState extends State<_AddBuildingDialogContent> {
               Expanded(
                 child: _buildField(
                   controller: _floorControllers[i]!,
-                  label: 'نسبة التمييز المالي %',
+                  label: l10n.bldFloorCoeffLabel,
                   icon: Icons.percent,
                   fillColor: Colors.white,
                 ),
@@ -216,10 +217,11 @@ class _AddBuildingDialogContentState extends State<_AddBuildingDialogContent> {
   }
 
   void _handleSave() {
+    final l10n = context.l10n;
     if (_nameCtrl.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('⚠️ الرجاء إدخال اسم المحضر!'),
+        SnackBar(
+          content: Text(l10n.bldValidationFillName),
           backgroundColor: Colors.red,
         ),
       );
@@ -262,6 +264,8 @@ class _AddBuildingDialogContentState extends State<_AddBuildingDialogContent> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       titlePadding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
@@ -281,9 +285,9 @@ class _AddBuildingDialogContentState extends State<_AddBuildingDialogContent> {
             ),
           ),
           const SizedBox(width: 16),
-          const Text(
-            'إضافة محضر جديد (إعداد الهيكل)',
-            style: TextStyle(
+          Text(
+            l10n.bldAddDialogTitle,
+            style: const TextStyle(
               color: Colors.black87,
               fontWeight: FontWeight.bold,
               fontSize: 22,
@@ -304,7 +308,7 @@ class _AddBuildingDialogContentState extends State<_AddBuildingDialogContent> {
                     flex: 3,
                     child: _buildField(
                       controller: _nameCtrl,
-                      label: 'اسم المحضر / المشروع',
+                      label: l10n.bldLabelName,
                       icon: Icons.business,
                       keyboardType: TextInputType.text,
                       fillColor: Colors.white,
@@ -315,7 +319,7 @@ class _AddBuildingDialogContentState extends State<_AddBuildingDialogContent> {
                     flex: 2,
                     child: _buildField(
                       controller: _locCtrl,
-                      label: 'الموقع',
+                      label: l10n.bldLabelLocation,
                       icon: Icons.location_on,
                       keyboardType: TextInputType.text,
                       fillColor: Colors.white,
@@ -345,9 +349,9 @@ class _AddBuildingDialogContentState extends State<_AddBuildingDialogContent> {
                       children: [
                         Icon(Icons.tune, color: Colors.green.shade600),
                         const SizedBox(width: 8),
-                        const Text(
-                          'معاملات المحضر العامة (%)',
-                          style: TextStyle(
+                        Text(
+                          l10n.bldGeneralCoeffsTitle,
+                          style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
                             color: Colors.green,
@@ -361,7 +365,7 @@ class _AddBuildingDialogContentState extends State<_AddBuildingDialogContent> {
                         Expanded(
                           child: _buildField(
                             controller: _locationCoeffCtrl,
-                            label: 'الموقع %',
+                            label: l10n.bldCoeffLocation,
                             icon: Icons.map,
                             fillColor: Colors.white,
                           ),
@@ -370,7 +374,7 @@ class _AddBuildingDialogContentState extends State<_AddBuildingDialogContent> {
                         Expanded(
                           child: _buildField(
                             controller: _streetCoeffCtrl,
-                            label: 'الشارع %',
+                            label: l10n.bldCoeffStreet,
                             icon: Icons.add_road,
                             fillColor: Colors.white,
                           ),
@@ -379,7 +383,7 @@ class _AddBuildingDialogContentState extends State<_AddBuildingDialogContent> {
                         Expanded(
                           child: _buildField(
                             controller: _elevatorCoeffCtrl,
-                            label: 'المصعد %',
+                            label: l10n.bldCoeffElevator,
                             icon: Icons.elevator,
                             fillColor: Colors.white,
                           ),
@@ -411,9 +415,9 @@ class _AddBuildingDialogContentState extends State<_AddBuildingDialogContent> {
                       children: [
                         Icon(Icons.explore, color: Colors.teal.shade600),
                         const SizedBox(width: 8),
-                        const Text(
-                          'معاملات الجهات الجغرافية للمحضر (%)',
-                          style: TextStyle(
+                        Text(
+                          l10n.bldDirCoeffsTitle,
+                          style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
                             color: Colors.teal,
@@ -427,7 +431,7 @@ class _AddBuildingDialogContentState extends State<_AddBuildingDialogContent> {
                         Expanded(
                           child: _buildField(
                             controller: _northCtrl,
-                            label: 'شمالي %',
+                            label: l10n.bldCoeffNorth,
                             icon: Icons.north,
                             fillColor: Colors.white,
                           ),
@@ -436,7 +440,7 @@ class _AddBuildingDialogContentState extends State<_AddBuildingDialogContent> {
                         Expanded(
                           child: _buildField(
                             controller: _southCtrl,
-                            label: 'جنوبي %',
+                            label: l10n.bldCoeffSouth,
                             icon: Icons.south,
                             fillColor: Colors.white,
                           ),
@@ -449,7 +453,7 @@ class _AddBuildingDialogContentState extends State<_AddBuildingDialogContent> {
                         Expanded(
                           child: _buildField(
                             controller: _eastCtrl,
-                            label: 'شرقي %',
+                            label: l10n.bldCoeffEast,
                             icon: Icons.east,
                             fillColor: Colors.white,
                           ),
@@ -458,7 +462,7 @@ class _AddBuildingDialogContentState extends State<_AddBuildingDialogContent> {
                         Expanded(
                           child: _buildField(
                             controller: _westCtrl,
-                            label: 'غربي %',
+                            label: l10n.bldCoeffWest,
                             icon: Icons.west,
                             fillColor: Colors.white,
                           ),
@@ -490,9 +494,9 @@ class _AddBuildingDialogContentState extends State<_AddBuildingDialogContent> {
                       children: [
                         Icon(Icons.layers, color: Colors.indigo.shade600),
                         const SizedBox(width: 8),
-                        const Text(
-                          'هيكل الطوابق ونسب التمييز لكل طابق',
-                          style: TextStyle(
+                        Text(
+                          l10n.bldFloorStructureTitle,
+                          style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
                             color: Colors.indigo,
@@ -512,7 +516,7 @@ class _AddBuildingDialogContentState extends State<_AddBuildingDialogContent> {
                               color: Colors.black87,
                             ),
                             decoration: InputDecoration(
-                              labelText: 'عدد الأقبية (تحت الأرض)',
+                              labelText: l10n.bldLabelBasementsCount,
                               prefixIcon: Icon(
                                 Icons.arrow_downward,
                                 color: Colors.brown.shade400,
@@ -547,7 +551,7 @@ class _AddBuildingDialogContentState extends State<_AddBuildingDialogContent> {
                                 .map(
                                   (e) => DropdownMenuItem(
                                     value: e,
-                                    child: Text('$e قبو'),
+                                    child: Text(l10n.bldBasementCountOption(e)),
                                   ),
                                 )
                                 .toList(),
@@ -568,7 +572,7 @@ class _AddBuildingDialogContentState extends State<_AddBuildingDialogContent> {
                               color: Colors.black87,
                             ),
                             decoration: InputDecoration(
-                              labelText: 'عدد الطوابق (فوق الأرضي)',
+                              labelText: l10n.bldLabelFloorsCount,
                               prefixIcon: Icon(
                                 Icons.arrow_upward,
                                 color: Colors.indigo.shade400,
@@ -603,7 +607,7 @@ class _AddBuildingDialogContentState extends State<_AddBuildingDialogContent> {
                                 .map(
                                   (e) => DropdownMenuItem(
                                     value: e,
-                                    child: Text('$e طابق'),
+                                    child: Text(l10n.bldFloorCountOption(e)),
                                   ),
                                 )
                                 .toList(),
@@ -617,7 +621,7 @@ class _AddBuildingDialogContentState extends State<_AddBuildingDialogContent> {
                       ],
                     ),
                     const SizedBox(height: 20),
-                    ..._buildFloorInputs(),
+                    ..._buildFloorInputs(l10n),
                   ],
                 ),
               ),
@@ -632,9 +636,9 @@ class _AddBuildingDialogContentState extends State<_AddBuildingDialogContent> {
           style: TextButton.styleFrom(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
           ),
-          child: const Text(
-            'إلغاء',
-            style: TextStyle(
+          child: Text(
+            l10n.btnCancel,
+            style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
               color: Colors.grey,
@@ -653,9 +657,9 @@ class _AddBuildingDialogContentState extends State<_AddBuildingDialogContent> {
           ),
           onPressed: _handleSave,
           icon: const Icon(Icons.check_circle_outline),
-          label: const Text(
-            'اعتماد وحفظ المحضر',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          label: Text(
+            l10n.bldBtnSave,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
         ),
       ],

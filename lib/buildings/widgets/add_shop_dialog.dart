@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:local_storage_api/local_storage_api.dart' show Building;
 import 'package:our_home_erp_app/buildings/cubit/buildings_cubit.dart';
+import 'package:our_home_erp_app/l10n/l10n.dart';
 
 void showAddShopDialog(BuildContext parentContext, Building building) {
   final cubit = parentContext.read<BuildingsCubit>();
@@ -124,10 +125,12 @@ class _AddShopDialogContentState extends State<_AddShopDialogContent> {
   }
 
   void _handleSave() {
+    final l10n = context.l10n;
+
     if (_numCtrl.text.trim().isEmpty || _calculatedTotalArea <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('⚠️ بيانات غير مكتملة أو مساحة غير صالحة!'),
+        SnackBar(
+          content: Text(l10n.shopValidationIncomplete),
           backgroundColor: Colors.red,
         ),
       );
@@ -174,6 +177,8 @@ class _AddShopDialogContentState extends State<_AddShopDialogContent> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       titlePadding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
@@ -193,9 +198,9 @@ class _AddShopDialogContentState extends State<_AddShopDialogContent> {
             ),
           ),
           const SizedBox(width: 16),
-          const Text(
-            'إضافة محل تجاري',
-            style: TextStyle(
+          Text(
+            l10n.shopAddDialogTitle,
+            style: const TextStyle(
               color: Colors.black87,
               fontWeight: FontWeight.bold,
               fontSize: 22,
@@ -212,7 +217,7 @@ class _AddShopDialogContentState extends State<_AddShopDialogContent> {
             children: [
               _buildField(
                 controller: _numCtrl,
-                label: 'رقم المحل / الرمز',
+                label: l10n.shopLabelNumber,
                 icon: Icons.tag,
                 keyboardType: TextInputType.text,
                 fillColor: Colors.white,
@@ -239,9 +244,9 @@ class _AddShopDialogContentState extends State<_AddShopDialogContent> {
                       children: [
                         Icon(Icons.architecture, color: Colors.indigo.shade400),
                         const SizedBox(width: 8),
-                        const Text(
-                          'البيانات الهندسية (المساحات والأبعاد)',
-                          style: TextStyle(
+                        Text(
+                          l10n.shopEngineeringHeader,
+                          style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
                             color: Colors.indigo,
@@ -255,7 +260,7 @@ class _AddShopDialogContentState extends State<_AddShopDialogContent> {
                         Expanded(
                           child: _buildField(
                             controller: _slabAreaCtrl,
-                            label: 'مساحة الأرضي م²',
+                            label: l10n.shopLabelGroundArea,
                             icon: Icons.crop_square,
                             fillColor: Colors.white,
                             onChanged: (_) => _updateCalculatedArea(),
@@ -265,7 +270,7 @@ class _AddShopDialogContentState extends State<_AddShopDialogContent> {
                         Expanded(
                           child: _buildField(
                             controller: _facadeLengthCtrl,
-                            label: 'عرض الواجهة (متر)',
+                            label: l10n.shopLabelFacadeLength,
                             icon: Icons.straighten,
                             fillColor: const Color(0xFFF3E5F5),
                           ),
@@ -278,7 +283,7 @@ class _AddShopDialogContentState extends State<_AddShopDialogContent> {
                         Expanded(
                           child: _buildField(
                             controller: _terraceAreaCtrl,
-                            label: 'مساحة التراس م²',
+                            label: l10n.aptLabelTerraceArea,
                             icon: Icons.balcony,
                             fillColor: Colors.white,
                             onChanged: (_) => _updateCalculatedArea(),
@@ -288,7 +293,7 @@ class _AddShopDialogContentState extends State<_AddShopDialogContent> {
                         Expanded(
                           child: _buildField(
                             controller: _physicalYardAreaCtrl,
-                            label: 'مساحة الوجيبة م²',
+                            label: l10n.aptLabelYardArea,
                             icon: Icons.grass,
                             fillColor: Colors.white,
                             onChanged: (_) => _updateCalculatedArea(),
@@ -318,9 +323,9 @@ class _AddShopDialogContentState extends State<_AddShopDialogContent> {
                       ),
                       child: Column(
                         children: [
-                          const Text(
-                            'المساحة البيعية الإجمالية للمحل',
-                            style: TextStyle(
+                          Text(
+                            l10n.shopSalesAreaResultTitle,
+                            style: const TextStyle(
                               color: Colors.white70,
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
@@ -328,7 +333,7 @@ class _AddShopDialogContentState extends State<_AddShopDialogContent> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            '${_calculatedTotalArea.toStringAsFixed(2)} م²',
+                            '${_calculatedTotalArea.toStringAsFixed(2)} m²',
                             style: const TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
@@ -363,9 +368,9 @@ class _AddShopDialogContentState extends State<_AddShopDialogContent> {
                       children: [
                         Icon(Icons.percent, color: Colors.green.shade600),
                         const SizedBox(width: 8),
-                        const Text(
-                          'المعاملات المالية المئوية ',
-                          style: TextStyle(
+                        Text(
+                          l10n.shopFinancialCoeffsHeader,
+                          style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
                             color: Colors.green,
@@ -379,7 +384,7 @@ class _AddShopDialogContentState extends State<_AddShopDialogContent> {
                         Expanded(
                           child: _buildField(
                             controller: _locationCoeffCtrl,
-                            label: 'نسبة الموقع %',
+                            label: l10n.shopCoeffLocation,
                             icon: Icons.location_on_outlined,
                             fillColor: Colors.white,
                           ),
@@ -388,7 +393,7 @@ class _AddShopDialogContentState extends State<_AddShopDialogContent> {
                         Expanded(
                           child: _buildField(
                             controller: _streetCoeffCtrl,
-                            label: 'نسبة الشارع %',
+                            label: l10n.shopCoeffStreet,
                             icon: Icons.add_road,
                             fillColor: Colors.white,
                           ),
@@ -401,7 +406,7 @@ class _AddShopDialogContentState extends State<_AddShopDialogContent> {
                         Expanded(
                           child: _buildField(
                             controller: _facadeCoeffCtrl,
-                            label: 'نسبة التميز للواجهة %',
+                            label: l10n.shopCoeffFacade,
                             icon: Icons.star_border,
                             fillColor: const Color(0xFFFFF3E0),
                           ),
@@ -410,7 +415,7 @@ class _AddShopDialogContentState extends State<_AddShopDialogContent> {
                         Expanded(
                           child: _buildField(
                             controller: _yardCoeffCtrl,
-                            label: 'معامل الوجيبة %',
+                            label: l10n.aptCoeffYard,
                             icon: Icons.yard_outlined,
                             fillColor: Colors.white,
                           ),
@@ -420,7 +425,7 @@ class _AddShopDialogContentState extends State<_AddShopDialogContent> {
                     const SizedBox(height: 12),
                     _buildField(
                       controller: _profitCoeffCtrl,
-                      label: 'هامش الربح %',
+                      label: l10n.aptCoeffProfit,
                       icon: Icons.trending_up,
                       fillColor: const Color(0xFFE8F5E9),
                     ),
@@ -438,9 +443,9 @@ class _AddShopDialogContentState extends State<_AddShopDialogContent> {
           style: TextButton.styleFrom(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
           ),
-          child: const Text(
-            'إلغاء',
-            style: TextStyle(
+          child: Text(
+            l10n.btnCancel,
+            style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
               color: Colors.grey,
@@ -459,9 +464,9 @@ class _AddShopDialogContentState extends State<_AddShopDialogContent> {
           ),
           onPressed: _handleSave,
           icon: const Icon(Icons.check_circle_outline),
-          label: const Text(
-            'حفظ المحل',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          label: Text(
+            l10n.shopBtnSave,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
         ),
       ],
