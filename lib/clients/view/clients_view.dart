@@ -1,10 +1,11 @@
-// مسار الملف: lib/clients/view/clients_view.dart
+// lib/clients/view/clients_view.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:our_home_erp_app/auth/cubit/auth_cubit.dart';
 import 'package:our_home_erp_app/clients/cubit/clients_cubit.dart';
 import 'package:our_home_erp_app/clients/widgets/widgets.dart';
 import 'package:our_home_erp_app/core/constants/app_permissions.dart';
+import 'package:our_home_erp_app/l10n/l10n.dart';
 
 class ClientsView extends StatefulWidget {
   const ClientsView({super.key});
@@ -18,6 +19,7 @@ class _ClientsViewState extends State<ClientsView> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final canCreate = context.select<AuthCubit, bool>(
       (cubit) => cubit.state.hasPermission(AppPermissions.createClients),
     );
@@ -31,14 +33,16 @@ class _ClientsViewState extends State<ClientsView> {
         heroTag: null,
         onPressed: canCreate ? () => showAddClientDialog(context) : null,
         icon: const Icon(Icons.person_add),
-        label: const Text(
-          'إضافة عميل',
-          style: TextStyle(fontWeight: FontWeight.bold),
+        label: Text(
+          l10n.clientAddButton,
+          style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         backgroundColor: canCreate ? Colors.blueAccent : Colors.grey.shade300,
         foregroundColor: canCreate ? Colors.white : Colors.grey.shade600,
         elevation: canCreate ? 6 : 0,
-        tooltip: canCreate ? 'إضافة عميل جديد' : 'لا تملك صلاحية إضافة عملاء',
+        tooltip: canCreate
+            ? l10n.clientAddTooltip
+            : l10n.clientNoAddPermissionTooltip,
       ),
       body: SafeArea(
         child: BlocConsumer<ClientsCubit, ClientsState>(
@@ -48,7 +52,7 @@ class _ClientsViewState extends State<ClientsView> {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(
-                    state.errorMessage ?? 'حدث خطأ غير متوقع',
+                    state.errorMessage ?? l10n.clientUnexpectedError,
                     style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
@@ -79,9 +83,12 @@ class _ClientsViewState extends State<ClientsView> {
                       color: Colors.blue.shade200,
                     ),
                     const SizedBox(height: 16),
-                    const Text(
-                      'لا يوجد عملاء مضافين حتى الآن.',
-                      style: TextStyle(fontSize: 18, color: Colors.blueGrey),
+                    Text(
+                      l10n.clientEmptyList,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        color: Colors.blueGrey,
+                      ),
                     ),
                   ],
                 ),
@@ -119,7 +126,7 @@ class _ClientsViewState extends State<ClientsView> {
                               ),
                               const SizedBox(height: 16),
                               Text(
-                                'لا يوجد نتائج مطابقة لبحثك.',
+                                l10n.clientNoSearchHits,
                                 style: TextStyle(
                                   fontSize: 16,
                                   color: Colors.grey.shade600,

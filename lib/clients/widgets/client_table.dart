@@ -1,4 +1,4 @@
-// مسار الملف: lib/clients/widgets/client_table.dart
+// lib/clients/widgets/client_table.dart
 import 'dart:async';
 import 'package:our_home_erp_app/contracts/cubit/contracts_cubit.dart';
 import 'package:our_home_erp_app/buildings/cubit/buildings_cubit.dart';
@@ -8,6 +8,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:our_home_erp_app/clients/cubit/clients_cubit.dart';
 import 'package:our_home_erp_app/clients/widgets/widgets.dart';
 import 'package:our_home_erp_app/dashboard/cubit/dashboard_cubit.dart';
+import 'package:our_home_erp_app/l10n/l10n.dart';
 import 'package:our_home_erp_app/payments/cubit/payments_cubit.dart';
 import 'package:our_home_erp_app/profile/cubit/client_profile_cubit.dart';
 import 'package:our_home_erp_app/profile/view/client_profile_page.dart';
@@ -25,6 +26,7 @@ class ClientTable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final userNamesMap = context.select<ClientsCubit, Map<String, String>>(
       (cubit) => cubit.state.userNamesMap,
     );
@@ -52,11 +54,11 @@ class ClientTable extends StatelessWidget {
                 headingRowColor: WidgetStateProperty.all(Colors.blue.shade50),
                 dataRowMinHeight: 55,
                 dataRowMaxHeight: 70,
-                columns: const [
+                columns: [
                   DataColumn(
                     label: Text(
-                      'مُعرّف (ID)',
-                      style: TextStyle(
+                      l10n.clientColId,
+                      style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         color: Colors.blueAccent,
                         fontSize: 14,
@@ -65,8 +67,8 @@ class ClientTable extends StatelessWidget {
                   ),
                   DataColumn(
                     label: Text(
-                      'الاسم / الملف التعريفي',
-                      style: TextStyle(
+                      l10n.clientColName,
+                      style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         color: Colors.blueAccent,
                         fontSize: 14,
@@ -75,8 +77,8 @@ class ClientTable extends StatelessWidget {
                   ),
                   DataColumn(
                     label: Text(
-                      'رقم الهاتف',
-                      style: TextStyle(
+                      l10n.clientColPhone,
+                      style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         color: Colors.blueAccent,
                         fontSize: 14,
@@ -85,8 +87,8 @@ class ClientTable extends StatelessWidget {
                   ),
                   DataColumn(
                     label: Text(
-                      'الرقم الوطني',
-                      style: TextStyle(
+                      l10n.clientColNationalId,
+                      style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         color: Colors.blueAccent,
                         fontSize: 14,
@@ -95,8 +97,8 @@ class ClientTable extends StatelessWidget {
                   ),
                   DataColumn(
                     label: Text(
-                      'تاريخ الإضافة',
-                      style: TextStyle(
+                      l10n.clientColCreatedAt,
+                      style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         color: Colors.blueAccent,
                         fontSize: 14,
@@ -105,8 +107,8 @@ class ClientTable extends StatelessWidget {
                   ),
                   DataColumn(
                     label: Text(
-                      'آخر تعديل بواسطة',
-                      style: TextStyle(
+                      l10n.clientColUpdatedAt,
+                      style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         color: Colors.blueAccent,
                         fontSize: 14,
@@ -115,8 +117,8 @@ class ClientTable extends StatelessWidget {
                   ),
                   DataColumn(
                     label: Text(
-                      'إجراءات',
-                      style: TextStyle(
+                      l10n.clientColActions,
+                      style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         color: Colors.blueAccent,
                         fontSize: 14,
@@ -179,14 +181,12 @@ class ClientTable extends StatelessWidget {
                                         BlocProvider.value(
                                           value: context.read<ScheduleCubit>(),
                                         ),
-                                        // 🌟 أضف السطرين التاليين:
                                         BlocProvider.value(
                                           value: context.read<ContractsCubit>(),
                                         ),
                                         BlocProvider.value(
                                           value: context.read<BuildingsCubit>(),
                                         ),
-
                                         BlocProvider(
                                           create: (ctx) {
                                             final cubit = ClientProfileCubit(
@@ -300,7 +300,8 @@ class ClientTable extends StatelessWidget {
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
-                                  userNamesMap[client.userId] ?? 'مجهول',
+                                  userNamesMap[client.userId] ??
+                                      l10n.clientUnknownUser,
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 13,
@@ -339,8 +340,8 @@ class ClientTable extends StatelessWidget {
                             size: 22,
                           ),
                           tooltip: canEdit
-                              ? 'تعديل بيانات'
-                              : 'لا تملك الصلاحية',
+                              ? l10n.clientEditTooltip
+                              : l10n.clientNoEditPermissionTooltip,
                           onPressed: canEdit
                               ? () => showEditClientDialog(context, client)
                               : null,

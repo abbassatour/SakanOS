@@ -1,6 +1,6 @@
-// مسار الملف: lib/clients/widgets/client_search_bar.dart
-
+// lib/clients/widgets/client_search_bar.dart
 import 'package:flutter/material.dart';
+import 'package:our_home_erp_app/l10n/l10n.dart';
 
 class ClientSearchBar extends StatefulWidget {
   const ClientSearchBar({
@@ -39,6 +39,8 @@ class _ClientSearchBarState extends State<ClientSearchBar> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
       decoration: BoxDecoration(
@@ -68,7 +70,7 @@ class _ClientSearchBarState extends State<ClientSearchBar> {
                     Icons.search,
                     color: Colors.blueAccent,
                   ),
-                  hintText: 'ابحث عن اسم، هاتف، أو رقم وطني...',
+                  hintText: l10n.clientSearchHint,
                   filled: true,
                   fillColor: Colors.grey.shade50,
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16),
@@ -112,7 +114,7 @@ class _ClientSearchBarState extends State<ClientSearchBar> {
               border: Border.all(color: Colors.blue.shade200),
             ),
             child: Text(
-              '${widget.filteredCount} عملاء',
+              l10n.clientSearchCount(widget.filteredCount),
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 color: Colors.blue.shade700,

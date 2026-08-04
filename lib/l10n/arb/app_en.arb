@@ -237,5 +237,5 @@
 
   "clientUnknownUser": "Unknown",
   "clientEditTooltip": "Edit Data",
-  "clientNoEditPermissionTooltip": "No Permission",
+  "clientNoEditPermissionTooltip": "No Permission"
 }
