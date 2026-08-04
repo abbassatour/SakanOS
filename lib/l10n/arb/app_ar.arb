@@ -385,5 +385,71 @@
 
   "contractDetailsFinancialAnalysisTitle": "التحليل المالي والمعاملات (التميز)",
   "contractDetailsNoCoefficients": "لا يوجد معاملات تميز إضافية مسجلة لهذا العقد.",
-  "contractDetailsUnallocatedPricingNote": "لا يوجد معاملات لتسعير المتر. المحفظة الاستثمارية تحسب السعر آلياً لحظة كل دفعة بناءً على أسعار المواد في يوم الدفع."
+  "contractDetailsUnallocatedPricingNote": "لا يوجد معاملات لتسعير المتر. المحفظة الاستثمارية تحسب السعر آلياً لحظة كل دفعة بناءً على أسعار المواد في يوم الدفع.",
+
+
+  "bldAddBuildingFab": "إضافة محضر جديد",
+  "bldUnexpectedError": "حدث خطأ غير متوقع",
+  "bldEmptyList": "لا توجد محاضر عقارية حتى الآن.",
+  "bldCatalogTitle": "كتالوج المشاريع والوحدات",
+  "bldTotalCount": "الإجمالي: {count}",
+  "@bldTotalCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+
+  "bldNoAddress": "بدون عنوان",
+  "bldApartmentsCount": "{count} شقق",
+  "@bldApartmentsCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "bldShopsCount": "{count} محلات",
+  "@bldShopsCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "bldLastUpdatedBy": "آخر تعديل بواسطة: ",
+  "bldUnknownUser": "مجهول",
+  "bldGalleryTooltip": "معرض مرفقات ومخططات المحضر",
+  "bldEditTooltip": "تعديل بيانات المحضر",
+  "bldDetailsTooltip": "عرض التفاصيل والنسب",
+  "bldNoFloorsWarning": "لم يتم إعداد الطوابق لهذا المحضر. يرجى تعديل المحضر أولاً.",
+  "bldFloorAptsCount": "{floorName} ( {count} شقق )",
+  "@bldFloorAptsCount": {
+    "placeholders": {
+      "floorName": { "type": "String" },
+      "count": { "type": "int" }
+    }
+  },
+  "bldNoAptsInFloor": "لا توجد شقق مضافة في هذا الطابق بعد.",
+  "bldColAptNumber": "رقم الشقة",
+  "bldColShopNumber": "رقم/رمز المحل",
+  "bldColArea": "المساحة",
+  "bldColDirection": "الاتجاه",
+  "bldColFacade": "الواجهة",
+  "bldColAttachments": "المرفقات",
+  "bldColStatus": "الحالة",
+  "bldColUpdatedAt": "آخر تعديل بواسطة",
+  "bldColActions": "إجراءات",
+
+  "bldStatusAvailable": "متاحة",
+  "bldStatusDelivered": "مُسلّمة",
+  "bldStatusSold": "مباعة",
+
+  "bldEditUnitTooltip": "تعديل الوحدة",
+  "bldViewUnitTooltip": "عرض التفاصيل",
+  "bldAddApartmentHere": "إضافة شقة هنا",
+  "bldCopyFloorModel": "نسخ نموذج الطابق",
+  "bldShopsHeader": "المحلات التجارية ( {count} محلات )",
+  "@bldShopsHeader": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "bldNoShopsWarning": "لا توجد محلات تجارية مضافة في هذا المحضر بعد.",
+  "bldAddShopHere": "إضافة محل تجاري هنا"
 }

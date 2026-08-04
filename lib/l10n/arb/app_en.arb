@@ -387,5 +387,71 @@
 
   "contractDetailsFinancialAnalysisTitle": "Financial Analysis & Multipliers",
   "contractDetailsNoCoefficients": "No extra excellence multipliers registered for this contract.",
-  "contractDetailsUnallocatedPricingNote": "No meter pricing multipliers. The investment portfolio calculates the price automatically at the moment of each payment based on material prices on the pay day."
+  "contractDetailsUnallocatedPricingNote": "No meter pricing multipliers. The investment portfolio calculates the price automatically at the moment of each payment based on material prices on the pay day.",
+
+
+  "bldAddBuildingFab": "Add New Building",
+  "bldUnexpectedError": "An unexpected error occurred",
+  "bldEmptyList": "No real estate buildings added yet.",
+  "bldCatalogTitle": "Projects & Units Catalog",
+  "bldTotalCount": "Total: {count}",
+  "@bldTotalCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+
+  "bldNoAddress": "No Address",
+  "bldApartmentsCount": "{count} apartment(s)",
+  "@bldApartmentsCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "bldShopsCount": "{count} shop(s)",
+  "@bldShopsCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "bldLastUpdatedBy": "Last updated by: ",
+  "bldUnknownUser": "Unknown",
+  "bldGalleryTooltip": "Building Attachments & Blueprints Gallery",
+  "bldEditTooltip": "Edit Building Details",
+  "bldDetailsTooltip": "View Details & Multipliers",
+  "bldNoFloorsWarning": "Floors have not been configured for this building. Please edit the building first.",
+  "bldFloorAptsCount": "{floorName} ( {count} apartment(s) )",
+  "@bldFloorAptsCount": {
+    "placeholders": {
+      "floorName": { "type": "String" },
+      "count": { "type": "int" }
+    }
+  },
+  "bldNoAptsInFloor": "No apartments added to this floor yet.",
+  "bldColAptNumber": "Apt No.",
+  "bldColShopNumber": "Shop No./Symbol",
+  "bldColArea": "Area",
+  "bldColDirection": "Direction",
+  "bldColFacade": "Frontage",
+  "bldColAttachments": "Attachments",
+  "bldColStatus": "Status",
+  "bldColUpdatedAt": "Last Updated By",
+  "bldColActions": "Actions",
+
+  "bldStatusAvailable": "Available",
+  "bldStatusDelivered": "Delivered",
+  "bldStatusSold": "Sold",
+
+  "bldEditUnitTooltip": "Edit Unit",
+  "bldViewUnitTooltip": "View Details",
+  "bldAddApartmentHere": "Add Apartment Here",
+  "bldCopyFloorModel": "Copy Floor Model",
+  "bldShopsHeader": "Commercial Shops ( {count} shop(s) )",
+  "@bldShopsHeader": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "bldNoShopsWarning": "No commercial shops added to this building yet.",
+  "bldAddShopHere": "Add Commercial Shop Here"
 }

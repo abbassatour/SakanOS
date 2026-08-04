@@ -9,14 +9,13 @@ import 'package:our_home_erp_app/buildings/cubit/buildings_cubit.dart';
 import 'package:our_home_erp_app/buildings/widgets/widgets.dart';
 import 'package:our_home_erp_app/auth/cubit/auth_cubit.dart';
 import 'package:our_home_erp_app/core/constants/app_permissions.dart';
-import 'package:our_home_erp_app/buildings/view/building_attachments_page.dart'; // 🌟
-// 🌟 الاستيرادات الجديدة
-import 'package:our_home_erp_app/auth/cubit/auth_cubit.dart';
-import 'package:our_home_erp_app/core/constants/app_permissions.dart';
+import 'package:our_home_erp_app/buildings/view/building_attachments_page.dart';
 import 'package:our_home_erp_app/buildings/view/apartment_attachments_page.dart';
+import 'package:our_home_erp_app/l10n/l10n.dart';
 
 int _getFloorLevel(String name) {
-  if (name.contains('الأرضي')) return 0;
+  if (name.contains('الأرضي') || name.toLowerCase().contains('ground'))
+    return 0;
 
   var level = 99;
   if (name.contains('الثاني عشر')) {
@@ -50,7 +49,8 @@ int _getFloorLevel(String name) {
     }
   }
 
-  if (name.contains('القبو')) return -level;
+  if (name.contains('القبو') || name.toLowerCase().contains('basement'))
+    return -level;
 
   return level;
 }
@@ -73,7 +73,6 @@ class BuildingCard extends StatelessWidget {
     );
   }
 
-  // 🌟 تحديث المتغيرات المطلوبة للدالة
   DataRow _buildDataRow(
     BuildContext context,
     Apartment apt, {
@@ -82,6 +81,7 @@ class BuildingCard extends StatelessWidget {
     required Map<String, List<ApartmentAttachment>> attachmentsMap,
     required bool canManage,
   }) {
+    final l10n = context.l10n;
     final mainColor = isShop ? Colors.orange : Colors.indigo;
 
     Color statusColor;
@@ -90,23 +90,22 @@ class BuildingCard extends StatelessWidget {
     String statusText;
 
     if (apt.status == 'available') {
-      statusText = 'متاحة';
+      statusText = l10n.bldStatusAvailable;
       statusColor = Colors.green.shade700;
       statusBorderColor = Colors.green.shade200;
       statusBgColor = Colors.green.shade50;
     } else if (apt.status == 'delivered') {
-      statusText = 'مُسلّمة';
+      statusText = l10n.bldStatusDelivered;
       statusColor = Colors.teal.shade700;
       statusBorderColor = Colors.teal.shade200;
       statusBgColor = Colors.teal.shade50;
     } else {
-      statusText = 'مباعة';
+      statusText = l10n.bldStatusSold;
       statusColor = Colors.red.shade700;
       statusBorderColor = Colors.red.shade200;
       statusBgColor = Colors.red.shade50;
     }
 
-    // 🌟 جلب عدد المرفقات
     final attachmentsCount = attachmentsMap[apt.id]?.length ?? 0;
 
     return DataRow(
@@ -134,7 +133,7 @@ class BuildingCard extends StatelessWidget {
         ),
         DataCell(
           Text(
-            '${apt.area} م²',
+            '${apt.area} m²',
             style: const TextStyle(fontWeight: FontWeight.w600),
           ),
         ),
@@ -144,8 +143,6 @@ class BuildingCard extends StatelessWidget {
             style: TextStyle(color: Colors.grey.shade700),
           ),
         ),
-
-        // 🌟 العمود الجديد: المرفقات
         DataCell(
           InkWell(
             onTap: () {
@@ -153,7 +150,7 @@ class BuildingCard extends StatelessWidget {
                 context,
                 ApartmentAttachmentsPage.route(
                   apt,
-                  canManage, // تمرير الصلاحية (يمكن لمدير النظام الرفع والحذف)
+                  canManage,
                   context.read<BuildingsCubit>(),
                 ),
               );
@@ -197,7 +194,6 @@ class BuildingCard extends StatelessWidget {
             ),
           ),
         ),
-
         DataCell(
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -231,7 +227,7 @@ class BuildingCard extends StatelessWidget {
                   ),
                   const SizedBox(width: 4),
                   Text(
-                    userNamesMap[apt.userId] ?? 'مجهول',
+                    userNamesMap[apt.userId] ?? l10n.bldUnknownUser,
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 12,
@@ -269,7 +265,7 @@ class BuildingCard extends StatelessWidget {
                   size: 22,
                   color: Colors.orange,
                 ),
-                tooltip: 'تعديل الوحدة',
+                tooltip: l10n.bldEditUnitTooltip,
                 onPressed: () => showEditApartmentDialog(context, apt),
               ),
               IconButton(
@@ -278,7 +274,7 @@ class BuildingCard extends StatelessWidget {
                   size: 22,
                   color: Colors.indigo,
                 ),
-                tooltip: 'عرض التفاصيل',
+                tooltip: l10n.bldViewUnitTooltip,
                 onPressed: () => showApartmentDetailsDialog(context, apt),
               ),
             ],
@@ -290,7 +286,8 @@ class BuildingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 🌟 جلب الصلاحيات
+    final l10n = context.l10n;
+
     final canManage = context.select<AuthCubit, bool>(
       (c) => c.state.hasPermission(AppPermissions.manageBuildings),
     );
@@ -303,7 +300,6 @@ class BuildingCard extends StatelessWidget {
       (c) => c.state.userNamesMap,
     );
 
-    // 🌟 جلب المرفقات
     final attachmentsMap = context
         .select<BuildingsCubit, Map<String, List<ApartmentAttachment>>>(
           (c) => c.state.apartmentAttachmentsMap,
@@ -368,9 +364,9 @@ class BuildingCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '📍 ${building.location ?? 'بدون عنوان'}  |  '
-                      '🚪 ${bldApartments.length} شقق  |  '
-                      '🏪 ${bldShops.length} محلات',
+                      '📍 ${building.location ?? l10n.bldNoAddress}  |  '
+                      '🚪 ${l10n.bldApartmentsCount(bldApartments.length)}  |  '
+                      '🏪 ${l10n.bldShopsCount(bldShops.length)}',
                       style: TextStyle(
                         color: Colors.grey.shade600,
                         fontSize: 13,
@@ -387,14 +383,14 @@ class BuildingCard extends StatelessWidget {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          'آخر تعديل بواسطة: ',
+                          l10n.bldLastUpdatedBy,
                           style: TextStyle(
                             fontSize: 11,
                             color: Colors.grey.shade500,
                           ),
                         ),
                         Text(
-                          userNamesMap[building.userId] ?? 'مجهول',
+                          userNamesMap[building.userId] ?? l10n.bldUnknownUser,
                           style: TextStyle(
                             fontSize: 11,
                             color: Colors.orange.shade800,
@@ -418,11 +414,9 @@ class BuildingCard extends StatelessWidget {
               ),
             ],
           ),
-          // ...
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // 🌟 الزر الجديد الخاص بمعرض المرفقات
               Stack(
                 alignment: Alignment.topRight,
                 children: [
@@ -431,7 +425,7 @@ class BuildingCard extends StatelessWidget {
                       Icons.perm_media,
                       color: Colors.blueAccent,
                     ),
-                    tooltip: 'معرض مرفقات ومخططات المحضر',
+                    tooltip: l10n.bldGalleryTooltip,
                     onPressed: () {
                       final authState = context.read<AuthCubit>().state;
                       final canManage = authState.hasPermission(
@@ -447,7 +441,6 @@ class BuildingCard extends StatelessWidget {
                       );
                     },
                   ),
-                  // 🌟 شارة (Badge) لعرض عدد المرفقات
                   Builder(
                     builder: (context) {
                       final attachments = context.select<BuildingsCubit, int>(
@@ -479,23 +472,20 @@ class BuildingCard extends StatelessWidget {
                   ),
                 ],
               ),
-              // الزر القديم الخاص بتعديل المحضر
               IconButton(
                 icon: const Icon(Icons.edit_note, color: Colors.orange),
-                tooltip: 'تعديل بيانات المحضر',
+                tooltip: l10n.bldEditTooltip,
                 onPressed: () => showEditBuildingDialog(context, building),
               ),
-              // الزر القديم الخاص بعرض التفاصيل
               IconButton(
                 icon: const Icon(Icons.info_outline, color: Colors.teal),
-                tooltip: 'عرض التفاصيل والنسب',
+                tooltip: l10n.bldDetailsTooltip,
                 onPressed: () => showBuildingDetailsDialog(context, building),
               ),
               const SizedBox(width: 8),
               const Icon(Icons.keyboard_arrow_down, color: Colors.grey),
             ],
           ),
-          // ...
           children: [
             Container(
               color: Colors.grey.shade50,
@@ -506,8 +496,7 @@ class BuildingCard extends StatelessWidget {
                     Padding(
                       padding: const EdgeInsets.all(24),
                       child: Text(
-                        'لم يتم إعداد الطوابق لهذا المحضر. يرجى تعديل '
-                        'المحضر أولاً.',
+                        l10n.bldNoFloorsWarning,
                         style: TextStyle(color: Colors.grey.shade600),
                       ),
                     ),
@@ -554,7 +543,10 @@ class BuildingCard extends StatelessWidget {
                               ),
                               const SizedBox(width: 12),
                               Text(
-                                '$floorName ( ${floorApts.length} شقق )',
+                                l10n.bldFloorAptsCount(
+                                  floorName,
+                                  floorApts.length,
+                                ),
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 16,
@@ -568,7 +560,7 @@ class BuildingCard extends StatelessWidget {
                               Padding(
                                 padding: const EdgeInsets.all(16),
                                 child: Text(
-                                  'لا توجد شقق مضافة في هذا الطابق بعد.',
+                                  l10n.bldNoAptsInFloor,
                                   style: TextStyle(
                                     color: Colors.grey.shade500,
                                   ),
@@ -602,11 +594,11 @@ class BuildingCard extends StatelessWidget {
                                           alpha: 0.5,
                                         ),
                                       ),
-                                      columns: const [
+                                      columns: [
                                         DataColumn(
                                           label: Text(
-                                            'رقم الشقة',
-                                            style: TextStyle(
+                                            l10n.bldColAptNumber,
+                                            style: const TextStyle(
                                               fontWeight: FontWeight.bold,
                                               color: Colors.indigo,
                                             ),
@@ -614,8 +606,8 @@ class BuildingCard extends StatelessWidget {
                                         ),
                                         DataColumn(
                                           label: Text(
-                                            'المساحة',
-                                            style: TextStyle(
+                                            l10n.bldColArea,
+                                            style: const TextStyle(
                                               fontWeight: FontWeight.bold,
                                               color: Colors.indigo,
                                             ),
@@ -623,18 +615,8 @@ class BuildingCard extends StatelessWidget {
                                         ),
                                         DataColumn(
                                           label: Text(
-                                            'الاتجاه',
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.indigo,
-                                            ),
-                                          ),
-                                        ),
-                                        DataColumn(
-                                          // 🌟 إضافة عمود المرفقات
-                                          label: Text(
-                                            'المرفقات',
-                                            style: TextStyle(
+                                            l10n.bldColDirection,
+                                            style: const TextStyle(
                                               fontWeight: FontWeight.bold,
                                               color: Colors.indigo,
                                             ),
@@ -642,8 +624,8 @@ class BuildingCard extends StatelessWidget {
                                         ),
                                         DataColumn(
                                           label: Text(
-                                            'الحالة',
-                                            style: TextStyle(
+                                            l10n.bldColAttachments,
+                                            style: const TextStyle(
                                               fontWeight: FontWeight.bold,
                                               color: Colors.indigo,
                                             ),
@@ -651,8 +633,8 @@ class BuildingCard extends StatelessWidget {
                                         ),
                                         DataColumn(
                                           label: Text(
-                                            'آخر تعديل بواسطة',
-                                            style: TextStyle(
+                                            l10n.bldColStatus,
+                                            style: const TextStyle(
                                               fontWeight: FontWeight.bold,
                                               color: Colors.indigo,
                                             ),
@@ -660,8 +642,17 @@ class BuildingCard extends StatelessWidget {
                                         ),
                                         DataColumn(
                                           label: Text(
-                                            'إجراءات',
-                                            style: TextStyle(
+                                            l10n.bldColUpdatedAt,
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.indigo,
+                                            ),
+                                          ),
+                                        ),
+                                        DataColumn(
+                                          label: Text(
+                                            l10n.bldColActions,
+                                            style: const TextStyle(
                                               fontWeight: FontWeight.bold,
                                               color: Colors.indigo,
                                             ),
@@ -700,9 +691,9 @@ class BuildingCard extends StatelessWidget {
                                 children: [
                                   TextButton.icon(
                                     icon: const Icon(Icons.add_home, size: 20),
-                                    label: const Text(
-                                      'إضافة شقة هنا',
-                                      style: TextStyle(
+                                    label: Text(
+                                      l10n.bldAddApartmentHere,
+                                      style: const TextStyle(
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
@@ -721,9 +712,9 @@ class BuildingCard extends StatelessWidget {
                                         Icons.copy_all,
                                         size: 20,
                                       ),
-                                      label: const Text(
-                                        'نسخ نموذج الطابق',
-                                        style: TextStyle(
+                                      label: Text(
+                                        l10n.bldCopyFloorModel,
+                                        style: const TextStyle(
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
@@ -785,7 +776,7 @@ class BuildingCard extends StatelessWidget {
                             ),
                             const SizedBox(width: 12),
                             Text(
-                              'المحلات التجارية ( ${bldShops.length} محلات )',
+                              l10n.bldShopsHeader(bldShops.length),
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 16,
@@ -799,7 +790,7 @@ class BuildingCard extends StatelessWidget {
                             Padding(
                               padding: const EdgeInsets.all(16),
                               child: Text(
-                                'لا توجد محلات تجارية مضافة في هذا المحضر بعد.',
+                                l10n.bldNoShopsWarning,
                                 style: TextStyle(color: Colors.grey.shade500),
                               ),
                             ),
@@ -824,11 +815,11 @@ class BuildingCard extends StatelessWidget {
                                     headingRowColor: WidgetStateProperty.all(
                                       Colors.orange.shade50,
                                     ),
-                                    columns: const [
+                                    columns: [
                                       DataColumn(
                                         label: Text(
-                                          'رقم/رمز المحل',
-                                          style: TextStyle(
+                                          l10n.bldColShopNumber,
+                                          style: const TextStyle(
                                             fontWeight: FontWeight.bold,
                                             color: Colors.orange,
                                           ),
@@ -836,8 +827,8 @@ class BuildingCard extends StatelessWidget {
                                       ),
                                       DataColumn(
                                         label: Text(
-                                          'المساحة',
-                                          style: TextStyle(
+                                          l10n.bldColArea,
+                                          style: const TextStyle(
                                             fontWeight: FontWeight.bold,
                                             color: Colors.orange,
                                           ),
@@ -845,18 +836,8 @@ class BuildingCard extends StatelessWidget {
                                       ),
                                       DataColumn(
                                         label: Text(
-                                          'الواجهة',
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.orange,
-                                          ),
-                                        ),
-                                      ),
-                                      DataColumn(
-                                        // 🌟 إضافة عمود المرفقات للمحلات
-                                        label: Text(
-                                          'المرفقات',
-                                          style: TextStyle(
+                                          l10n.bldColFacade,
+                                          style: const TextStyle(
                                             fontWeight: FontWeight.bold,
                                             color: Colors.orange,
                                           ),
@@ -864,8 +845,8 @@ class BuildingCard extends StatelessWidget {
                                       ),
                                       DataColumn(
                                         label: Text(
-                                          'الحالة',
-                                          style: TextStyle(
+                                          l10n.bldColAttachments,
+                                          style: const TextStyle(
                                             fontWeight: FontWeight.bold,
                                             color: Colors.orange,
                                           ),
@@ -873,8 +854,8 @@ class BuildingCard extends StatelessWidget {
                                       ),
                                       DataColumn(
                                         label: Text(
-                                          'آخر تعديل بواسطة',
-                                          style: TextStyle(
+                                          l10n.bldColStatus,
+                                          style: const TextStyle(
                                             fontWeight: FontWeight.bold,
                                             color: Colors.orange,
                                           ),
@@ -882,8 +863,17 @@ class BuildingCard extends StatelessWidget {
                                       ),
                                       DataColumn(
                                         label: Text(
-                                          'إجراءات',
-                                          style: TextStyle(
+                                          l10n.bldColUpdatedAt,
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.orange,
+                                          ),
+                                        ),
+                                      ),
+                                      DataColumn(
+                                        label: Text(
+                                          l10n.bldColActions,
+                                          style: const TextStyle(
                                             fontWeight: FontWeight.bold,
                                             color: Colors.orange,
                                           ),
@@ -920,9 +910,9 @@ class BuildingCard extends StatelessWidget {
                             child: Center(
                               child: TextButton.icon(
                                 icon: const Icon(Icons.add_business, size: 20),
-                                label: const Text(
-                                  'إضافة محل تجاري هنا',
-                                  style: TextStyle(
+                                label: Text(
+                                  l10n.bldAddShopHere,
+                                  style: const TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 15,
                                   ),
