@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:our_home_erp_app/home/cubit/home_cubit.dart';
+import 'package:our_home_erp_app/l10n/l10n.dart';
 
 class KpiSection extends StatelessWidget {
   const KpiSection({required this.state, super.key});
@@ -9,61 +10,57 @@ class KpiSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final numberFormatter = NumberFormat.decimalPattern('ar_AR');
+    final l10n = context.l10n;
+    final numberFormatter = NumberFormat.decimalPattern(
+      Localizations.localeOf(context).languageCode,
+    );
 
     final kpis = [
       _KpiData(
         icon: Icons.account_balance_wallet_rounded,
-        mainColor: Colors.teal.shade600, // لون يعبر عن النقد
-        title: 'السيولة النقدية (الصافي)',
-        value: '${numberFormatter.format(state.totalRevenue.toInt())} ل.س',
-        subtitle: 'إجمالي أموال الصندوق الحقيقية',
+        mainColor: Colors.teal.shade600,
+        title: l10n.kpiNetLiquidityTitle,
+        value: '${numberFormatter.format(state.totalRevenue.toInt())} ',
+        subtitle: l10n.kpiNetLiquiditySubtitle,
       ),
       _KpiData(
         icon: Icons.money_off_rounded,
-        mainColor: Colors.red.shade600, // أحمر للمسحوبات
-        title: 'الأموال المستردة (سحوبات)',
-        value:
-            '${numberFormatter.format(state.totalRefundedAmount.toInt())} ل.س',
-        subtitle: 'إجمالي المبالغ الخارجة من الصندوق',
-        infoDetails:
-            'يمثل هذا الرقم إجمالي المبالغ التي تم دفعها من الصندوق (Cash Outflow) كاستردادات للعملاء المنسحبين، أو كقيود عكسية وتسويات محاسبية.',
+        mainColor: Colors.red.shade600,
+        title: l10n.kpiRefundedTitle,
+        value: '${numberFormatter.format(state.totalRefundedAmount.toInt())} ',
+        subtitle: l10n.kpiRefundedSubtitle,
+        infoDetails: l10n.kpiRefundedDetails,
       ),
       _KpiData(
         icon: Icons.hourglass_bottom_rounded,
-        mainColor: Colors.orange.shade600, // برتقالي للديون الجارية
-        title: 'ديون جارية (قيد الإنشاء)',
-        value:
-            '${numberFormatter.format(state.overduePreHandover.toInt())} ل.س',
-        subtitle: 'أقساط متأخرة على شقق لم تُسلّم',
-        infoDetails:
-            'يمثل الأقساط الشهرية المتأخرة على الزبائن الذين اشتروا شققاً مخصصة، ولكن شققهم لا تزال تحت الإعمار ولم يستلموها بعد. (لا يُطبق عليها غرامات).',
+        mainColor: Colors.orange.shade600,
+        title: l10n.kpiPreHandoverDebtTitle,
+        value: '${numberFormatter.format(state.overduePreHandover.toInt())} ',
+        subtitle: l10n.kpiPreHandoverDebtSubtitle,
+        infoDetails: l10n.kpiPreHandoverDebtDetails,
       ),
       _KpiData(
         icon: Icons.warning_amber_rounded,
-        mainColor: Colors.red.shade800, // أحمر داكن للذمم المستحقة الخطرة
-        title: 'ذمم مستحقة (شقق مُسلّمة)',
-        value:
-            '${numberFormatter.format(state.overduePostHandover.toInt())} ل.س',
-        subtitle: 'ديون عقارات تم تسليم مفاتيحها',
-        infoDetails:
-            'يمثل المبالغ المتأخرة على الزبائن الذين أتمت المكتب بناء شققهم وسلمتهم المفاتيح. يُعامل هذا الرقم بجدية ويُطبق عليه غرامات تأخير آلياً.',
+        mainColor: Colors.red.shade800,
+        title: l10n.kpiPostHandoverDebtTitle,
+        value: '${numberFormatter.format(state.overduePostHandover.toInt())} ',
+        subtitle: l10n.kpiPostHandoverDebtSubtitle,
+        infoDetails: l10n.kpiPostHandoverDebtDetails,
       ),
       _KpiData(
         icon: Icons.vpn_key_outlined,
-        mainColor: Colors.blue.shade600, // أزرق للوحدات المتاحة
-        title: 'الوحدات المتاحة للبيع',
+        mainColor: Colors.blue.shade600,
+        title: l10n.kpiAvailableUnitsTitle,
         value: numberFormatter.format(state.inventoryStatus['متاحة'] ?? 0),
-        subtitle: 'شقق ومحلات جاهزة للتعاقد',
-        infoDetails:
-            'يعرض عدد الوحدات العقارية (شقق/محلات) المُسجلة في كتالوج المحاضر والتي لم يتم ربطها بأي عقد مبيع حتى الآن.',
+        subtitle: l10n.kpiAvailableUnitsSubtitle,
+        infoDetails: l10n.kpiAvailableUnitsDetails,
       ),
       _KpiData(
         icon: Icons.description_rounded,
-        mainColor: Colors.purple.shade600, // بنفسجي للعقود
-        title: 'العقود الفعّالة',
+        mainColor: Colors.purple.shade600,
+        title: l10n.kpiActiveContractsTitle,
         value: numberFormatter.format(state.activeContractsCount),
-        subtitle: 'إجمالي العقود الجارية المبرمة',
+        subtitle: l10n.kpiActiveContractsSubtitle,
       ),
     ];
 
@@ -97,7 +94,6 @@ class KpiSection extends StatelessWidget {
   }
 }
 
-// 🌟 تعديل الكلاس ليقبل لوناً رئيسياً بدلاً من التدرج
 class _KpiData {
   const _KpiData({
     required this.icon,
@@ -120,6 +116,8 @@ class _KpiCard extends StatelessWidget {
   final _KpiData data;
 
   void _showInfoDialog(BuildContext context) {
+    final l10n = context.l10n;
+
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -134,7 +132,7 @@ class _KpiCard extends StatelessWidget {
             const SizedBox(width: 10),
             Expanded(
               child: Text(
-                'المنطق المالي لـ: ${data.title}',
+                l10n.kpiDialogTitle(data.title),
                 style: TextStyle(
                   color: Colors.blue.shade900,
                   fontWeight: FontWeight.bold,
@@ -159,7 +157,7 @@ class _KpiCard extends StatelessWidget {
               foregroundColor: Colors.white,
             ),
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('مفهوم إداريّاً'),
+            child: Text(l10n.kpiDialogDismiss),
           ),
         ],
       ),
@@ -168,17 +166,19 @@ class _KpiCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white, // 🌟 خلفية بيضاء
+        color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: Colors.lightBlue.shade100, // 🌟 حدود زرقاء فاتحة كما طلبت
+          color: Colors.lightBlue.shade100,
           width: 1.5,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.blue.shade900.withOpacity(0.04), // ظل أزرق خفيف جداً
+            color: Colors.blue.shade900.withOpacity(0.04),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -201,9 +201,7 @@ class _KpiCard extends StatelessWidget {
                         child: Text(
                           data.title,
                           style: TextStyle(
-                            color: Colors
-                                .blueGrey
-                                .shade600, // 🌟 نص رمادي مزرق للعنوان
+                            color: Colors.blueGrey.shade600,
                             fontSize: 13,
                             fontWeight: FontWeight.bold,
                           ),
@@ -213,7 +211,7 @@ class _KpiCard extends StatelessWidget {
                       if (data.infoDetails != null) ...[
                         const SizedBox(width: 6),
                         Tooltip(
-                          message: 'انقر لمعرفة المفهوم المالي لمتخذ القرار',
+                          message: l10n.kpiTooltipInfo,
                           child: InkWell(
                             onTap: () => _showInfoDialog(context),
                             borderRadius: BorderRadius.circular(12),
@@ -228,7 +226,6 @@ class _KpiCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                // 🌟 الأيقونة أصبحت بخلفية شفافة بلون الدلالة (أحمر، أخضر، الخ)
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
@@ -242,8 +239,7 @@ class _KpiCard extends StatelessWidget {
             Text(
               data.value,
               style: TextStyle(
-                color:
-                    Colors.blue.shade900, // 🌟 الرقم بلون أزرق داكن ليبرز بوضوح
+                color: Colors.blue.shade900,
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
                 letterSpacing: 0.3,
@@ -253,7 +249,7 @@ class _KpiCard extends StatelessWidget {
             Text(
               data.subtitle,
               style: TextStyle(
-                color: Colors.grey.shade500, // 🌟 نص فاتح للوصف الفرعي
+                color: Colors.grey.shade500,
                 fontSize: 11,
               ),
               overflow: TextOverflow.ellipsis,

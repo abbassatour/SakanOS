@@ -84,5 +84,75 @@
   "pinLockedTooltip": "صلاحيات الإدارة مقفلة بأمان 🔒",
   "pinLockedMessage": "النظام مقفل. سيُطلب الرمز عند أي عملية حساسة.",
   "pinUnlockedTooltip": "صلاحيات الإدارة مفتوحة.\nانقر للقفل فوراً.",
-  "pinLockedSuccess": "تم قفل الصلاحيات الحساسة بنجاح 🔒"
+  "pinLockedSuccess": "تم قفل الصلاحيات الحساسة بنجاح 🔒",
+
+  "homeLoadingData": "جارٍ تحميل البيانات...",
+  "homeUnexpectedError": "حدث خطأ غير متوقع",
+  "homeRetry": "إعادة المحاولة",
+
+  "kpiNetLiquidityTitle": "السيولة النقدية (الصافي)",
+  "kpiNetLiquiditySubtitle": "إجمالي أموال الصندوق الحقيقية",
+  
+  "kpiRefundedTitle": "الأموال المستردة (سحوبات)",
+  "kpiRefundedSubtitle": "إجمالي المبالغ الخارجة من الصندوق",
+  "kpiRefundedDetails": "يمثل هذا الرقم إجمالي المبالغ التي تم دفعها من الصندوق كاستردادات للعملاء المنسحبين، أو كقيود عكسية وتسويات محاسبية.",
+
+  "kpiPreHandoverDebtTitle": "ديون جارية (قيد الإنشاء)",
+  "kpiPreHandoverDebtSubtitle": "أقساط متأخرة على شقق لم تُسلّم",
+  "kpiPreHandoverDebtDetails": "يمثل الأقساط الشهرية المتأخرة على الزبائن الذين اشتروا شققاً مخصصة، ولكن شققهم لا تزال تحت الإعمار ولم يستلموها بعد. (لا يُطبق عليها غرامات).",
+
+  "kpiPostHandoverDebtTitle": "ذمم مستحقة (شقق مُسلّمة)",
+  "kpiPostHandoverDebtSubtitle": "ديون عقارات تم تسليم مفاتيحها",
+  "kpiPostHandoverDebtDetails": "يمثل المبالغ المتأخرة على الزبائن الذين أتمت المكتب بناء شققهم وسلمتهم المفاتيح. يُعامل هذا الرقم بجدية ويُطبق عليه غرامات تأخير آلياً.",
+
+  "kpiAvailableUnitsTitle": "الوحدات المتاحة للبيع",
+  "kpiAvailableUnitsSubtitle": "شقق ومحلات جاهزة للتعاقد",
+  "kpiAvailableUnitsDetails": "يعرض عدد الوحدات العقارية (شقق/محلات) المُسجلة في كتالوج المحاضر والتي لم يتم ربطها بأي عقد مبيع حتى الآن.",
+
+  "kpiActiveContractsTitle": "العقود الفعّالة",
+  "kpiActiveContractsSubtitle": "إجمالي العقود الجارية المبرمة",
+
+  "kpiDialogTitle": "المنطق المالي لـ: {title}",
+  "@kpiDialogTitle": {
+    "placeholders": {
+      "title": { "type": "String" }
+    }
+  },
+  "kpiDialogDismiss": "مفهوم إداريّاً",
+  "kpiTooltipInfo": "انقر لمعرفة المفهوم المالي لمتخذ القرار",
+
+  "chartSectionTitle": "التحليلات الاستراتيجية",
+  "chartNavNextPeriod": "الفترة التالية",
+  "chartNavPrevPeriod": "الفترة السابقة",
+  "filterDaily": "يومي",
+  "filterWeekly": "أسبوعي",
+  "filterMonthly": "شهري",
+  "filterYearly": "سنوي",
+
+  "recentActivitiesTitle": "سجل النشاطات الحديثة",
+  "timeJustNow": "الآن",
+  "timeMinutesAgo": "منذ {minutes} دقيقة",
+  "@timeMinutesAgo": {
+    "placeholders": {
+      "minutes": { "type": "int" }
+    }
+  },
+  "timeHoursAgo": "منذ {hours} ساعة",
+  "@timeHoursAgo": {
+    "placeholders": {
+      "hours": { "type": "int" }
+    }
+  },
+  "timeYesterday": "أمس",
+  "timeDaysAgo": "منذ {days} أيام",
+  "@timeDaysAgo": {
+    "placeholders": {
+      "days": { "type": "int" }
+    }
+  },
+
+  "activityPaymentTitle": "حركة مالية (دفعة/تعديل)",
+  "activityContractTitle": "إضافة/تعديل عقد",
+  "activityAdminActionTitle": "إجراء إداري (ملاحظة)",
+  "activityClientTitle": "إضافة/تعديل عميل"
 }

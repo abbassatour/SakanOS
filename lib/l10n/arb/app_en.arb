@@ -84,5 +84,76 @@
   "pinLockedTooltip": "Admin permissions securely locked 🔒",
   "pinLockedMessage": "System locked. PIN will be required for sensitive tasks.",
   "pinUnlockedTooltip": "Admin permissions unlocked.\nClick to lock immediately.",
-  "pinLockedSuccess": "Sensitive permissions locked successfully 🔒"
+  "pinLockedSuccess": "Sensitive permissions locked successfully 🔒",
+
+
+  "homeLoadingData": "Loading data...",
+  "homeUnexpectedError": "An unexpected error occurred",
+  "homeRetry": "Retry",
+
+  "kpiNetLiquidityTitle": "Net Liquidity",
+  "kpiNetLiquiditySubtitle": "Total actual fund balance",
+
+  "kpiRefundedTitle": "Refunded Funds (Withdrawals)",
+  "kpiRefundedSubtitle": "Total cash outflows from funds",
+  "kpiRefundedDetails": "Represents total cash paid out from funds as refunds to withdrawing clients or reverse accounting entries.",
+
+  "kpiPreHandoverDebtTitle": "Current Debts (Under Construction)",
+  "kpiPreHandoverDebtSubtitle": "Overdue installments on undelivered units",
+  "kpiPreHandoverDebtDetails": "Represents overdue monthly installments for clients who purchased assigned units that are still under construction (no penalties applied).",
+
+  "kpiPostHandoverDebtTitle": "Due Debts (Delivered Units)",
+  "kpiPostHandoverDebtSubtitle": "Debts for properties with handed-over keys",
+  "kpiPostHandoverDebtDetails": "Represents overdue amounts for clients whose units are completed and delivered. Overdue penalties apply automatically.",
+
+  "kpiAvailableUnitsTitle": "Available Units for Sale",
+  "kpiAvailableUnitsSubtitle": "Apartments & shops ready for contract",
+  "kpiAvailableUnitsDetails": "Displays available property units (apartments/shops) registered in the catalog that are not linked to any sale contract.",
+
+  "kpiActiveContractsTitle": "Active Contracts",
+  "kpiActiveContractsSubtitle": "Total active contracts signed",
+
+  "kpiDialogTitle": "Financial logic for: {title}",
+  "@kpiDialogTitle": {
+    "placeholders": {
+      "title": { "type": "String" }
+    }
+  },
+  "kpiDialogDismiss": "Understood",
+  "kpiTooltipInfo": "Click to learn decision-maker financial logic",
+
+  "chartSectionTitle": "Strategic Analytics",
+  "chartNavNextPeriod": "Next Period",
+  "chartNavPrevPeriod": "Previous Period",
+  "filterDaily": "Daily",
+  "filterWeekly": "Weekly",
+  "filterMonthly": "Monthly",
+  "filterYearly": "Yearly",
+
+  "recentActivitiesTitle": "Recent Activities Log",
+  "timeJustNow": "Just now",
+  "timeMinutesAgo": "{minutes} mins ago",
+  "@timeMinutesAgo": {
+    "placeholders": {
+      "minutes": { "type": "int" }
+    }
+  },
+  "timeHoursAgo": "{hours} hrs ago",
+  "@timeHoursAgo": {
+    "placeholders": {
+      "hours": { "type": "int" }
+    }
+  },
+  "timeYesterday": "Yesterday",
+  "timeDaysAgo": "{days} days ago",
+  "@timeDaysAgo": {
+    "placeholders": {
+      "days": { "type": "int" }
+    }
+  },
+
+  "activityPaymentTitle": "Financial Activity (Payment/Edit)",
+  "activityContractTitle": "Contract Added/Edited",
+  "activityAdminActionTitle": "Admin Action (Note)",
+  "activityClientTitle": "Client Added/Edited"
 }

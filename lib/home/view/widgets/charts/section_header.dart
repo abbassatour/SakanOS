@@ -1,6 +1,7 @@
-//lib\home\view\widgets\charts\section_header.dart
+// lib/home/view/widgets/charts/section_header.dart
 import 'package:flutter/material.dart';
-import '../../../cubit/home_cubit.dart'; // تأكد من مسار الكيوبت
+import 'package:our_home_erp_app/l10n/l10n.dart';
+import '../../../cubit/home_cubit.dart';
 import 'chart_colors.dart';
 
 class SectionHeader extends StatelessWidget {
@@ -21,6 +22,8 @@ class SectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -35,9 +38,9 @@ class SectionHeader extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 10),
-            const Text(
-              'التحليلات الاستراتيجية',
-              style: TextStyle(
+            Text(
+              l10n.chartSectionTitle,
+              style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
                 color: ChartColors.titleColor,
@@ -70,7 +73,7 @@ class SectionHeader extends StatelessWidget {
                 children: [
                   _NavButton(
                     icon: Icons.chevron_left_rounded,
-                    tooltip: 'الفترة التالية',
+                    tooltip: l10n.chartNavNextPeriod,
                     onTap: onNext,
                   ),
                   Container(
@@ -91,7 +94,7 @@ class SectionHeader extends StatelessWidget {
                   ),
                   _NavButton(
                     icon: Icons.chevron_right_rounded,
-                    tooltip: 'الفترة السابقة',
+                    tooltip: l10n.chartNavPrevPeriod,
                     onTap: onPrevious,
                   ),
                 ],
@@ -113,11 +116,23 @@ class SectionHeader extends StatelessWidget {
                   vertical: 0,
                 ),
               ),
-              segments: const [
-                ButtonSegment(value: TimeFilter.daily, label: Text('يومي')),
-                ButtonSegment(value: TimeFilter.weekly, label: Text('أسبوعي')),
-                ButtonSegment(value: TimeFilter.monthly, label: Text('شهري')),
-                ButtonSegment(value: TimeFilter.yearly, label: Text('سنوي')),
+              segments: [
+                ButtonSegment(
+                  value: TimeFilter.daily,
+                  label: Text(l10n.filterDaily),
+                ),
+                ButtonSegment(
+                  value: TimeFilter.weekly,
+                  label: Text(l10n.filterWeekly),
+                ),
+                ButtonSegment(
+                  value: TimeFilter.monthly,
+                  label: Text(l10n.filterMonthly),
+                ),
+                ButtonSegment(
+                  value: TimeFilter.yearly,
+                  label: Text(l10n.filterYearly),
+                ),
               ],
               selected: {timeFilter},
               onSelectionChanged: (s) => onFilterChanged(s.first),
