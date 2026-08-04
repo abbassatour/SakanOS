@@ -453,5 +453,71 @@
     }
   },
   "bldNoShopsWarning": "No commercial shops added to this building yet.",
-  "bldAddShopHere": "Add Commercial Shop Here"
+  "bldAddShopHere": "Add Commercial Shop Here",
+
+
+  "bldDetailsDialogTitle": "Building Details: {name}",
+  "@bldDetailsDialogTitle": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "bldLocationHeader": "Building Location",
+  "bldUnspecified": "Unspecified",
+  "bldGeneralCoeffsHeader": "General & Directional Multipliers",
+  "bldNoGeneralCoeffs": "No general multipliers recorded for this building.",
+  "bldFloorStructureHeader": "Floor Structure & Price Multipliers",
+  "bldNoFloorStructure": "Floor structure has not been configured for this building.",
+  "btnCloseDetails": "Close Details",
+
+  "aptDetailsDialogTitle": "Unit Details No: {number}",
+  "@aptDetailsDialogTitle": {
+    "placeholders": {
+      "number": { "type": "String" }
+    }
+  },
+  "aptStatusAvailableTag": "Available for Sale",
+  "aptStatusSoldTag": "Sold / Reserved",
+  "aptStatusAvailableDesc": "Current Status: No contract has been signed yet; available for contracting.",
+  "aptStatusSoldDesc": "Current Status: Contract signed and linked to a client profile.",
+  "aptFloorHeader": "Floor / Level",
+  "aptDirectionHeader": "Direction / Facade",
+  "aptEngineeringHeader": "Engineering Calculation Details",
+  "aptSalesAreaTitle": "Approved Sales Area",
+  "aptInputDataHeader": "Data entered for calculation:",
+  "aptFinancialCoeffsHeader": "Financial Multipliers Applied to This Unit",
+  "aptNoFinancialCoeffs": "No special financial multipliers recorded for this unit.",
+
+  "copyFloorNoTargetWarning": "No other floors available to copy to!",
+  "copyFloorDialogTitle": "Clone Apartments from {floorName}",
+  "@copyFloorDialogTitle": {
+    "placeholders": {
+      "floorName": { "type": "String" }
+    }
+  },
+  "copyFloorInfoBanner": "Areas, directions, profit, and yard multipliers will be cloned accurately. (The financial percentage for the new floor will be updated automatically).",
+  "copyFloorTargetHeader": "Target Floor",
+  "copyFloorSelectTargetLabel": "Select floor to clone to",
+  "copyFloorNewNumbersHeader": "Please specify new unit numbers to prevent duplicates",
+  "copyFloorCopyOf": "Copy of: {number}",
+  "@copyFloorCopyOf": {
+    "placeholders": {
+      "number": { "type": "String" }
+    }
+  },
+  "copyFloorAreaLabel": "Area: {area} m²",
+  "@copyFloorAreaLabel": {
+    "placeholders": {
+      "area": { "type": "Object" }
+    }
+  },
+  "copyFloorNewNumberLabel": "New Unit Number",
+  "copyFloorEmptyNumbersWarning": "Please fill in numbers for all units!",
+  "copyFloorSuccess": "Apartments cloned to {targetFloor} successfully! ✅",
+  "@copyFloorSuccess": {
+    "placeholders": {
+      "targetFloor": { "type": "String" }
+    }
+  },
+  "btnConfirmCopy": "Confirm & Save Clones"
 }
