@@ -1,0 +1,8 @@
+{
+  "@@locale": "ar",
+  "settingsTitle": "إعدادات النظام والأسعار",
+  "settingsLanguageTitle": "لغة واجهة التطبيق",
+  "settingsLanguageSubtitle": "اختر اللغة المعتمدة لشاشات وتقارير النظام",
+  "languageArabic": "العربية (افتراضي)",
+  "languageEnglish": "English"
+}
