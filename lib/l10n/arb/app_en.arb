@@ -1517,5 +1517,24 @@
   "coeffFacadeLength": "Facade Width (m)",
   "coeffYardExcellence": "Yard Distinction Coeff",
   "coeffProfitMargin": "Profit Margin",
-  "coeffFacadeExcellence": "Facade Distinction"
+  "coeffFacadeExcellence": "Facade Distinction",
+
+  "floorGround": "Ground Floor",
+  "floorFirst": "1st Floor",
+  "floorSecond": "2nd Floor",
+  "floorThird": "3rd Floor",
+  "floorFourth": "4th Floor",
+  "floorFifth": "5th Floor",
+  "floorSixth": "6th Floor",
+  "floorSeventh": "7th Floor",
+  "floorEighth": "8th Floor",
+  "floorNinth": "9th Floor",
+  "floorTenth": "10th Floor",
+  "floorEleventh": "11th Floor",
+  "floorTwelfth": "12th Floor",
+  "basementFirst": "1st Basement",
+  "basementSecond": "2nd Basement",
+  "basementThird": "3rd Basement",
+  "frontageMainStreet": "Main Street Frontage",
+  "frontageSide": "Side Frontage"
 }

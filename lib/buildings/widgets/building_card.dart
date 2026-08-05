@@ -73,14 +73,59 @@ class BuildingCard extends StatelessWidget {
     );
   }
 
+  String _getLocalizedFloorName(BuildContext context, String floorName) {
+    final l10n = context.l10n;
+    switch (floorName) {
+      case 'الطابق الأرضي':
+        return l10n.floorGround;
+      case 'الطابق الأول':
+        return l10n.floorFirst;
+      case 'الطابق الثاني':
+        return l10n.floorSecond;
+      case 'الطابق الثالث':
+        return l10n.floorThird;
+      case 'الطابق الرابع':
+        return l10n.floorFourth;
+      case 'الطابق الخامس':
+        return l10n.floorFifth;
+      case 'الطابق السادس':
+        return l10n.floorSixth;
+      case 'الطابق السابع':
+        return l10n.floorSeventh;
+      case 'الطابق الثامن':
+        return l10n.floorEighth;
+      case 'الطابق التاسع':
+        return l10n.floorNinth;
+      case 'الطابق العاشر':
+        return l10n.floorTenth;
+      case 'الطابق الحادي عشر':
+        return l10n.floorEleventh;
+      case 'الطابق الثاني عشر':
+        return l10n.floorTwelfth;
+      case 'القبو الأول':
+        return l10n.basementFirst;
+      case 'القبو الثاني':
+        return l10n.basementSecond;
+      case 'القبو الثالث':
+        return l10n.basementThird;
+      case 'تجاري':
+        return l10n.coeffCommercial;
+      default:
+        return floorName;
+    }
+  }
+
   String _getLocalizedDirection(BuildContext context, String direction) {
     final l10n = context.l10n;
     return direction
+        .replaceAll('واجهة على الشارع الرئيسي', l10n.frontageMainStreet)
+        .replaceAll('واجهة فرعية', l10n.frontageSide)
+        .replaceAll('واجهة تجارية', l10n.coeffCommercialFacade)
         .replaceAll('شمالي', l10n.coeffNorth)
         .replaceAll('جنوبي', l10n.coeffSouth)
         .replaceAll('شرقي', l10n.coeffEast)
         .replaceAll('غربي', l10n.coeffWest)
-        .replaceAll('واجهة تجارية', l10n.coeffCommercialFacade);
+        .replaceAll('غير محدد', l10n.bldUnspecified);
   }
 
   DataRow _buildDataRow(
@@ -554,7 +599,7 @@ class BuildingCard extends StatelessWidget {
                               const SizedBox(width: 12),
                               Text(
                                 l10n.bldFloorAptsCount(
-                                  floorName,
+                                  _getLocalizedFloorName(context, floorName),
                                   floorApts.length,
                                 ),
                                 style: const TextStyle(

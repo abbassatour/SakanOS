@@ -42,6 +42,48 @@ class _BuildingDetailsDialogContent extends StatelessWidget {
     }
   }
 
+  String _getLocalizedFloorName(BuildContext context, String floorName) {
+    final l10n = context.l10n;
+    switch (floorName) {
+      case 'الطابق الأرضي':
+        return l10n.floorGround;
+      case 'الطابق الأول':
+        return l10n.floorFirst;
+      case 'الطابق الثاني':
+        return l10n.floorSecond;
+      case 'الطابق الثالث':
+        return l10n.floorThird;
+      case 'الطابق الرابع':
+        return l10n.floorFourth;
+      case 'الطابق الخامس':
+        return l10n.floorFifth;
+      case 'الطابق السادس':
+        return l10n.floorSixth;
+      case 'الطابق السابع':
+        return l10n.floorSeventh;
+      case 'الطابق الثامن':
+        return l10n.floorEighth;
+      case 'الطابق التاسع':
+        return l10n.floorNinth;
+      case 'الطابق العاشر':
+        return l10n.floorTenth;
+      case 'الطابق الحادي عشر':
+        return l10n.floorEleventh;
+      case 'الطابق الثاني عشر':
+        return l10n.floorTwelfth;
+      case 'القبو الأول':
+        return l10n.basementFirst;
+      case 'القبو الثاني':
+        return l10n.basementSecond;
+      case 'القبو الثالث':
+        return l10n.basementThird;
+      case 'تجاري':
+        return l10n.coeffCommercial;
+      default:
+        return floorName;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
@@ -320,7 +362,7 @@ class _BuildingDetailsDialogContent extends StatelessWidget {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Text(
-                                  e.key,
+                                  _getLocalizedFloorName(context, e.key),
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     color: textColor,

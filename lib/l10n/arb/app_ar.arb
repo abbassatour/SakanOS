@@ -1511,5 +1511,24 @@
   "coeffFacadeLength": "عرض الواجهة الفعلي (متر)",
   "coeffYardExcellence": "معامل التميز للوجيبة",
   "coeffProfitMargin": "هامش الربح",
-  "coeffFacadeExcellence": "تميز الواجهة"
+  "coeffFacadeExcellence": "تميز الواجهة",
+
+  "floorGround": "الطابق الأرضي",
+  "floorFirst": "الطابق الأول",
+  "floorSecond": "الطابق الثاني",
+  "floorThird": "الطابق الثالث",
+  "floorFourth": "الطابق الرابع",
+  "floorFifth": "الطابق الخامس",
+  "floorSixth": "الطابق السادس",
+  "floorSeventh": "الطابق السابع",
+  "floorEighth": "الطابق الثامن",
+  "floorNinth": "الطابق التاسع",
+  "floorTenth": "الطابق العاشر",
+  "floorEleventh": "الطابق الحادي عشر",
+  "floorTwelfth": "الطابق الثاني عشر",
+  "basementFirst": "القبو الأول",
+  "basementSecond": "القبو الثاني",
+  "basementThird": "القبو الثالث",
+  "frontageMainStreet": "واجهة على الشارع الرئيسي",
+  "frontageSide": "واجهة فرعية"
 }
