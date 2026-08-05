@@ -1635,5 +1635,48 @@
       "propertyDetails": { "type": "String" },
       "dueDate": { "type": "String" }
     }
-  }
+  },
+
+  "pdfOfficeCopy": "نسخة المكتب",
+  "pdfClientCopy": "نسخة العميل",
+  "pdfDepositReceipt": "إيصال دفع - {copyType}",
+  "@pdfDepositReceipt": { "placeholders": { "copyType": { "type": "String" } } },
+  "pdfRefundReceipt": "سند استرداد نقدي - {copyType}",
+  "@pdfRefundReceipt": { "placeholders": { "copyType": { "type": "String" } } },
+  "pdfReceiptNo": "رقم: {no}",
+  "@pdfReceiptNo": { "placeholders": { "no": { "type": "String" } } },
+  "pdfReceiptDate": "التاريخ: {date}",
+  "@pdfReceiptDate": { "placeholders": { "date": { "type": "String" } } },
+  "pdfReceiptClient": "العميل: {name}",
+  "@pdfReceiptClient": { "placeholders": { "name": { "type": "String" } } },
+  "pdfReceiptApartment": "الشقة: {details} | م: {area} م2",
+  "@pdfReceiptApartment": {
+    "placeholders": {
+      "details": { "type": "String" },
+      "area": { "type": "String" }
+    }
+  },
+  "pdfHeaderMaterial": "المادة",
+  "pdfHeaderPrice": "السعر",
+  "pdfMatIron": "حديد",
+  "pdfMatFormwork": "كوفراج",
+  "pdfMatCement": "اسمنت",
+  "pdfMatAggregates": "حصويات",
+  "pdfMatBlock": "بلوك",
+  "pdfMatWorker": "عمال",
+  "pdfApprovedMeterPrice": "سعر المتر المعتمد:",
+  "pdfBonusPercentage": "نسبة البونص:",
+  "pdfRefundBonus": "البونص المسترد:",
+  "pdfPriceAfterBonus": "السعر بعد البونص:",
+  "pdfOriginalInstallment": "أصل القسط:",
+  "pdfDiscountGranted": "الخصم الممنوح:",
+  "pdfAmountPaid": "المبلغ المدفوع:",
+  "pdfAmountRefunded": "المبلغ المسترد:",
+  "pdfConvertedMeters": "الأمتار المحولة:",
+  "pdfDeductedMeters": "الأمتار المخصومة:",
+  "pdfOfficeSignature": "توقيع المكتب",
+  "pdfClientSignature": "توقيع العميل",
+  "pdfRecipientSignature": "توقيع المستلم",
+  "pdfDelayPenalty": "غرامة تأخير:",
+  "pdfPriceAfterPenalty": "سعر المتر بعد الغرامة:"
 }

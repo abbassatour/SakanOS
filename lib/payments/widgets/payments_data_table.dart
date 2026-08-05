@@ -493,6 +493,7 @@ class PaymentsDataTable extends StatelessWidget {
                                           entry.convertedMeters;
                                     }
                                     return DepositPdfGenerator.generate(
+                                      l10n: l10n,
                                       entry: entry,
                                       contract: contract,
                                       client: client,
@@ -512,6 +513,7 @@ class PaymentsDataTable extends StatelessWidget {
                                           entry.convertedMeters.abs();
                                     }
                                     return RefundPdfGenerator.generate(
+                                      l10n: l10n,
                                       entry: entry,
                                       contract: contract,
                                       client: client,

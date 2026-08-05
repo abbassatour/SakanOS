@@ -1641,5 +1641,48 @@
       "propertyDetails": { "type": "String" },
       "dueDate": { "type": "String" }
     }
-  }
+  },
+
+  "pdfOfficeCopy": "Office Copy",
+  "pdfClientCopy": "Client Copy",
+  "pdfDepositReceipt": "Payment Receipt - {copyType}",
+  "@pdfDepositReceipt": { "placeholders": { "copyType": { "type": "String" } } },
+  "pdfRefundReceipt": "Refund Voucher - {copyType}",
+  "@pdfRefundReceipt": { "placeholders": { "copyType": { "type": "String" } } },
+  "pdfReceiptNo": "No: {no}",
+  "@pdfReceiptNo": { "placeholders": { "no": { "type": "String" } } },
+  "pdfReceiptDate": "Date: {date}",
+  "@pdfReceiptDate": { "placeholders": { "date": { "type": "String" } } },
+  "pdfReceiptClient": "Client: {name}",
+  "@pdfReceiptClient": { "placeholders": { "name": { "type": "String" } } },
+  "pdfReceiptApartment": "Unit: {details} | Area: {area} m²",
+  "@pdfReceiptApartment": {
+    "placeholders": {
+      "details": { "type": "String" },
+      "area": { "type": "String" }
+    }
+  },
+  "pdfHeaderMaterial": "Material",
+  "pdfHeaderPrice": "Price",
+  "pdfMatIron": "Steel",
+  "pdfMatFormwork": "Formwork",
+  "pdfMatCement": "Cement",
+  "pdfMatAggregates": "Aggregates",
+  "pdfMatBlock": "Blocks",
+  "pdfMatWorker": "Labor",
+  "pdfApprovedMeterPrice": "Approved Meter Price:",
+  "pdfBonusPercentage": "Bonus Rate:",
+  "pdfRefundBonus": "Refunded Bonus:",
+  "pdfPriceAfterBonus": "Price After Bonus:",
+  "pdfOriginalInstallment": "Original Installment:",
+  "pdfDiscountGranted": "Discount Granted:",
+  "pdfAmountPaid": "Amount Paid:",
+  "pdfAmountRefunded": "Amount Refunded:",
+  "pdfConvertedMeters": "Converted Meters:",
+  "pdfDeductedMeters": "Deducted Meters:",
+  "pdfOfficeSignature": "Office Signature",
+  "pdfClientSignature": "Client Signature",
+  "pdfRecipientSignature": "Recipient Signature",
+  "pdfDelayPenalty": "Late Penalty:",
+  "pdfPriceAfterPenalty": "Price After Penalty:"
 }

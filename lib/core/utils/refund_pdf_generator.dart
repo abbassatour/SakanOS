@@ -1,3 +1,4 @@
+// lib/core/utils/refund_pdf_generator.dart
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:pdf/pdf.dart';
@@ -5,6 +6,7 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:intl/intl.dart';
 import 'package:local_storage_api/local_storage_api.dart';
+import 'package:our_home_erp_app/l10n/l10n.dart';
 import 'arabic_tafqeet.dart';
 
 class RefundPdfGenerator {
@@ -18,7 +20,16 @@ class RefundPdfGenerator {
     return f.format(area);
   }
 
+  static String _formatTafqeet(AppLocalizations l10n, double amount) {
+    if (l10n.localeName == 'ar') {
+      return "فقط ${ArabicTafqeet.convert(amount.abs().toInt())} ليرة سورية لا غير.";
+    } else {
+      return "Only ${NumberFormat('#,###', 'en_US').format(amount.abs().round())} Syrian Pounds.";
+    }
+  }
+
   static Future<Uint8List> generate({
+    required AppLocalizations l10n,
     required PaymentsLedgerData entry,
     required Contract contract,
     required Client client,
@@ -34,8 +45,9 @@ class RefundPdfGenerator {
     pw.Widget buildCompactReceipt(String copyType) {
       Map<String, dynamic> snapshot = {};
       try {
-        if (entry.pricesSnapshot.isNotEmpty)
+        if (entry.pricesSnapshot.isNotEmpty) {
           snapshot = jsonDecode(entry.pricesSnapshot) as Map<String, dynamic>;
+        }
       } catch (_) {}
 
       String getPriceFormatted(String key) {
@@ -46,6 +58,12 @@ class RefundPdfGenerator {
       final double absAmountPaid = entry.amountPaid.abs();
       final double absConvertedMeters = entry.convertedMeters.abs();
 
+      final receiptNo = entry.receiptNumber != null
+          ? entry.receiptNumber.toString()
+          : entry.id.split('-').first.toUpperCase();
+      final dateStr =
+          '${entry.paymentDate.year}/${entry.paymentDate.month}/${entry.paymentDate.day}';
+
       return pw.Container(
         margin: const pw.EdgeInsets.only(right: 40),
         padding: const pw.EdgeInsets.all(6),
@@ -54,7 +72,7 @@ class RefundPdfGenerator {
           children: [
             pw.Center(
               child: pw.Text(
-                ' SakanOS',
+                'SakanOS',
                 style: pw.TextStyle(
                   font: arabicBoldFont,
                   fontSize: 11,
@@ -64,7 +82,7 @@ class RefundPdfGenerator {
             ),
             pw.Center(
               child: pw.Text(
-                'سند استرداد نقدي - $copyType',
+                l10n.pdfRefundReceipt(copyType),
                 style: pw.TextStyle(
                   font: arabicBoldFont,
                   fontSize: 8,
@@ -77,19 +95,18 @@ class RefundPdfGenerator {
               mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
               children: [
                 pw.Text(
-                  // 🌟 التعديل هنا:
-                  'رقم: ${entry.receiptNumber != null ? entry.receiptNumber : entry.id.split('-').first.toUpperCase()}',
+                  l10n.pdfReceiptNo(receiptNo),
                   style: pw.TextStyle(font: arabicFont, fontSize: 8),
                 ),
                 pw.Text(
-                  'التاريخ: ${entry.paymentDate.year}/${entry.paymentDate.month}/${entry.paymentDate.day}',
+                  l10n.pdfReceiptDate(dateStr),
                   style: pw.TextStyle(font: arabicFont, fontSize: 8),
                 ),
               ],
             ),
             pw.Divider(color: PdfColors.grey300, thickness: 0.5),
             pw.Text(
-              'المستلم: ${client.name}',
+              l10n.pdfReceiptClient(client.name),
               style: pw.TextStyle(
                 font: arabicBoldFont,
                 fontSize: 9,
@@ -97,7 +114,10 @@ class RefundPdfGenerator {
               ),
             ),
             pw.Text(
-              'الشقة: ${contract.apartmentDetails} | م: ${_fmtArea(contract.totalArea)} م2',
+              l10n.pdfReceiptApartment(
+                contract.apartmentDetails,
+                _fmtArea(contract.totalArea),
+              ),
               style: pw.TextStyle(font: arabicFont, fontSize: 8),
             ),
             pw.SizedBox(height: 6),
@@ -126,14 +146,14 @@ class RefundPdfGenerator {
                       0: const pw.FlexColumnWidth(0.8),
                       1: const pw.FlexColumnWidth(1.2),
                     },
-                    headers: ['المادة', 'السعر'],
+                    headers: [l10n.pdfHeaderMaterial, l10n.pdfHeaderPrice],
                     data: [
-                      ['حديد', getPriceFormatted('iron')],
-                      ['كوفراج', getPriceFormatted('formwork')],
-                      ['اسمنت', getPriceFormatted('cement')],
-                      ['حصويات', getPriceFormatted('aggregates')],
-                      ['بلوك', getPriceFormatted('block')],
-                      ['عمال', getPriceFormatted('worker')],
+                      [l10n.pdfMatIron, getPriceFormatted('iron')],
+                      [l10n.pdfMatFormwork, getPriceFormatted('formwork')],
+                      [l10n.pdfMatCement, getPriceFormatted('cement')],
+                      [l10n.pdfMatAggregates, getPriceFormatted('aggregates')],
+                      [l10n.pdfMatBlock, getPriceFormatted('block')],
+                      [l10n.pdfMatWorker, getPriceFormatted('worker')],
                     ],
                   ),
                 ),
@@ -152,42 +172,38 @@ class RefundPdfGenerator {
                         _buildFinancialRow(
                           font: arabicFont,
                           boldFont: arabicBoldFont,
-                          title: 'سعر المتر المعتمد:',
-                          value: '${_fmtMoney(entry.meterPriceAtPayment)} ل.س',
+                          title: l10n.pdfApprovedMeterPrice,
+                          value: '${_fmtMoney(entry.meterPriceAtPayment)} SYP',
                         ),
-
-                        // 🌟 التعديل هنا: استخدام != 0 بدلاً من < 0
                         if (penaltyPercentage != null && penaltyPercentage != 0)
                           _buildFinancialRow(
                             font: arabicFont,
                             boldFont: arabicBoldFont,
-                            title: 'غرامة تأخير:',
+                            title: l10n.pdfDelayPenalty,
                             value:
                                 '%${penaltyPercentage.abs().toStringAsFixed(1)}',
                             valueColor: PdfColors.red,
                           ),
-
                         if (meterPriceAfterPenalty != null)
                           _buildFinancialRow(
                             font: arabicFont,
                             boldFont: arabicBoldFont,
-                            title: 'سعر المتر بعد الغرامة :',
-                            value: '${_fmtMoney(meterPriceAfterPenalty)} ل.س',
+                            title: l10n.pdfPriceAfterPenalty,
+                            value: '${_fmtMoney(meterPriceAfterPenalty)} SYP',
                             valueColor: PdfColors.red900,
                           ),
-
                         _buildFinancialRow(
                           font: arabicFont,
                           boldFont: arabicBoldFont,
-                          title: 'المبلغ المسترد:',
-                          value: '${_fmtMoney(absAmountPaid)} ل.س',
+                          title: l10n.pdfAmountRefunded,
+                          value: '${_fmtMoney(absAmountPaid)} SYP',
                           isTotal: true,
                           primaryColor: PdfColors.red900,
                         ),
                         pw.SizedBox(height: 2),
                         pw.Center(
                           child: pw.Text(
-                            "فقط ${ArabicTafqeet.convert(absAmountPaid.toInt())} ليرة سورية لا غير.",
+                            _formatTafqeet(l10n, absAmountPaid),
                             style: pw.TextStyle(
                               font: arabicFont,
                               fontSize: 5.5,
@@ -204,8 +220,8 @@ class RefundPdfGenerator {
                         _buildFinancialRow(
                           font: arabicFont,
                           boldFont: arabicBoldFont,
-                          title: 'الأمتار المخصومة:',
-                          value: '-${_fmtMeters(absConvertedMeters)} م2',
+                          title: l10n.pdfDeductedMeters,
+                          value: '-${_fmtMeters(absConvertedMeters)} m²',
                           isTotal: true,
                           valueColor: PdfColors.red900,
                         ),
@@ -218,33 +234,22 @@ class RefundPdfGenerator {
             pw.Spacer(),
             pw.Row(
               mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: pw.CrossAxisAlignment.end,
               children: [
-                pw.Column(
-                  children: [
-                    pw.Text(
-                      'توقيع المكتب',
-                      style: pw.TextStyle(
-                        font: arabicBoldFont,
-                        fontSize: 8,
-                        color: primaryColor,
-                      ),
-                    ),
-                    pw.SizedBox(height: 20),
-                  ],
+                pw.Text(
+                  l10n.pdfOfficeSignature,
+                  style: pw.TextStyle(
+                    font: arabicBoldFont,
+                    fontSize: 8,
+                    color: primaryColor,
+                  ),
                 ),
-                pw.Column(
-                  children: [
-                    pw.Text(
-                      'توقيع المستلم',
-                      style: pw.TextStyle(
-                        font: arabicBoldFont,
-                        fontSize: 8,
-                        color: PdfColors.red800,
-                      ),
-                    ),
-                    pw.SizedBox(height: 20),
-                  ],
+                pw.Text(
+                  l10n.pdfRecipientSignature,
+                  style: pw.TextStyle(
+                    font: arabicBoldFont,
+                    fontSize: 8,
+                    color: PdfColors.red800,
+                  ),
                 ),
               ],
             ),
@@ -256,7 +261,9 @@ class RefundPdfGenerator {
     pdf.addPage(
       pw.Page(
         pageFormat: PdfPageFormat.a4,
-        textDirection: pw.TextDirection.rtl,
+        textDirection: l10n.localeName == 'ar'
+            ? pw.TextDirection.rtl
+            : pw.TextDirection.ltr,
         theme: pw.ThemeData.withFont(base: arabicFont, bold: arabicBoldFont),
         margin: const pw.EdgeInsets.all(3),
         build: (context) => pw.Align(
@@ -265,9 +272,13 @@ class RefundPdfGenerator {
             height: 148 * PdfPageFormat.mm,
             child: pw.Row(
               children: [
-                pw.Expanded(child: buildCompactReceipt('نسخة المكتب')),
+                pw.Expanded(
+                  child: buildCompactReceipt(l10n.pdfOfficeCopy),
+                ),
                 pw.SizedBox(width: 20),
-                pw.Expanded(child: buildCompactReceipt('نسخة العميل')),
+                pw.Expanded(
+                  child: buildCompactReceipt(l10n.pdfClientCopy),
+                ),
               ],
             ),
           ),

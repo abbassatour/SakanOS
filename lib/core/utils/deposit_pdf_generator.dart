@@ -1,3 +1,4 @@
+// lib/core/utils/deposit_pdf_generator.dart
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:pdf/pdf.dart';
@@ -5,6 +6,7 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:intl/intl.dart';
 import 'package:local_storage_api/local_storage_api.dart';
+import 'package:our_home_erp_app/l10n/l10n.dart';
 import 'arabic_tafqeet.dart';
 
 class DepositPdfGenerator {
@@ -18,7 +20,16 @@ class DepositPdfGenerator {
     return f.format(area);
   }
 
+  static String _formatTafqeet(AppLocalizations l10n, double amount) {
+    if (l10n.localeName == 'ar') {
+      return "فقط ${ArabicTafqeet.convert(amount.abs().toInt())} ليرة سورية لا غير.";
+    } else {
+      return "Only ${NumberFormat('#,###', 'en_US').format(amount.abs().round())} Syrian Pounds.";
+    }
+  }
+
   static Future<Uint8List> generate({
+    required AppLocalizations l10n,
     required PaymentsLedgerData entry,
     required Contract contract,
     required Client client,
@@ -35,8 +46,9 @@ class DepositPdfGenerator {
     pw.Widget buildCompactReceipt(String copyType) {
       Map<String, dynamic> snapshot = {};
       try {
-        if (entry.pricesSnapshot.isNotEmpty)
+        if (entry.pricesSnapshot.isNotEmpty) {
           snapshot = jsonDecode(entry.pricesSnapshot) as Map<String, dynamic>;
+        }
       } catch (_) {}
 
       String getPriceFormatted(String key) {
@@ -52,8 +64,13 @@ class DepositPdfGenerator {
           ? originalInstallment - absAmountPaid
           : 0.0;
 
-      // 🌟 التمييز الذكي: هل هي غرامة أم بونص؟ (بناءً على إشارة الرقم)
       final bool isPenalty = bonusPercentage != null && bonusPercentage < 0;
+
+      final receiptNo = entry.receiptNumber != null
+          ? entry.receiptNumber.toString()
+          : entry.id.split('-').first.toUpperCase();
+      final dateStr =
+          '${entry.paymentDate.year}/${entry.paymentDate.month}/${entry.paymentDate.day}';
 
       return pw.Container(
         margin: const pw.EdgeInsets.only(right: 40),
@@ -63,7 +80,7 @@ class DepositPdfGenerator {
           children: [
             pw.Center(
               child: pw.Text(
-                ' SakanOS',
+                'SakanOS',
                 style: pw.TextStyle(
                   font: arabicBoldFont,
                   fontSize: 11,
@@ -73,7 +90,7 @@ class DepositPdfGenerator {
             ),
             pw.Center(
               child: pw.Text(
-                'إيصال دفع - $copyType',
+                l10n.pdfDepositReceipt(copyType),
                 style: pw.TextStyle(
                   font: arabicBoldFont,
                   fontSize: 8,
@@ -86,19 +103,18 @@ class DepositPdfGenerator {
               mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
               children: [
                 pw.Text(
-                  // 🌟 التعديل هنا:
-                  'رقم: ${entry.receiptNumber != null ? entry.receiptNumber : entry.id.split('-').first.toUpperCase()}',
+                  l10n.pdfReceiptNo(receiptNo),
                   style: pw.TextStyle(font: arabicFont, fontSize: 8),
                 ),
                 pw.Text(
-                  'التاريخ: ${entry.paymentDate.year}/${entry.paymentDate.month}/${entry.paymentDate.day}',
+                  l10n.pdfReceiptDate(dateStr),
                   style: pw.TextStyle(font: arabicFont, fontSize: 8),
                 ),
               ],
             ),
             pw.Divider(color: PdfColors.grey300, thickness: 0.5),
             pw.Text(
-              'العميل: ${client.name}',
+              l10n.pdfReceiptClient(client.name),
               style: pw.TextStyle(
                 font: arabicBoldFont,
                 fontSize: 9,
@@ -106,7 +122,10 @@ class DepositPdfGenerator {
               ),
             ),
             pw.Text(
-              'الشقة: ${contract.apartmentDetails} | م: ${_fmtArea(contract.totalArea)} م2',
+              l10n.pdfReceiptApartment(
+                contract.apartmentDetails,
+                _fmtArea(contract.totalArea),
+              ),
               style: pw.TextStyle(font: arabicFont, fontSize: 8),
             ),
             pw.SizedBox(height: 6),
@@ -135,14 +154,14 @@ class DepositPdfGenerator {
                       0: const pw.FlexColumnWidth(0.8),
                       1: const pw.FlexColumnWidth(1.2),
                     },
-                    headers: ['المادة', 'السعر'],
+                    headers: [l10n.pdfHeaderMaterial, l10n.pdfHeaderPrice],
                     data: [
-                      ['حديد', getPriceFormatted('iron')],
-                      ['كوفراج', getPriceFormatted('formwork')],
-                      ['اسمنت', getPriceFormatted('cement')],
-                      ['حصويات', getPriceFormatted('aggregates')],
-                      ['بلوك', getPriceFormatted('block')],
-                      ['عمال', getPriceFormatted('worker')],
+                      [l10n.pdfMatIron, getPriceFormatted('iron')],
+                      [l10n.pdfMatFormwork, getPriceFormatted('formwork')],
+                      [l10n.pdfMatCement, getPriceFormatted('cement')],
+                      [l10n.pdfMatAggregates, getPriceFormatted('aggregates')],
+                      [l10n.pdfMatBlock, getPriceFormatted('block')],
+                      [l10n.pdfMatWorker, getPriceFormatted('worker')],
                     ],
                   ),
                 ),
@@ -161,61 +180,59 @@ class DepositPdfGenerator {
                         _buildFinancialRow(
                           font: arabicFont,
                           boldFont: arabicBoldFont,
-                          title: 'سعر المتر المعتمد:',
-                          value: '${_fmtMoney(entry.meterPriceAtPayment)} ل.س',
+                          title: l10n.pdfApprovedMeterPrice,
+                          value: '${_fmtMoney(entry.meterPriceAtPayment)} SYP',
                         ),
-
-                        // 🌟 التغيير الذكي للمسمى واللون
                         if (bonusPercentage != null && bonusPercentage != 0)
                           _buildFinancialRow(
                             font: arabicFont,
                             boldFont: arabicBoldFont,
-                            title: isPenalty ? 'غرامة تأخير:' : 'نسبة البونص:',
+                            title: isPenalty
+                                ? l10n.pdfDelayPenalty
+                                : l10n.pdfBonusPercentage,
                             value:
                                 '%${bonusPercentage.abs().toStringAsFixed(1)}',
                             valueColor: isPenalty
                                 ? PdfColors.red
-                                : PdfColors.teal, // أحمر للغرامة، تيل للبونص
+                                : PdfColors.teal,
                           ),
-
                         if (meterPriceAfterBonus != null)
                           _buildFinancialRow(
                             font: arabicFont,
                             boldFont: arabicBoldFont,
                             title: isPenalty
-                                ? 'سعر المتر بعد الغرامة :'
-                                : 'السعر بعد البونص:',
-                            value: '${_fmtMoney(meterPriceAfterBonus)} ل.س',
+                                ? l10n.pdfPriceAfterPenalty
+                                : l10n.pdfPriceAfterBonus,
+                            value: '${_fmtMoney(meterPriceAfterBonus)} SYP',
                             valueColor: PdfColors.blue800,
                           ),
-
                         if (hasDiscount) ...[
                           _buildFinancialRow(
                             font: arabicFont,
                             boldFont: arabicBoldFont,
-                            title: 'أصل القسط:',
-                            value: '${_fmtMoney(originalInstallment)} ل.س',
+                            title: l10n.pdfOriginalInstallment,
+                            value: '${_fmtMoney(originalInstallment)} SYP',
                           ),
                           _buildFinancialRow(
                             font: arabicFont,
                             boldFont: arabicBoldFont,
-                            title: 'الخصم الممنوح:',
-                            value: '${_fmtMoney(discountAmount)} ل.س',
+                            title: l10n.pdfDiscountGranted,
+                            value: '${_fmtMoney(discountAmount)} SYP',
                             valueColor: PdfColors.red,
                           ),
                         ],
                         _buildFinancialRow(
                           font: arabicFont,
                           boldFont: arabicBoldFont,
-                          title: 'المبلغ المدفوع:',
-                          value: '${_fmtMoney(absAmountPaid)} ل.س',
+                          title: l10n.pdfAmountPaid,
+                          value: '${_fmtMoney(absAmountPaid)} SYP',
                           isTotal: true,
                           primaryColor: primaryColor,
                         ),
                         pw.SizedBox(height: 2),
                         pw.Center(
                           child: pw.Text(
-                            "فقط ${ArabicTafqeet.convert(absAmountPaid.toInt())} ليرة سورية لا غير.",
+                            _formatTafqeet(l10n, absAmountPaid),
                             style: pw.TextStyle(
                               font: arabicFont,
                               fontSize: 5.5,
@@ -232,13 +249,13 @@ class DepositPdfGenerator {
                         _buildFinancialRow(
                           font: arabicFont,
                           boldFont: arabicBoldFont,
-                          title: 'الأمتار المحولة:',
-                          value: '${_fmtMeters(absConvertedMeters)} م2',
+                          title: l10n.pdfConvertedMeters,
+                          value: '${_fmtMeters(absConvertedMeters)} m²',
                           isTotal: true,
                           valueColor: isPenalty
                               ? PdfColors.orange900
                               : PdfColors.green800,
-                        ), // لون مميز للأمتار إذا كان هناك تأخير
+                        ),
                       ],
                     ),
                   ),
@@ -250,7 +267,7 @@ class DepositPdfGenerator {
               mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
               children: [
                 pw.Text(
-                  'توقيع المكتب',
+                  l10n.pdfOfficeSignature,
                   style: pw.TextStyle(
                     font: arabicBoldFont,
                     fontSize: 8,
@@ -258,7 +275,7 @@ class DepositPdfGenerator {
                   ),
                 ),
                 pw.Text(
-                  'توقيع العميل',
+                  l10n.pdfClientSignature,
                   style: pw.TextStyle(
                     font: arabicBoldFont,
                     fontSize: 8,
@@ -275,7 +292,9 @@ class DepositPdfGenerator {
     pdf.addPage(
       pw.Page(
         pageFormat: PdfPageFormat.a4,
-        textDirection: pw.TextDirection.rtl,
+        textDirection: l10n.localeName == 'ar'
+            ? pw.TextDirection.rtl
+            : pw.TextDirection.ltr,
         theme: pw.ThemeData.withFont(base: arabicFont, bold: arabicBoldFont),
         margin: const pw.EdgeInsets.all(3),
         build: (context) => pw.Align(
@@ -284,9 +303,13 @@ class DepositPdfGenerator {
             height: 148 * PdfPageFormat.mm,
             child: pw.Row(
               children: [
-                pw.Expanded(child: buildCompactReceipt('نسخة المكتب')),
+                pw.Expanded(
+                  child: buildCompactReceipt(l10n.pdfOfficeCopy),
+                ),
                 pw.SizedBox(width: 20),
-                pw.Expanded(child: buildCompactReceipt('نسخة العميل')),
+                pw.Expanded(
+                  child: buildCompactReceipt(l10n.pdfClientCopy),
+                ),
               ],
             ),
           ),
