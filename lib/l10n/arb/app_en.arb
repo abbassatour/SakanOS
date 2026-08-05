@@ -1536,5 +1536,16 @@
   "basementSecond": "2nd Basement",
   "basementThird": "3rd Basement",
   "frontageMainStreet": "Main Street Frontage",
-  "frontageSide": "Side Frontage"
+  "frontageSide": "Side Frontage",
+
+  "settingsChangePinTitle": "Change Security PIN",
+  "settingsChangePinCurrentLabel": "Current PIN",
+  "settingsChangePinNewLabel": "New PIN",
+  "settingsChangePinCurrentError": "Current PIN is incorrect!",
+  "settingsChangePinNewError": "Please enter a new PIN!",
+  "settingsChangePinSuccess": "PIN changed successfully! ✅",
+  "settingsChangePinSaveBtn": "Save New PIN",
+  "settingsSavingMaterialPrices": "Saving material prices...",
+  "settingsInvalidDollarRate": "Please enter a valid dollar exchange rate",
+  "settingsSavingDollarRate": "Saving dollar exchange rate..."
 }

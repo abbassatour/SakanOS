@@ -108,12 +108,13 @@ class _SettingsViewState extends State<SettingsView> {
   // ==========================================
 
   void _saveMaterialPrices(BuildContext context) {
+    final l10n = context.l10n;
     FocusScope.of(context).unfocus();
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('جاري حفظ أسعار المواد...'),
+      SnackBar(
+        content: Text(l10n.settingsSavingMaterialPrices),
         backgroundColor: Colors.orange,
-        duration: Duration(seconds: 2),
+        duration: const Duration(seconds: 2),
       ),
     );
     context.read<SettingsCubit>().updatePrices(
@@ -129,23 +130,24 @@ class _SettingsViewState extends State<SettingsView> {
   }
 
   void _saveDollarPrice(BuildContext context) {
+    final l10n = context.l10n;
     FocusScope.of(context).unfocus();
     final rate =
         double.tryParse(dollarController.text.replaceAll(',', '')) ?? 0;
     if (rate <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('يرجى إدخال سعر صحيح للدولار'),
+        SnackBar(
+          content: Text(l10n.settingsInvalidDollarRate),
           backgroundColor: Colors.red,
         ),
       );
       return;
     }
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('جاري حفظ سعر الدولار...'),
+      SnackBar(
+        content: Text(l10n.settingsSavingDollarRate),
         backgroundColor: Colors.green,
-        duration: Duration(seconds: 2),
+        duration: const Duration(seconds: 2),
       ),
     );
     context.read<SettingsCubit>().updateDollarPrice(rate);
@@ -830,15 +832,16 @@ class _SettingsViewState extends State<SettingsView> {
 
   // ديالوج تغيير الـ PIN
   void _showChangePinDialog(BuildContext parentContext, String currentPin) {
+    final l10n = parentContext.l10n;
     final oldPinCtrl = TextEditingController();
     final newPinCtrl = TextEditingController();
 
     showDialog(
       context: parentContext,
       builder: (ctx) => AlertDialog(
-        title: const Text(
-          'تغيير رمز الأمان',
-          style: TextStyle(color: Colors.red),
+        title: Text(
+          l10n.settingsChangePinTitle,
+          style: const TextStyle(color: Colors.red),
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -848,9 +851,9 @@ class _SettingsViewState extends State<SettingsView> {
               obscureText: true,
               maxLength: 10,
               keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'الرمز الحالي',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: l10n.settingsChangePinCurrentLabel,
+                border: const OutlineInputBorder(),
               ),
             ),
             const SizedBox(height: 16),
@@ -859,9 +862,9 @@ class _SettingsViewState extends State<SettingsView> {
               obscureText: true,
               maxLength: 10,
               keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'الرمز الجديد',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: l10n.settingsChangePinNewLabel,
+                border: const OutlineInputBorder(),
               ),
             ),
           ],
@@ -869,7 +872,7 @@ class _SettingsViewState extends State<SettingsView> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('إلغاء'),
+            child: Text(l10n.btnCancel),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -879,8 +882,8 @@ class _SettingsViewState extends State<SettingsView> {
             onPressed: () async {
               if (oldPinCtrl.text != currentPin) {
                 ScaffoldMessenger.of(parentContext).showSnackBar(
-                  const SnackBar(
-                    content: Text('الرمز الحالي غير صحيح!'),
+                  SnackBar(
+                    content: Text(l10n.settingsChangePinCurrentError),
                     backgroundColor: Colors.red,
                   ),
                 );
@@ -888,8 +891,8 @@ class _SettingsViewState extends State<SettingsView> {
               }
               if (newPinCtrl.text.isEmpty) {
                 ScaffoldMessenger.of(parentContext).showSnackBar(
-                  const SnackBar(
-                    content: Text('أدخل رمزاً جديداً!'),
+                  SnackBar(
+                    content: Text(l10n.settingsChangePinNewError),
                     backgroundColor: Colors.red,
                   ),
                 );
@@ -904,14 +907,14 @@ class _SettingsViewState extends State<SettingsView> {
 
               if (parentContext.mounted) {
                 ScaffoldMessenger.of(parentContext).showSnackBar(
-                  const SnackBar(
-                    content: Text('تم تغيير الرمز بنجاح! ✅'),
+                  SnackBar(
+                    content: Text(l10n.settingsChangePinSuccess),
                     backgroundColor: Colors.green,
                   ),
                 );
               }
             },
-            child: const Text('حفظ الرمز الجديد'),
+            child: Text(l10n.settingsChangePinSaveBtn),
           ),
         ],
       ),

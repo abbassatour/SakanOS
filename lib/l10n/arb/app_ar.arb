@@ -1530,5 +1530,16 @@
   "basementSecond": "القبو الثاني",
   "basementThird": "القبو الثالث",
   "frontageMainStreet": "واجهة على الشارع الرئيسي",
-  "frontageSide": "واجهة فرعية"
+  "frontageSide": "واجهة فرعية",
+
+  "settingsChangePinTitle": "تغيير رمز الأمان",
+  "settingsChangePinCurrentLabel": "الرمز الحالي",
+  "settingsChangePinNewLabel": "الرمز الجديد",
+  "settingsChangePinCurrentError": "الرمز الحالي غير صحيح!",
+  "settingsChangePinNewError": "أدخل رمزاً جديداً!",
+  "settingsChangePinSuccess": "تم تغيير الرمز بنجاح! ✅",
+  "settingsChangePinSaveBtn": "حفظ الرمز الجديد",
+  "settingsSavingMaterialPrices": "جاري حفظ أسعار المواد...",
+  "settingsInvalidDollarRate": "يرجى إدخال سعر صحيح للدولار",
+  "settingsSavingDollarRate": "جاري حفظ سعر الدولار..."
 }
