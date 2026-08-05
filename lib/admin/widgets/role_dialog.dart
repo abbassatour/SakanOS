@@ -6,85 +6,83 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:local_storage_api/local_storage_api.dart' show AppRole;
 import 'package:our_home_erp_app/admin/cubit/admin_cubit.dart';
 import 'package:our_home_erp_app/core/constants/app_permissions.dart';
+import 'package:our_home_erp_app/l10n/l10n.dart';
 
 // ==========================================
-// 🌟 القواميس والإعدادات الخاصة بالصلاحيات
+// 🌟 هيكلة الصلاحيات الذكية لدعم الترجمة الديناميكية
 // ==========================================
-final Map<String, String> _permissionNames = {
-  AppPermissions.viewClients: 'عرض العملاء',
-  AppPermissions.createClients: 'إضافة عميل',
-  AppPermissions.editClients: 'تعديل عميل',
-  AppPermissions.deleteClients: 'حذف عميل',
-  AppPermissions.viewContracts: 'عرض العقود',
-  AppPermissions.createContracts: 'إنشاء عقد جديد',
-  AppPermissions.restructureContracts: 'إعادة جدولة الأقساط',
-  AppPermissions.viewPayments: 'عرض الأقساط والمدفوعات',
-  AppPermissions.addPayments: 'قبض دفعة جديدة',
-  AppPermissions.editPayments: 'تعديل مبلغ الدفعة',
-  AppPermissions.deletePayments: 'حذف دفعة',
-  AppPermissions.viewPrices: 'رؤية أسعار المواد',
-  AppPermissions.updatePrices: 'تعديل أسعار المواد',
-  AppPermissions.manageBuildings: 'إدارة المحاضر والشقق',
-  AppPermissions.viewRecycleBin: 'رؤية سلة المحذوفات',
-  AppPermissions.restoreItems: 'استعادة المحذوفات',
-  AppPermissions.hardDeleteItems: 'الحذف النهائي المدمر',
-  AppPermissions.viewLegalAffairs: 'عرض الأرشيف القانوني',
-  AppPermissions.addLegalAction: 'إضافة إجراء قانوني جديد',
-  AppPermissions.editLegalAction: 'تعديل إجراء قانوني',
-  AppPermissions.deleteLegalAction: 'حذف إجراء قانوني',
-  AppPermissions.manageLegalAttachments: 'إدارة المرفقات القانونية (رفع/حذف)',
-};
+class PermGroup {
+  final String title;
+  final IconData icon;
+  final List<String> perms;
 
-final Map<String, List<String>> _permissionGroups = {
-  'إدارة العملاء': [
-    AppPermissions.viewClients,
-    AppPermissions.createClients,
-    AppPermissions.editClients,
-    AppPermissions.deleteClients,
-  ],
-  'العقود والمشاريع': [
-    AppPermissions.manageBuildings,
-    AppPermissions.viewContracts,
-    AppPermissions.createContracts,
-    AppPermissions.restructureContracts,
-  ],
-  'الإدارة المالية والأسعار': [
-    AppPermissions.viewPayments,
-    AppPermissions.addPayments,
-    AppPermissions.editPayments,
-    AppPermissions.deletePayments,
-    AppPermissions.viewPrices,
-    AppPermissions.updatePrices,
-  ],
-  'الشؤون القانونية': [
-    AppPermissions.viewLegalAffairs,
-    AppPermissions.addLegalAction,
-    AppPermissions.editLegalAction,
-    AppPermissions.deleteLegalAction,
-    AppPermissions.manageLegalAttachments,
-  ],
-  'إدارة النظام والأمان': [
-    AppPermissions.viewRecycleBin,
-    AppPermissions.restoreItems,
-    AppPermissions.hardDeleteItems,
-  ],
-};
+  PermGroup(this.title, this.icon, this.perms);
+}
 
-IconData _getGroupIcon(String groupName) {
-  switch (groupName) {
-    case 'إدارة العملاء':
-      return Icons.people_alt;
-    case 'العقود والمشاريع':
-      return Icons.domain;
-    case 'الإدارة المالية والأسعار':
-      return Icons.account_balance_wallet;
-    case 'الشؤون القانونية':
-      return Icons.gavel;
-    case 'إدارة النظام والأمان':
-      return Icons.security;
-    default:
-      return Icons.list;
-  }
+// دالة مساعدة لربط معرفات الصلاحيات بأسماء مترجمة
+Map<String, String> _getLocalizedPermissionNames(AppLocalizations l10n) {
+  return {
+    AppPermissions.viewClients: l10n.permViewClients,
+    AppPermissions.createClients: l10n.permCreateClients,
+    AppPermissions.editClients: l10n.permEditClients,
+    AppPermissions.deleteClients: l10n.permDeleteClients,
+    AppPermissions.viewContracts: l10n.permViewContracts,
+    AppPermissions.createContracts: l10n.permCreateContracts,
+    AppPermissions.restructureContracts: l10n.permRestructureContracts,
+    AppPermissions.viewPayments: l10n.permViewPayments,
+    AppPermissions.addPayments: l10n.permAddPayments,
+    AppPermissions.editPayments: l10n.permEditPayments,
+    AppPermissions.deletePayments: l10n.permDeletePayments,
+    AppPermissions.viewPrices: l10n.permViewPrices,
+    AppPermissions.updatePrices: l10n.permUpdatePrices,
+    AppPermissions.manageBuildings: l10n.permManageBuildings,
+    AppPermissions.viewRecycleBin: l10n.permViewRecycleBin,
+    AppPermissions.restoreItems: l10n.permRestoreItems,
+    AppPermissions.hardDeleteItems: l10n.permHardDeleteItems,
+    AppPermissions.viewLegalAffairs: l10n.permViewLegal,
+    AppPermissions.addLegalAction: l10n.permAddLegal,
+    AppPermissions.editLegalAction: l10n.permEditLegal,
+    AppPermissions.deleteLegalAction: l10n.permDeleteLegal,
+    AppPermissions.manageLegalAttachments: l10n.permManageLegalAttachments,
+  };
+}
+
+// دالة مساعدة لتنظيم المجموعات وتمرير الترجمة
+List<PermGroup> _getPermissionGroups(AppLocalizations l10n) {
+  return [
+    PermGroup(l10n.permGroupClients, Icons.people_alt, [
+      AppPermissions.viewClients,
+      AppPermissions.createClients,
+      AppPermissions.editClients,
+      AppPermissions.deleteClients,
+    ]),
+    PermGroup(l10n.permGroupContracts, Icons.domain, [
+      AppPermissions.manageBuildings,
+      AppPermissions.viewContracts,
+      AppPermissions.createContracts,
+      AppPermissions.restructureContracts,
+    ]),
+    PermGroup(l10n.permGroupFinance, Icons.account_balance_wallet, [
+      AppPermissions.viewPayments,
+      AppPermissions.addPayments,
+      AppPermissions.editPayments,
+      AppPermissions.deletePayments,
+      AppPermissions.viewPrices,
+      AppPermissions.updatePrices,
+    ]),
+    PermGroup(l10n.permGroupLegal, Icons.gavel, [
+      AppPermissions.viewLegalAffairs,
+      AppPermissions.addLegalAction,
+      AppPermissions.editLegalAction,
+      AppPermissions.deleteLegalAction,
+      AppPermissions.manageLegalAttachments,
+    ]),
+    PermGroup(l10n.permGroupSystem, Icons.security, [
+      AppPermissions.viewRecycleBin,
+      AppPermissions.restoreItems,
+      AppPermissions.hardDeleteItems,
+    ]),
+  ];
 }
 
 // ==========================================
@@ -144,7 +142,10 @@ class _RoleDialogContentState extends State<_RoleDialogContent> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final isSystemRole = widget.role?.isSystemRole ?? false;
+    final permGroups = _getPermissionGroups(l10n);
+    final permNames = _getLocalizedPermissionNames(l10n);
 
     return AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -158,8 +159,8 @@ class _RoleDialogContentState extends State<_RoleDialogContent> {
           const SizedBox(width: 12),
           Text(
             widget.role == null
-                ? 'بناء دور وظيفي جديد'
-                : 'تعديل صلاحيات: ${widget.role!.name}',
+                ? l10n.adminRoleDialogAddTitle
+                : l10n.adminRoleDialogEditTitle(widget.role!.name),
             style: TextStyle(
               color: Colors.blueGrey.shade900,
               fontWeight: FontWeight.bold,
@@ -177,7 +178,7 @@ class _RoleDialogContentState extends State<_RoleDialogContent> {
               TextField(
                 controller: _nameController,
                 decoration: InputDecoration(
-                  labelText: 'اسم الدور (مثال: محاسب، محامي، مدير فرع)',
+                  labelText: l10n.adminRoleDialogNameLabel,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -201,8 +202,8 @@ class _RoleDialogContentState extends State<_RoleDialogContent> {
                   Expanded(
                     child: Text(
                       isSystemRole
-                          ? 'هذا الدور أساسي في النظام ولا يمكن تعديل صلاحياته لتجنب الأخطاء الإدارية.'
-                          : 'قم باختيار الصلاحيات المناسبة لهذا الدور. أي موظف يتم تعيينه بهذا الدور سيكتسب هذه الصلاحيات فوراً.',
+                          ? l10n.adminRoleDialogSystemWarning
+                          : l10n.adminRoleDialogCustomInfo,
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         height: 1.4,
@@ -217,14 +218,11 @@ class _RoleDialogContentState extends State<_RoleDialogContent> {
             Expanded(
               child: ListView(
                 shrinkWrap: true,
-                children: _permissionGroups.entries.map((entry) {
-                  final groupName = entry.key;
-                  final groupPerms = entry.value;
-
-                  final selectedCount = groupPerms
+                children: permGroups.map((group) {
+                  final selectedCount = group.perms
                       .where((p) => _currentPerms.contains(p))
                       .length;
-                  final isAllSelected = selectedCount == groupPerms.length;
+                  final isAllSelected = selectedCount == group.perms.length;
 
                   return Card(
                     margin: const EdgeInsets.only(bottom: 8),
@@ -234,22 +232,22 @@ class _RoleDialogContentState extends State<_RoleDialogContent> {
                       side: BorderSide(color: Colors.grey.shade300),
                     ),
                     child: Theme(
-                      data: Theme.of(
-                        context,
-                      ).copyWith(dividerColor: Colors.transparent),
+                      data: Theme.of(context).copyWith(
+                        dividerColor: Colors.transparent,
+                      ),
                       child: ExpansionTile(
-                        leading: Icon(
-                          _getGroupIcon(groupName),
-                          color: Colors.indigo,
-                        ),
+                        leading: Icon(group.icon, color: Colors.indigo),
                         title: Text(
-                          groupName,
+                          group.title,
                           style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
                         subtitle: Text(
-                          '$selectedCount من ${groupPerms.length} محددة',
+                          l10n.adminRoleDialogSelectedCount(
+                            selectedCount,
+                            group.perms.length,
+                          ),
                           style: TextStyle(
-                            color: selectedCount == groupPerms.length
+                            color: selectedCount == group.perms.length
                                 ? Colors.green.shade700
                                 : Colors.grey.shade600,
                             fontWeight: FontWeight.bold,
@@ -260,9 +258,9 @@ class _RoleDialogContentState extends State<_RoleDialogContent> {
                           Material(
                             color: Colors.grey.shade50,
                             child: CheckboxListTile(
-                              title: const Text(
-                                'تحديد كافة صلاحيات هذا القسم',
-                                style: TextStyle(
+                              title: Text(
+                                l10n.adminRoleDialogSelectAll,
+                                style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                   color: Colors.indigo,
                                 ),
@@ -275,13 +273,13 @@ class _RoleDialogContentState extends State<_RoleDialogContent> {
                                       setState(() {
                                         if (val == true) {
                                           _currentPerms.addAll(
-                                            groupPerms.where(
+                                            group.perms.where(
                                               (p) => !_currentPerms.contains(p),
                                             ),
                                           );
                                         } else {
                                           _currentPerms.removeWhere(
-                                            (p) => groupPerms.contains(p),
+                                            (p) => group.perms.contains(p),
                                           );
                                         }
                                       });
@@ -289,12 +287,10 @@ class _RoleDialogContentState extends State<_RoleDialogContent> {
                             ),
                           ),
                           const Divider(height: 1),
-                          ...groupPerms.map((permCode) {
+                          ...group.perms.map((permCode) {
                             final hasPerm = _currentPerms.contains(permCode);
                             return CheckboxListTile(
-                              title: Text(
-                                _permissionNames[permCode] ?? permCode,
-                              ),
+                              title: Text(permNames[permCode] ?? permCode),
                               value: hasPerm,
                               activeColor: Colors.blueGrey.shade800,
                               onChanged: isSystemRole
@@ -327,9 +323,9 @@ class _RoleDialogContentState extends State<_RoleDialogContent> {
           style: TextButton.styleFrom(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
           ),
-          child: const Text(
-            'إلغاء',
-            style: TextStyle(
+          child: Text(
+            l10n.btnCancel,
+            style: const TextStyle(
               color: Colors.red,
               fontWeight: FontWeight.bold,
               fontSize: 16,
@@ -347,9 +343,9 @@ class _RoleDialogContentState extends State<_RoleDialogContent> {
               ),
             ),
             icon: const Icon(Icons.save),
-            label: const Text(
-              'حفظ الصلاحيات',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            label: Text(
+              l10n.adminRoleDialogSaveBtn,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
             onPressed: () {
               if (widget.role == null) {
@@ -360,8 +356,8 @@ class _RoleDialogContentState extends State<_RoleDialogContent> {
                   );
                   Navigator.pop(context);
                   ScaffoldMessenger.of(widget.parentContext).showSnackBar(
-                    const SnackBar(
-                      content: Text('تم إنشاء الدور بنجاح'),
+                    SnackBar(
+                      content: Text(l10n.adminRoleDialogAddSuccess),
                       backgroundColor: Colors.green,
                     ),
                   );
@@ -373,8 +369,8 @@ class _RoleDialogContentState extends State<_RoleDialogContent> {
                 );
                 Navigator.pop(context);
                 ScaffoldMessenger.of(widget.parentContext).showSnackBar(
-                  const SnackBar(
-                    content: Text('تم تحديث الصلاحيات بنجاح'),
+                  SnackBar(
+                    content: Text(l10n.adminRoleDialogEditSuccess),
                     backgroundColor: Colors.green,
                   ),
                 );

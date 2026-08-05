@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:local_storage_api/local_storage_api.dart' show AppRole;
 import 'package:our_home_erp_app/admin/cubit/admin_cubit.dart';
+import 'package:our_home_erp_app/l10n/l10n.dart';
 import 'role_dialog.dart';
 
 class RolesTab extends StatelessWidget {
@@ -12,25 +13,33 @@ class RolesTab extends StatelessWidget {
 
   // 🌟 نافذة تأكيد الحذف
   void _confirmDeleteRole(BuildContext context, AppRole role) {
+    final l10n = context.l10n;
+
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Icons.warning_amber_rounded, color: Colors.red),
-            SizedBox(width: 8),
-            Text('تأكيد الحذف', style: TextStyle(color: Colors.red)),
+            const Icon(Icons.warning_amber_rounded, color: Colors.red),
+            const SizedBox(width: 8),
+            Text(
+              l10n.adminRolesDeleteTitle,
+              style: const TextStyle(color: Colors.red),
+            ),
           ],
         ),
         content: Text(
-          'هل أنت متأكد من رغبتك في حذف قالب الصلاحيات "${role.name}" نهائياً؟\n\n(لن يتم الحذف إذا كان هناك موظفون يستخدمون هذا الدور).',
+          l10n.adminRolesDeleteDesc(role.name),
           style: const TextStyle(fontSize: 15, height: 1.5),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('إلغاء', style: TextStyle(color: Colors.grey)),
+            child: Text(
+              l10n.btnCancel,
+              style: const TextStyle(color: Colors.grey),
+            ),
           ),
           ElevatedButton.icon(
             style: ElevatedButton.styleFrom(
@@ -38,7 +47,7 @@ class RolesTab extends StatelessWidget {
               foregroundColor: Colors.white,
             ),
             icon: const Icon(Icons.delete_forever),
-            label: const Text('نعم، احذف الدور'),
+            label: Text(l10n.adminRolesDeleteConfirmBtn),
             onPressed: () {
               Navigator.pop(ctx);
               context.read<AdminCubit>().deleteRole(role.id, role.name);
@@ -51,6 +60,8 @@ class RolesTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -58,9 +69,9 @@ class RolesTab extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
           child: ElevatedButton.icon(
             icon: const Icon(Icons.add),
-            label: const Text(
-              'إنشاء قالب دور جديد',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            label: Text(
+              l10n.adminRolesCreateBtn,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.blueGrey.shade800,
@@ -118,8 +129,8 @@ class RolesTab extends StatelessWidget {
                     padding: const EdgeInsets.only(top: 4.0),
                     child: Text(
                       role.isSystemRole
-                          ? 'دور أساسي (لا يمكن سحب الصلاحيات الأساسية منه أو حذفه)'
-                          : 'دور مخصص قابل للتعديل والحذف',
+                          ? l10n.adminRolesSystemRoleDesc
+                          : l10n.adminRolesCustomRoleDesc,
                       style: TextStyle(color: Colors.grey.shade600),
                     ),
                   ),
@@ -128,9 +139,9 @@ class RolesTab extends StatelessWidget {
                     children: [
                       ElevatedButton.icon(
                         icon: const Icon(Icons.edit_square, size: 18),
-                        label: const Text(
-                          'تعديل الصلاحيات',
-                          style: TextStyle(fontWeight: FontWeight.bold),
+                        label: Text(
+                          l10n.adminRolesEditBtn,
+                          style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.blueGrey.shade50,
@@ -150,7 +161,7 @@ class RolesTab extends StatelessWidget {
                             Icons.delete_outline,
                             color: Colors.red,
                           ),
-                          tooltip: 'حذف الدور',
+                          tooltip: l10n.adminRolesDeleteTooltip,
                           style: IconButton.styleFrom(
                             backgroundColor: Colors.red.shade50,
                           ),
