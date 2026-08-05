@@ -1,12 +1,9 @@
-// lib/settings/view/dialogs/add_historical_dollar_dialog.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:our_home_erp_app/l10n/l10n.dart';
 import '../../cubit/settings_cubit.dart';
 
-// ==========================================
-// 🌟 أداة تنسيق الأرقام محلياً (لتجنب مشاكل الاستيراد)
-// ==========================================
 class _DialogThousandsFormatter extends TextInputFormatter {
   @override
   TextEditingValue formatEditUpdate(
@@ -30,15 +27,11 @@ class _DialogThousandsFormatter extends TextInputFormatter {
   }
 }
 
-// ==========================================
-// 🌟 دالة استدعاء الديالوج مع تمرير الـ Cubit
-// ==========================================
 Future<void> showAddHistoricalDollarDialog(BuildContext parentContext) async {
   final cubit = parentContext.read<SettingsCubit>();
   return showDialog(
     context: parentContext,
-    barrierDismissible:
-        false, // منع الإغلاق عند النقر خارج المربع لتجنب فقدان البيانات
+    barrierDismissible: false,
     builder: (context) => BlocProvider.value(
       value: cubit,
       child: const AddHistoricalDollarDialog(),
@@ -46,9 +39,6 @@ Future<void> showAddHistoricalDollarDialog(BuildContext parentContext) async {
   );
 }
 
-// ==========================================
-// 🌟 واجهة الديالوج
-// ==========================================
 class AddHistoricalDollarDialog extends StatefulWidget {
   const AddHistoricalDollarDialog({super.key});
 
@@ -68,18 +58,17 @@ class _AddHistoricalDollarDialogState extends State<AddHistoricalDollarDialog> {
   }
 
   Future<void> _pickDateTime() async {
-    // 1. اختيار التاريخ
     final date = await showDatePicker(
       context: context,
       initialDate: selectedDate,
-      firstDate: DateTime(2000), // السماح بتواريخ قديمة
-      lastDate: DateTime.now(), // عدم السماح بتواريخ في المستقبل
+      firstDate: DateTime(2000),
+      lastDate: DateTime.now(),
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: ColorScheme.light(
               primary: Colors.green.shade700,
-            ), // ثيم أخضر
+            ),
           ),
           child: child!,
         );
@@ -87,7 +76,6 @@ class _AddHistoricalDollarDialogState extends State<AddHistoricalDollarDialog> {
     );
     if (date == null) return;
 
-    // 2. اختيار الوقت المرجعي في ذلك اليوم
     if (!mounted) return;
     final time = await showTimePicker(
       context: context,
@@ -103,7 +91,6 @@ class _AddHistoricalDollarDialogState extends State<AddHistoricalDollarDialog> {
     );
     if (time == null) return;
 
-    // 3. دمج التاريخ والوقت
     setState(() {
       selectedDate = DateTime(
         date.year,
@@ -116,28 +103,28 @@ class _AddHistoricalDollarDialogState extends State<AddHistoricalDollarDialog> {
   }
 
   void _save() {
+    final l10n = context.l10n;
     final rateStr = rateController.text.replaceAll(',', '');
     final rate = double.tryParse(rateStr) ?? 0;
 
     if (rate <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('يرجى إدخال سعر صرف صحيح (أكبر من الصفر)'),
+        SnackBar(
+          content: Text(l10n.addHistDollarErrorInvalid),
           backgroundColor: Colors.red,
         ),
       );
       return;
     }
 
-    // إرسال الطلب للـ Cubit
     context.read<SettingsCubit>().addHistoricalDollarPrice(
       effectiveDate: selectedDate,
       exchangeRate: rate,
     );
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('تمت الإضافة بنجاح!'),
+      SnackBar(
+        content: Text(l10n.addHistDollarSuccess),
         backgroundColor: Colors.green,
       ),
     );
@@ -146,6 +133,7 @@ class _AddHistoricalDollarDialogState extends State<AddHistoricalDollarDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final formattedDate =
         "${selectedDate.year}/${selectedDate.month.toString().padLeft(2, '0')}/${selectedDate.day.toString().padLeft(2, '0')}";
     final formattedTime =
@@ -161,31 +149,31 @@ class _AddHistoricalDollarDialogState extends State<AddHistoricalDollarDialog> {
             size: 28,
           ),
           const SizedBox(width: 8),
-          const Text(
-            'إضافة سعر دولار قديم',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+          Text(
+            l10n.addHistDollarTitle,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
           ),
         ],
       ),
       content: SingleChildScrollView(
         child: SizedBox(
-          width: 400, // عرض الديالوج
+          width: 400,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text(
-                'سيتم حفظ هذا السعر في السجل بتاريخ قديم (بأثر رجعي) ليتم استخدامه في إحصائيات وتقييمات تلك الفترة.',
-                style: TextStyle(color: Colors.grey, fontSize: 13, height: 1.5),
+              Text(
+                l10n.addHistDollarDesc,
+                style: const TextStyle(
+                  color: Colors.grey,
+                  fontSize: 13,
+                  height: 1.5,
+                ),
               ),
               const SizedBox(height: 24),
-
-              // ==========================================
-              // 🕒 اختيار التاريخ والوقت
-              // ==========================================
-              const Text(
-                'تاريخ سريان التسعيرة:',
-                style: TextStyle(
+              Text(
+                l10n.addHistDollarEffectiveDate,
+                style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   color: Colors.blueGrey,
                 ),
@@ -226,15 +214,10 @@ class _AddHistoricalDollarDialogState extends State<AddHistoricalDollarDialog> {
                   ),
                 ),
               ),
-
               const SizedBox(height: 24),
-
-              // ==========================================
-              // 💵 حقل السعر
-              // ==========================================
-              const Text(
-                'سعر الصرف (مبيع):',
-                style: TextStyle(
+              Text(
+                l10n.addHistDollarRateLabel,
+                style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   color: Colors.blueGrey,
                 ),
@@ -250,7 +233,7 @@ class _AddHistoricalDollarDialogState extends State<AddHistoricalDollarDialog> {
                   fontSize: 18,
                 ),
                 decoration: InputDecoration(
-                  hintText: 'مثال: 15,000',
+                  hintText: l10n.addHistDollarRateHint,
                   suffixText: 'ل.س',
                   prefixIcon: Icon(
                     Icons.attach_money,
@@ -287,9 +270,9 @@ class _AddHistoricalDollarDialogState extends State<AddHistoricalDollarDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text(
-            'إلغاء',
-            style: TextStyle(
+          child: Text(
+            l10n.btnCancel,
+            style: const TextStyle(
               color: Colors.grey,
               fontWeight: FontWeight.bold,
               fontSize: 16,
@@ -308,9 +291,9 @@ class _AddHistoricalDollarDialogState extends State<AddHistoricalDollarDialog> {
           ),
           onPressed: _save,
           icon: const Icon(Icons.save),
-          label: const Text(
-            'حفظ التسعيرة',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          label: Text(
+            l10n.addHistDollarSaveBtn,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
           ),
         ),
       ],

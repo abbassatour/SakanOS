@@ -1,11 +1,12 @@
-// lib/settings/view/dialogs/result_message_dialog.dart
 import 'package:flutter/material.dart';
+import 'package:our_home_erp_app/l10n/l10n.dart';
 
 void showResultMessageDialog(
   BuildContext context, {
   required String title,
   required String message,
 }) {
+  final l10n = context.l10n;
   showDialog(
     context: context,
     barrierDismissible: false,
@@ -25,7 +26,7 @@ void showResultMessageDialog(
             foregroundColor: Colors.white,
           ),
           onPressed: () => Navigator.pop(ctx),
-          child: const Text('حسناً'),
+          child: Text(l10n.btnOk),
         ),
       ],
     ),

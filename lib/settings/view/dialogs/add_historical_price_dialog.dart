@@ -1,8 +1,8 @@
-// lib/settings/view/dialogs/add_historical_price_dialog.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:our_home_erp_app/l10n/l10n.dart';
 import '../../cubit/settings_cubit.dart';
-import '../settings_page.dart'; // 🌟 لاستيراد ThousandsFormatter منها
+import '../settings_page.dart';
 
 void showAddHistoricalPriceDialog(BuildContext parentContext) {
   final ironController = TextEditingController();
@@ -14,21 +14,23 @@ void showAddHistoricalPriceDialog(BuildContext parentContext) {
 
   DateTime selectedDate = DateTime.now().subtract(
     const Duration(days: 30),
-  ); // افتراضياً قبل شهر
+  );
 
   showDialog(
     context: parentContext,
     builder: (dialogContext) {
+      final l10n = dialogContext.l10n;
+
       return StatefulBuilder(
         builder: (context, setState) {
           return AlertDialog(
-            title: const Row(
+            title: Row(
               children: [
-                Icon(Icons.history_edu, color: Colors.indigo),
-                SizedBox(width: 8),
+                const Icon(Icons.history_edu, color: Colors.indigo),
+                const SizedBox(width: 8),
                 Text(
-                  'إضافة تسعيرة قديمة (تاريخية)',
-                  style: TextStyle(color: Colors.indigo),
+                  l10n.addHistPriceTitle,
+                  style: const TextStyle(color: Colors.indigo),
                 ),
               ],
             ),
@@ -44,14 +46,16 @@ void showAddHistoricalPriceDialog(BuildContext parentContext) {
                         color: Colors.indigo.shade50,
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Text(
-                        'ستُحفظ هذه التسعيرة في السجل لغايات إحصائية ومحاسبية تفيد في تسعير العقود والدفعات القديمة.',
-                        style: TextStyle(color: Colors.indigo, fontSize: 13),
+                      child: Text(
+                        l10n.addHistPriceDesc,
+                        style: const TextStyle(
+                          color: Colors.indigo,
+                          fontSize: 13,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 24),
 
-                    // 📅 اختيار التاريخ
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 16,
@@ -67,9 +71,9 @@ void showAddHistoricalPriceDialog(BuildContext parentContext) {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text(
-                            '📅 تاريخ سريان التسعيرة:',
-                            style: TextStyle(fontWeight: FontWeight.bold),
+                          Text(
+                            l10n.addHistPriceEffectiveDate,
+                            style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
                           TextButton.icon(
                             icon: const Icon(
@@ -103,16 +107,15 @@ void showAddHistoricalPriceDialog(BuildContext parentContext) {
                     const Divider(),
                     const SizedBox(height: 8),
 
-                    // 💰 حقول الإدخال
                     Row(
                       children: [
                         Expanded(
                           child: TextField(
                             controller: ironController,
                             inputFormatters: [ThousandsFormatter()],
-                            decoration: const InputDecoration(
-                              labelText: 'الحديد (كغ)',
-                              border: OutlineInputBorder(),
+                            decoration: InputDecoration(
+                              labelText: l10n.settingsIronLabel,
+                              border: const OutlineInputBorder(),
                               isDense: true,
                             ),
                             keyboardType: TextInputType.number,
@@ -123,9 +126,9 @@ void showAddHistoricalPriceDialog(BuildContext parentContext) {
                           child: TextField(
                             controller: cementController,
                             inputFormatters: [ThousandsFormatter()],
-                            decoration: const InputDecoration(
-                              labelText: 'الإسمنت (كيس)',
-                              border: OutlineInputBorder(),
+                            decoration: InputDecoration(
+                              labelText: l10n.settingsCementLabel,
+                              border: const OutlineInputBorder(),
                               isDense: true,
                             ),
                             keyboardType: TextInputType.number,
@@ -140,9 +143,9 @@ void showAddHistoricalPriceDialog(BuildContext parentContext) {
                           child: TextField(
                             controller: blockController,
                             inputFormatters: [ThousandsFormatter()],
-                            decoration: const InputDecoration(
-                              labelText: 'بلوك 15',
-                              border: OutlineInputBorder(),
+                            decoration: InputDecoration(
+                              labelText: l10n.settingsBlockLabel,
+                              border: const OutlineInputBorder(),
                               isDense: true,
                             ),
                             keyboardType: TextInputType.number,
@@ -153,9 +156,9 @@ void showAddHistoricalPriceDialog(BuildContext parentContext) {
                           child: TextField(
                             controller: formworkController,
                             inputFormatters: [ThousandsFormatter()],
-                            decoration: const InputDecoration(
-                              labelText: 'كوفراج (م³)',
-                              border: OutlineInputBorder(),
+                            decoration: InputDecoration(
+                              labelText: l10n.settingsFormworkLabel,
+                              border: const OutlineInputBorder(),
                               isDense: true,
                             ),
                             keyboardType: TextInputType.number,
@@ -170,9 +173,9 @@ void showAddHistoricalPriceDialog(BuildContext parentContext) {
                           child: TextField(
                             controller: aggregatesController,
                             inputFormatters: [ThousandsFormatter()],
-                            decoration: const InputDecoration(
-                              labelText: 'مواد حصوية (م³)',
-                              border: OutlineInputBorder(),
+                            decoration: InputDecoration(
+                              labelText: l10n.settingsAggregatesLabel,
+                              border: const OutlineInputBorder(),
                               isDense: true,
                             ),
                             keyboardType: TextInputType.number,
@@ -183,9 +186,9 @@ void showAddHistoricalPriceDialog(BuildContext parentContext) {
                           child: TextField(
                             controller: workerController,
                             inputFormatters: [ThousandsFormatter()],
-                            decoration: const InputDecoration(
-                              labelText: 'أجرة العامل',
-                              border: OutlineInputBorder(),
+                            decoration: InputDecoration(
+                              labelText: l10n.settingsWorkerLabel,
+                              border: const OutlineInputBorder(),
                               isDense: true,
                             ),
                             keyboardType: TextInputType.number,
@@ -200,7 +203,7 @@ void showAddHistoricalPriceDialog(BuildContext parentContext) {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(dialogContext),
-                child: const Text('إلغاء'),
+                child: Text(l10n.btnCancel),
               ),
               ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
@@ -212,7 +215,7 @@ void showAddHistoricalPriceDialog(BuildContext parentContext) {
                   ),
                 ),
                 icon: const Icon(Icons.save),
-                label: const Text('حفظ التسعيرة التاريخية'),
+                label: Text(l10n.addHistPriceSaveBtn),
                 onPressed: () async {
                   if (ironController.text.isEmpty ||
                       cementController.text.isEmpty ||
@@ -221,8 +224,8 @@ void showAddHistoricalPriceDialog(BuildContext parentContext) {
                       aggregatesController.text.isEmpty ||
                       workerController.text.isEmpty) {
                     ScaffoldMessenger.of(dialogContext).showSnackBar(
-                      const SnackBar(
-                        content: Text('الرجاء تعبئة جميع أسعار المواد!'),
+                      SnackBar(
+                        content: Text(l10n.addHistPriceFillAllWarning),
                         backgroundColor: Colors.red,
                       ),
                     );
@@ -233,12 +236,11 @@ void showAddHistoricalPriceDialog(BuildContext parentContext) {
 
                   if (parentContext.mounted) {
                     ScaffoldMessenger.of(parentContext).showSnackBar(
-                      const SnackBar(
-                        content: Text('جاري إضافة التسعيرة للسجل... ⏳'),
+                      SnackBar(
+                        content: Text(l10n.addHistPriceSaving),
                       ),
                     );
 
-                    // 🌟 مسح الفواصل قبل التحويل والحفظ
                     await parentContext
                         .read<SettingsCubit>()
                         .addHistoricalPrice(
@@ -265,8 +267,8 @@ void showAddHistoricalPriceDialog(BuildContext parentContext) {
 
                     if (parentContext.mounted) {
                       ScaffoldMessenger.of(parentContext).showSnackBar(
-                        const SnackBar(
-                          content: Text('تمت الإضافة للسجل بنجاح! ✅'),
+                        SnackBar(
+                          content: Text(l10n.addHistPriceSuccess),
                           backgroundColor: Colors.green,
                         ),
                       );

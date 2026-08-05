@@ -1211,5 +1211,34 @@
   "adminRoleDialogSelectAll": "Select all permissions in this section",
   "adminRoleDialogSaveBtn": "Save Permissions",
   "adminRoleDialogAddSuccess": "Role created successfully",
-  "adminRoleDialogEditSuccess": "Permissions updated successfully"
+  "adminRoleDialogEditSuccess": "Permissions updated successfully",
+  "btnOk": "OK",
+  "confirmRestoreTitle": "Critical Warning",
+  "confirmRestoreMessage": "Restoring the database will completely overwrite current data and close the application.\n\nAre you sure you want to proceed?",
+  "confirmRestoreConfirmBtn": "Yes, Restore",
+  "verifyHardDeleteSuccess": "Permanently deleted successfully.",
+  "verifyHardDeleteTitle": "Final Warning",
+  "verifyHardDeleteMessage": "Are you sure you want to permanently delete \"{itemName}\"?\nThis action cannot be undone.\n\nPlease enter your security PIN to confirm:",
+  "@verifyHardDeleteMessage": {
+    "placeholders": {
+      "itemName": { "type": "String" }
+    }
+  },
+  "verifyHardDeletePinHint": "Security PIN",
+  "verifyHardDeleteConfirmBtn": "Delete Permanently",
+  "addHistDollarTitle": "Add Historical Dollar Rate",
+  "addHistDollarDesc": "This rate will be saved with a past date (retroactively) for historical analytics and valuations.",
+  "addHistDollarEffectiveDate": "Effective Date:",
+  "addHistDollarRateLabel": "Exchange Rate (Sell):",
+  "addHistDollarRateHint": "e.g. 15,000",
+  "addHistDollarErrorInvalid": "Please enter a valid exchange rate (greater than zero)",
+  "addHistDollarSuccess": "Added successfully!",
+  "addHistDollarSaveBtn": "Save Rate",
+  "addHistPriceTitle": "Add Historical Material Price",
+  "addHistPriceDesc": "This price record will be saved for statistical and accounting purposes to value historical contracts and payments.",
+  "addHistPriceEffectiveDate": "📅 Effective Date:",
+  "addHistPriceFillAllWarning": "Please fill in all material prices!",
+  "addHistPriceSaving": "Adding price record to history... ⏳",
+  "addHistPriceSuccess": "Added to history successfully! ✅",
+  "addHistPriceSaveBtn": "Save Historical Price"
 }

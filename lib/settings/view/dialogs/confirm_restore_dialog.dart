@@ -1,24 +1,23 @@
-// lib/settings/view/dialogs/confirm_restore_dialog.dart
 import 'package:flutter/material.dart';
+import 'package:our_home_erp_app/l10n/l10n.dart';
 
 Future<bool> showConfirmRestoreDialog(BuildContext context) async {
+  final l10n = context.l10n;
   final confirm = await showDialog<bool>(
     context: context,
     builder: (ctx) => AlertDialog(
-      title: const Row(
+      title: Row(
         children: [
-          Icon(Icons.warning, color: Colors.red),
-          SizedBox(width: 8),
-          Text('تحذير خطير'),
+          const Icon(Icons.warning, color: Colors.red),
+          const SizedBox(width: 8),
+          Text(l10n.confirmRestoreTitle),
         ],
       ),
-      content: const Text(
-        'استعادة قاعدة بيانات سيؤدي إلى استبدال البيانات الحالية بالكامل وإغلاق النظام.\n\nهل أنت متأكد أنك تريد المتابعة؟',
-      ),
+      content: Text(l10n.confirmRestoreMessage),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(ctx, false),
-          child: const Text('إلغاء'),
+          child: Text(l10n.btnCancel),
         ),
         ElevatedButton(
           style: ElevatedButton.styleFrom(
@@ -26,7 +25,7 @@ Future<bool> showConfirmRestoreDialog(BuildContext context) async {
             foregroundColor: Colors.white,
           ),
           onPressed: () => Navigator.pop(ctx, true),
-          child: const Text('نعم، قم بالاستعادة'),
+          child: Text(l10n.confirmRestoreConfirmBtn),
         ),
       ],
     ),

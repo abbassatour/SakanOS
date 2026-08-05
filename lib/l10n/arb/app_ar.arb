@@ -1206,5 +1206,34 @@
   "adminRoleDialogSelectAll": "تحديد كافة صلاحيات هذا القسم",
   "adminRoleDialogSaveBtn": "حفظ الصلاحيات",
   "adminRoleDialogAddSuccess": "تم إنشاء الدور بنجاح",
-  "adminRoleDialogEditSuccess": "تم تحديث الصلاحيات بنجاح"
+  "adminRoleDialogEditSuccess": "تم تحديث الصلاحيات بنجاح",
+  "btnOk": "حسناً",
+  "confirmRestoreTitle": "تحذير خطير",
+  "confirmRestoreMessage": "استعادة قاعدة بيانات سيؤدي إلى استبدال البيانات الحالية بالكامل وإغلاق النظام.\n\nهل أنت متأكد أنك تريد المتابعة؟",
+  "confirmRestoreConfirmBtn": "نعم، قم بالاستعادة",
+  "verifyHardDeleteSuccess": "تم الحذف النهائي بنجاح.",
+  "verifyHardDeleteTitle": "تحذير نهائي",
+  "verifyHardDeleteMessage": "هل أنت متأكد من مسح \"{itemName}\" نهائياً؟\nهذا الإجراء لا يمكن التراجع عنه.\n\nيرجى إدخال رمز الأمان الخاص بك للتأكيد:",
+  "@verifyHardDeleteMessage": {
+    "placeholders": {
+      "itemName": { "type": "String" }
+    }
+  },
+  "verifyHardDeletePinHint": "رمز الأمان",
+  "verifyHardDeleteConfirmBtn": "حذف نهائي",
+  "addHistDollarTitle": "إضافة سعر دولار قديم",
+  "addHistDollarDesc": "سيتم حفظ هذا السعر في السجل بتاريخ قديم (بأثر رجعي) ليتم استخدامه في إحصائيات وتقييمات تلك الفترة.",
+  "addHistDollarEffectiveDate": "تاريخ سريان التسعيرة:",
+  "addHistDollarRateLabel": "سعر الصرف (مبيع):",
+  "addHistDollarRateHint": "مثال: 15,000",
+  "addHistDollarErrorInvalid": "يرجى إدخال سعر صرف صحيح (أكبر من الصفر)",
+  "addHistDollarSuccess": "تمت الإضافة بنجاح!",
+  "addHistDollarSaveBtn": "حفظ التسعيرة",
+  "addHistPriceTitle": "إضافة تسعيرة قديمة (تاريخية)",
+  "addHistPriceDesc": "ستُحفظ هذه التسعيرة في السجل لغايات إحصائية ومحاسبية تفيد في تسعير العقود والدفعات القديمة.",
+  "addHistPriceEffectiveDate": "📅 تاريخ سريان التسعيرة:",
+  "addHistPriceFillAllWarning": "الرجاء تعبئة جميع أسعار المواد!",
+  "addHistPriceSaving": "جاري إضافة التسعيرة للسجل... ⏳",
+  "addHistPriceSuccess": "تمت الإضافة للسجل بنجاح! ✅",
+  "addHistPriceSaveBtn": "حفظ التسعيرة التاريخية"
 }

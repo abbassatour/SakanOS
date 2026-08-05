@@ -1,7 +1,7 @@
-// lib/recycle_bin/view/dialogs/verify_hard_delete_dialog.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:our_home_erp_app/auth/cubit/auth_cubit.dart';
+import 'package:our_home_erp_app/l10n/l10n.dart';
 
 void showVerifyHardDeleteDialog({
   required BuildContext context,
@@ -9,13 +9,13 @@ void showVerifyHardDeleteDialog({
   required VoidCallback onConfirm,
 }) {
   final authCubit = context.read<AuthCubit>();
+  final l10n = context.l10n;
 
-  // 🌟 تجاوز النافذة إذا كانت الجلسة نشطة
   if (authCubit.state.isPinGracePeriodActive) {
     onConfirm();
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('تم الحذف النهائي بنجاح.'),
+      SnackBar(
+        content: Text(l10n.verifyHardDeleteSuccess),
         backgroundColor: Colors.green,
       ),
     );
@@ -29,13 +29,16 @@ void showVerifyHardDeleteDialog({
     context: context,
     barrierDismissible: false,
     builder: (ctx) => AlertDialog(
-      title: const Row(
+      title: Row(
         children: [
-          Icon(Icons.warning_amber_rounded, color: Colors.red),
-          SizedBox(width: 8),
+          const Icon(Icons.warning_amber_rounded, color: Colors.red),
+          const SizedBox(width: 8),
           Text(
-            'تحذير نهائي',
-            style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+            l10n.verifyHardDeleteTitle,
+            style: const TextStyle(
+              color: Colors.red,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ],
       ),
@@ -43,7 +46,7 @@ void showVerifyHardDeleteDialog({
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            'هل أنت متأكد من مسح "$itemName" نهائياً؟\nهذا الإجراء لا يمكن التراجع عنه.\n\nيرجى إدخال رمز الأمان الخاص بك للتأكيد:',
+            l10n.verifyHardDeleteMessage(itemName),
           ),
           const SizedBox(height: 16),
           TextField(
@@ -52,9 +55,9 @@ void showVerifyHardDeleteDialog({
             keyboardType: TextInputType.number,
             textAlign: TextAlign.center,
             style: const TextStyle(fontSize: 20, letterSpacing: 4),
-            decoration: const InputDecoration(
-              border: OutlineInputBorder(),
-              hintText: 'رمز الأمان',
+            decoration: InputDecoration(
+              border: const OutlineInputBorder(),
+              hintText: l10n.verifyHardDeletePinHint,
             ),
           ),
         ],
@@ -62,7 +65,10 @@ void showVerifyHardDeleteDialog({
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(ctx),
-          child: const Text('إلغاء', style: TextStyle(color: Colors.grey)),
+          child: Text(
+            l10n.btnCancel,
+            style: const TextStyle(color: Colors.grey),
+          ),
         ),
         ElevatedButton(
           style: ElevatedButton.styleFrom(
@@ -71,26 +77,26 @@ void showVerifyHardDeleteDialog({
           ),
           onPressed: () {
             if (pinController.text == correctPin) {
-              authCubit.markPinVerified(); // 🌟 تفعيل الجلسة المفتوحة
+              authCubit.markPinVerified();
               Navigator.pop(ctx);
               onConfirm();
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('تم الحذف النهائي بنجاح.'),
+                SnackBar(
+                  content: Text(l10n.verifyHardDeleteSuccess),
                   backgroundColor: Colors.green,
                 ),
               );
             } else {
               ScaffoldMessenger.of(ctx).showSnackBar(
-                const SnackBar(
-                  content: Text('رمز الأمان غير صحيح! ❌'),
+                SnackBar(
+                  content: Text(l10n.pinErrorInvalid),
                   backgroundColor: Colors.red,
                 ),
               );
               pinController.clear();
             }
           },
-          child: const Text('حذف نهائي'),
+          child: Text(l10n.verifyHardDeleteConfirmBtn),
         ),
       ],
     ),
