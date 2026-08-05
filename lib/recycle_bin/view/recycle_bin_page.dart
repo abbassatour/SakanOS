@@ -2,9 +2,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:erp_repository/erp_repository.dart';
+import 'package:local_storage_api/local_storage_api.dart';
 import 'package:our_home_erp_app/l10n/l10n.dart';
 import '../cubit/recycle_bin_cubit.dart';
 import 'dialogs/verify_hard_delete_dialog.dart';
+
+// 🌟 استدعاء الحارس الشخصي والصلاحيات
+import '../../auth/cubit/auth_cubit.dart';
+import '../../core/constants/app_permissions.dart';
 
 String formatWithCommas(num number) {
   RegExp reg = RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))');

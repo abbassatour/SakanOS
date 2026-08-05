@@ -1,8 +1,9 @@
-//lib/login/view/login_page.dart
+// lib/login/view/login_page.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../register/view/register_page.dart';
 import 'package:erp_repository/erp_repository.dart';
+import 'package:our_home_erp_app/l10n/l10n.dart';
 
 import '../cubit/login_cubit.dart';
 import 'package:our_home_erp_app/auth/cubit/auth_cubit.dart';
@@ -13,7 +14,6 @@ class LoginPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      // 🌟 استدعاء دالة قراءة الإيميل المحفوظ بمجرد فتح الشاشة
       create: (context) =>
           LoginCubit(context.read<ErpRepository>())..loadSavedEmail(),
       child: const LoginView(),
@@ -29,7 +29,6 @@ class LoginView extends StatefulWidget {
 }
 
 class _LoginViewState extends State<LoginView> {
-  // 🌟 استخدمنا Controller لكي نتمكن من تعبئة الإيميل تلقائياً إذا كان محفوظاً
   final _emailController = TextEditingController();
 
   @override
@@ -40,13 +39,12 @@ class _LoginViewState extends State<LoginView> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return Scaffold(
       backgroundColor: Colors.blueGrey.shade50,
-
-      // 🌟 التعديل الجوهري: إضافة MultiBlocListener
       body: MultiBlocListener(
         listeners: [
-          // 1. مستمع تسجيل الدخول (LoginCubit)
           BlocListener<LoginCubit, LoginState>(
             listener: (context, state) {
               if (state.email.isNotEmpty && _emailController.text.isEmpty) {
@@ -54,7 +52,6 @@ class _LoginViewState extends State<LoginView> {
               }
 
               if (state.status == LoginStatus.failure) {
-                // 🌟 تحسين شكل عرض الخطأ بناءً على نوعه (إنترنت أو بيانات خاطئة)
                 final isNetworkError =
                     state.errorMessage != null &&
                     state.errorMessage!.contains('الإنترنت');
@@ -70,7 +67,7 @@ class _LoginViewState extends State<LoginView> {
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
-                            state.errorMessage ?? 'حدث خطأ غير معروف',
+                            state.errorMessage ?? l10n.homeUnexpectedError,
                           ),
                         ),
                       ],
@@ -82,29 +79,23 @@ class _LoginViewState extends State<LoginView> {
                     duration: const Duration(seconds: 4),
                   ),
                 );
-              }
-              // عند النجاح، نطلب من الحارس الشخصي فحص الصلاحيات
-              else if (state.status == LoginStatus.success) {
+              } else if (state.status == LoginStatus.success) {
                 context.read<AuthCubit>().checkSession();
               }
             },
           ),
-
-          // 2. مستمع الصلاحيات (AuthCubit) - لكشف أخطاء عدم وجود المستخدم
           BlocListener<AuthCubit, AuthState>(
             listener: (context, state) {
               if (state.status == AuthStatus.error) {
-                // إظهار سبب الفشل الحقيقي (مثل: حسابك غير مفعل، أو غير موجود في جدول app_users)
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(
-                      state.errorMessage ?? 'حدث خطأ أثناء التحقق من الصلاحيات',
+                      state.errorMessage ?? l10n.loginAuthCheckError,
                     ),
                     backgroundColor: Colors.red,
                     duration: const Duration(seconds: 5),
                   ),
                 );
-                // حماية إضافية: تسجيل الخروج لتنظيف الجلسة العالقة
                 context.read<AuthCubit>().logout();
               }
             },
@@ -130,9 +121,7 @@ class _LoginViewState extends State<LoginView> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   ClipRRect(
-                    borderRadius: BorderRadius.circular(
-                      12.0,
-                    ), // يمكنك تغيير الرقم 12 لتعديل درجة انحناء الحواف
+                    borderRadius: BorderRadius.circular(12.0),
                     child: Image.asset(
                       'assets/images/logo.png',
                       height: 80,
@@ -149,29 +138,24 @@ class _LoginViewState extends State<LoginView> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  const Text(
-                    'تسجيل الدخول للموظفين',
-                    style: TextStyle(fontSize: 16, color: Colors.grey),
+                  Text(
+                    l10n.loginStaffTitle,
+                    style: const TextStyle(fontSize: 16, color: Colors.grey),
                   ),
                   const SizedBox(height: 40),
 
-                  // حقل الإيميل مع تمرير الـ Controller
                   _EmailInput(controller: _emailController),
                   const SizedBox(height: 20),
 
-                  // حقل كلمة المرور
                   const _PasswordInput(),
                   const SizedBox(height: 12),
 
-                  // مربع اختيار "تذكرني" الأنيق
                   const _RememberMeCheckbox(),
                   const SizedBox(height: 32),
 
-                  // زر تسجيل الدخول
                   const _LoginButton(),
 
-                  const SizedBox(height: 24), // مسافة
-                  // 🌟 زر إنشاء حساب موظف جديد
+                  const SizedBox(height: 24),
                   TextButton.icon(
                     onPressed: () {
                       Navigator.push(
@@ -183,9 +167,9 @@ class _LoginViewState extends State<LoginView> {
                       Icons.person_add_alt_1,
                       color: Colors.blueGrey,
                     ),
-                    label: const Text(
-                      'إنشاء حساب موظف جديد',
-                      style: TextStyle(
+                    label: Text(
+                      l10n.loginCreateAccountBtn,
+                      style: const TextStyle(
                         color: Colors.blueGrey,
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
@@ -202,10 +186,6 @@ class _LoginViewState extends State<LoginView> {
   }
 }
 
-// ==========================================
-// 🧩 مكونات الشاشة الفرعية
-// ==========================================
-
 class _EmailInput extends StatelessWidget {
   const _EmailInput({required this.controller});
 
@@ -213,14 +193,15 @@ class _EmailInput extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return TextField(
       controller: controller,
       onChanged: (email) => context.read<LoginCubit>().emailChanged(email),
       keyboardType: TextInputType.emailAddress,
-      decoration: const InputDecoration(
-        labelText: 'البريد الإلكتروني',
-        prefixIcon: Icon(Icons.email_outlined),
-        border: OutlineInputBorder(),
+      decoration: InputDecoration(
+        labelText: l10n.loginEmailLabel,
+        prefixIcon: const Icon(Icons.email_outlined),
+        border: const OutlineInputBorder(),
       ),
     );
   }
@@ -231,17 +212,18 @@ class _PasswordInput extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return BlocBuilder<LoginCubit, LoginState>(
       buildWhen: (previous, current) => previous.password != current.password,
       builder: (context, state) {
         return TextField(
           onChanged: (password) =>
               context.read<LoginCubit>().passwordChanged(password),
-          obscureText: true, // إخفاء الباسورد
-          decoration: const InputDecoration(
-            labelText: 'كلمة المرور',
-            prefixIcon: Icon(Icons.lock_outline),
-            border: OutlineInputBorder(),
+          obscureText: true,
+          decoration: InputDecoration(
+            labelText: l10n.loginPasswordLabel,
+            prefixIcon: const Icon(Icons.lock_outline),
+            border: const OutlineInputBorder(),
           ),
         );
       },
@@ -249,12 +231,12 @@ class _PasswordInput extends StatelessWidget {
   }
 }
 
-// 🌟 ميزة "تذكرني"
 class _RememberMeCheckbox extends StatelessWidget {
   const _RememberMeCheckbox();
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return BlocBuilder<LoginCubit, LoginState>(
       buildWhen: (previous, current) =>
           previous.rememberMe != current.rememberMe,
@@ -267,9 +249,9 @@ class _RememberMeCheckbox extends StatelessWidget {
               onChanged: (value) =>
                   context.read<LoginCubit>().rememberMeChanged(value ?? false),
             ),
-            const Text(
-              'تذكر البريد الإلكتروني',
-              style: TextStyle(
+            Text(
+              l10n.loginRememberMe,
+              style: const TextStyle(
                 color: Colors.blueGrey,
                 fontWeight: FontWeight.bold,
               ),
@@ -286,12 +268,11 @@ class _LoginButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 🌟 التعديل الجوهري: نراقب أيضاً حالة الصلاحيات
+    final l10n = context.l10n;
     final authState = context.watch<AuthCubit>().state;
 
     return BlocBuilder<LoginCubit, LoginState>(
       builder: (context, state) {
-        // إذا كان التسجيل جاري، أو الصلاحيات قيد التحميل، نظهر دائرة التحميل
         final isLoading =
             state.status == LoginStatus.loading ||
             authState.status == AuthStatus.loading;
@@ -310,9 +291,12 @@ class _LoginButton extends StatelessWidget {
                     ),
                   ),
                   onPressed: () => context.read<LoginCubit>().submit(),
-                  child: const Text(
-                    'تسجيل الدخول',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  child: Text(
+                    l10n.loginSubmitBtn,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               );

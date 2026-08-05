@@ -1404,5 +1404,27 @@
     "placeholders": {
       "meters": { "type": "String" }
     }
-  }
+  },
+
+  "loginStaffTitle": "Employee Login",
+  "loginEmailLabel": "Email Address",
+  "loginPasswordLabel": "Password",
+  "loginRememberMe": "Remember Email",
+  "loginSubmitBtn": "Sign In",
+  "loginCreateAccountBtn": "Create New Employee Account",
+  "loginAuthCheckError": "An error occurred while verifying permissions",
+
+  "lockSubscriptionTitle": "License Expired",
+  "lockSubscriptionDefaultError": "Subscription period expired. Please contact technical support.",
+  "lockSubscriptionVerifying": "Checking with server...",
+  "lockSubscriptionVerifyBtn": "Verify Subscription Renewal",
+  "lockSubscriptionNoInternet": "No internet connection to verify license.",
+
+  "lockOfflineTitle": "System Temporarily Locked",
+  "lockOfflineDefaultError": "Offline working period expired.",
+  "lockOfflineSyncing": "Syncing with cloud...",
+  "lockOfflineSyncBtn": "Connect & Sync Data Now",
+  "lockOfflineNoInternet": "No internet connection. Please check network.",
+
+  "lockLogoutBtn": "Sign Out & Lock Account"
 }

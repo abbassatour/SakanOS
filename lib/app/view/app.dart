@@ -8,7 +8,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
-// 🌟 استيراد ملفات الترجمة والـ Cubit الخاصة بنا
 import 'package:our_home_erp_app/l10n/cubit/locale_cubit.dart';
 import 'package:our_home_erp_app/l10n/l10n.dart';
 
@@ -31,11 +30,9 @@ class App extends StatelessWidget {
       value: erpRepository,
       child: MultiBlocProvider(
         providers: [
-          // 🌟 1. مزود حالة اللغة
           BlocProvider(
             create: (context) => LocaleCubit(),
           ),
-          // 🌟 2. مزود حالة المصادقة
           BlocProvider(
             create: (context) => AuthCubit(erpRepository),
           ),
@@ -49,39 +46,34 @@ class App extends StatelessWidget {
 class AppView extends StatelessWidget {
   const AppView({super.key});
 
-  /// 🛡️ حماية المنصة: التحقق من أن بيئة التشغيل هي نظام مكتبي وليس ويب أو موبايل
   bool get _isDesktop =>
       !kIsWeb && (Platform.isWindows || Platform.isMacOS || Platform.isLinux);
 
   @override
   Widget build(BuildContext context) {
-    // 🌟 قراءة حالة اللغة الحالية من الـ LocaleCubit
     final currentLocale = context.watch<LocaleCubit>().state;
 
     return MaterialApp(
       title: 'SakanOS',
       debugShowCheckedModeBanner: false,
-      locale: currentLocale, // 🌟 القراءة الحية للغة
+      locale: currentLocale,
       localizationsDelegates: const [
-        AppLocalizations.delegate, // 🌟 المترجم التلقائي
+        AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      supportedLocales: AppLocalizations.supportedLocales, // 🌟 اللغات المدعومة
+      supportedLocales: AppLocalizations.supportedLocales,
       theme: ThemeData(
         primaryColor: const Color(0xFF13B9FF),
         useMaterial3: true,
         fontFamily: 'Tahoma',
       ),
-
-      // 🌟 استخدام BlocConsumer لتحديث شريط الويندوز وبناء الشاشات
       home: BlocConsumer<AuthCubit, AuthState>(
         listenWhen: (previous, current) =>
             previous.userName != current.userName ||
             previous.status != current.status,
         listener: (context, state) async {
-          // 🛡️ لا نعدل عنوان النافذة إلا إذا كنا على أنظمة الديسكتوب
           if (!_isDesktop) return;
 
           if (state.status == AuthStatus.authenticated &&
@@ -107,12 +99,10 @@ class AppView extends StatelessWidget {
             return const _LoadingScreen();
           }
 
-          // 🛑 إذا كان التطبيق مقفلاً بسبب انتهاء فترة الأوفلاين
           if (state.status == AuthStatus.offlineLock) {
             return const _OfflineLockScreen();
           }
 
-          // 💸 إذا انتهت فترة الاشتراك
           if (state.status == AuthStatus.subscriptionExpired) {
             return const _SubscriptionLockScreen();
           }
@@ -128,7 +118,6 @@ class AppView extends StatelessWidget {
   }
 }
 
-/// 🌟 فصل شاشة التحميل في ويدجت مستقل لزيادة المقروئية وقابلية الاختبار
 class _LoadingScreen extends StatelessWidget {
   const _LoadingScreen();
 
@@ -143,9 +132,6 @@ class _LoadingScreen extends StatelessWidget {
   }
 }
 
-// ==========================================
-// 🛑 شاشة القفل الإجباري (Offline Limit Reached)
-// ==========================================
 class _OfflineLockScreen extends StatefulWidget {
   const _OfflineLockScreen();
 
@@ -153,9 +139,6 @@ class _OfflineLockScreen extends StatefulWidget {
   State<_OfflineLockScreen> createState() => _OfflineLockScreenState();
 }
 
-// ==========================================
-// 💸 شاشة انتهاء الاشتراك (Subscription Expired)
-// ==========================================
 class _SubscriptionLockScreen extends StatefulWidget {
   const _SubscriptionLockScreen();
 
@@ -168,6 +151,7 @@ class _SubscriptionLockScreenState extends State<_SubscriptionLockScreen> {
   bool _isSyncing = false;
 
   Future<void> _checkSubscriptionUpdate() async {
+    final l10n = context.l10n;
     setState(() => _isSyncing = true);
 
     try {
@@ -175,17 +159,15 @@ class _SubscriptionLockScreenState extends State<_SubscriptionLockScreen> {
         'google.com',
       ).timeout(const Duration(seconds: 5));
       if (result.isEmpty || result[0].rawAddress.isEmpty) {
-        throw Exception('لا يوجد اتصال بالإنترنت للتحقق من الرخصة.');
+        throw Exception(l10n.lockSubscriptionNoInternet);
       }
 
-      // 🌟 سحب البيانات (ومن ضمنها تاريخ الاشتراك الجديد) من Supabase
       final msg = await context.read<ErpRepository>().forceSyncWithCloud();
 
       if (!msg.contains('بنجاح')) {
         throw Exception(msg);
       }
 
-      // إعادة فحص الجلسة
       if (mounted) {
         await context.read<AuthCubit>().checkSession();
       }
@@ -207,6 +189,7 @@ class _SubscriptionLockScreenState extends State<_SubscriptionLockScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final state = context.watch<AuthCubit>().state;
 
     return Scaffold(
@@ -242,9 +225,9 @@ class _SubscriptionLockScreenState extends State<_SubscriptionLockScreen> {
                 ),
               ),
               const SizedBox(height: 24),
-              const Text(
-                'انتهت صلاحية الرخصة',
-                style: TextStyle(
+              Text(
+                l10n.lockSubscriptionTitle,
+                style: const TextStyle(
                   fontSize: 26,
                   fontWeight: FontWeight.bold,
                   color: Colors.black87,
@@ -259,8 +242,7 @@ class _SubscriptionLockScreenState extends State<_SubscriptionLockScreen> {
                   border: Border.all(color: Colors.red.shade200),
                 ),
                 child: Text(
-                  state.errorMessage ??
-                      'انتهت فترة الاشتراك. يرجى التواصل مع الدعم الفني.',
+                  state.errorMessage ?? l10n.lockSubscriptionDefaultError,
                   style: TextStyle(
                     fontSize: 14,
                     color: Colors.red.shade900,
@@ -295,8 +277,8 @@ class _SubscriptionLockScreenState extends State<_SubscriptionLockScreen> {
                       : const Icon(Icons.refresh),
                   label: Text(
                     _isSyncing
-                        ? 'جاري التحقق مع السيرفر...'
-                        : 'التحقق من تجديد الاشتراك',
+                        ? l10n.lockSubscriptionVerifying
+                        : l10n.lockSubscriptionVerifyBtn,
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -313,7 +295,7 @@ class _SubscriptionLockScreenState extends State<_SubscriptionLockScreen> {
                     ? null
                     : () => context.read<AuthCubit>().logout(),
                 icon: const Icon(Icons.logout),
-                label: const Text('تسجيل الخروج وإقفال الحساب'),
+                label: Text(l10n.lockLogoutBtn),
               ),
             ],
           ),
@@ -327,6 +309,7 @@ class _OfflineLockScreenState extends State<_OfflineLockScreen> {
   bool _isSyncing = false;
 
   Future<void> _attemptForceSync() async {
+    final l10n = context.l10n;
     setState(() => _isSyncing = true);
 
     try {
@@ -334,7 +317,7 @@ class _OfflineLockScreenState extends State<_OfflineLockScreen> {
         'google.com',
       ).timeout(const Duration(seconds: 5));
       if (result.isEmpty || result[0].rawAddress.isEmpty) {
-        throw Exception('لا يوجد اتصال بالإنترنت. يرجى التحقق من الشبكة.');
+        throw Exception(l10n.lockOfflineNoInternet);
       }
 
       final msg = await context.read<ErpRepository>().forceSyncWithCloud();
@@ -373,6 +356,7 @@ class _OfflineLockScreenState extends State<_OfflineLockScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final state = context.watch<AuthCubit>().state;
 
     return Scaffold(
@@ -408,9 +392,9 @@ class _OfflineLockScreenState extends State<_OfflineLockScreen> {
                 ),
               ),
               const SizedBox(height: 24),
-              const Text(
-                'النظام مقفل مؤقتاً',
-                style: TextStyle(
+              Text(
+                l10n.lockOfflineTitle,
+                style: const TextStyle(
                   fontSize: 26,
                   fontWeight: FontWeight.bold,
                   color: Colors.black87,
@@ -425,8 +409,7 @@ class _OfflineLockScreenState extends State<_OfflineLockScreen> {
                   border: Border.all(color: Colors.orange.shade200),
                 ),
                 child: Text(
-                  state.errorMessage ??
-                      'انتهت صلاحية العمل دون اتصال بالإنترنت.',
+                  state.errorMessage ?? l10n.lockOfflineDefaultError,
                   style: TextStyle(
                     fontSize: 14,
                     color: Colors.orange.shade900,
@@ -461,8 +444,8 @@ class _OfflineLockScreenState extends State<_OfflineLockScreen> {
                       : const Icon(Icons.sync),
                   label: Text(
                     _isSyncing
-                        ? 'جاري المزامنة مع السحابة...'
-                        : 'توصيل ومزامنة البيانات الآن',
+                        ? l10n.lockOfflineSyncing
+                        : l10n.lockOfflineSyncBtn,
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -479,7 +462,7 @@ class _OfflineLockScreenState extends State<_OfflineLockScreen> {
                     ? null
                     : () => context.read<AuthCubit>().logout(),
                 icon: const Icon(Icons.logout),
-                label: const Text('تسجيل الخروج وإقفال الحساب'),
+                label: Text(l10n.lockLogoutBtn),
               ),
             ],
           ),

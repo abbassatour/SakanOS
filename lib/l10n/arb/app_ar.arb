@@ -1398,5 +1398,28 @@
     "placeholders": {
       "meters": { "type": "String" }
     }
-  }
+  },
+
+
+  "loginStaffTitle": "تسجيل الدخول للموظفين",
+  "loginEmailLabel": "البريد الإلكتروني",
+  "loginPasswordLabel": "كلمة المرور",
+  "loginRememberMe": "تذكر البريد الإلكتروني",
+  "loginSubmitBtn": "تسجيل الدخول",
+  "loginCreateAccountBtn": "إنشاء حساب موظف جديد",
+  "loginAuthCheckError": "حدث خطأ أثناء التحقق من الصلاحيات",
+
+  "lockSubscriptionTitle": "انتهت صلاحية الرخصة",
+  "lockSubscriptionDefaultError": "انتهت فترة الاشتراك. يرجى التواصل مع الدعم الفني.",
+  "lockSubscriptionVerifying": "جاري التحقق مع السيرفر...",
+  "lockSubscriptionVerifyBtn": "التحقق من تجديد الاشتراك",
+  "lockSubscriptionNoInternet": "لا يوجد اتصال بالإنترنت للتحقق من الرخصة.",
+
+  "lockOfflineTitle": "النظام مقفل مؤقتاً",
+  "lockOfflineDefaultError": "انتهت صلاحية العمل دون اتصال بالإنترنت.",
+  "lockOfflineSyncing": "جاري المزامنة مع السحابة...",
+  "lockOfflineSyncBtn": "توصيل ومزامنة البيانات الآن",
+  "lockOfflineNoInternet": "لا يوجد اتصال بالإنترنت. يرجى التحقق من الشبكة.",
+
+  "lockLogoutBtn": "تسجيل الخروج وإقفال الحساب"
 }
