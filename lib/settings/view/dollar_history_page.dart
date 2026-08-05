@@ -1,6 +1,7 @@
 // lib/settings/view/dollar_history_page.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:our_home_erp_app/l10n/l10n.dart';
 import '../cubit/settings_cubit.dart';
 
 // 🌟 ديالوج إضافة سعر دولار قديم
@@ -63,14 +64,16 @@ class _DollarHistoryPageState extends State<DollarHistoryPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => showAddHistoricalDollarDialog(context),
         icon: const Icon(Icons.add_chart),
-        label: const Text(
-          'إضافة تسعيرة قديمة',
-          style: TextStyle(fontWeight: FontWeight.bold),
+        label: Text(
+          l10n.dollarHistoryAddBtn,
+          style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         backgroundColor: Colors.green.shade700,
         foregroundColor: Colors.white,
@@ -119,7 +122,8 @@ class _DollarHistoryPageState extends State<DollarHistoryPage> {
                 _buildHeader(context, sortedHistory.length),
 
                 // 🌟 إظهار شريط الفلتر النشط إذا كان هناك فلتر محدد
-                if (_selectedDateRange != null) _buildActiveFilterIndicator(),
+                if (_selectedDateRange != null)
+                  _buildActiveFilterIndicator(context),
 
                 Expanded(
                   child: sortedHistory.isEmpty
@@ -135,8 +139,8 @@ class _DollarHistoryPageState extends State<DollarHistoryPage> {
                               const SizedBox(height: 16),
                               Text(
                                 _selectedDateRange != null
-                                    ? 'لا يوجد سجلات في هذه الفترة المحددة.'
-                                    : 'لا يوجد سجل لأسعار الدولار بعد.',
+                                    ? l10n.dollarHistoryEmptyRange
+                                    : l10n.dollarHistoryEmpty,
                                 style: const TextStyle(
                                   fontSize: 18,
                                   color: Colors.grey,
@@ -144,9 +148,11 @@ class _DollarHistoryPageState extends State<DollarHistoryPage> {
                               ),
                               const SizedBox(height: 8),
                               if (_selectedDateRange == null)
-                                const Text(
-                                  'اضغط على الزر بالأسفل لإضافة تسعيرة.',
-                                  style: TextStyle(color: Colors.blueGrey),
+                                Text(
+                                  l10n.dollarHistoryAddHint,
+                                  style: const TextStyle(
+                                    color: Colors.blueGrey,
+                                  ),
                                 ),
                             ],
                           ),
@@ -182,11 +188,11 @@ class _DollarHistoryPageState extends State<DollarHistoryPage> {
                                     dataRowMaxHeight: 70,
                                     columnSpacing: 40,
                                     horizontalMargin: 24,
-                                    columns: const [
+                                    columns: [
                                       DataColumn(
                                         label: Text(
-                                          'تاريخ التسعيرة',
-                                          style: TextStyle(
+                                          l10n.dollarHistoryColDate,
+                                          style: const TextStyle(
                                             fontWeight: FontWeight.bold,
                                             color: Colors.green,
                                           ),
@@ -194,8 +200,8 @@ class _DollarHistoryPageState extends State<DollarHistoryPage> {
                                       ),
                                       DataColumn(
                                         label: Text(
-                                          'سعر الصرف (ل.س)',
-                                          style: TextStyle(
+                                          l10n.dollarHistoryColRate,
+                                          style: const TextStyle(
                                             fontWeight: FontWeight.bold,
                                             color: Colors.green,
                                           ),
@@ -203,8 +209,8 @@ class _DollarHistoryPageState extends State<DollarHistoryPage> {
                                       ),
                                       DataColumn(
                                         label: Text(
-                                          'مُدخل/مُعدِّل التسعيرة',
-                                          style: TextStyle(
+                                          l10n.dollarHistoryColUser,
+                                          style: const TextStyle(
                                             fontWeight: FontWeight.bold,
                                             color: Colors.green,
                                           ),
@@ -212,8 +218,8 @@ class _DollarHistoryPageState extends State<DollarHistoryPage> {
                                       ),
                                       DataColumn(
                                         label: Text(
-                                          'إجراء',
-                                          style: TextStyle(
+                                          l10n.dollarHistoryColActions,
+                                          style: const TextStyle(
                                             fontWeight: FontWeight.bold,
                                             color: Colors.green,
                                           ),
@@ -238,10 +244,11 @@ class _DollarHistoryPageState extends State<DollarHistoryPage> {
                                             WidgetStateProperty.resolveWith<
                                               Color?
                                             >((Set<WidgetState> states) {
-                                              if (index.isEven)
+                                              if (index.isEven) {
                                                 return Colors.grey.withOpacity(
                                                   0.03,
                                                 );
+                                              }
                                               return null;
                                             }),
                                         cells: [
@@ -306,7 +313,7 @@ class _DollarHistoryPageState extends State<DollarHistoryPage> {
                                                     Text(
                                                       state.userNamesMap[price
                                                               .userId] ??
-                                                          'مجهول',
+                                                          l10n.clientUnknownUser,
                                                       style: TextStyle(
                                                         fontWeight:
                                                             FontWeight.bold,
@@ -350,7 +357,8 @@ class _DollarHistoryPageState extends State<DollarHistoryPage> {
                                                 Icons.delete_outline,
                                                 color: Colors.red,
                                               ),
-                                              tooltip: 'حذف هذه التسعيرة',
+                                              tooltip: l10n
+                                                  .dollarHistoryDeleteTooltip,
                                               onPressed: () {
                                                 context
                                                     .read<SettingsCubit>()
@@ -360,9 +368,9 @@ class _DollarHistoryPageState extends State<DollarHistoryPage> {
                                                 ScaffoldMessenger.of(
                                                   context,
                                                 ).showSnackBar(
-                                                  const SnackBar(
+                                                  SnackBar(
                                                     content: Text(
-                                                      'تم حذف التسعيرة بنجاح',
+                                                      l10n.dollarHistoryDeleteSuccess,
                                                     ),
                                                     backgroundColor:
                                                         Colors.green,
@@ -390,7 +398,8 @@ class _DollarHistoryPageState extends State<DollarHistoryPage> {
   }
 
   // 🌟 شريط يظهر عند وجود فلتر نشط
-  Widget _buildActiveFilterIndicator() {
+  Widget _buildActiveFilterIndicator(BuildContext context) {
+    final l10n = context.l10n;
     final start =
         "${_selectedDateRange!.start.year}/${_selectedDateRange!.start.month}/${_selectedDateRange!.start.day}";
     final end =
@@ -410,7 +419,7 @@ class _DollarHistoryPageState extends State<DollarHistoryPage> {
             Icon(Icons.filter_alt, color: Colors.green.shade700, size: 20),
             const SizedBox(width: 8),
             Text(
-              'تصفية من:  $start   إلى:  $end',
+              l10n.dollarHistoryFilterRange(start, end),
               style: TextStyle(
                 color: Colors.green.shade900,
                 fontWeight: FontWeight.bold,
@@ -422,9 +431,9 @@ class _DollarHistoryPageState extends State<DollarHistoryPage> {
                 setState(() => _selectedDateRange = null); // مسح الفلتر
               },
               icon: const Icon(Icons.clear, size: 16, color: Colors.red),
-              label: const Text(
-                'إلغاء الفلتر',
-                style: TextStyle(
+              label: Text(
+                l10n.dollarHistoryClearFilter,
+                style: const TextStyle(
                   color: Colors.red,
                   fontWeight: FontWeight.bold,
                 ),
@@ -437,6 +446,8 @@ class _DollarHistoryPageState extends State<DollarHistoryPage> {
   }
 
   Widget _buildHeader(BuildContext context, int count) {
+    final l10n = context.l10n;
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 24, 16),
       child: Row(
@@ -447,7 +458,7 @@ class _DollarHistoryPageState extends State<DollarHistoryPage> {
               color: Colors.blueGrey,
               size: 24,
             ),
-            tooltip: 'العودة للإعدادات',
+            tooltip: l10n.dollarHistoryBackTooltip,
             onPressed: () => Navigator.pop(context),
           ),
           const SizedBox(width: 8),
@@ -464,10 +475,10 @@ class _DollarHistoryPageState extends State<DollarHistoryPage> {
             ),
           ),
           const SizedBox(width: 12),
-          const Expanded(
+          Expanded(
             child: Text(
-              'سجل أسعار الدولار',
-              style: TextStyle(
+              l10n.dollarHistoryTitle,
+              style: const TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
                 color: Colors.blueGrey,
@@ -484,7 +495,7 @@ class _DollarHistoryPageState extends State<DollarHistoryPage> {
               color: Colors.green.shade700,
               size: 28,
             ),
-            tooltip: 'تصفية حسب التاريخ',
+            tooltip: l10n.dollarHistoryFilterTooltip,
           ),
           const SizedBox(width: 16),
 
@@ -496,7 +507,7 @@ class _DollarHistoryPageState extends State<DollarHistoryPage> {
               border: Border.all(color: Colors.green.shade100),
             ),
             child: Text(
-              'الإجمالي: $count',
+              l10n.dollarHistoryTotalCount(count),
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 color: Colors.green.shade800,

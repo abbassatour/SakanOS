@@ -1323,5 +1323,80 @@
   "priceHistoryTitle": "سجل التسعيرات التاريخية",
   "priceHistoryEmptyRange": "لا يوجد سجلات مواد في هذه الفترة المحددة.",
   "priceHistoryEmpty": "لا يوجد سجل أسعار محفوظ بعد.",
-  "priceHistoryDeleteSuccess": "تم حذف التسعيرة بنجاح"
+  "priceHistoryDeleteSuccess": "تم حذف التسعيرة بنجاح",
+
+  "priceHistoryDialogTitle": "سجل تغيير الأسعار",
+  "priceHistoryDialogEmpty": "لا يوجد سجل أسعار محفوظ بعد.",
+  "priceHistoryColDate": "تاريخ التسعيرة",
+  "priceHistoryColIron": "حديد (كغ)",
+  "priceHistoryColCement": "اسمنت (كيس)",
+  "priceHistoryColBlock": "بلوك 15",
+  "priceHistoryColFormwork": "كوفراج وصب (م³)",
+  "priceHistoryColAggregates": "حصويات (م³)",
+  "priceHistoryColWorker": "عامل (يوم)",
+  "priceHistoryColActions": "إجراء",
+
+  "recycleBinTitle": "سلة المحذوفات الشاملة",
+  "recycleBinTabClients": "العملاء",
+  "recycleBinTabBuildings": "المحاضر",
+  "recycleBinTabApartments": "الوحدات",
+  "recycleBinTabContracts": "العقود",
+  "recycleBinTabPayments": "المدفوعات",
+  "recycleBinEmptyCategory": "سلة المحذوفات فارغة من {category}",
+  "@recycleBinEmptyCategory": {
+    "placeholders": {
+      "category": { "type": "String" }
+    }
+  },
+  "recycleBinAutoCleanNotice": "يتم تنظيف السلة تلقائياً كل 7 أيام.",
+  "recycleBinDaysLeft": "⏳ باقي {days} أيام",
+  "@recycleBinDaysLeft": {
+    "placeholders": {
+      "days": { "type": "int" }
+    }
+  },
+  "recycleBinDeletedBy": "حُذف بواسطة: ",
+  "recycleBinRestoringNotice": "جاري الاستعادة... ⏳",
+  "recycleBinRestoreBtn": "استعادة",
+  "recycleBinDestroyBtn": "تدمير",
+  "recycleBinClientPrefix": "العميل: ",
+  "recycleBinPhonePrefix": "رقم الهاتف: ",
+  "recycleBinNationalIdPrefix": " | الرقم الوطني: ",
+  "recycleBinBuildingPrefix": "محضر: ",
+  "recycleBinLocationPrefix": "الموقع: ",
+  "recycleBinShopLabel": "محل",
+  "recycleBinApartmentLabel": "شقة",
+  "recycleBinUnitNumber": "{type} رقم: {number}",
+  "@recycleBinUnitNumber": {
+    "placeholders": {
+      "type": { "type": "String" },
+      "number": { "type": "String" }
+    }
+  },
+  "recycleBinFloorLabel": " | الطابق: ",
+  "recycleBinAreaLabel": " | المساحة: {area} م²",
+  "@recycleBinAreaLabel": {
+    "placeholders": {
+      "area": { "type": "Object" }
+    }
+  },
+  "recycleBinContractPrefix": "عقد {type}",
+  "@recycleBinContractPrefix": {
+    "placeholders": {
+      "type": { "type": "String" }
+    }
+  },
+  "recycleBinDetailsPrefix": "\nالتفاصيل: ",
+  "recycleBinReceiptPrefix": "إيصال مبلغ: {amount} ل.س",
+  "@recycleBinReceiptPrefix": {
+    "placeholders": {
+      "amount": { "type": "String" }
+    }
+  },
+  "recycleBinConvertedMetersPrefix": " | الأمتار المحولة: {meters} م²",
+  "@recycleBinConvertedMetersPrefix": {
+    "placeholders": {
+      "meters": { "type": "String" }
+    }
+  }
 }

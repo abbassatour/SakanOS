@@ -1328,5 +1328,81 @@
   "priceHistoryTitle": "Historical Pricing History",
   "priceHistoryEmptyRange": "No material records found in this selected period.",
   "priceHistoryEmpty": "No price history saved yet.",
-  "priceHistoryDeleteSuccess": "Price record deleted successfully"
+  "priceHistoryDeleteSuccess": "Price record deleted successfully",
+
+
+  "priceHistoryDialogTitle": "Price Change History",
+  "priceHistoryDialogEmpty": "No price history saved yet.",
+  "priceHistoryColDate": "Rate Date",
+  "priceHistoryColIron": "Iron (kg)",
+  "priceHistoryColCement": "Cement (bag)",
+  "priceHistoryColBlock": "Block 15",
+  "priceHistoryColFormwork": "Formwork (m³)",
+  "priceHistoryColAggregates": "Aggregates (m³)",
+  "priceHistoryColWorker": "Worker (day)",
+  "priceHistoryColActions": "Action",
+
+  "recycleBinTitle": "Comprehensive Recycle Bin",
+  "recycleBinTabClients": "Clients",
+  "recycleBinTabBuildings": "Buildings",
+  "recycleBinTabApartments": "Units",
+  "recycleBinTabContracts": "Contracts",
+  "recycleBinTabPayments": "Payments",
+  "recycleBinEmptyCategory": "Recycle bin is empty of {category}",
+  "@recycleBinEmptyCategory": {
+    "placeholders": {
+      "category": { "type": "String" }
+    }
+  },
+  "recycleBinAutoCleanNotice": "Bin is automatically cleaned every 7 days.",
+  "recycleBinDaysLeft": "⏳ {days} day(s) left",
+  "@recycleBinDaysLeft": {
+    "placeholders": {
+      "days": { "type": "int" }
+    }
+  },
+  "recycleBinDeletedBy": "Deleted by: ",
+  "recycleBinRestoringNotice": "Restoring... ⏳",
+  "recycleBinRestoreBtn": "Restore",
+  "recycleBinDestroyBtn": "Destroy",
+  "recycleBinClientPrefix": "Client: ",
+  "recycleBinPhonePrefix": "Phone: ",
+  "recycleBinNationalIdPrefix": " | National ID: ",
+  "recycleBinBuildingPrefix": "Building: ",
+  "recycleBinLocationPrefix": "Location: ",
+  "recycleBinShopLabel": "Shop",
+  "recycleBinApartmentLabel": "Apartment",
+  "recycleBinUnitNumber": "{type} No: {number}",
+  "@recycleBinUnitNumber": {
+    "placeholders": {
+      "type": { "type": "String" },
+      "number": { "type": "String" }
+    }
+  },
+  "recycleBinFloorLabel": " | Floor: ",
+  "recycleBinAreaLabel": " | Area: {area} m²",
+  "@recycleBinAreaLabel": {
+    "placeholders": {
+      "area": { "type": "Object" }
+    }
+  },
+  "recycleBinContractPrefix": "{type} Contract",
+  "@recycleBinContractPrefix": {
+    "placeholders": {
+      "type": { "type": "String" }
+    }
+  },
+  "recycleBinDetailsPrefix": "\nDetails: ",
+  "recycleBinReceiptPrefix": "Receipt Amount: {amount} SYP",
+  "@recycleBinReceiptPrefix": {
+    "placeholders": {
+      "amount": { "type": "String" }
+    }
+  },
+  "recycleBinConvertedMetersPrefix": " | Converted Meters: {meters} m²",
+  "@recycleBinConvertedMetersPrefix": {
+    "placeholders": {
+      "meters": { "type": "String" }
+    }
+  }
 }
