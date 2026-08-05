@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:our_home_erp_app/auth/cubit/auth_cubit.dart';
 import 'package:our_home_erp_app/core/constants/app_permissions.dart';
+import 'package:our_home_erp_app/l10n/l10n.dart';
 import 'package:our_home_erp_app/payments/cubit/payments_cubit.dart';
 import 'package:our_home_erp_app/payments/widgets/widgets.dart';
 
@@ -22,6 +23,7 @@ class PaymentsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final canAdd = context.select<AuthCubit, bool>(
       (c) => c.state.hasPermission(AppPermissions.addPayments),
     );
@@ -45,10 +47,10 @@ class PaymentsView extends StatelessWidget {
             }
 
             if (state.clients.isEmpty || state.contracts.isEmpty) {
-              return const Center(
+              return Center(
                 child: Text(
-                  'لا يوجد بيانات كافية. يرجى إضافة عميل وتوقيع عقد أولاً.',
-                  style: TextStyle(fontSize: 18, color: Colors.grey),
+                  l10n.paymentEmptyNoContracts,
+                  style: const TextStyle(fontSize: 18, color: Colors.grey),
                 ),
               );
             }
@@ -56,8 +58,6 @@ class PaymentsView extends StatelessWidget {
             return Column(
               children: [
                 PaymentsTopBar(state: state, canAdd: canAdd),
-
-                // 🌟 تمت إضافة البطاقة التلخيصية هنا! ستظهر فقط إذا تم اختيار عقد
                 PaymentSummaryCard(state: state),
 
                 Expanded(
@@ -73,8 +73,7 @@ class PaymentsView extends StatelessWidget {
                               ),
                               const SizedBox(height: 16),
                               Text(
-                                'يرجى اختيار عقد من شريط البحث بالأعلى '
-                                'لعرض الدفعات والتلخيص المالي.',
+                                l10n.paymentEmptyNoSelected,
                                 style: TextStyle(
                                   fontSize: 16,
                                   color: Colors.grey.shade600,
@@ -94,9 +93,9 @@ class PaymentsView extends StatelessWidget {
                                 color: Colors.orange.shade200,
                               ),
                               const SizedBox(height: 16),
-                              const Text(
-                                'لم يتم إدخال أي دفعة لهذا العقد.',
-                                style: TextStyle(fontSize: 16),
+                              Text(
+                                l10n.paymentEmptyNoPayments,
+                                style: const TextStyle(fontSize: 16),
                               ),
                             ],
                           ),

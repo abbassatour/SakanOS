@@ -5,8 +5,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-// reason: Needed for Apartment and Building models
-// ignore: depend_on_referenced_packages
 import 'package:local_storage_api/local_storage_api.dart'
     show Apartment, Building;
 
@@ -14,6 +12,7 @@ import 'package:our_home_erp_app/core/utils/allocated_ledger_pdf.dart';
 import 'package:our_home_erp_app/core/utils/excel_export_helper.dart';
 import 'package:our_home_erp_app/core/utils/pdf_preview_page.dart';
 import 'package:our_home_erp_app/core/utils/unallocated_ledger_pdf.dart';
+import 'package:our_home_erp_app/l10n/l10n.dart';
 import 'package:our_home_erp_app/payments/cubit/payments_cubit.dart';
 import 'package:our_home_erp_app/payments/widgets/widgets.dart';
 
@@ -46,8 +45,9 @@ class PaymentsTopBar extends StatelessWidget {
   }
 
   Future<void> _exportExcel(BuildContext context) async {
+    final l10n = context.l10n;
     if (state.ledgerEntries.isEmpty) {
-      _showError(context, 'لا يوجد حركات مالية لتصديرها!');
+      _showError(context, l10n.paymentEmptyNoPayments);
       return;
     }
     _showInfo(context, 'جاري تجهيز ملف الإكسل...');
@@ -65,16 +65,17 @@ class PaymentsTopBar extends StatelessWidget {
 
     if (context.mounted) {
       if (filePath != null) {
-        _showSuccess(context, 'تم الحفظ بنجاح في: $filePath');
+        _showSuccess(context, l10n.paymentTopBarExcelSuccess(filePath));
       } else {
-        _showError(context, 'فشل تصدير الملف.');
+        _showError(context, l10n.paymentTopBarExcelError);
       }
     }
   }
 
   Future<void> _exportPdf(BuildContext context) async {
+    final l10n = context.l10n;
     if (state.ledgerEntries.isEmpty) {
-      _showError(context, 'لا يوجد حركات مالية لطباعتها!');
+      _showError(context, l10n.paymentEmptyNoPayments);
       return;
     }
 
@@ -127,7 +128,7 @@ class PaymentsTopBar extends StatelessWidget {
 
     if (pdfBytes == null) {
       if (context.mounted) {
-        _showError(context, 'خطأ: بيانات الشقة غير مكتملة، لا يمكن الطباعة.');
+        _showError(context, l10n.paymentTopBarPdfError);
       }
       return;
     }
@@ -149,6 +150,8 @@ class PaymentsTopBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
       decoration: BoxDecoration(
@@ -188,7 +191,7 @@ class PaymentsTopBar extends StatelessWidget {
                 builder: (context, constraints) {
                   return DropdownMenu<String>(
                     width: constraints.maxWidth,
-                    hintText: '🔍 ابحث واختر العقد...',
+                    hintText: l10n.paymentTopBarSearchHint,
                     textStyle: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
@@ -223,7 +226,6 @@ class PaymentsTopBar extends StatelessWidget {
                         : null,
                     onSelected: (val) {
                       if (val != null) {
-                        // تم حل المشكلة هنا: إضافة unawaited لاستدعاء الـ Cubit
                         unawaited(
                           context.read<PaymentsCubit>().selectContract(val),
                         );
@@ -235,7 +237,7 @@ class PaymentsTopBar extends StatelessWidget {
                       );
                       final clientName = clientIdx >= 0
                           ? state.clients[clientIdx].name
-                          : 'عميل غير معروف';
+                          : 'مجهول';
                       return DropdownMenuEntry<String>(
                         value: contract.id,
                         label: '$clientName (${contract.apartmentDetails})',
@@ -253,9 +255,9 @@ class PaymentsTopBar extends StatelessWidget {
               child: ElevatedButton.icon(
                 onPressed: () => unawaited(_exportExcel(context)),
                 icon: const Icon(Icons.table_view, size: 20),
-                label: const Text(
-                  'Excel',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                label: Text(
+                  l10n.paymentTopBarExcelBtn,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.green.shade600,
@@ -274,9 +276,9 @@ class PaymentsTopBar extends StatelessWidget {
               child: ElevatedButton.icon(
                 onPressed: () => unawaited(_exportPdf(context)),
                 icon: const Icon(Icons.picture_as_pdf, size: 20),
-                label: const Text(
-                  'PDF',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                label: Text(
+                  l10n.paymentTopBarPdfBtn,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.red.shade600,
@@ -292,22 +294,21 @@ class PaymentsTopBar extends StatelessWidget {
             const SizedBox(width: 8),
             Tooltip(
               message: canAdd
-                  ? 'إضافة دفعة مالية جديدة'
-                  : 'لا تملك صلاحية إدخال دفعات',
+                  ? l10n.paymentTopBarAddTooltip
+                  : l10n.paymentTopBarAddNoPerm,
               child: SizedBox(
                 height: 48,
                 child: ElevatedButton.icon(
                   onPressed: canAdd
                       ? () => showAddPaymentDialog(
-                          // تم إزالة unawaited من هنا
                           context,
                           state.selectedContractId!,
                         )
                       : null,
                   icon: const Icon(Icons.add_card, size: 20),
-                  label: const Text(
-                    'إدخال دفعة',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                  label: Text(
+                    l10n.paymentTopBarAddBtn,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: canAdd
