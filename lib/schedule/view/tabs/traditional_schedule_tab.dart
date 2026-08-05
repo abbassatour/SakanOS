@@ -1,15 +1,14 @@
 // lib/schedule/view/tabs/traditional_schedule_tab.dart
 import 'package:flutter/material.dart';
 import 'package:local_storage_api/local_storage_api.dart' show Contract;
+import 'package:our_home_erp_app/l10n/l10n.dart';
 import '../../cubit/schedule_cubit.dart';
 
-// استدعاء القطع المفككة
 import 'widgets/traditional/schedule_empty_state.dart';
 import 'widgets/traditional/schedule_toolbar.dart';
 import 'widgets/traditional/schedule_stats_ribbon.dart';
 import 'widgets/traditional/schedule_data_table.dart';
 
-// دالة التنسيق بقيت هنا لاستخدامها عند الحاجة
 String formatNumberWithCommas(num number) {
   RegExp reg = RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))');
   return number.toInt().toString().replaceAllMapped(
@@ -25,6 +24,7 @@ class TraditionalScheduleTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     int totalInstallments = 0;
     int paidInstallments = 0;
     int pendingInstallments = 0;
@@ -34,7 +34,6 @@ class TraditionalScheduleTab extends StatelessWidget {
     double metersPerInstallment = 0.0;
     bool isPostAllocation = false;
 
-    // الحسابات الأساسية
     if (state.selectedContractId != null && state.scheduleList.isNotEmpty) {
       totalInstallments = state.scheduleList.length;
       paidInstallments = state.scheduleList
@@ -64,22 +63,19 @@ class TraditionalScheduleTab extends StatelessWidget {
 
     return Column(
       children: [
-        // 1. شريط الأدوات والبحث
         ScheduleToolbar(
           state: state,
           currentContract: currentContract,
           isPostAllocation: isPostAllocation,
         ),
-
-        // 2. المحتوى السفلي (إما شاشة ترحيبية أو إحصائيات + جدول)
         Expanded(
           child: state.selectedContractId == null
               ? const ScheduleEmptyState()
               : state.scheduleList.isEmpty
-              ? const Center(
+              ? Center(
                   child: Text(
-                    'لم يتم توليد أي جدول أقساط لهذا العقد.',
-                    style: TextStyle(fontSize: 16, color: Colors.grey),
+                    l10n.scheduleNoInstallments,
+                    style: const TextStyle(fontSize: 16, color: Colors.grey),
                   ),
                 )
               : ListView(

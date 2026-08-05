@@ -1,13 +1,13 @@
-//lib\schedule\view\tabs\widgets\traditional\schedule_stats_ribbon.dart
+// lib/schedule/view/tabs/widgets/traditional/schedule_stats_ribbon.dart
 import 'package:flutter/material.dart';
+import 'package:our_home_erp_app/l10n/l10n.dart';
 
 class ScheduleStatsRibbon extends StatelessWidget {
   final int totalInstallments;
   final int paidInstallments;
   final int pendingInstallments;
   final int overdueInstallments;
-  final bool
-  isPostAllocation; // لم نعد نحتاجها كشرط، لكن سنبقيها كي لا ينكسر الكود القديم
+  final bool isPostAllocation;
   final String formattedAgreedAmount;
   final double metersPerInstallment;
 
@@ -24,6 +24,8 @@ class ScheduleStatsRibbon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
@@ -46,31 +48,29 @@ class ScheduleStatsRibbon extends StatelessWidget {
               runSpacing: 8,
               crossAxisAlignment: WrapCrossAlignment.center,
               children: [
-                // 🌟 توحيد المصطلحات لتناسب المدة المفتوحة
                 _buildDesktopStatItem(
-                  'الأشهر المُسجلة',
+                  l10n.scheduleStatRegistered,
                   totalInstallments.toString(),
                   Colors.indigo,
                 ),
                 _buildDesktopStatItem(
-                  'تم السداد',
+                  l10n.scheduleStatPaid,
                   paidInstallments.toString(),
                   Colors.green,
                 ),
                 _buildDesktopStatItem(
-                  'الاستحقاق القادم',
+                  l10n.scheduleStatPending,
                   pendingInstallments.toString(),
                   Colors.orange,
                 ),
                 _buildDesktopStatItem(
-                  'أشهر متأخرة',
+                  l10n.scheduleStatOverdue,
                   overdueInstallments.toString(),
                   Colors.red,
                   isAlert: overdueInstallments > 0,
                 ),
-                // 🌟 عرض المبلغ الشهري لجميع العقود
                 _buildDesktopStatItem(
-                  'المطلوب شهرياً',
+                  l10n.scheduleStatMonthlyDue,
                   '$formattedAgreedAmount ل.س',
                   Colors.teal,
                 ),
@@ -86,13 +86,13 @@ class ScheduleStatsRibbon extends StatelessWidget {
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              _buildLegendItem(Colors.green, 'مُسدد'),
+              _buildLegendItem(Colors.green, l10n.scheduleLegendPaid),
               const SizedBox(width: 12),
-              _buildLegendItem(Colors.orange, 'معلق'),
+              _buildLegendItem(Colors.orange, l10n.scheduleLegendPending),
               const SizedBox(width: 12),
-              _buildLegendItem(Colors.red, 'متأخر'),
+              _buildLegendItem(Colors.red, l10n.scheduleLegendOverdue),
               const SizedBox(width: 12),
-              _buildLegendItem(Colors.grey.shade800, 'ضائع'),
+              _buildLegendItem(Colors.grey.shade800, l10n.scheduleLegendMissed),
             ],
           ),
         ],

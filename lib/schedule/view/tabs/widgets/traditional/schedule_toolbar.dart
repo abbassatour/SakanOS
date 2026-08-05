@@ -2,10 +2,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:local_storage_api/local_storage_api.dart' show Contract;
+import 'package:our_home_erp_app/l10n/l10n.dart';
 import '../../../../cubit/schedule_cubit.dart';
 import '../../../dialogs/edit_schedule_dialog.dart';
 import '../../../dialogs/reschedule_dialog.dart';
-// 🌟 [الاستدعاء الجديد]: استدعاء نافذة إضافة الدفعة الاستثنائية
 import '../../../dialogs/add_custom_schedule_dialog.dart';
 
 class ScheduleToolbar extends StatelessWidget {
@@ -22,7 +22,7 @@ class ScheduleToolbar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 🌟 متغير للتحقق مما إذا كانت القائمة فارغة
+    final l10n = context.l10n;
     final bool hasContracts = state.contracts.isNotEmpty;
 
     return Container(
@@ -41,12 +41,11 @@ class ScheduleToolbar extends StatelessWidget {
           Expanded(
             child: LayoutBuilder(
               builder: (context, constraints) {
-                // 🌟 الحل الذكي: إذا لم يكن هناك عقود، نعرض حقل معطل بشكل أنيق
                 if (!hasContracts) {
                   return TextField(
                     enabled: false,
                     decoration: InputDecoration(
-                      hintText: 'لا يوجد عملاء أو عقود حالياً...',
+                      hintText: l10n.scheduleToolbarNoClients,
                       hintStyle: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 13,
@@ -54,7 +53,7 @@ class ScheduleToolbar extends StatelessWidget {
                       ),
                       isDense: true,
                       filled: true,
-                      fillColor: Colors.grey.shade200, // لون يدل على التعطيل
+                      fillColor: Colors.grey.shade200,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(6),
                         borderSide: BorderSide.none,
@@ -67,12 +66,11 @@ class ScheduleToolbar extends StatelessWidget {
                   );
                 }
 
-                // 🌟 إذا كان هناك عقود، نعرض قائمة البحث الطبيعية
                 return DropdownMenu<String>(
                   width: constraints.maxWidth,
                   enableSearch: true,
                   enableFilter: true,
-                  hintText: '🔍 اكتب اسم العميل أو العقار...',
+                  hintText: l10n.scheduleToolbarSearchHint,
                   textStyle: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 13,
@@ -105,7 +103,7 @@ class ScheduleToolbar extends StatelessWidget {
                     );
                     final clientName = clientIdx >= 0
                         ? state.clients[clientIdx].name
-                        : 'عميل غير معروف';
+                        : l10n.scheduleToolbarUnknownClient;
                     return DropdownMenuEntry<String>(
                       value: contract.id,
                       label: '$clientName (${contract.apartmentDetails})',
@@ -119,7 +117,6 @@ class ScheduleToolbar extends StatelessWidget {
           if (state.selectedContractId != null && !isPostAllocation) ...[
             const SizedBox(width: 16),
 
-            // 🌟 [الزر الجديد]: إضافة دفعة استثنائية / موسمية
             SizedBox(
               height: 36,
               child: ElevatedButton.icon(
@@ -130,9 +127,12 @@ class ScheduleToolbar extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 12),
                 ),
                 icon: const Icon(Icons.star, size: 16),
-                label: const Text(
-                  'دفعة استثنائية',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                label: Text(
+                  l10n.scheduleToolbarCustomBtn,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                  ),
                 ),
                 onPressed: () {
                   if (currentContract != null) {
@@ -153,9 +153,12 @@ class ScheduleToolbar extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 12),
                 ),
                 icon: const Icon(Icons.settings, size: 16),
-                label: const Text(
-                  'الخصائص',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                label: Text(
+                  l10n.scheduleToolbarPropsBtn,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                  ),
                 ),
                 onPressed: () {
                   if (currentContract != null)
@@ -174,9 +177,12 @@ class ScheduleToolbar extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 12),
                 ),
                 icon: const Icon(Icons.autorenew, size: 16),
-                label: const Text(
-                  'إعادة جدولة',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                label: Text(
+                  l10n.scheduleToolbarRescheduleBtn,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                  ),
                 ),
                 onPressed: () {
                   if (currentContract != null)

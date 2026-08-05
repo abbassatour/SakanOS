@@ -1,11 +1,14 @@
 // lib/schedule/view/tabs/widgets/traditional/schedule_empty_state.dart
 import 'package:flutter/material.dart';
+import 'package:our_home_erp_app/l10n/l10n.dart';
 
 class ScheduleEmptyState extends StatelessWidget {
   const ScheduleEmptyState({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return Center(
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -16,9 +19,9 @@ class ScheduleEmptyState extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'الجدولة والمتابعة',
-                style: TextStyle(
+              Text(
+                l10n.scheduleEmptyTitle,
+                style: const TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                   color: Colors.indigo,
@@ -26,7 +29,7 @@ class ScheduleEmptyState extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                'استخدم محرك البحث بالأعلى لاختيار عميل.\nيمكنك مراقبة الدفعات، وتحديد نقاط التفاعل للمستثمرين.',
+                l10n.scheduleEmptyDesc,
                 style: TextStyle(
                   fontSize: 13,
                   color: Colors.grey.shade600,
