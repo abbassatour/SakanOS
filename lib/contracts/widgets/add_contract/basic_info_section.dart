@@ -1,4 +1,4 @@
-// contracts/widgets/add_contract/basic_info_section.dart
+// lib/contracts/widgets/add_contract/basic_info_section.dart
 
 import 'package:flutter/material.dart';
 import 'package:local_storage_api/local_storage_api.dart' show Client;
@@ -21,6 +21,13 @@ class BasicInfoSection extends StatelessWidget {
   final TextEditingController guarantorController;
   final String selectedContractType;
   final ValueChanged<String?> onTypeChanged;
+
+  String _getContractTypeLabel(BuildContext context, String type) {
+    final l10n = context.l10n;
+    if (type == 'متخصص') return l10n.contractTypeAllocatedName;
+    if (type == 'لاحق التخصص') return l10n.contractTypeUnallocatedName;
+    return type;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -71,7 +78,7 @@ class BasicInfoSection extends StatelessWidget {
                     (type) => DropdownMenuItem(
                       value: type,
                       child: Text(
-                        type,
+                        _getContractTypeLabel(context, type),
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                     ),

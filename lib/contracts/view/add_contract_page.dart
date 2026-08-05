@@ -866,15 +866,18 @@ class _AddContractPageState extends State<AddContractPage> {
         );
         final bld = buildings.firstWhere((b) => b.id == selectedBuildingId);
 
-        final autoDetails =
-            'محضر: ${bld.name} | شقة: ${apt.apartmentNumber} | طابق: ${apt.floorName}';
+        final autoDetails = l10n.contractAutoDetailsAllocated(
+          bld.name,
+          apt.apartmentNumber,
+          apt.floorName,
+        );
         generatedDetails = generatedDetails.isEmpty
             ? autoDetails
-            : '$autoDetails\nملاحظات: $generatedDetails';
+            : '$autoDetails${l10n.contractAutoDetailsNotes(generatedDetails)}';
       } else {
         generatedDetails = generatedDetails.isEmpty
-            ? 'محفظة استثمارية (عقد لاحق التخصص)'
-            : 'محفظة استثمارية\nملاحظات: $generatedDetails';
+            ? l10n.contractAutoDetailsUnallocated
+            : '${l10n.contractAutoDetailsPortfolio}${l10n.contractAutoDetailsNotes(generatedDetails)}';
       }
 
       final finalArea = isAllocated ? _safeParseDouble(areaController) : 0.0;
@@ -904,7 +907,7 @@ class _AddContractPageState extends State<AddContractPage> {
         downPayment: finalDownPaymentSYP,
         installmentsCount: finalMonths,
         guarantorName: guarantorController.text.trim().isEmpty
-            ? 'بدون كفيل'
+            ? l10n.contractGuarantorDefault
             : guarantorController.text.trim(),
         agreedMonthlyAmount: agreedAmountSYP,
         coefficients: finalCoeffs,

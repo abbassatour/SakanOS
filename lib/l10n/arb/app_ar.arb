@@ -1541,5 +1541,23 @@
   "settingsChangePinSaveBtn": "حفظ الرمز الجديد",
   "settingsSavingMaterialPrices": "جاري حفظ أسعار المواد...",
   "settingsInvalidDollarRate": "يرجى إدخال سعر صحيح للدولار",
-  "settingsSavingDollarRate": "جاري حفظ سعر الدولار..."
+  "settingsSavingDollarRate": "جاري حفظ سعر الدولار...",
+  "contractGuarantorDefault": "بدون كفيل",
+  "contractAutoDetailsAllocated": "محضر: {building} | شقة: {apt} | طابق: {floor}",
+  "@contractAutoDetailsAllocated": {
+    "placeholders": {
+      "building": { "type": "String" },
+      "apt": { "type": "String" },
+      "floor": { "type": "String" }
+    }
+  },
+  "contractAutoDetailsNotes": "\nملاحظات: {notes}",
+  "@contractAutoDetailsNotes": {
+    "placeholders": {
+      "notes": { "type": "String" }
+    }
+  },
+  "contractAutoDetailsUnallocated": "محفظة استثمارية (عقد لاحق التخصص)",
+  "contractAutoDetailsPortfolio": "محفظة استثمارية",
+  "contractDownPaymentNote": "الدفعة الأولى عند توقيع العقد"
 }

@@ -1547,5 +1547,23 @@
   "settingsChangePinSaveBtn": "Save New PIN",
   "settingsSavingMaterialPrices": "Saving material prices...",
   "settingsInvalidDollarRate": "Please enter a valid dollar exchange rate",
-  "settingsSavingDollarRate": "Saving dollar exchange rate..."
+  "settingsSavingDollarRate": "Saving dollar exchange rate...",
+  "contractGuarantorDefault": "No Guarantor",
+  "contractAutoDetailsAllocated": "Building: {building} | Apt: {apt} | Floor: {floor}",
+  "@contractAutoDetailsAllocated": {
+    "placeholders": {
+      "building": { "type": "String" },
+      "apt": { "type": "String" },
+      "floor": { "type": "String" }
+    }
+  },
+  "contractAutoDetailsNotes": "\nNotes: {notes}",
+  "@contractAutoDetailsNotes": {
+    "placeholders": {
+      "notes": { "type": "String" }
+    }
+  },
+  "contractAutoDetailsUnallocated": "Investment Portfolio (Unallocated Contract)",
+  "contractAutoDetailsPortfolio": "Investment Portfolio",
+  "contractDownPaymentNote": "Down payment upon contract signing"
 }
