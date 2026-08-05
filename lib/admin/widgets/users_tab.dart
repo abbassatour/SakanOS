@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:our_home_erp_app/admin/cubit/admin_cubit.dart';
 import 'package:our_home_erp_app/auth/cubit/auth_cubit.dart';
+import 'package:our_home_erp_app/l10n/l10n.dart';
 
 class UsersTab extends StatelessWidget {
   final AdminState state;
@@ -12,10 +13,10 @@ class UsersTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final myUserId = context.watch<AuthCubit>().state.userId;
+    final l10n = context.l10n;
 
     return CustomScrollView(
       slivers: [
-        // 🌟 1. قسم المستخدمين المعلقين
         if (state.pendingUsers.isNotEmpty) ...[
           SliverToBoxAdapter(
             child: Padding(
@@ -25,7 +26,7 @@ class UsersTab extends StatelessWidget {
                   Icon(Icons.hourglass_top, color: Colors.orange.shade700),
                   const SizedBox(width: 8),
                   Text(
-                    'طلبات انضمام بانتظار الموافقة (${state.pendingUsers.length})',
+                    l10n.adminUsersPendingTitle(state.pendingUsers.length),
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -68,7 +69,7 @@ class UsersTab extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                user.fullName ?? 'بدون اسم',
+                                user.fullName ?? l10n.adminUsersUnnamed,
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 16,
@@ -85,15 +86,15 @@ class UsersTab extends StatelessWidget {
                           width: 200,
                           child: DropdownButtonFormField<String>(
                             isExpanded: true,
-                            decoration: const InputDecoration(
-                              border: OutlineInputBorder(),
-                              contentPadding: EdgeInsets.symmetric(
+                            decoration: InputDecoration(
+                              border: const OutlineInputBorder(),
+                              contentPadding: const EdgeInsets.symmetric(
                                 horizontal: 10,
                               ),
                               fillColor: Colors.white,
                               filled: true,
+                              hintText: l10n.adminUsersSelectRoleFirst,
                             ),
-                            hint: const Text('حدد الدور أولاً'),
                             value: user.roleId?.isNotEmpty == true
                                 ? user.roleId
                                 : null,
@@ -131,14 +132,16 @@ class UsersTab extends StatelessWidget {
                                     true,
                                   );
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('تم قبول الموظف بنجاح!'),
+                                    SnackBar(
+                                      content: Text(
+                                        l10n.adminUsersApproveSuccess,
+                                      ),
                                       backgroundColor: Colors.green,
                                     ),
                                   );
                                 },
                           icon: const Icon(Icons.check),
-                          label: const Text('قبول وتفعيل'),
+                          label: Text(l10n.adminUsersApproveBtn),
                         ),
                       ],
                     ),
@@ -150,7 +153,6 @@ class UsersTab extends StatelessWidget {
           ),
         ],
 
-        // 🌟 2. قسم المستخدمين النشطين
         SliverToBoxAdapter(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
@@ -159,7 +161,7 @@ class UsersTab extends StatelessWidget {
                 const Icon(Icons.verified_user, color: Colors.blueGrey),
                 const SizedBox(width: 8),
                 Text(
-                  'الموظفون الحاليون (${state.activeUsers.length})',
+                  l10n.adminUsersActiveTitle(state.activeUsers.length),
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -209,9 +211,9 @@ class UsersTab extends StatelessWidget {
                             color: Colors.amber,
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: const Text(
-                            'أنت',
-                            style: TextStyle(
+                          child: Text(
+                            l10n.adminUsersYouBadge,
+                            style: const TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.bold,
                             ),
@@ -265,8 +267,8 @@ class UsersTab extends StatelessWidget {
                         const SizedBox(width: 12),
                         Tooltip(
                           message: user.isActive
-                              ? 'تعطيل حساب الموظف'
-                              : 'تفعيل الحساب',
+                              ? l10n.adminUsersDisableTooltip
+                              : l10n.adminUsersEnableTooltip,
                           child: Switch(
                             value: user.isActive,
                             activeColor: Colors.green,

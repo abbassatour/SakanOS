@@ -3,8 +3,8 @@ import 'package:erp_repository/erp_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:our_home_erp_app/admin/cubit/admin_cubit.dart';
+import 'package:our_home_erp_app/l10n/l10n.dart';
 
-// استدعاء المجمّع الذي قمنا بإنشائه
 import '../widgets/widgets.dart';
 
 class AdminPage extends StatelessWidget {
@@ -45,6 +45,8 @@ class _AdminViewState extends State<AdminView>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF4F6FA),
       body: SafeArea(
@@ -53,7 +55,9 @@ class _AdminViewState extends State<AdminView>
             if (state.status == AdminStatus.failure) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text(state.errorMessage ?? 'خطأ غير متوقع'),
+                  content: Text(
+                    state.errorMessage ?? l10n.adminUnexpectedError,
+                  ),
                   backgroundColor: Colors.red,
                 ),
               );
@@ -66,9 +70,6 @@ class _AdminViewState extends State<AdminView>
 
             return Column(
               children: [
-                // ==========================================
-                // 🌟 الهيدر العصري
-                // ==========================================
                 Padding(
                   padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
                   child: Row(
@@ -86,18 +87,16 @@ class _AdminViewState extends State<AdminView>
                         ),
                       ),
                       const SizedBox(width: 16),
-                      const Expanded(
+                      Expanded(
                         child: Text(
-                          'لوحة الإدارة والتحكم',
-                          style: TextStyle(
+                          l10n.adminPageTitle,
+                          style: const TextStyle(
                             fontSize: 26,
                             fontWeight: FontWeight.bold,
                             color: Colors.blueGrey,
                           ),
                         ),
                       ),
-
-                      // 🌟 أزرار التنقل المدمجة
                       Container(
                         height: 48,
                         padding: const EdgeInsets.all(4),
@@ -128,16 +127,16 @@ class _AdminViewState extends State<AdminView>
                           labelPadding: const EdgeInsets.symmetric(
                             horizontal: 20,
                           ),
-                          tabs: const [
+                          tabs: [
                             Tab(
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Icon(Icons.group, size: 20),
-                                  SizedBox(width: 8),
+                                  const Icon(Icons.group, size: 20),
+                                  const SizedBox(width: 8),
                                   Text(
-                                    'الموظفين والأدوار',
-                                    style: TextStyle(
+                                    l10n.adminTabUsers,
+                                    style: const TextStyle(
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
@@ -148,11 +147,11 @@ class _AdminViewState extends State<AdminView>
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Icon(Icons.shield, size: 20),
-                                  SizedBox(width: 8),
+                                  const Icon(Icons.shield, size: 20),
+                                  const SizedBox(width: 8),
                                   Text(
-                                    'قوالب الصلاحيات',
-                                    style: TextStyle(
+                                    l10n.adminTabRoles,
+                                    style: const TextStyle(
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
@@ -165,10 +164,6 @@ class _AdminViewState extends State<AdminView>
                     ],
                   ),
                 ),
-
-                // ==========================================
-                // 🌟 محتوى الصفحات المُستورد من الملفات المنفصلة
-                // ==========================================
                 Expanded(
                   child: TabBarView(
                     controller: _tabController,
