@@ -261,6 +261,7 @@ class OverdueRadarTab extends StatelessWidget {
                             onPressed: () async {
                               final success =
                                   await WhatsAppHelper.sendReminderMessage(
+                                    l10n: l10n,
                                     schedule: oldestSchedule,
                                     contract: alert.contract,
                                     client: alert.client,

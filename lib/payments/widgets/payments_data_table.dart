@@ -566,6 +566,7 @@ class PaymentsDataTable extends StatelessWidget {
 
                                 final success =
                                     await WhatsAppHelper.sendReceiptMessage(
+                                      l10n: l10n,
                                       entry: entry,
                                       contract: contract,
                                       client: client,

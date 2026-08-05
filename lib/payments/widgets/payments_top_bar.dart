@@ -58,6 +58,7 @@ class PaymentsTopBar extends StatelessWidget {
     final client = state.clients.firstWhere((c) => c.id == contract.clientId);
 
     final filePath = await ExcelExportHelper.exportLedgerToExcel(
+      l10n: l10n,
       ledgerEntries: state.ledgerEntries,
       contract: contract,
       client: client,

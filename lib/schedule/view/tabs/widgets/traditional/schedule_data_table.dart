@@ -259,6 +259,7 @@ class ScheduleDataTable extends StatelessWidget {
                                   (c) => c.id == currentContract.clientId,
                                 );
                                 await WhatsAppHelper.sendReminderMessage(
+                                  l10n: l10n,
                                   schedule: schedule,
                                   contract: currentContract,
                                   client: client,

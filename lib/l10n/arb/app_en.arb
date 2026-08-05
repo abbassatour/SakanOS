@@ -1605,5 +1605,41 @@
       "error": { "type": "String" }
     }
   },
-  "legalErrorMustLogin": "You must log in first."
+  "legalErrorMustLogin": "You must log in first.",
+  "excelSheetName": "Converted Meters",
+  "excelFileName": "Ledger_{clientName}.xlsx",
+  "@excelFileName": {
+    "placeholders": {
+      "clientName": { "type": "String" }
+    }
+  },
+  "excelColReceipt": "Receipt No.",
+  "excelColPaidAmount": "Amount Paid (SYP)",
+  "excelColMeterPrice": "Meter Price at Payment (SYP)",
+  "excelColConvertedMeters": "Converted Meters (m²)",
+  "excelColFees": "Fees (SYP)",
+  "excelColDate": "Payment Date",
+
+  "waReceiptMessage": "Hello {clientName},\nYour payment of *{amount} SYP* has been successfully received for ({propertyDetails}).\n\n*Payment Details:*\n- Receipt No.: {receiptNo}\n- Payment Date: {date}\n- Approved Meter Price: {meterPrice} SYP\n- Converted Meters: {meters} m²\n\nThank you for trusting \"SakanOS\". 🏢",
+  "@waReceiptMessage": {
+    "placeholders": {
+      "clientName": { "type": "String" },
+      "amount": { "type": "String" },
+      "propertyDetails": { "type": "String" },
+      "receiptNo": { "type": "String" },
+      "date": { "type": "String" },
+      "meterPrice": { "type": "String" },
+      "meters": { "type": "String" }
+    }
+  },
+
+  "waReminderMessage": "Hello {clientName},\nThis is a friendly reminder that monthly installment No. ({installmentNo}) for ({propertyDetails}) is due soon.\n\n🗓️ *Due Date:* {dueDate}\n\nHave a great day, and thank you for working with \"SakanOS\". 🏢",
+  "@waReminderMessage": {
+    "placeholders": {
+      "clientName": { "type": "String" },
+      "installmentNo": { "type": "int" },
+      "propertyDetails": { "type": "String" },
+      "dueDate": { "type": "String" }
+    }
+  }
 }

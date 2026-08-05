@@ -1599,5 +1599,41 @@
       "error": { "type": "String" }
     }
   },
-  "legalErrorMustLogin": "يجب تسجيل الدخول أولاً."
+  "legalErrorMustLogin": "يجب تسجيل الدخول أولاً.",
+  "excelSheetName": "الأمتار المحولة",
+  "excelFileName": "دفتر_الأستاذ_{clientName}.xlsx",
+  "@excelFileName": {
+    "placeholders": {
+      "clientName": { "type": "String" }
+    }
+  },
+  "excelColReceipt": "رقم الإيصال",
+  "excelColPaidAmount": "المبلغ المدفوع (ل.س)",
+  "excelColMeterPrice": "سعر المتر وقت الدفع (ل.س)",
+  "excelColConvertedMeters": "الأمتار المحولة (م2)",
+  "excelColFees": "الرسوم (ل.س)",
+  "excelColDate": "تاريخ الدفع",
+
+  "waReceiptMessage": "مرحباً {clientName}،\nتم استلام الدفعة الخاصة بكم بنجاح بمبلغ قدره *{amount} ل.س*.\nوذلك عن ({propertyDetails}).\n\n*تفاصيل الدفعة:*\n- رقم الإيصال: {receiptNo}\n- تاريخ الدفع: {date}\n- سعر المتر المعتمد وقت الدفع: {meterPrice} ل.س\n- الأمتار المحولة بهذه الدفعة: {meters} م2\n\nشكراً لثقتكم بنا في \"SakanOS\". 🏢",
+  "@waReceiptMessage": {
+    "placeholders": {
+      "clientName": { "type": "String" },
+      "amount": { "type": "String" },
+      "propertyDetails": { "type": "String" },
+      "receiptNo": { "type": "String" },
+      "date": { "type": "String" },
+      "meterPrice": { "type": "String" },
+      "meters": { "type": "String" }
+    }
+  },
+
+  "waReminderMessage": "مرحباً {clientName}،\nهذا تذكير ودي باقتراب موعد سداد القسط الشهري رقم ({installmentNo}) الخاص بـ ({propertyDetails}).\n\n🗓️ *تاريخ الاستحقاق:* {dueDate}\n\nنتمنى لكم يوماً سعيداً، وشكراً لتعاونكم مع \"SakanOS\". 🏢",
+  "@waReminderMessage": {
+    "placeholders": {
+      "clientName": { "type": "String" },
+      "installmentNo": { "type": "int" },
+      "propertyDetails": { "type": "String" },
+      "dueDate": { "type": "String" }
+    }
+  }
 }
