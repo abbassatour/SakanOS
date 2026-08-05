@@ -1421,5 +1421,52 @@
   "lockOfflineSyncBtn": "توصيل ومزامنة البيانات الآن",
   "lockOfflineNoInternet": "لا يوجد اتصال بالإنترنت. يرجى التحقق من الشبكة.",
 
-  "lockLogoutBtn": "تسجيل الخروج وإقفال الحساب"
+  "lockLogoutBtn": "تسجيل الخروج وإقفال الحساب",
+  "materialsTrendPageTitle": "غرفة التحليل المالي والتسعير",
+  "materialsTrendLoading": "جاري معالجة السجلات التاريخية...",
+  "materialsTrendError": "خطأ في النظام: {error}",
+  "@materialsTrendError": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+  "materialsTrendPeriodWeeks": "أسابيع: {date}",
+  "@materialsTrendPeriodWeeks": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "materialsTrendPeriodMonths": "أشهر عام {year}",
+  "@materialsTrendPeriodMonths": {
+    "placeholders": {
+      "year": { "type": "int" }
+    }
+  },
+  "materialsTrendHeaderTitle": "تحليل مكونات التكلفة الخام (Raw Material Analytics)",
+  "materialsTrendHeaderDesc": "تتبع التغيرات التاريخية لكل مادة بشكل مستقل. استخدم شريط الزمن أدناه لمعرفة المسبب الحقيقي لتضخم تكاليف البناء في أي فترة.",
+  "materialsTrendEmptyTitle": "لا توجد بيانات مسجلة لأسعار المواد في هذه الفترة.",
+  "materialsTrendEmptyDesc": "قم بتغيير الفلتر الزمني أو العودة لفترة سابقة.",
+
+  "materialsTrendIronTitle": "تطور سعر الحديد (كغ)",
+  "materialsTrendIronDesc": "يعرض التغير الزمني لمتوسط سعر الكيلوغرام الواحد من الحديد المبروم.",
+  "materialsTrendCementTitle": "تطور سعر الإسمنت (كيس)",
+  "materialsTrendCementDesc": "يعرض التغير الزمني لمتوسط سعر كيس الإسمنت البورتلاندي.",
+  "materialsTrendBlockTitle": "تطور سعر البلوك 15",
+  "materialsTrendBlockDesc": "يعرض التغير الزمني لمتوسط سعر البلوكة الواحدة سماكة 15 سم.",
+  "materialsTrendFormworkTitle": "أجور الكوفراج والصب (م³)",
+  "materialsTrendFormworkDesc": "يعرض التغير الزمني لمتوسط تكلفة الكوفراج وصب المتر المكعب الواحد.",
+  "materialsTrendAggregatesTitle": "سعر الحصويات (م³)",
+  "materialsTrendAggregatesDesc": "يعرض التغير الزمني لمتوسط سعر المتر المكعب من الرمل والبحص (المواد الحصوية).",
+  "materialsTrendWorkerTitle": "تطور أجرة العامل (يومية)",
+  "materialsTrendWorkerDesc": "يعرض التغير الزمني لمتوسط يومية العامل العادي.",
+
+  "materialsTrendPeakPrice": "أعلى سعر سُجل:",
+  "materialsTrendPeakWage": "أعلى أجر سُجل:",
+
+  "pdfPreviewTitle": "معاينة: {title}",
+  "@pdfPreviewTitle": {
+    "placeholders": {
+      "title": { "type": "String" }
+    }
+  }
 }

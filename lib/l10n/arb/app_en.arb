@@ -1426,5 +1426,52 @@
   "lockOfflineSyncBtn": "Connect & Sync Data Now",
   "lockOfflineNoInternet": "No internet connection. Please check network.",
 
-  "lockLogoutBtn": "Sign Out & Lock Account"
+  "lockLogoutBtn": "Sign Out & Lock Account",
+  "materialsTrendPageTitle": "Financial Analysis & Pricing Chamber",
+  "materialsTrendLoading": "Processing historical records...",
+  "materialsTrendError": "System error: {error}",
+  "@materialsTrendError": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+  "materialsTrendPeriodWeeks": "Weeks: {date}",
+  "@materialsTrendPeriodWeeks": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "materialsTrendPeriodMonths": "Months of {year}",
+  "@materialsTrendPeriodMonths": {
+    "placeholders": {
+      "year": { "type": "int" }
+    }
+  },
+  "materialsTrendHeaderTitle": "Raw Material Analytics",
+  "materialsTrendHeaderDesc": "Track historical changes for each material independently. Use the timeline below to identify the true driver of construction cost inflation in any period.",
+  "materialsTrendEmptyTitle": "No recorded material price data for this period.",
+  "materialsTrendEmptyDesc": "Change the time filter or return to a previous period.",
+
+  "materialsTrendIronTitle": "Iron Price Trend (kg)",
+  "materialsTrendIronDesc": "Displays the time variation of the average price per kilogram of rebar iron.",
+  "materialsTrendCementTitle": "Cement Price Trend (bag)",
+  "materialsTrendCementDesc": "Displays the time variation of the average price per bag of Portland cement.",
+  "materialsTrendBlockTitle": "Block 15 Price Trend",
+  "materialsTrendBlockDesc": "Displays the time variation of the average price per 15cm block.",
+  "materialsTrendFormworkTitle": "Formwork & Pouring Wage (m³)",
+  "materialsTrendFormworkDesc": "Displays the time variation of average formwork and pouring cost per cubic meter.",
+  "materialsTrendAggregatesTitle": "Aggregates Price (m³)",
+  "materialsTrendAggregatesDesc": "Displays the time variation of average price per cubic meter of sand and gravel.",
+  "materialsTrendWorkerTitle": "Worker Wage Trend (daily)",
+  "materialsTrendWorkerDesc": "Displays the time variation of average daily worker wage.",
+
+  "materialsTrendPeakPrice": "Highest Recorded Price:",
+  "materialsTrendPeakWage": "Highest Recorded Wage:",
+
+  "pdfPreviewTitle": "Preview: {title}",
+  "@pdfPreviewTitle": {
+    "placeholders": {
+      "title": { "type": "String" }
+    }
+  }
 }
