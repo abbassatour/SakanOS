@@ -1559,5 +1559,45 @@
   },
   "contractAutoDetailsUnallocated": "محفظة استثمارية (عقد لاحق التخصص)",
   "contractAutoDetailsPortfolio": "محفظة استثمارية",
-  "contractDownPaymentNote": "الدفعة الأولى عند توقيع العقد"
+  "contractDownPaymentNote": "الدفعة الأولى عند توقيع العقد",
+
+  "legalPageTitle": "معرض المرفقات القانونية",
+  "legalDefaultAdminName": "مدير النظام",
+  "legalContractActionTakenNote": "تم اتخاذ إجراء قانوني: {actionType}",
+  "@legalContractActionTakenNote": {
+    "placeholders": {
+      "actionType": { "type": "String" }
+    }
+  },
+  "legalErrorFetchArchive": "خطأ في جلب بيانات الأرشيف: {error}",
+  "@legalErrorFetchArchive": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+  "legalErrorEdit": "خطأ في التعديل: {error}",
+  "@legalErrorEdit": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+  "legalErrorAttach": "فشل إرفاق الملف: {error}",
+  "@legalErrorAttach": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+  "legalErrorDeleteAttach": "فشل حذف المرفق: {error}",
+  "@legalErrorDeleteAttach": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+  "legalErrorSecureUrl": "فشل إنشاء الرابط الآمن: {error}",
+  "@legalErrorSecureUrl": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+  "legalErrorMustLogin": "يجب تسجيل الدخول أولاً."
 }

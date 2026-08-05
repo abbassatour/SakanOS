@@ -1565,5 +1565,45 @@
   },
   "contractAutoDetailsUnallocated": "Investment Portfolio (Unallocated Contract)",
   "contractAutoDetailsPortfolio": "Investment Portfolio",
-  "contractDownPaymentNote": "Down payment upon contract signing"
+  "contractDownPaymentNote": "Down payment upon contract signing",
+
+  "legalPageTitle": "Legal Attachments Gallery",
+  "legalDefaultAdminName": "System Admin",
+  "legalContractActionTakenNote": "Legal action taken: {actionType}",
+  "@legalContractActionTakenNote": {
+    "placeholders": {
+      "actionType": { "type": "String" }
+    }
+  },
+  "legalErrorFetchArchive": "Error fetching archive data: {error}",
+  "@legalErrorFetchArchive": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+  "legalErrorEdit": "Edit error: {error}",
+  "@legalErrorEdit": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+  "legalErrorAttach": "File attachment failed: {error}",
+  "@legalErrorAttach": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+  "legalErrorDeleteAttach": "Attachment deletion failed: {error}",
+  "@legalErrorDeleteAttach": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+  "legalErrorSecureUrl": "Failed to generate secure link: {error}",
+  "@legalErrorSecureUrl": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+  "legalErrorMustLogin": "You must log in first."
 }

@@ -1,3 +1,4 @@
+//lib\legal\view\dialogs\add_legal_action_dialog.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -40,6 +41,34 @@ class _AddOrEditLegalActionDialogState
 
   bool get isEditing => widget.actionToEdit != null;
 
+  static const dbActionTypes = [
+    'إنذار',
+    'فراغ عقاري',
+    'رهن',
+    'تسوية',
+    'دعوى قضائية',
+  ];
+
+  String _getLocalizedActionType(BuildContext context, String type) {
+    final l10n = context.l10n;
+    if (type == 'إنذار' || type.toLowerCase().contains('warning')) {
+      return l10n.legalTypeWarning;
+    }
+    if (type == 'فراغ عقاري' || type.toLowerCase().contains('transfer')) {
+      return l10n.legalTypeTransfer;
+    }
+    if (type == 'رهن' || type.toLowerCase().contains('mortgage')) {
+      return l10n.legalTypeMortgage;
+    }
+    if (type == 'تسوية' || type.toLowerCase().contains('settlement')) {
+      return l10n.legalTypeSettlement;
+    }
+    if (type == 'دعوى قضائية' || type.toLowerCase().contains('lawsuit')) {
+      return l10n.legalTypeLawsuit;
+    }
+    return type;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -72,16 +101,8 @@ class _AddOrEditLegalActionDialogState
     final state = cubit.state;
     final l10n = context.l10n;
 
-    final actionTypes = [
-      l10n.legalTypeWarning,
-      l10n.legalTypeTransfer,
-      l10n.legalTypeMortgage,
-      l10n.legalTypeSettlement,
-      l10n.legalTypeLawsuit,
-    ];
-
-    if (!actionTypes.contains(selectedActionType)) {
-      selectedActionType = actionTypes.first;
+    if (!dbActionTypes.contains(selectedActionType)) {
+      selectedActionType = dbActionTypes.first;
     }
 
     return AlertDialog(
@@ -132,9 +153,12 @@ class _AddOrEditLegalActionDialogState
                   border: const OutlineInputBorder(),
                 ),
                 value: selectedActionType,
-                items: actionTypes
-                    .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-                    .toList(),
+                items: dbActionTypes.map((key) {
+                  return DropdownMenuItem<String>(
+                    value: key,
+                    child: Text(_getLocalizedActionType(context, key)),
+                  );
+                }).toList(),
                 onChanged: (val) => setState(() => selectedActionType = val!),
               ),
               const SizedBox(height: 16),
