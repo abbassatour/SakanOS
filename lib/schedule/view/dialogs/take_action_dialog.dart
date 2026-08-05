@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:local_storage_api/local_storage_api.dart' show Contract;
+import 'package:our_home_erp_app/l10n/l10n.dart';
 import '../../cubit/schedule_cubit.dart';
 
 void showTakeActionDialog(BuildContext parentContext, Contract contract) {
@@ -10,12 +11,17 @@ void showTakeActionDialog(BuildContext parentContext, Contract contract) {
   showDialog(
     context: parentContext,
     builder: (dialogContext) {
+      final l10n = dialogContext.l10n;
+
       return AlertDialog(
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Icons.handshake, color: Colors.teal),
-            SizedBox(width: 8),
-            Text('تسجيل إجراء إداري', style: TextStyle(color: Colors.teal)),
+            const Icon(Icons.handshake, color: Colors.teal),
+            const SizedBox(width: 8),
+            Text(
+              l10n.scheduleActionTitle,
+              style: const TextStyle(color: Colors.teal),
+            ),
           ],
         ),
         content: SizedBox(
@@ -29,19 +35,18 @@ void showTakeActionDialog(BuildContext parentContext, Contract contract) {
                   color: Colors.teal.shade50,
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Text(
-                  'سيسجل النظام هذا الإجراء ويقوم بتأخير تنبيه هذا العقد ووضعه في أسفل قائمة الرادار لمدة شهر كامل.',
-                  style: TextStyle(color: Colors.teal, fontSize: 13),
+                child: Text(
+                  l10n.scheduleActionDesc,
+                  style: const TextStyle(color: Colors.teal, fontSize: 13),
                 ),
               ),
               const SizedBox(height: 16),
               TextField(
                 controller: noteController,
-                decoration: const InputDecoration(
-                  labelText:
-                      'ما هو الإجراء الذي تم؟ (مثال: تم الاتصال ووعد بالدفع)',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.notes),
+                decoration: InputDecoration(
+                  labelText: l10n.scheduleActionNoteLabel,
+                  border: const OutlineInputBorder(),
+                  prefixIcon: const Icon(Icons.notes),
                 ),
                 maxLines: 3,
               ),
@@ -51,7 +56,7 @@ void showTakeActionDialog(BuildContext parentContext, Contract contract) {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('إلغاء'),
+            child: Text(l10n.btnCancel),
           ),
           ElevatedButton.icon(
             style: ElevatedButton.styleFrom(
@@ -59,23 +64,23 @@ void showTakeActionDialog(BuildContext parentContext, Contract contract) {
               foregroundColor: Colors.white,
             ),
             icon: const Icon(Icons.check),
-            label: const Text('حفظ وإخفاء التنبيه'),
+            label: Text(l10n.scheduleActionSaveBtn),
             onPressed: () async {
               if (noteController.text.trim().isEmpty) {
                 ScaffoldMessenger.of(dialogContext).showSnackBar(
-                  const SnackBar(
-                    content: Text('الرجاء كتابة الملاحظة!'),
+                  SnackBar(
+                    content: Text(l10n.scheduleActionNoteError),
                     backgroundColor: Colors.red,
                   ),
                 );
                 return;
               }
 
-              Navigator.pop(dialogContext); // إغلاق النافذة
+              Navigator.pop(dialogContext);
 
               ScaffoldMessenger.of(parentContext).showSnackBar(
-                const SnackBar(
-                  content: Text('جاري حفظ الإجراء وإعادة ترتيب الرادار... ⏳'),
+                SnackBar(
+                  content: Text(l10n.scheduleActionLoading),
                 ),
               );
 
@@ -86,8 +91,8 @@ void showTakeActionDialog(BuildContext parentContext, Contract contract) {
 
               if (parentContext.mounted) {
                 ScaffoldMessenger.of(parentContext).showSnackBar(
-                  const SnackBar(
-                    content: Text('تم تسجيل الإجراء بنجاح! ✅'),
+                  SnackBar(
+                    content: Text(l10n.scheduleActionSuccess),
                     backgroundColor: Colors.green,
                   ),
                 );

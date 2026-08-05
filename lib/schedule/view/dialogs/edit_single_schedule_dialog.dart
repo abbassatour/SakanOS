@@ -3,8 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:local_storage_api/local_storage_api.dart'
     show InstallmentsScheduleData;
+import 'package:our_home_erp_app/l10n/l10n.dart';
 import '../../cubit/schedule_cubit.dart';
-import 'package:our_home_erp_app/contracts/widgets/dialogs/verify_pin_dialog.dart';
+import 'package:our_home_erp_app/payments/widgets/dialogs/verify_pin_dialog.dart';
 
 void showEditSingleScheduleDialog(
   BuildContext parentContext,
@@ -16,6 +17,8 @@ void showEditSingleScheduleDialog(
   showDialog(
     context: parentContext,
     builder: (dialogContext) {
+      final l10n = dialogContext.l10n;
+
       return StatefulBuilder(
         builder: (context, setState) {
           return AlertDialog(
@@ -24,7 +27,7 @@ void showEditSingleScheduleDialog(
                 const Icon(Icons.edit_calendar, color: Colors.indigo),
                 const SizedBox(width: 8),
                 Text(
-                  'تأجيل / تعديل القسط #${schedule.installmentNumber}',
+                  l10n.scheduleEditSingleTitle(schedule.installmentNumber),
                   style: const TextStyle(color: Colors.indigo, fontSize: 18),
                 ),
               ],
@@ -40,15 +43,19 @@ void showEditSingleScheduleDialog(
                       color: Colors.blue.shade50,
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Row(
+                    child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(Icons.info_outline, color: Colors.blue, size: 24),
-                        SizedBox(width: 8),
+                        const Icon(
+                          Icons.info_outline,
+                          color: Colors.blue,
+                          size: 24,
+                        ),
+                        const SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            'تعديل تاريخ هذا القسط لن يؤثر على باقي الأقساط. يمكنك إضافة ملاحظة لتوضيح سبب التأجيل.',
-                            style: TextStyle(
+                            l10n.scheduleEditSingleDesc,
+                            style: const TextStyle(
                               color: Colors.blueGrey,
                               fontSize: 12,
                             ),
@@ -58,8 +65,6 @@ void showEditSingleScheduleDialog(
                     ),
                   ),
                   const SizedBox(height: 24),
-
-                  // 📅 تعديل التاريخ
                   Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 12,
@@ -75,9 +80,9 @@ void showEditSingleScheduleDialog(
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
-                          '📅 تاريخ الاستحقاق:',
-                          style: TextStyle(fontWeight: FontWeight.bold),
+                        Text(
+                          l10n.scheduleEditSingleDateLabel,
+                          style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
                         TextButton.icon(
                           icon: const Icon(Icons.edit, color: Colors.indigo),
@@ -105,14 +110,12 @@ void showEditSingleScheduleDialog(
                     ),
                   ),
                   const SizedBox(height: 16),
-
-                  // 📝 حقل الملاحظات
                   TextField(
                     controller: notesController,
-                    decoration: const InputDecoration(
-                      labelText: 'ملاحظات (مثال: تم التأجيل بسبب وعكة صحية)',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.notes),
+                    decoration: InputDecoration(
+                      labelText: l10n.scheduleEditSingleNoteLabel,
+                      border: const OutlineInputBorder(),
+                      prefixIcon: const Icon(Icons.notes),
                     ),
                     maxLines: 2,
                   ),
@@ -122,7 +125,7 @@ void showEditSingleScheduleDialog(
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(dialogContext),
-                child: const Text('إلغاء'),
+                child: Text(l10n.btnCancel),
               ),
               ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
@@ -130,17 +133,18 @@ void showEditSingleScheduleDialog(
                   foregroundColor: Colors.white,
                 ),
                 icon: const Icon(Icons.save),
-                label: const Text('حفظ التعديل'),
+                label: Text(l10n.scheduleEditSingleSave),
                 onPressed: () async {
-                  Navigator.pop(dialogContext); // إغلاق النافذة
+                  Navigator.pop(dialogContext);
 
-                  // 🛡️ حماية التعديل برمز الإدارة
-                  bool isAuthorized = await showVerifyPinDialog(parentContext);
+                  bool isAuthorized = await showVerifyPinDialog(
+                    context: parentContext,
+                  );
 
                   if (isAuthorized && parentContext.mounted) {
                     ScaffoldMessenger.of(parentContext).showSnackBar(
-                      const SnackBar(
-                        content: Text('جاري حفظ تعديلات القسط... ⏳'),
+                      SnackBar(
+                        content: Text(l10n.scheduleEditSingleLoading),
                       ),
                     );
 
@@ -157,8 +161,8 @@ void showEditSingleScheduleDialog(
 
                     if (parentContext.mounted) {
                       ScaffoldMessenger.of(parentContext).showSnackBar(
-                        const SnackBar(
-                          content: Text('تم تأجيل القسط بنجاح! ✅'),
+                        SnackBar(
+                          content: Text(l10n.scheduleEditSingleSuccess),
                           backgroundColor: Colors.green,
                         ),
                       );

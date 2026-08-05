@@ -2,26 +2,29 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:local_storage_api/local_storage_api.dart' show Contract;
+import 'package:our_home_erp_app/l10n/l10n.dart';
 import '../../cubit/schedule_cubit.dart';
 import 'package:our_home_erp_app/auth/cubit/auth_cubit.dart';
 
 void showEditScheduleDialog(BuildContext parentContext, Contract contract) {
   DateTime selectedDate = contract.contractDate.toLocal();
-  final pinController = TextEditingController(); // 🌟 حقل الرمز السري
+  final pinController = TextEditingController();
 
   showDialog(
     context: parentContext,
     builder: (dialogContext) {
+      final l10n = dialogContext.l10n;
+
       return StatefulBuilder(
         builder: (context, setState) {
           return AlertDialog(
-            title: const Row(
+            title: Row(
               children: [
-                Icon(Icons.edit_calendar, color: Colors.indigo),
-                SizedBox(width: 8),
+                const Icon(Icons.edit_calendar, color: Colors.indigo),
+                const SizedBox(width: 8),
                 Text(
-                  'تعديل تاريخ بداية العقد',
-                  style: TextStyle(color: Colors.indigo),
+                  l10n.scheduleEditDateTitle,
+                  style: const TextStyle(color: Colors.indigo),
                 ),
               ],
             ),
@@ -36,27 +39,28 @@ void showEditScheduleDialog(BuildContext parentContext, Contract contract) {
                       color: Colors.orange.shade50,
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Row(
+                    child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.warning_amber_rounded,
                           color: Colors.orange,
                           size: 20,
                         ),
-                        SizedBox(width: 8),
+                        const SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            'هذا الخيار مخصص فقط لتصحيح تاريخ توقيع العقد. إذا كنت تريد تغيير خطة الدفع استخدم زر "إعادة الجدولة".',
-                            style: TextStyle(color: Colors.brown, fontSize: 12),
+                            l10n.scheduleEditDateDesc,
+                            style: const TextStyle(
+                              color: Colors.brown,
+                              fontSize: 12,
+                            ),
                           ),
                         ),
                       ],
                     ),
                   ),
                   const SizedBox(height: 24),
-
-                  // 📅 تعديل التاريخ
                   Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 12,
@@ -69,9 +73,9 @@ void showEditScheduleDialog(BuildContext parentContext, Contract contract) {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
-                          '📅 تاريخ التوقيع:',
-                          style: TextStyle(fontWeight: FontWeight.bold),
+                        Text(
+                          l10n.scheduleEditDateLabel,
+                          style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
                         TextButton.icon(
                           icon: const Icon(
@@ -102,8 +106,6 @@ void showEditScheduleDialog(BuildContext parentContext, Contract contract) {
                     ),
                   ),
                   const SizedBox(height: 24),
-
-                  // 🌟 إجبار إدخال الرمز السري الصارم
                   TextField(
                     controller: pinController,
                     obscureText: true,
@@ -114,10 +116,10 @@ void showEditScheduleDialog(BuildContext parentContext, Contract contract) {
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                     ),
-                    decoration: const InputDecoration(
-                      labelText: 'رمز الإدارة السري',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.lock, color: Colors.red),
+                    decoration: InputDecoration(
+                      labelText: l10n.scheduleEditDatePin,
+                      border: const OutlineInputBorder(),
+                      prefixIcon: const Icon(Icons.lock, color: Colors.red),
                     ),
                   ),
                 ],
@@ -126,7 +128,7 @@ void showEditScheduleDialog(BuildContext parentContext, Contract contract) {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(dialogContext),
-                child: const Text('إلغاء'),
+                child: Text(l10n.btnCancel),
               ),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
@@ -137,8 +139,8 @@ void showEditScheduleDialog(BuildContext parentContext, Contract contract) {
                   if (pinController.text !=
                       context.read<AuthCubit>().state.securityPin) {
                     ScaffoldMessenger.of(dialogContext).showSnackBar(
-                      const SnackBar(
-                        content: Text('رمز الإدارة غير صحيح! ❌'),
+                      SnackBar(
+                        content: Text(l10n.scheduleEditDatePinError),
                         backgroundColor: Colors.red,
                       ),
                     );
@@ -149,10 +151,9 @@ void showEditScheduleDialog(BuildContext parentContext, Contract contract) {
 
                   if (parentContext.mounted) {
                     ScaffoldMessenger.of(parentContext).showSnackBar(
-                      const SnackBar(content: Text('جاري تعديل التاريخ... ⏳')),
+                      SnackBar(content: Text(l10n.scheduleEditDateLoading)),
                     );
 
-                    // تحديث التاريخ فقط في المستودع
                     await parentContext
                         .read<ScheduleCubit>()
                         .updateContractDateOnly(
@@ -161,7 +162,7 @@ void showEditScheduleDialog(BuildContext parentContext, Contract contract) {
                         );
                   }
                 },
-                child: const Text('حفظ التعديل'),
+                child: Text(l10n.scheduleEditDateSave),
               ),
             ],
           );

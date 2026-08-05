@@ -1,10 +1,11 @@
+// lib/schedule/view/dialogs/add_custom_schedule_dialog.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:local_storage_api/local_storage_api.dart';
+import 'package:our_home_erp_app/l10n/l10n.dart';
 import '../../cubit/schedule_cubit.dart';
 
-// أداة تنسيق الأرقام بالآلاف
 class ThousandsFormatter extends TextInputFormatter {
   @override
   TextEditingValue formatEditUpdate(
@@ -39,6 +40,8 @@ void showAddCustomScheduleDialog(
   showDialog(
     context: parentContext,
     builder: (dialogContext) {
+      final l10n = dialogContext.l10n;
+
       return StatefulBuilder(
         builder: (context, setState) {
           final double amount =
@@ -47,13 +50,13 @@ void showAddCustomScheduleDialog(
               amount > 0 && notesController.text.trim().isNotEmpty;
 
           return AlertDialog(
-            title: const Row(
+            title: Row(
               children: [
-                Icon(Icons.star, color: Colors.orange),
-                SizedBox(width: 8),
+                const Icon(Icons.star, color: Colors.orange),
+                const SizedBox(width: 8),
                 Text(
-                  'إضافة دفعة استثنائية',
-                  style: TextStyle(
+                  l10n.scheduleCustomAddTitle,
+                  style: const TextStyle(
                     color: Colors.indigo,
                     fontWeight: FontWeight.bold,
                   ),
@@ -65,19 +68,17 @@ void showAddCustomScheduleDialog(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text(
-                    'تُستخدم هذه النافذة لإضافة دفعات لها مبالغ تختلف عن القسط الشهري العادي (مثل: دفعة صب السقف، تسليم المفتاح...).',
-                    style: TextStyle(fontSize: 12, color: Colors.grey),
+                  Text(
+                    l10n.scheduleCustomAddDesc,
+                    style: const TextStyle(fontSize: 12, color: Colors.grey),
                   ),
                   const SizedBox(height: 16),
-
-                  // 1. التاريخ
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
-                        'تاريخ الاستحقاق:',
-                        style: TextStyle(fontWeight: FontWeight.bold),
+                      Text(
+                        l10n.scheduleCustomAddDate,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                       ElevatedButton.icon(
                         style: ElevatedButton.styleFrom(
@@ -97,21 +98,20 @@ void showAddCustomScheduleDialog(
                             firstDate: DateTime(2020),
                             lastDate: DateTime(2035),
                           );
-                          if (picked != null)
+                          if (picked != null) {
                             setState(() => selectedDate = picked);
+                          }
                         },
                       ),
                     ],
                   ),
                   const SizedBox(height: 16),
-
-                  // 2. المبلغ
                   TextField(
                     controller: amountController,
                     inputFormatters: [ThousandsFormatter()],
                     keyboardType: TextInputType.number,
                     decoration: InputDecoration(
-                      labelText: 'المبلغ المطلوب (ل.س) *',
+                      labelText: l10n.scheduleCustomAddAmount,
                       prefixIcon: const Icon(
                         Icons.payments,
                         color: Colors.green,
@@ -123,12 +123,10 @@ void showAddCustomScheduleDialog(
                     onChanged: (_) => setState(() {}),
                   ),
                   const SizedBox(height: 12),
-
-                  // 3. الملاحظات (إجبارية للتمييز)
                   TextField(
                     controller: notesController,
                     decoration: InputDecoration(
-                      labelText: 'وصف الدفعة (مثال: دفعة استلام) *',
+                      labelText: l10n.scheduleCustomAddNote,
                       prefixIcon: const Icon(
                         Icons.edit_note,
                         color: Colors.indigo,
@@ -145,7 +143,7 @@ void showAddCustomScheduleDialog(
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(dialogContext),
-                child: const Text('إلغاء'),
+                child: Text(l10n.btnCancel),
               ),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
@@ -165,9 +163,9 @@ void showAddCustomScheduleDialog(
                         Navigator.pop(dialogContext);
                       }
                     : null,
-                child: const Text(
-                  'إضافة الدفعة',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                child: Text(
+                  l10n.scheduleCustomAddBtn,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
               ),
             ],

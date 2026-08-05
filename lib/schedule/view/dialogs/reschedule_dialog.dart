@@ -2,28 +2,30 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:local_storage_api/local_storage_api.dart' show Contract;
+import 'package:our_home_erp_app/l10n/l10n.dart';
 import '../../cubit/schedule_cubit.dart';
-import 'package:our_home_erp_app/env/env.dart';
 import 'package:our_home_erp_app/auth/cubit/auth_cubit.dart';
 
 void showRescheduleDialog(BuildContext parentContext, Contract contract) {
   final monthsController = TextEditingController();
-  final pinController = TextEditingController(); // 🌟 حقل الرمز السري
+  final pinController = TextEditingController();
   DateTime selectedStartDate = DateTime.now();
 
   showDialog(
     context: parentContext,
     builder: (dialogContext) {
+      final l10n = dialogContext.l10n;
+
       return StatefulBuilder(
         builder: (context, setState) {
           return AlertDialog(
-            title: const Row(
+            title: Row(
               children: [
-                Icon(Icons.autorenew, color: Colors.blue),
-                SizedBox(width: 8),
+                const Icon(Icons.autorenew, color: Colors.blue),
+                const SizedBox(width: 8),
                 Text(
-                  'إعادة جدولة الأقساط المتبقية',
-                  style: TextStyle(color: Colors.blue),
+                  l10n.scheduleRescheduleTitle,
+                  style: const TextStyle(color: Colors.blue),
                 ),
               ],
             ),
@@ -38,26 +40,28 @@ void showRescheduleDialog(BuildContext parentContext, Contract contract) {
                       color: Colors.red.shade50,
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Row(
+                    child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.warning_amber_rounded,
                           color: Colors.red,
                           size: 24,
                         ),
-                        SizedBox(width: 8),
+                        const SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            'هذه العملية ستقوم بحذف جميع الأقساط المعلقة واستبدالها بأقساط جديدة. الأقساط القديمة (المدفوعة) لن تتأثر إطلاقاً للحفاظ على السجل المالي.',
-                            style: TextStyle(color: Colors.brown, fontSize: 13),
+                            l10n.scheduleRescheduleDesc,
+                            style: const TextStyle(
+                              color: Colors.brown,
+                              fontSize: 13,
+                            ),
                           ),
                         ),
                       ],
                     ),
                   ),
                   const SizedBox(height: 24),
-
                   Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 12,
@@ -70,9 +74,9 @@ void showRescheduleDialog(BuildContext parentContext, Contract contract) {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
-                          '📅 تاريخ أول قسط جديد:',
-                          style: TextStyle(fontWeight: FontWeight.bold),
+                        Text(
+                          l10n.scheduleRescheduleDateLabel,
+                          style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
                         TextButton.icon(
                           icon: const Icon(
@@ -94,29 +98,27 @@ void showRescheduleDialog(BuildContext parentContext, Contract contract) {
                               firstDate: DateTime(2000),
                               lastDate: DateTime(2100),
                             );
-                            if (pickedDate != null)
+                            if (pickedDate != null) {
                               setState(() => selectedStartDate = pickedDate);
+                            }
                           },
                         ),
                       ],
                     ),
                   ),
                   const SizedBox(height: 16),
-
                   TextField(
                     controller: monthsController,
-                    decoration: const InputDecoration(
-                      labelText: 'على كم شهر تريد تقسيط الأمتار المتبقية؟',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.timelapse),
+                    decoration: InputDecoration(
+                      labelText: l10n.scheduleRescheduleMonthsLabel,
+                      border: const OutlineInputBorder(),
+                      prefixIcon: const Icon(Icons.timelapse),
                       filled: true,
                       fillColor: Colors.white,
                     ),
                     keyboardType: TextInputType.number,
                   ),
                   const SizedBox(height: 16),
-
-                  // 🌟 إجبار إدخال الرمز السري الصارم
                   TextField(
                     controller: pinController,
                     obscureText: true,
@@ -127,10 +129,10 @@ void showRescheduleDialog(BuildContext parentContext, Contract contract) {
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                     ),
-                    decoration: const InputDecoration(
-                      labelText: 'رمز الإدارة السري للتأكيد',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.lock, color: Colors.red),
+                    decoration: InputDecoration(
+                      labelText: l10n.scheduleReschedulePinLabel,
+                      border: const OutlineInputBorder(),
+                      prefixIcon: const Icon(Icons.lock, color: Colors.red),
                     ),
                   ),
                 ],
@@ -139,7 +141,7 @@ void showRescheduleDialog(BuildContext parentContext, Contract contract) {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(dialogContext),
-                child: const Text('إلغاء'),
+                child: Text(l10n.btnCancel),
               ),
               ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
@@ -151,13 +153,13 @@ void showRescheduleDialog(BuildContext parentContext, Contract contract) {
                   ),
                 ),
                 icon: const Icon(Icons.check_circle),
-                label: const Text('اعتماد الجدولة الجديدة'),
+                label: Text(l10n.scheduleRescheduleSaveBtn),
                 onPressed: () async {
                   if (pinController.text !=
                       context.read<AuthCubit>().state.securityPin) {
                     ScaffoldMessenger.of(dialogContext).showSnackBar(
-                      const SnackBar(
-                        content: Text('رمز الإدارة غير صحيح! ❌'),
+                      SnackBar(
+                        content: Text(l10n.scheduleEditDatePinError),
                         backgroundColor: Colors.red,
                       ),
                     );
@@ -167,8 +169,8 @@ void showRescheduleDialog(BuildContext parentContext, Contract contract) {
                   final int? newMonths = int.tryParse(monthsController.text);
                   if (newMonths == null || newMonths <= 0) {
                     ScaffoldMessenger.of(dialogContext).showSnackBar(
-                      const SnackBar(
-                        content: Text('الرجاء إدخال عدد أشهر صحيح!'),
+                      SnackBar(
+                        content: Text(l10n.scheduleRescheduleMonthsError),
                         backgroundColor: Colors.red,
                       ),
                     );
@@ -179,10 +181,8 @@ void showRescheduleDialog(BuildContext parentContext, Contract contract) {
 
                   if (parentContext.mounted) {
                     ScaffoldMessenger.of(parentContext).showSnackBar(
-                      const SnackBar(
-                        content: Text(
-                          'جاري إعادة هيكلة الأقساط وتسوية السجلات... ⏳',
-                        ),
+                      SnackBar(
+                        content: Text(l10n.scheduleRescheduleLoading),
                         backgroundColor: Colors.blue,
                       ),
                     );
@@ -197,8 +197,8 @@ void showRescheduleDialog(BuildContext parentContext, Contract contract) {
 
                     if (parentContext.mounted) {
                       ScaffoldMessenger.of(parentContext).showSnackBar(
-                        const SnackBar(
-                          content: Text('تمت الجدولة بنجاح! ✅'),
+                        SnackBar(
+                          content: Text(l10n.scheduleRescheduleSuccess),
                           backgroundColor: Colors.green,
                         ),
                       );
