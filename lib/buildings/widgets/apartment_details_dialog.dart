@@ -1,11 +1,10 @@
 // lib/buildings/widgets/apartment_details_dialog.dart
-// ignore_for_file: depend_on_referenced_packages, cascade_invocations
-
 import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:local_storage_api/local_storage_api.dart' show Apartment;
+import 'package:our_home_erp_app/l10n/l10n.dart';
 
 void showApartmentDetailsDialog(BuildContext context, Apartment apt) {
   unawaited(
@@ -69,6 +68,8 @@ class _ApartmentDetailsDialogContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     final physicalAreas = <String, dynamic>{};
     final financialCoeffs = <String, dynamic>{};
 
@@ -77,14 +78,16 @@ class _ApartmentDetailsDialogContent extends StatelessWidget {
           jsonDecode(apt.customCoefficients) as Map<String, dynamic>;
 
       allData.forEach((key, value) {
-        if (key.startsWith('مساحة') || key.startsWith('عرض')) {
+        if (key.startsWith('مساحة') ||
+            key.startsWith('عرض') ||
+            key.toLowerCase().contains('area') ||
+            key.toLowerCase().contains('width')) {
           physicalAreas[key] = value;
         } else {
           financialCoeffs[key] = value;
         }
       });
     } on Exception catch (e) {
-      // Reason: Dev logging
       // ignore: avoid_print
       print('Error decoding: $e');
     }
@@ -112,7 +115,7 @@ class _ApartmentDetailsDialogContent extends StatelessWidget {
           const SizedBox(width: 16),
           Expanded(
             child: Text(
-              'تفاصيل الوحدة رقم: ${apt.apartmentNumber}',
+              l10n.aptDetailsDialogTitle(apt.apartmentNumber),
               style: const TextStyle(
                 color: Colors.black87,
                 fontWeight: FontWeight.bold,
@@ -144,7 +147,9 @@ class _ApartmentDetailsDialogContent extends StatelessWidget {
                 ),
                 const SizedBox(width: 6),
                 Text(
-                  isAvailable ? 'متاحة للبيع' : 'مباعة / محجوزة',
+                  isAvailable
+                      ? l10n.aptStatusAvailableTag
+                      : l10n.aptStatusSoldTag,
                   style: TextStyle(
                     color: isAvailable
                         ? Colors.green.shade700
@@ -178,9 +183,9 @@ class _ApartmentDetailsDialogContent extends StatelessWidget {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
-                  'الحالة الحالية: ${isAvailable ? "لم يتم توقيع أي عقد عليها "
-                            "بعد وهي متاحة للتعاقد." : "تم توقيع عقد ومربوطة بملف "
-                            "عميل مسبقاً."}',
+                  isAvailable
+                      ? l10n.aptStatusAvailableDesc
+                      : l10n.aptStatusSoldDesc,
                   style: TextStyle(
                     color: isAvailable
                         ? Colors.green.shade700
@@ -195,7 +200,7 @@ class _ApartmentDetailsDialogContent extends StatelessWidget {
                 children: [
                   Expanded(
                     child: _buildInfoCard(
-                      'الطابق / المنسوب',
+                      l10n.aptFloorHeader,
                       apt.floorName,
                       Icons.layers,
                       Colors.blue,
@@ -204,7 +209,7 @@ class _ApartmentDetailsDialogContent extends StatelessWidget {
                   const SizedBox(width: 16),
                   Expanded(
                     child: _buildInfoCard(
-                      'الاتجاه / الواجهة',
+                      l10n.aptDirectionHeader,
                       apt.directionName,
                       Icons.explore,
                       Colors.teal,
@@ -235,9 +240,9 @@ class _ApartmentDetailsDialogContent extends StatelessWidget {
                       children: [
                         Icon(Icons.architecture, color: Colors.indigo.shade400),
                         const SizedBox(width: 8),
-                        const Text(
-                          'تفاصيل الحساب الهندسي',
-                          style: TextStyle(
+                        Text(
+                          l10n.aptEngineeringHeader,
+                          style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
                             color: Colors.indigo,
@@ -260,9 +265,9 @@ class _ApartmentDetailsDialogContent extends StatelessWidget {
                       ),
                       child: Column(
                         children: [
-                          const Text(
-                            'المساحة البيعية المعتمدة',
-                            style: TextStyle(
+                          Text(
+                            l10n.aptSalesAreaTitle,
+                            style: const TextStyle(
                               color: Colors.white70,
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
@@ -270,7 +275,7 @@ class _ApartmentDetailsDialogContent extends StatelessWidget {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            '${apt.area} م²',
+                            '${apt.area} m²',
                             style: const TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
@@ -282,9 +287,9 @@ class _ApartmentDetailsDialogContent extends StatelessWidget {
                     ),
                     if (physicalAreas.isNotEmpty) ...[
                       const SizedBox(height: 16),
-                      const Text(
-                        'البيانات المُدخلة للحساب:',
-                        style: TextStyle(
+                      Text(
+                        l10n.aptInputDataHeader,
+                        style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           color: Colors.blueGrey,
                         ),
@@ -349,9 +354,9 @@ class _ApartmentDetailsDialogContent extends StatelessWidget {
                       children: [
                         Icon(Icons.percent, color: Colors.green.shade600),
                         const SizedBox(width: 8),
-                        const Text(
-                          'المعاملات المالية المطبقة على هذه الوحدة',
-                          style: TextStyle(
+                        Text(
+                          l10n.aptFinancialCoeffsHeader,
+                          style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
                             color: Colors.green,
@@ -367,10 +372,10 @@ class _ApartmentDetailsDialogContent extends StatelessWidget {
                           color: Colors.grey.shade50,
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: const Center(
+                        child: Center(
                           child: Text(
-                            'لا توجد معاملات مالية خاصة مسجلة لهذه الوحدة.',
-                            style: TextStyle(color: Colors.grey),
+                            l10n.aptNoFinancialCoeffs,
+                            style: const TextStyle(color: Colors.grey),
                           ),
                         ),
                       )
@@ -443,9 +448,9 @@ class _ApartmentDetailsDialogContent extends StatelessWidget {
               ),
             ),
             onPressed: () => Navigator.pop(context),
-            child: const Text(
-              'إغلاق التفاصيل',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            child: Text(
+              l10n.btnCloseDetails,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
           ),
         ),

@@ -22,7 +22,6 @@ class PaymentsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 🌟 استخدام context.select لتحسين الأداء (Rebuild Optimization)
     final canAdd = context.select<AuthCubit, bool>(
       (c) => c.state.hasPermission(AppPermissions.addPayments),
     );
@@ -57,6 +56,10 @@ class PaymentsView extends StatelessWidget {
             return Column(
               children: [
                 PaymentsTopBar(state: state, canAdd: canAdd),
+
+                // 🌟 تمت إضافة البطاقة التلخيصية هنا! ستظهر فقط إذا تم اختيار عقد
+                PaymentSummaryCard(state: state),
+
                 Expanded(
                   child: state.selectedContractId == null
                       ? Center(
@@ -71,7 +74,7 @@ class PaymentsView extends StatelessWidget {
                               const SizedBox(height: 16),
                               Text(
                                 'يرجى اختيار عقد من شريط البحث بالأعلى '
-                                'لعرض الدفعات.',
+                                'لعرض الدفعات والتلخيص المالي.',
                                 style: TextStyle(
                                   fontSize: 16,
                                   color: Colors.grey.shade600,

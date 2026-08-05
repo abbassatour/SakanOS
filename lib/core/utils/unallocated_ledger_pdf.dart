@@ -157,7 +157,7 @@ class UnallocatedLedgerPdf {
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
                     pw.Text(
-                      'Our Home',
+                      'SakanOS',
                       style: pw.TextStyle(
                         font: arabicBoldFont,
                         fontSize: 18,
@@ -218,7 +218,7 @@ class UnallocatedLedgerPdf {
               mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
               children: [
                 pw.Text(
-                  'نظام Our Home العقاري لإدارة الأملاك',
+                  'نظام SakanOS العقاري لإدارة الأملاك',
                   style: pw.TextStyle(
                     font: arabicFont,
                     color: PdfColors.grey600,
@@ -409,7 +409,9 @@ class UnallocatedLedgerPdf {
                         mainAxisAlignment: pw.MainAxisAlignment.center,
                         children: [
                           pw.Text(
-                            entry.id.split('-').first.toUpperCase(),
+                            entry.receiptNumber != null
+                                ? entry.receiptNumber.toString()
+                                : entry.id.split('-').first.toUpperCase(),
                             style: pw.TextStyle(font: arabicFont, fontSize: 8),
                           ),
                           if (isFirstPayment && !isRefund)

@@ -1,5 +1,6 @@
 // packages/local_storage_api/lib/src/tables/app_roles.dart
 import 'package:drift/drift.dart';
+import '../secure_time.dart';
 import 'package:uuid/uuid.dart';
 
 @TableIndex(name: 'idx_roles_sync', columns: {#isDeleted, #updatedAt})
@@ -10,9 +11,9 @@ class AppRoles extends Table {
   TextColumn get permissionsJson => text().withDefault(const Constant('[]'))();
   BoolColumn get isSystemRole => boolean().withDefault(const Constant(false))();
   DateTimeColumn get createdAt =>
-      dateTime().clientDefault(() => DateTime.now().toUtc())();
+      dateTime().clientDefault(() => SecureTime.now())();
   DateTimeColumn get updatedAt =>
-      dateTime().clientDefault(() => DateTime.now().toUtc())();
+      dateTime().clientDefault(() => SecureTime.now())();
   BoolColumn get isDeleted => boolean().withDefault(const Constant(false))();
   BoolColumn get isSynced => boolean().withDefault(const Constant(false))();
 

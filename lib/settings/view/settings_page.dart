@@ -3,10 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:erp_repository/erp_repository.dart';
-
+// 🌟 استيراد ملفات الترجمة والـ Cubit
+import '../../l10n/cubit/locale_cubit.dart';
+import '../../l10n/l10n.dart';
 import '../cubit/settings_cubit.dart';
 import 'price_history_page.dart';
-// 🌟 استدعاء شاشة سجل الدولار (سننشئها في الخطوة القادمة)
+// 🌟 استدعاء شاشة سجل الدولار
 import 'dollar_history_page.dart';
 
 import 'dialogs/confirm_restore_dialog.dart';
@@ -96,7 +98,7 @@ class _SettingsViewState extends State<SettingsView> {
     formworkController.dispose();
     aggregatesController.dispose();
     workerController.dispose();
-    dollarController.dispose(); // 🌟 تنظيف الذاكرة
+    dollarController.dispose();
     _scrollController.dispose();
     super.dispose();
   }
@@ -153,12 +155,13 @@ class _SettingsViewState extends State<SettingsView> {
     setState(() => _isProcessingBackup = true);
     final resultMsg = await context.read<SettingsCubit>().createManualBackup();
     setState(() => _isProcessingBackup = false);
-    if (mounted)
+    if (mounted) {
       showResultMessageDialog(
         context,
-        title: 'النسخ الاحتياطي',
+        title: context.l10n.settingsBackupManualBtn,
         message: resultMsg,
       );
+    }
   }
 
   Future<void> _handleRestore(BuildContext context) async {
@@ -167,12 +170,13 @@ class _SettingsViewState extends State<SettingsView> {
       setState(() => _isProcessingBackup = true);
       final resultMsg = await context.read<SettingsCubit>().restoreDatabase();
       setState(() => _isProcessingBackup = false);
-      if (mounted)
+      if (mounted) {
         showResultMessageDialog(
           context,
-          title: 'استعادة البيانات',
+          title: context.l10n.settingsBackupRestoreBtn,
           message: resultMsg,
         );
+      }
     }
   }
 
@@ -182,6 +186,7 @@ class _SettingsViewState extends State<SettingsView> {
     final hasUpdatePermission = authState.hasPermission(
       AppPermissions.updatePrices,
     );
+    final l10n = context.l10n;
 
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
@@ -190,11 +195,8 @@ class _SettingsViewState extends State<SettingsView> {
           listenWhen: (previous, current) =>
               previous.status != current.status ||
               previous.currentPrices != current.currentPrices ||
-              previous.currentDollarPrice !=
-                  current.currentDollarPrice, // 🌟 الاستماع للدولار
-
+              previous.currentDollarPrice != current.currentDollarPrice,
           listener: (context, state) {
-            // تعبئة أسعار المواد
             if (state.status == SettingsStatus.success &&
                 state.currentPrices != null) {
               ironController.text = formatNumber(
@@ -216,14 +218,12 @@ class _SettingsViewState extends State<SettingsView> {
                 state.currentPrices!.ordinaryWorkerWage,
               );
             }
-            // 🌟 تعبئة سعر الدولار
             if (state.status == SettingsStatus.success &&
                 state.currentDollarPrice != null) {
               dollarController.text = formatNumber(
                 state.currentDollarPrice!.exchangeRate,
               );
             }
-
             if (state.status == SettingsStatus.failure) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
@@ -275,10 +275,10 @@ class _SettingsViewState extends State<SettingsView> {
                                 ),
                               ),
                               const SizedBox(width: 16),
-                              const Expanded(
+                              Expanded(
                                 child: Text(
-                                  'إعدادات النظام والأسعار',
-                                  style: TextStyle(
+                                  l10n.settingsTitle,
+                                  style: const TextStyle(
                                     fontSize: 26,
                                     fontWeight: FontWeight.bold,
                                     color: Colors.black87,
@@ -290,10 +290,15 @@ class _SettingsViewState extends State<SettingsView> {
                           const SizedBox(height: 24),
 
                           // ==========================================
-                          // 💵 بطاقة إعداد سعر الدولار (مستقلة ومنظمة)
+                          // 🌍 بطاقة تبديل اللغة (Language Switcher)
                           // ==========================================
-                          _buildDollarCard(context, hasUpdatePermission),
+                          _buildLanguageCard(context),
+                          const SizedBox(height: 24),
 
+                          // ==========================================
+                          // 💵 بطاقة إعداد سعر الدولار
+                          // ==========================================
+                          _buildDollarCard(context, hasUpdatePermission, l10n),
                           const SizedBox(height: 24),
 
                           // ==========================================
@@ -302,8 +307,8 @@ class _SettingsViewState extends State<SettingsView> {
                           _buildMaterialPricesCard(
                             context,
                             hasUpdatePermission,
+                            l10n,
                           ),
-
                           const SizedBox(height: 24),
 
                           // ==========================================
@@ -312,16 +317,35 @@ class _SettingsViewState extends State<SettingsView> {
                           if (authState.hasPermission(
                             AppPermissions.viewRecycleBin,
                           )) ...[
-                            _buildRecycleBinCard(context),
+                            _buildRecycleBinCard(context, l10n),
                             const SizedBox(height: 24),
                           ],
 
                           // ==========================================
-                          // 🛡️ بطاقة النسخ الاحتياطي
+                          // 🔐 بطاقة معلومات الرخصة ورمز الأمان
+                          // ==========================================
+                          if (authState.isSystemAdmin) ...[
+                            _buildSubscriptionCard(
+                              context,
+                              state.subscriptionExpiryDate,
+                              l10n,
+                            ),
+                            const SizedBox(height: 24),
+                            _buildSecurityCard(
+                              context,
+                              authState.securityPin,
+                              l10n,
+                            ),
+                            const SizedBox(height: 36),
+                          ],
+
+                          // ==========================================
+                          // 🛡️ بطاقة النسخ الاحتياطي والاستعادة
                           // ==========================================
                           _buildBackupRestoreCard(
                             context,
                             authState.isSystemAdmin,
+                            l10n,
                           ),
 
                           const SizedBox(height: 40),
@@ -343,7 +367,11 @@ class _SettingsViewState extends State<SettingsView> {
   // ==========================================
 
   // 💵 1. بطاقة الدولار
-  Widget _buildDollarCard(BuildContext context, bool hasPermission) {
+  Widget _buildDollarCard(
+    BuildContext context,
+    bool hasPermission,
+    AppLocalizations l10n,
+  ) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -363,25 +391,34 @@ class _SettingsViewState extends State<SettingsView> {
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment:
+                CrossAxisAlignment.start, // 🌟 إصلاح الـ Overflow
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'سعر صرف الدولار (مبيع)',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.green,
+              Expanded(
+                // 🌟 تم إضافة Expanded لحماية النصوص الطويلة
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.settingsDollarCardTitle,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.green,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'يُستخدم لتقييم الدفعات، الأقساط، والتحويلات النقدية.',
-                    style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
-                  ),
-                ],
+                    const SizedBox(height: 4),
+                    Text(
+                      l10n.settingsDollarCardSubtitle,
+                      style: TextStyle(
+                        color: Colors.grey.shade600,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ),
               ),
+              const SizedBox(width: 16),
               OutlinedButton.icon(
                 style: OutlinedButton.styleFrom(
                   foregroundColor: Colors.green.shade700,
@@ -396,7 +433,7 @@ class _SettingsViewState extends State<SettingsView> {
                 ),
                 onPressed: () {
                   final cubit = context.read<SettingsCubit>();
-                  cubit.fetchDollarHistory(); // جلب السجل
+                  cubit.fetchDollarHistory();
                   Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -408,9 +445,9 @@ class _SettingsViewState extends State<SettingsView> {
                   );
                 },
                 icon: const Icon(Icons.history, size: 20),
-                label: const Text(
-                  'سجل الدولار',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                label: Text(
+                  l10n.settingsDollarHistoryBtn,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
               ),
             ],
@@ -421,7 +458,7 @@ class _SettingsViewState extends State<SettingsView> {
               Expanded(
                 child: _buildPriceField(
                   controller: dollarController,
-                  label: 'سعر 1 دولار (USD)',
+                  label: l10n.settingsDollarInputLabel,
                   icon: Icons.attach_money,
                   textInputAction: TextInputAction.done,
                   onSubmitted: (_) =>
@@ -445,9 +482,9 @@ class _SettingsViewState extends State<SettingsView> {
                         ? () => _saveDollarPrice(context)
                         : null,
                     icon: const Icon(Icons.save),
-                    label: const Text(
-                      'اعتماد سعر الصرف',
-                      style: TextStyle(
+                    label: Text(
+                      l10n.settingsDollarSaveBtn,
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
@@ -463,7 +500,11 @@ class _SettingsViewState extends State<SettingsView> {
   }
 
   // 🧱 2. بطاقة أسعار المواد
-  Widget _buildMaterialPricesCard(BuildContext context, bool hasPermission) {
+  Widget _buildMaterialPricesCard(
+    BuildContext context,
+    bool hasPermission,
+    AppLocalizations l10n,
+  ) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -483,25 +524,31 @@ class _SettingsViewState extends State<SettingsView> {
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment:
+                CrossAxisAlignment.start, // 🌟 إصلاح الـ Overflow
             children: [
-              const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'الأسعار الافرادية للمواد',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.blueGrey,
+              Expanded(
+                // 🌟 تم إضافة Expanded لحماية النصوص الطويلة
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.settingsMaterialsCardTitle,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blueGrey,
+                      ),
                     ),
-                  ),
-                  SizedBox(height: 4),
-                  Text(
-                    'النظام سيضرب هذه الأرقام بالكميات الثابتة لحساب سعر المتر',
-                    style: TextStyle(color: Colors.grey, fontSize: 13),
-                  ),
-                ],
+                    const SizedBox(height: 4),
+                    Text(
+                      l10n.settingsMaterialsCardSubtitle,
+                      style: const TextStyle(color: Colors.grey, fontSize: 13),
+                    ),
+                  ],
+                ),
               ),
+              const SizedBox(width: 16),
               OutlinedButton.icon(
                 style: OutlinedButton.styleFrom(
                   foregroundColor: Colors.indigo,
@@ -528,9 +575,9 @@ class _SettingsViewState extends State<SettingsView> {
                   );
                 },
                 icon: const Icon(Icons.history, size: 20),
-                label: const Text(
-                  'سجل أسعار المواد',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                label: Text(
+                  l10n.settingsMaterialsHistoryBtn,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
               ),
             ],
@@ -541,7 +588,7 @@ class _SettingsViewState extends State<SettingsView> {
               Expanded(
                 child: _buildPriceField(
                   controller: ironController,
-                  label: 'سعر (1 كغ) حديد مبروم',
+                  label: l10n.settingsIronLabel,
                   icon: Icons.hardware,
                   textInputAction: TextInputAction.next,
                 ),
@@ -550,7 +597,7 @@ class _SettingsViewState extends State<SettingsView> {
               Expanded(
                 child: _buildPriceField(
                   controller: cementController,
-                  label: 'سعر (1 كيس) اسمنت',
+                  label: l10n.settingsCementLabel,
                   icon: Icons.foundation,
                   textInputAction: TextInputAction.next,
                 ),
@@ -563,7 +610,7 @@ class _SettingsViewState extends State<SettingsView> {
               Expanded(
                 child: _buildPriceField(
                   controller: blockController,
-                  label: 'سعر (1 بلوكة) سماكة 15',
+                  label: l10n.settingsBlockLabel,
                   icon: Icons.view_in_ar,
                   textInputAction: TextInputAction.next,
                 ),
@@ -572,7 +619,7 @@ class _SettingsViewState extends State<SettingsView> {
               Expanded(
                 child: _buildPriceField(
                   controller: formworkController,
-                  label: 'أجور كوفراج وبيتون (1 م³)',
+                  label: l10n.settingsFormworkLabel,
                   icon: Icons.architecture,
                   textInputAction: TextInputAction.next,
                 ),
@@ -585,7 +632,7 @@ class _SettingsViewState extends State<SettingsView> {
               Expanded(
                 child: _buildPriceField(
                   controller: aggregatesController,
-                  label: 'سعر (1 م³) مواد حصوية',
+                  label: l10n.settingsAggregatesLabel,
                   icon: Icons.landslide,
                   textInputAction: TextInputAction.next,
                 ),
@@ -594,7 +641,7 @@ class _SettingsViewState extends State<SettingsView> {
               Expanded(
                 child: _buildPriceField(
                   controller: workerController,
-                  label: 'أجرة (يوم) عامل 7 ساعات',
+                  label: l10n.settingsWorkerLabel,
                   icon: Icons.engineering,
                   textInputAction: TextInputAction.done,
                   onSubmitted: (_) =>
@@ -620,9 +667,12 @@ class _SettingsViewState extends State<SettingsView> {
                   ? () => _saveMaterialPrices(context)
                   : null,
               icon: const Icon(Icons.save),
-              label: const Text(
-                'اعتماد وحفظ الأسعار',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              label: Text(
+                l10n.settingsMaterialsSaveBtn,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ),
@@ -632,7 +682,7 @@ class _SettingsViewState extends State<SettingsView> {
   }
 
   // 🗑️ 3. بطاقة سلة المحذوفات
-  Widget _buildRecycleBinCard(BuildContext context) {
+  Widget _buildRecycleBinCard(BuildContext context, AppLocalizations l10n) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -654,19 +704,21 @@ class _SettingsViewState extends State<SettingsView> {
             children: [
               Icon(Icons.delete_sweep, color: Colors.red.shade600, size: 28),
               const SizedBox(width: 12),
-              const Text(
-                'إدارة المحذوفات (سلة المهملات)',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.red,
+              Expanded(
+                child: Text(
+                  l10n.settingsRecycleBinCardTitle,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.red,
+                  ),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 8),
           Text(
-            'استعادة العملاء، العقود، المحاضر، الشقق والإيصالات الملغاة أو حذفها نهائياً.',
+            l10n.settingsRecycleBinCardSubtitle,
             style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
           ),
           const SizedBox(height: 20),
@@ -688,9 +740,12 @@ class _SettingsViewState extends State<SettingsView> {
                 MaterialPageRoute(builder: (_) => const RecycleBinPage()),
               ),
               icon: const Icon(Icons.recycling, size: 24),
-              label: const Text(
-                'فتح سلة المحذوفات الشاملة',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              label: Text(
+                l10n.settingsRecycleBinOpenBtn,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ),
@@ -699,8 +754,176 @@ class _SettingsViewState extends State<SettingsView> {
     );
   }
 
+  // 🔐 بطاقة رمز الأمان
+  Widget _buildSecurityCard(
+    BuildContext context,
+    String currentPin,
+    AppLocalizations l10n,
+  ) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.red.shade100, width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.red.withOpacity(0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.password, color: Colors.red.shade600, size: 28),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  l10n.settingsSecurityCardTitle,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.red,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            l10n.settingsSecurityCardSubtitle,
+            style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+          ),
+          const SizedBox(height: 20),
+          SizedBox(
+            width: double.infinity,
+            height: 55,
+            child: ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red.shade50,
+                foregroundColor: Colors.red.shade800,
+                elevation: 0,
+                side: BorderSide(color: Colors.red.shade200, width: 1.5),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              onPressed: () => _showChangePinDialog(context, currentPin),
+              icon: const Icon(Icons.edit_attributes, size: 24),
+              label: Text(
+                l10n.settingsSecurityChangeBtn,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ديالوج تغيير الـ PIN
+  void _showChangePinDialog(BuildContext parentContext, String currentPin) {
+    final oldPinCtrl = TextEditingController();
+    final newPinCtrl = TextEditingController();
+
+    showDialog(
+      context: parentContext,
+      builder: (ctx) => AlertDialog(
+        title: const Text(
+          'تغيير رمز الأمان',
+          style: TextStyle(color: Colors.red),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: oldPinCtrl,
+              obscureText: true,
+              maxLength: 10,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: 'الرمز الحالي',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: newPinCtrl,
+              obscureText: true,
+              maxLength: 10,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: 'الرمز الجديد',
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('إلغاء'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () async {
+              if (oldPinCtrl.text != currentPin) {
+                ScaffoldMessenger.of(parentContext).showSnackBar(
+                  const SnackBar(
+                    content: Text('الرمز الحالي غير صحيح!'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+                return;
+              }
+              if (newPinCtrl.text.isEmpty) {
+                ScaffoldMessenger.of(parentContext).showSnackBar(
+                  const SnackBar(
+                    content: Text('أدخل رمزاً جديداً!'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+                return;
+              }
+
+              Navigator.pop(ctx);
+              await parentContext.read<SettingsCubit>().updateSecurityPin(
+                newPinCtrl.text.trim(),
+              );
+              await parentContext.read<AuthCubit>().checkSession();
+
+              if (parentContext.mounted) {
+                ScaffoldMessenger.of(parentContext).showSnackBar(
+                  const SnackBar(
+                    content: Text('تم تغيير الرمز بنجاح! ✅'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+              }
+            },
+            child: const Text('حفظ الرمز الجديد'),
+          ),
+        ],
+      ),
+    );
+  }
+
   // 🛡️ 4. بطاقة النسخ الاحتياطي
-  Widget _buildBackupRestoreCard(BuildContext context, bool isAdmin) {
+  Widget _buildBackupRestoreCard(
+    BuildContext context,
+    bool isAdmin,
+    AppLocalizations l10n,
+  ) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -722,19 +945,21 @@ class _SettingsViewState extends State<SettingsView> {
             children: [
               Icon(Icons.security, color: Colors.teal.shade600, size: 28),
               const SizedBox(width: 12),
-              const Text(
-                'أمان قاعدة البيانات المحلية',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.teal,
+              Expanded(
+                child: Text(
+                  l10n.settingsBackupCardTitle,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.teal,
+                  ),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 8),
           Text(
-            'أخذ نسخة احتياطية يدوية أو استعادة بيانات سابقة.',
+            l10n.settingsBackupCardSubtitle,
             style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
           ),
           const SizedBox(height: 20),
@@ -764,9 +989,9 @@ class _SettingsViewState extends State<SettingsView> {
                             ),
                           )
                         : const Icon(Icons.save_alt),
-                    label: const Text(
-                      'نسخ احتياطي يدوي',
-                      style: TextStyle(
+                    label: Text(
+                      l10n.settingsBackupManualBtn,
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
@@ -791,9 +1016,9 @@ class _SettingsViewState extends State<SettingsView> {
                         ? null
                         : () => _handleRestore(context),
                     icon: const Icon(Icons.restore_page),
-                    label: const Text(
-                      'استعادة البيانات',
-                      style: TextStyle(
+                    label: Text(
+                      l10n.settingsBackupRestoreBtn,
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
@@ -854,6 +1079,238 @@ class _SettingsViewState extends State<SettingsView> {
           borderRadius: BorderRadius.circular(10),
           borderSide: BorderSide(color: Colors.blueGrey.shade500, width: 2),
         ),
+      ),
+    );
+  }
+
+  // ==========================================
+  // 📜 بطاقة معلومات الرخصة والاشتراك (للمدير فقط)
+  // ==========================================
+  Widget _buildSubscriptionCard(
+    BuildContext context,
+    DateTime? expiryDate,
+    AppLocalizations l10n,
+  ) {
+    if (expiryDate == null) return const SizedBox.shrink();
+
+    final now = DateTime.now();
+    final remainingDays = expiryDate.difference(now).inDays;
+
+    Color statusColor;
+    IconData statusIcon;
+    String statusText;
+
+    if (remainingDays < 0) {
+      statusColor = Colors.red.shade700;
+      statusIcon = Icons.cancel;
+      statusText = l10n.settingsLicenseExpired;
+    } else if (remainingDays <= 15) {
+      statusColor = Colors.orange.shade700;
+      statusIcon = Icons.warning_amber_rounded;
+      statusText = l10n.settingsLicenseExpiringSoon;
+    } else {
+      statusColor = Colors.teal.shade700;
+      statusIcon = Icons.verified_user;
+      statusText = l10n.settingsLicenseActive;
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.purple.shade100, width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.purple.withOpacity(0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.workspace_premium,
+                color: Colors.purple.shade600,
+                size: 28,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  l10n.settingsLicenseCardTitle,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.purple,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          Row(
+            children: [
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade50,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey.shade200),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        l10n.settingsLicenseExpiryLabel,
+                        style: const TextStyle(
+                          color: Colors.grey,
+                          fontSize: 13,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${expiryDate.year}/${expiryDate.month.toString().padLeft(2, '0')}/${expiryDate.day.toString().padLeft(2, '0')}',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: statusColor.withOpacity(0.05),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: statusColor.withOpacity(0.3)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        statusText,
+                        style: TextStyle(
+                          color: statusColor,
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Icon(statusIcon, color: statusColor, size: 20),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              remainingDays >= 0
+                                  ? l10n.settingsLicenseDaysLeft(remainingDays)
+                                  : l10n.settingsLicenseDaysAgo(
+                                      remainingDays.abs(),
+                                    ),
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: statusColor,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ==========================================
+  // 🌍 بطاقة تبديل اللغة (Language Switcher)
+  // ==========================================
+  Widget _buildLanguageCard(BuildContext context) {
+    final currentLocale = context.watch<LocaleCubit>().state;
+    final l10n = context.l10n;
+
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.blue.shade100, width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.02),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.language, color: Colors.blue.shade700, size: 28),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.settingsLanguageTitle,
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue.shade900,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      l10n.settingsLanguageSubtitle,
+                      style: TextStyle(
+                        color: Colors.grey.shade600,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          SegmentedButton<String>(
+            segments: [
+              ButtonSegment(
+                value: 'ar',
+                label: Text(l10n.languageArabic),
+                icon: const Icon(Icons.flag),
+              ),
+              ButtonSegment(
+                value: 'en',
+                label: Text(l10n.languageEnglish),
+                icon: const Icon(Icons.language),
+              ),
+            ],
+            selected: {currentLocale.languageCode},
+            onSelectionChanged: (Set<String> newSelection) {
+              context.read<LocaleCubit>().changeLanguage(newSelection.first);
+            },
+          ),
+        ],
       ),
     );
   }

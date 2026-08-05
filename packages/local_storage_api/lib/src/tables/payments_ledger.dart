@@ -1,5 +1,6 @@
 // packages/local_storage_api/lib/src/tables/payments_ledger.dart
 import 'package:drift/drift.dart';
+import '../secure_time.dart';
 import 'package:uuid/uuid.dart';
 import 'contracts.dart';
 import 'installments_schedule.dart';
@@ -15,6 +16,10 @@ class PaymentsLedger extends Table {
       text().nullable().references(InstallmentsSchedule, #id)();
   DateTimeColumn get paymentDate => dateTime()();
   RealColumn get amountPaid => real()();
+
+  // 🌟 [السطر الجديد]: الرقم المتسلسل المحاسبي (جعلناه Nullable لكي لا تنهار الإيصالات القديمة)
+  IntColumn get receiptNumber => integer().nullable()();
+
   RealColumn get meterPriceAtPayment => real()();
   RealColumn get convertedMeters => real()();
   TextColumn get pricesSnapshot => text().withDefault(const Constant('{}'))();
@@ -23,9 +28,9 @@ class PaymentsLedger extends Table {
       boolean().withDefault(const Constant(false))();
   TextColumn get userId => text()();
   DateTimeColumn get createdAt =>
-      dateTime().clientDefault(() => DateTime.now().toUtc())();
+      dateTime().clientDefault(() => SecureTime.now())();
   DateTimeColumn get updatedAt =>
-      dateTime().clientDefault(() => DateTime.now().toUtc())();
+      dateTime().clientDefault(() => SecureTime.now())();
   BoolColumn get isDeleted => boolean().withDefault(const Constant(false))();
   BoolColumn get isSynced => boolean().withDefault(const Constant(false))();
 

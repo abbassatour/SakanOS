@@ -4,7 +4,7 @@ import 'dart:developer';
 import 'package:flutter/foundation.dart'; // 🌟 مكتبة ضرورية لـ PlatformDispatcher
 import 'package:flutter/widgets.dart';
 import 'package:bloc/bloc.dart';
-
+import 'package:our_home_erp_app/env/env.dart';
 // استدعاء الحزم التي بنيناها
 import 'package:cloud_storage_api/cloud_storage_api.dart';
 import 'package:local_storage_api/local_storage_api.dart';
@@ -55,9 +55,8 @@ Future<void> bootstrap(FutureOr<Widget> Function(ErpRepository) builder) async {
     // 5. تهيئة قاعدة البيانات السحابية (Supabase)
     // ==========================================
     await Supabase.initialize(
-      url: 'https://krdfrdzyfdcqjmnuzads.supabase.co',
-      anonKey:
-          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtyZGZyZHp5ZmRjcWptbnV6YWRzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1NTQzOTksImV4cCI6MjA5MDEzMDM5OX0.IzREUxh7vyCE3mBlVj79U6ED8ACOfORGND6YS4yPxgg',
+      url: Env.supabaseUrl,
+      anonKey: Env.supabaseAnonKey,
     );
 
     // ==========================================

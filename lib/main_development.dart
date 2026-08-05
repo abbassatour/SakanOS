@@ -16,7 +16,7 @@ void main() async {
 
     // إعدادات النافذة الافتراضية للكمبيوتر
     WindowOptions windowOptions = const WindowOptions(
-      title: 'نظام بيتنا العقاري',
+      title: 'SakanOS',
       center: true,
       minimumSize: Size(
         800,

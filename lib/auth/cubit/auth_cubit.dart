@@ -1,10 +1,11 @@
 import 'dart:convert';
 import 'dart:developer';
-
+import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:erp_repository/erp_repository.dart';
-import 'package:local_storage_api/local_storage_api.dart' show LocalUser;
+import 'package:local_storage_api/local_storage_api.dart'
+    show LocalUser, SecureTime;
 
 part 'auth_state.dart';
 
@@ -16,7 +17,6 @@ class AuthCubit extends Cubit<AuthState> {
   final ErpRepository _erpRepository;
 
   void _init() {
-    // نستخدم دالة فرعية لبدء التحقق وتجنب الاستدعاء العشوائي المعلق داخل المشيّد (Constructor)
     checkSession();
   }
 
@@ -26,18 +26,14 @@ class AuthCubit extends Cubit<AuthState> {
     try {
       final userId = _erpRepository.currentUserId;
 
-      // 1. إذا لم يكن هناك يوزر في السحابة، فهو غير مسجل دخول
       if (userId == null) {
         emit(state.copyWith(status: AuthStatus.unauthenticated));
         return;
       }
 
-      // 2. إذا كان مسجلاً، نجلب بياناته من قاعدة البيانات المحلية (Drift)
       final localUser = await _erpRepository.getLocalUserById(userId);
 
       if (localUser == null) {
-        // إذا كان مسجل دخول لكن بياناته لم تنزل بعد محلياً (أول مرة يفتح التطبيق)
-        // نقوم بإجبار مزامنة سريعة لجلب بياناته فوراً
         await _erpRepository.pullDataFromCloud();
         final retryUser = await _erpRepository.getLocalUserById(userId);
 
@@ -55,6 +51,7 @@ class AuthCubit extends Cubit<AuthState> {
       } else {
         await _processUserPermissions(localUser);
       }
+      // lib/auth/cubit/auth_cubit.dart
     } catch (e, stackTrace) {
       log(
         'خطأ أثناء التحقق من جلسة المستخدم',
@@ -64,15 +61,57 @@ class AuthCubit extends Cubit<AuthState> {
       emit(
         state.copyWith(
           status: AuthStatus.error,
-          errorMessage: e.toString(),
+          // 🌟 التعديل هنا: إزالة كلمة Exception من رسالة الخطأ
+          errorMessage: e.toString().replaceAll('Exception: ', ''),
         ),
       );
     }
   }
 
-  // 🌟 محرك دمج الصلاحيات (الرياضيات الذكية والمحمية)
+  // ==========================================
+  // 🛡️ دالة سحرية لتنظيف وفك تشفير الـ JSON المعطوب يدوياً
+  // ==========================================
+  List<String> _safeParsePermissions(String? jsonString) {
+    if (jsonString == null ||
+        jsonString.trim().isEmpty ||
+        jsonString == 'null') {
+      return [];
+    }
+
+    final trimmed = jsonString.trim();
+
+    try {
+      // 1. المحاولة الأولى: فك تشفير نظامي
+      final decoded = jsonDecode(trimmed) as List<dynamic>;
+      return decoded.map((e) => e.toString()).toList();
+    } catch (e) {
+      // 2. المحاولة الثانية: إذا فشل بسبب إدخال يدوي خاطئ مثل [all_access] أو [admin, user]
+      log(
+        '⚠️ تم اكتشاف JSON غير قياسي، جاري تنظيفه واستخلاص الصلاحيات: $trimmed',
+      );
+
+      // إزالة الأقواس المربعة وعلامات التنصيص المفردة والمزدوجة
+      String cleaned = trimmed
+          .replaceAll('[', '')
+          .replaceAll(']', '')
+          .replaceAll('"', '')
+          .replaceAll("'", "");
+
+      if (cleaned.trim().isEmpty) return [];
+
+      // تقسيم النص بناءً على الفواصل وتنظيف الفراغات
+      return cleaned
+          .split(',')
+          .map((e) => e.trim())
+          .where((e) => e.isNotEmpty)
+          .toList();
+    }
+  }
+
+  // ==========================================
+  // 🌟 محرك دمج الصلاحيات
+  // ==========================================
   Future<void> _processUserPermissions(LocalUser localUser) async {
-    // 1. التحقق من حالة الحساب
     if (localUser.isActive == false) {
       emit(
         state.copyWith(
@@ -85,65 +124,114 @@ class AuthCubit extends Cubit<AuthState> {
 
     var roleName = 'بدون دور';
     var isSystemAdmin = false;
-    final finalPermissions = <String>{}; // نستخدم Set لمنع التكرار
+    final finalPermissions = <String>{};
 
-    // 2. جلب قالب الدور (Role)
+    // 1. جلب صلاحيات الدور (Role) بأمان تام
     if (localUser.roleId != null && localUser.roleId!.isNotEmpty) {
       final role = await _erpRepository.getRoleById(localUser.roleId!);
       if (role != null) {
         roleName = role.name;
         isSystemAdmin = role.isSystemRole;
 
-        // 🛡️ حماية فك تشفير صلاحيات الدور
-        final rolePermsStr = role.permissionsJson.trim();
-        if (rolePermsStr.isNotEmpty && rolePermsStr != 'null') {
-          try {
-            final rolePerms = jsonDecode(rolePermsStr) as List<dynamic>;
-            finalPermissions.addAll(rolePerms.cast<String>());
-          } catch (e, stackTrace) {
-            log(
-              '⚠️ خطأ في فك تشفير صلاحيات الدور',
-              error: e,
-              stackTrace: stackTrace,
-            );
-          }
-        }
+        final rolePerms = _safeParsePermissions(role.permissionsJson);
+        finalPermissions.addAll(rolePerms);
       }
     }
 
-    // 3. إضافة الاستثناءات (Extra)
-    // 🛡️ حماية فك تشفير الاستثناءات
-    final extraPermsStr = localUser.extraPermissionsJson.trim();
-    if (extraPermsStr.isNotEmpty && extraPermsStr != 'null') {
-      try {
-        final extraPerms = jsonDecode(extraPermsStr) as List<dynamic>;
-        finalPermissions.addAll(extraPerms.cast<String>());
-      } catch (e, stackTrace) {
-        log(
-          '⚠️ خطأ في فك تشفير الاستثناءات المضافة',
-          error: e,
-          stackTrace: stackTrace,
-        );
-      }
+    // 2. إضافة الاستثناءات (Extra) بأمان تام
+    final extraPerms = _safeParsePermissions(localUser.extraPermissionsJson);
+    finalPermissions.addAll(extraPerms);
+
+    // 3. طرح الصلاحيات المسحوبة (Revoked) بأمان تام
+    final revokedPerms = _safeParsePermissions(
+      localUser.revokedPermissionsJson,
+    );
+    finalPermissions.removeAll(revokedPerms);
+    // 👇👇 [التحقق من اشتراك المكتب السحابي] 👇👇
+    final expiryDate = await _erpRepository.getLocalSubscriptionExpiry();
+    final now = SecureTime.now();
+
+    // 1. إذا لم يجد تاريخ (تلاعب)، أو 2. إذا تجاوز تاريخ اليوم تاريخ الانتهاء (انتهى الاشتراك)
+    if (expiryDate == null || now.isAfter(expiryDate)) {
+      emit(
+        state.copyWith(
+          status: AuthStatus.subscriptionExpired,
+          errorMessage:
+              'انتهت صلاحية اشتراك المكتب في النظام. يرجى التواصل مع المطور لتسوية الدفعات وتجديد رخصة العمل.',
+          userId: localUser.id,
+          userName: localUser.fullName ?? localUser.email,
+          roleName: roleName,
+          isSystemAdmin: isSystemAdmin,
+          permissions: finalPermissions.toList(),
+        ),
+      );
+      return; // 🛑 منع الدخول تماماً
+    }
+    // 👆👆 [نهاية فحص الاشتراك] 👆👆
+
+    // 👇👇 [الأسطر الجديدة للتحقق من النبضة (Heartbeat)] 👇👇
+    // ========================================================
+    // 🛡️ 1. فحص نبض السحابة (Offline Limit) والتلاعب بالوقت أولاً!
+    // ========================================================
+    final lastHeartbeat = await _erpRepository.getLastHeartbeatTime();
+
+    // نستخدم التوقيت الآمن بدلاً من التوقيت المحلي المزور
+
+    // تقليص فترة السماح إلى 5 دقائق بدلاً من 24 ساعة لسد الثغرة الأولى بالكامل
+    final bool isTimeTampered =
+        lastHeartbeat != null &&
+        now.isBefore(lastHeartbeat.subtract(const Duration(minutes: 5)));
+
+    final int daysPassed = lastHeartbeat != null
+        ? now.difference(lastHeartbeat).inDays
+        : 999;
+
+    // الطرد الفوري إذا تم إرجاع الزمن للوراء أو تجاوز 7 أيام
+    if (lastHeartbeat == null || daysPassed >= 7 || isTimeTampered) {
+      emit(
+        state.copyWith(
+          status: AuthStatus.offlineLock,
+          errorMessage: isTimeTampered
+              ? 'تم اكتشاف تلاعب في ساعة النظام (محاولة إرجاع الزمن). يرجى المزامنة لفك القفل.'
+              : 'تجاوزت الحد المسموح للعمل دون اتصال بالإنترنت (7 أيام). يرجى المزامنة.',
+          userId: localUser.id,
+          userName: localUser.fullName ?? localUser.email,
+          roleName: roleName,
+          isSystemAdmin: isSystemAdmin,
+          permissions: finalPermissions.toList(),
+        ),
+      );
+      return; // 🛑 خروج فوري ومنع الدخول للتطبيق
     }
 
-    // 4. طرح الصلاحيات المسحوبة (Revoked)
-    // 🛡️ حماية فك تشفير الممنوعات
-    final revokedPermsStr = localUser.revokedPermissionsJson.trim();
-    if (revokedPermsStr.isNotEmpty && revokedPermsStr != 'null') {
-      try {
-        final revokedPerms = jsonDecode(revokedPermsStr) as List<dynamic>;
-        finalPermissions.removeAll(revokedPerms.cast<String>());
-      } catch (e, stackTrace) {
-        log(
-          '⚠️ خطأ في فك تشفير الاستثناءات المسحوبة',
-          error: e,
-          stackTrace: stackTrace,
-        );
-      }
+    // ========================================================
+    // 💳 2. فحص رخصة اشتراك المكتب (بعد التأكد من سلامة الوقت)
+    // ========================================================
+
+    // السحر المحاسبي: نقارن تاريخ الانتهاء مع (أحدث وقت موثوق به)
+    // سواء كان الآن، أو آخر نبضة حقيقية من السيرفر، أيهما أحدث.
+    final referenceTime = now.isAfter(lastHeartbeat) ? now : lastHeartbeat;
+
+    final bool isFreshInstall = lastHeartbeat == null && expiryDate == null;
+
+    if (!isFreshInstall &&
+        (expiryDate == null || referenceTime.isAfter(expiryDate))) {
+      emit(
+        state.copyWith(
+          status: AuthStatus.subscriptionExpired,
+          errorMessage:
+              'انتهت صلاحية رخصة النظام. يرجى التواصل مع المطور لتسوية الدفعات وتجديد رخصة العمل.',
+          userId: localUser.id,
+          userName: localUser.fullName ?? localUser.email,
+          roleName: roleName,
+          isSystemAdmin: isSystemAdmin,
+          permissions: finalPermissions.toList(),
+        ),
+      );
+      return; // 🛑 منع الدخول تماماً
     }
 
-    // 5. حفظ النتيجة النهائية النظيفة في الحالة (State)
+    // 3. حفظ النتيجة النهائية النظيفة في الحالة (State) (في الوضع الطبيعي)
     emit(
       state.copyWith(
         status: AuthStatus.authenticated,
@@ -156,10 +244,32 @@ class AuthCubit extends Cubit<AuthState> {
     );
   }
 
-  // دالة لتسجيل الخروج يدوياً
   Future<void> logout() async {
+    _gracePeriodTimer?.cancel();
     emit(state.copyWith(status: AuthStatus.loading));
     await _erpRepository.signOut();
     emit(const AuthState(status: AuthStatus.unauthenticated));
+  }
+
+  static const int gracePeriodMinutes = 5;
+  Timer? _gracePeriodTimer;
+
+  void markPinVerified() {
+    emit(state.copyWith(lastPinVerificationTime: DateTime.now()));
+    _gracePeriodTimer?.cancel();
+    _gracePeriodTimer = Timer(const Duration(minutes: gracePeriodMinutes), () {
+      lockPinSession();
+    });
+  }
+
+  void lockPinSession() {
+    _gracePeriodTimer?.cancel();
+    emit(state.copyWith(clearGracePeriod: true));
+  }
+
+  @override
+  Future<void> close() {
+    _gracePeriodTimer?.cancel();
+    return super.close();
   }
 }

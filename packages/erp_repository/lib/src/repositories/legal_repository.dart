@@ -3,6 +3,8 @@
 
 import 'dart:io';
 
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as p;
 import 'package:cloud_storage_api/cloud_storage_api.dart';
 import 'package:drift/drift.dart' as drift;
 import 'package:local_storage_api/local_storage_api.dart';
@@ -106,16 +108,20 @@ class LegalRepository {
 
     final attachmentId = const Uuid().v7();
 
-    final fileUrl = await _cloudApi.uploadLegalAttachmentFile(
-      attachmentId: attachmentId,
-      file: file,
-      extension: extension,
-    );
+    // 1. الحفظ المحلي
+    final dir = await getApplicationSupportDirectory();
+    final localDirPath = p.join(dir.path, 'pending_uploads');
+    final localDir = Directory(localDirPath);
+    if (!await localDir.exists()) await localDir.create(recursive: true);
 
+    final fileName = 'attach_$attachmentId.$extension';
+    final localFile = await file.copy(p.join(localDir.path, fileName));
+
+    // 2. حفظ المسار المحلي في قاعدة البيانات
     final newAttachment = LegalActionAttachmentsCompanion.insert(
       id: drift.Value(attachmentId),
       legalActionId: actionId,
-      fileUrl: fileUrl,
+      fileUrl: localFile.path, // 🌟 المسار المحلي
       fileName: drift.Value(originalFileName),
       fileType: drift.Value(extension),
       userId: userId,

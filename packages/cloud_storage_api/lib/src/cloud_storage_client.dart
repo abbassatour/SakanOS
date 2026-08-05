@@ -18,6 +18,45 @@ class CloudStorageClient {
   RealtimeChannel? _pricesChannel;
 
   // ==========================================
+  // ⚙️ دالة مساعدة لتجاوز حد الـ 1000 سجل (Pagination)
+  // ==========================================
+  Future<List<Map<String, dynamic>>> _fetchAllPaginated(
+    String tableName, {
+    DateTime? lastSync,
+  }) async {
+    const int limit = 1000;
+    int offset = 0;
+    List<Map<String, dynamic>> allData = [];
+    bool hasMore = true;
+
+    while (hasMore) {
+      var query = _supabase.from(tableName).select();
+
+      if (lastSync != null) {
+        // 🌍 التعديل الذهبي: فرض الـ UTC
+        query = query.gte('updated_at', lastSync.toUtc().toIso8601String());
+      }
+
+      // سحب دفعة (Chunk) من البيانات
+      final response = await query.range(offset, offset + limit - 1);
+      final List<Map<String, dynamic>> chunk = List<Map<String, dynamic>>.from(
+        response,
+      );
+
+      allData.addAll(chunk);
+
+      // إذا كانت الدفعة أقل من الحد الأقصى، فهذا يعني أننا وصلنا للنهاية
+      if (chunk.length < limit) {
+        hasMore = false;
+      } else {
+        offset += limit; // الانتقال للدفعة التالية
+      }
+    }
+
+    return allData;
+  }
+
+  // ==========================================
   // 🔐 المصادقة (Authentication)
   // ==========================================
 
@@ -95,98 +134,75 @@ class CloudStorageClient {
   // نقوم قسرياً باستخدام `.toUtc()` قبل `.toIso8601String()` لضمان أننا نسأل السحابة
   // بناءً على التوقيت العالمي، لأن السحابة تخزن التواريخ بصيغة UTC.
 
-  // 📥 جلب العملاء (تزايدي - Incremental Sync)
-  Future<List<Map<String, dynamic>>> getClients({DateTime? lastSync}) async {
-    var query = _supabase.from('clients').select();
-    if (lastSync != null) {
-      // 🌍 التعديل الذهبي: فرض الـ UTC لضمان المزامنة الصحيحة عبر المناطق الزمنية
-      query = query.gte('updated_at', lastSync.toUtc().toIso8601String());
-    }
-    return await query;
-  }
+  // ==========================================
+  // 📥 دوال سحب البيانات (PULL from Cloud) محصنة ضد الـ 1000 Limit
+  // ==========================================
 
-  // 📥 جلب الأدوار/القوالب (تزايدي)
-  Future<List<Map<String, dynamic>>> getAppRoles({DateTime? lastSync}) async {
-    var query = _supabase.from('app_roles').select();
-    if (lastSync != null) {
-      query = query.gte('updated_at', lastSync.toUtc().toIso8601String());
-    }
-    return await query;
-  }
+  Future<List<Map<String, dynamic>>> getClients({DateTime? lastSync}) =>
+      _fetchAllPaginated('clients', lastSync: lastSync);
 
-  // 📥 جلب المستخدمين وصلاحياتهم (تزايدي)
-  Future<List<Map<String, dynamic>>> getAppUsers({DateTime? lastSync}) async {
-    var query = _supabase.from('app_users').select();
-    if (lastSync != null) {
-      query = query.gte('updated_at', lastSync.toUtc().toIso8601String());
-    }
-    return await query;
-  }
+  Future<List<Map<String, dynamic>>> getAppRoles({DateTime? lastSync}) =>
+      _fetchAllPaginated('app_roles', lastSync: lastSync);
 
-  // 📥 جلب العقود (تزايدي)
-  Future<List<Map<String, dynamic>>> getContracts({DateTime? lastSync}) async {
-    var query = _supabase.from('contracts').select();
-    if (lastSync != null) {
-      // 🌍 فرض الـ UTC
-      query = query.gte('updated_at', lastSync.toUtc().toIso8601String());
-    }
-    return await query;
-  }
+  Future<List<Map<String, dynamic>>> getAppUsers({DateTime? lastSync}) =>
+      _fetchAllPaginated('app_users', lastSync: lastSync);
 
-  // 📥 جلب الدفعات (تزايدي)
-  Future<List<Map<String, dynamic>>> getPayments({DateTime? lastSync}) async {
-    var query = _supabase.from('payments').select();
-    if (lastSync != null) {
-      // 🌍 فرض الـ UTC
-      query = query.gte('updated_at', lastSync.toUtc().toIso8601String());
-    }
-    return await query;
-  }
+  Future<List<Map<String, dynamic>>> getContracts({DateTime? lastSync}) =>
+      _fetchAllPaginated('contracts', lastSync: lastSync);
 
-  // 📥 جلب جدول الاستحقاقات (تزايدي)
-  Future<List<Map<String, dynamic>>> getSchedules({DateTime? lastSync}) async {
-    var query = _supabase.from('installments_schedule').select();
-    if (lastSync != null) {
-      // 🌍 فرض الـ UTC
-      query = query.gte('updated_at', lastSync.toUtc().toIso8601String());
-    }
-    return await query;
-  }
+  Future<List<Map<String, dynamic>>> getPayments({DateTime? lastSync}) =>
+      _fetchAllPaginated('payments', lastSync: lastSync);
 
-  // 🌟 جلب سجل أسعار المواد (غالباً لا نحتاج lastSync هنا إن كنا نجلب السجل كاملاً للإحصائيات)
-  Future<List<Map<String, dynamic>>> getMaterialPrices() async =>
-      await _supabase.from('material_prices').select();
+  Future<List<Map<String, dynamic>>> getSchedules({DateTime? lastSync}) =>
+      _fetchAllPaginated('installments_schedule', lastSync: lastSync);
 
-  // 📥 جلب المحاضر (Buildings)
-  Future<List<Map<String, dynamic>>> getBuildings() async =>
-      await _supabase.from('buildings').select();
+  Future<List<Map<String, dynamic>>> getMaterialPrices() =>
+      _fetchAllPaginated('material_prices');
 
-  // 📥 جلب الشقق (Apartments)
-  Future<List<Map<String, dynamic>>> getApartments() async =>
-      await _supabase.from('apartments').select();
+  Future<List<Map<String, dynamic>>> getBuildings() =>
+      _fetchAllPaginated('buildings');
 
-  // 📥 جلب الإجراءات القانونية
-  Future<List<Map<String, dynamic>>> getLegalActions({
+  Future<List<Map<String, dynamic>>> getApartments() =>
+      _fetchAllPaginated('apartments');
+
+  Future<List<Map<String, dynamic>>> getLegalActions({DateTime? lastSync}) =>
+      _fetchAllPaginated('legal_actions', lastSync: lastSync);
+
+  Future<List<Map<String, dynamic>>> getDollarPrices({DateTime? lastSync}) =>
+      _fetchAllPaginated('dollar_prices', lastSync: lastSync);
+
+  Future<List<Map<String, dynamic>>> getLegalActionAttachments({
     DateTime? lastSync,
-  }) async {
-    var query = _supabase.from('legal_actions').select();
-    if (lastSync != null) {
-      query = query.gte('updated_at', lastSync.toUtc().toIso8601String());
-    }
-    return await query;
-  }
+  }) => _fetchAllPaginated('legal_action_attachments', lastSync: lastSync);
 
-  // 📥 جلب أسعار الدولار (Pull)
-  Future<List<Map<String, dynamic>>> getDollarPrices({
+  Future<List<Map<String, dynamic>>> getContractAttachments({
     DateTime? lastSync,
-  }) async {
-    var query = _supabase.from('dollar_prices').select();
-    if (lastSync != null) {
-      query = query.gte('updated_at', lastSync.toUtc().toIso8601String());
-    }
-    return await query;
-  }
+  }) => _fetchAllPaginated('contract_attachments', lastSync: lastSync);
 
+  Future<List<Map<String, dynamic>>> getApartmentAttachments({
+    DateTime? lastSync,
+  }) => _fetchAllPaginated('apartment_attachments', lastSync: lastSync);
+
+  Future<List<Map<String, dynamic>>> getBuildingAttachments({
+    DateTime? lastSync,
+  }) => _fetchAllPaginated('building_attachments', lastSync: lastSync);
+
+  // ==========================================
+  // 💳 جلب حالة الاشتراك من السحابة
+  // ==========================================
+  Future<Map<String, dynamic>?> getSubscriptionStatus() async {
+    try {
+      final response = await _supabase
+          .from('company_subscription')
+          .select()
+          .eq('id', 1)
+          .maybeSingle(); // يجلب الصف الأول والوحيد
+      return response;
+    } catch (e) {
+      print('⚠️ فشل جلب حالة الاشتراك: $e');
+      return null;
+    }
+  }
   // ==========================================
   // 📤 دوال رفع البيانات (PUSH to Cloud) - (UPSERT)
   // ==========================================
@@ -232,6 +248,10 @@ class CloudStorageClient {
   Future<void> upsertApartment(Map<String, dynamic> apartmentData) async =>
       await _supabase.from('apartments').upsert(apartmentData);
 
+  // 📤 رفع سجل مرفقات الشقق إلى السحابة
+  Future<void> upsertApartmentAttachment(Map<String, dynamic> data) async =>
+      await _supabase.from('apartment_attachments').upsert(data);
+
   // 📤 رفع الإجراءات القانونية
   Future<void> upsertLegalAction(Map<String, dynamic> data) async =>
       await _supabase.from('legal_actions').upsert(data);
@@ -240,82 +260,137 @@ class CloudStorageClient {
   Future<void> upsertDollarPrice(Map<String, dynamic> data) async =>
       await _supabase.from('dollar_prices').upsert(data);
 
+  Future<void> upsertBuildingAttachment(Map<String, dynamic> data) async =>
+      await _supabase.from('building_attachments').upsert(data);
+
   // ==========================================
   // 📂 رفع الملفات إلى Supabase Storage (طريقة التجاوز المباشر HTTP)
   // ==========================================
   /// تقوم هذه الدالة برفع ملف العقد (PDF/Doc) إلى سلة تخزين Supabase.
   /// تم استخدام مكتبة HTTP مباشرة لتجاوز بعض المشاكل المتعلقة بمكتبة Storage الأصلية،
   /// مما يعطينا تحكماً كاملاً بالـ Headers والـ Auth Token.
-  Future<String> uploadContractFile({
-    required String contractId,
-    required File file,
-    required String extension,
-  }) async {
-    const bucketName = 'erp_contracts'; // اسم السلة (Bucket) في Supabase
-    final fileName = 'contract_$contractId.$extension';
-
-    // 1. جلب مفتاح الجلسة الحالي (JWT) للمصادقة للسماح بالرفع
-    final session = _supabase.auth.currentSession;
-    if (session == null) throw Exception('يجب تسجيل الدخول لرفع الملفات.');
-    final jwtToken = session.accessToken;
-
-    // 2. قراءة الملف كبيانات خام (Bytes)
-    final bytes = file.readAsBytesSync();
-
-    // 3. تحديد نوع الملف (MIME Type) لتتعرف عليه السحابة
-    String contentType = 'application/octet-stream'; // الافتراضي
-    if (extension == 'pdf') contentType = 'application/pdf';
-    if (extension == 'doc' || extension == 'docx')
-      contentType = 'application/msword';
-
-    // 4. 🌟 الرابط المباشر لـ Supabase API
-    const projectId = 'krdfrdzyfdcqjmnuzads';
-    final uploadUrl = Uri.parse(
-      'https://$projectId.supabase.co/storage/v1/object/$bucketName/$fileName',
-    );
-
-    // 5. إطلاق صاروخ الـ HTTP مباشرة للسيرفر (Post Request)
-    final response = await http.post(
-      uploadUrl,
-      headers: {
-        'Authorization': 'Bearer $jwtToken',
-        'Content-Type': contentType,
-        'x-upsert':
-            'true', // هذه القيمة تسمح باستبدال الملف لو تم رفعه مسبقاً بنفس الاسم
-      },
-      body: bytes,
-    );
-
-    // 6. التحقق من الرد (Status Code 200 يعني نجاح العملية) وإرجاع الرابط العام
-    if (response.statusCode == 200) {
-      final publicUrl =
-          'https://$projectId.supabase.co/storage/v1/object/public/$bucketName/$fileName';
-      return publicUrl;
-    } else {
-      throw Exception(
-        'فشل الرفع من السيرفر: ${response.statusCode} - ${response.body}',
-      );
-    }
-  }
 
   // ==========================================
   // 📎 دوال مرفقات الإجراءات القانونية (تمت الإضافة)
   // ==========================================
 
-  // 1. 📥 جلب سجلات المرفقات من السحابة (تزايدي)
-  Future<List<Map<String, dynamic>>> getLegalActionAttachments({
-    DateTime? lastSync,
-  }) async {
-    var query = _supabase.from('legal_action_attachments').select();
-    if (lastSync != null) {
-      query = query.gte('updated_at', lastSync.toUtc().toIso8601String());
-    }
-    return await query;
-  }
-
   // 2. 📤 رفع سجل المرفق إلى السحابة
   Future<void> upsertLegalActionAttachment(Map<String, dynamic> data) async =>
       await _supabase.from('legal_action_attachments').upsert(data);
+
+  // 📤 رفع سجل مرفقات العقود إلى السحابة
+  Future<void> upsertContractAttachment(Map<String, dynamic> data) async =>
+      await _supabase.from('contract_attachments').upsert(data);
+
+  // 📂 رفع مرفقات المحاضر
+  Future<String> uploadBuildingAttachmentFile({
+    required String attachmentId,
+    required File file,
+    required String extension,
+  }) async {
+    const bucketName = 'building_attachments';
+    final fileName = 'attach_$attachmentId.$extension';
+
+    var session = _supabase.auth.currentSession;
+    if (session == null) throw Exception('يجب تسجيل الدخول لرفع الملفات.');
+
+    if (session.isExpired) {
+      final response = await _supabase.auth.refreshSession();
+      session = response.session;
+    }
+
+    final jwtToken = session?.accessToken;
+    if (jwtToken == null) throw Exception('فشل الحصول على مفتاح الجلسة الآمن.');
+
+    final bytes = file.readAsBytesSync();
+
+    String contentType = 'application/octet-stream';
+    if (extension == 'pdf') contentType = 'application/pdf';
+    if (extension == 'png') contentType = 'image/png';
+    if (extension == 'jpg' || extension == 'jpeg') contentType = 'image/jpeg';
+    if (extension == 'doc' || extension == 'docx')
+      contentType = 'application/msword';
+    if (extension == 'xls') contentType = 'application/vnd.ms-excel';
+    if (extension == 'xlsx')
+      contentType =
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+
+    final String storageUrl = _supabase.storage.url;
+    final uploadUrl = Uri.parse('$storageUrl/object/$bucketName/$fileName');
+
+    final response = await http.post(
+      uploadUrl,
+      headers: {
+        'Authorization': 'Bearer $jwtToken',
+        'Content-Type': contentType,
+        'x-upsert': 'true',
+      },
+      body: bytes,
+    );
+
+    if (response.statusCode == 200) {
+      return fileName;
+    } else {
+      throw Exception(
+        'فشل رفع مرفق المحضر: ${response.statusCode} - ${response.body}',
+      );
+    }
+  }
+
+  // 📂 رفع مرفقات الشقق
+  Future<String> uploadApartmentAttachmentFile({
+    required String attachmentId,
+    required File file,
+    required String extension,
+  }) async {
+    const bucketName = 'apartment_attachments';
+    final fileName = 'attach_$attachmentId.$extension';
+
+    var session = _supabase.auth.currentSession;
+    if (session == null) throw Exception('يجب تسجيل الدخول لرفع الملفات.');
+
+    if (session.isExpired) {
+      final response = await _supabase.auth.refreshSession();
+      session = response.session;
+    }
+
+    final jwtToken = session?.accessToken;
+    if (jwtToken == null) throw Exception('فشل الحصول على مفتاح الجلسة الآمن.');
+
+    final bytes = file.readAsBytesSync();
+
+    String contentType = 'application/octet-stream';
+    if (extension == 'pdf') contentType = 'application/pdf';
+    if (extension == 'png') contentType = 'image/png';
+    if (extension == 'jpg' || extension == 'jpeg') contentType = 'image/jpeg';
+    if (extension == 'doc' || extension == 'docx')
+      contentType = 'application/msword';
+    if (extension == 'xls') contentType = 'application/vnd.ms-excel';
+    if (extension == 'xlsx')
+      contentType =
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+
+    final String storageUrl = _supabase.storage.url;
+    final uploadUrl = Uri.parse('$storageUrl/object/$bucketName/$fileName');
+
+    final response = await http.post(
+      uploadUrl,
+      headers: {
+        'Authorization': 'Bearer $jwtToken',
+        'Content-Type': contentType,
+        'x-upsert': 'true',
+      },
+      body: bytes,
+    );
+
+    if (response.statusCode == 200) {
+      return fileName;
+    } else {
+      throw Exception(
+        'فشل رفع مرفق الشقة: ${response.statusCode} - ${response.body}',
+      );
+    }
+  }
 
   // 3. 📂 رفع الملف الفعلي (PDF/صورة) إلى سلة المرفقات
   Future<String> uploadLegalAttachmentFile({
@@ -327,9 +402,16 @@ class CloudStorageClient {
     const bucketName = 'legal_attachments';
     final fileName = 'attach_$attachmentId.$extension';
 
-    final session = _supabase.auth.currentSession;
+    var session = _supabase.auth.currentSession;
     if (session == null) throw Exception('يجب تسجيل الدخول لرفع الملفات.');
-    final jwtToken = session.accessToken;
+
+    if (session.isExpired) {
+      final response = await _supabase.auth.refreshSession();
+      session = response.session;
+    }
+
+    final jwtToken = session?.accessToken;
+    if (jwtToken == null) throw Exception('فشل الحصول على مفتاح الجلسة الآمن.');
 
     final bytes = file.readAsBytesSync();
 
@@ -345,9 +427,10 @@ class CloudStorageClient {
       contentType =
           'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
 
-    const projectId = 'krdfrdzyfdcqjmnuzads'; // نفس البروجيكت آي دي الخاص بك
+    // استخراج رابط الـ Storage السحابي ديناميكياً
+    final String storageUrl = _supabase.storage.url;
     final uploadUrl = Uri.parse(
-      'https://$projectId.supabase.co/storage/v1/object/$bucketName/$fileName',
+      '$storageUrl/object/$bucketName/$fileName',
     );
 
     final response = await http.post(
@@ -361,11 +444,94 @@ class CloudStorageClient {
     );
 
     if (response.statusCode == 200) {
-      return 'https://$projectId.supabase.co/storage/v1/object/public/$bucketName/$fileName';
+      return fileName; // 🌟 تم التعديل: إرجاع اسم الملف فقط
     } else {
       throw Exception(
         'فشل رفع المرفق: ${response.statusCode} - ${response.body}',
       );
     }
+  }
+
+  // 📂 رفع الملف الفعلي (مرفقات العقود الجديدة) إلى سلة المرفقات
+  Future<String> uploadContractAttachmentFile({
+    required String attachmentId,
+    required File file,
+    required String extension,
+  }) async {
+    const bucketName = 'contract_attachments';
+    final fileName = 'attach_$attachmentId.$extension';
+
+    var session = _supabase.auth.currentSession;
+    if (session == null) throw Exception('يجب تسجيل الدخول لرفع الملفات.');
+
+    if (session.isExpired) {
+      final response = await _supabase.auth.refreshSession();
+      session = response.session;
+    }
+
+    final jwtToken = session?.accessToken;
+    if (jwtToken == null) throw Exception('فشل الحصول على مفتاح الجلسة الآمن.');
+
+    final bytes = file.readAsBytesSync();
+
+    String contentType = 'application/octet-stream';
+    if (extension == 'pdf') contentType = 'application/pdf';
+    if (extension == 'png') contentType = 'image/png';
+    if (extension == 'jpg' || extension == 'jpeg') contentType = 'image/jpeg';
+    if (extension == 'doc' || extension == 'docx')
+      contentType = 'application/msword';
+    if (extension == 'xls') contentType = 'application/vnd.ms-excel';
+    if (extension == 'xlsx')
+      contentType =
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+
+    // استخراج رابط الـ Storage السحابي ديناميكياً
+    final String storageUrl = _supabase.storage.url;
+    final uploadUrl = Uri.parse('$storageUrl/object/$bucketName/$fileName');
+
+    final response = await http.post(
+      uploadUrl,
+      headers: {
+        'Authorization': 'Bearer $jwtToken',
+        'Content-Type': contentType,
+        'x-upsert': 'true',
+      },
+      body: bytes,
+    );
+
+    if (response.statusCode == 200) {
+      return fileName; // إرجاع اسم الملف فقط لحفظه في الداتابيز
+    } else {
+      throw Exception(
+        'فشل رفع مرفق العقد: ${response.statusCode} - ${response.body}',
+      );
+    }
+  }
+
+  // ==========================================
+  // 🔐 توليد الروابط الآمنة المؤقتة (Signed URLs)
+  // ==========================================
+  Future<String> getSecureSignedUrl(
+    String bucketName,
+    String storedPath,
+  ) async {
+    String actualFileName = storedPath;
+
+    // توافقية رجعية (Backward Compatibility):
+    // إذا كان المسار المخزن هو رابط قديم (Public URL)، نستخرج اسم الملف منه.
+    if (storedPath.startsWith('http')) {
+      final uri = Uri.parse(storedPath);
+      final segments = uri.pathSegments;
+      final bucketIndex = segments.indexOf(bucketName);
+      if (bucketIndex != -1 && bucketIndex < segments.length - 1) {
+        actualFileName = segments.sublist(bucketIndex + 1).join('/');
+      }
+    }
+
+    // توليد رابط آمن صالح لمدة 5 دقائق (300 ثانية)
+    final signedUrl = await _supabase.storage
+        .from(bucketName)
+        .createSignedUrl(actualFileName, 300);
+    return signedUrl;
   }
 }

@@ -1,0 +1,30 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "SakanOS (Development)",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/main_development.dart"
+        },
+        {
+            "name": "SakanOS (Staging)",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/main_staging.dart"
+        },
+        {
+            "name": "SakanOS (Production)",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/main_production.dart"
+        },
+        {
+            "name": "SakanOS (Profile Mode) 🚀",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/main_development.dart",
+            "flutterMode": "profile"
+        }
+    ]
+}

@@ -1,6 +1,4 @@
 // lib/buildings/widgets/copy_floor_dialog.dart
-// ignore_for_file: always_use_package_imports, depend_on_referenced_packages
-
 import 'dart:async';
 import 'dart:convert';
 
@@ -8,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:local_storage_api/local_storage_api.dart'
     show Apartment, Building;
+import 'package:our_home_erp_app/l10n/l10n.dart';
 
 import '../cubit/buildings_cubit.dart';
 
@@ -18,10 +17,11 @@ void showCopyFloorDialog(
   List<Apartment> sourceApartments,
   List<String> allFloors,
 ) {
+  final l10n = parentContext.l10n;
   final targetFloors = allFloors.where((f) => f != sourceFloorName).toList();
   if (targetFloors.isEmpty) {
     ScaffoldMessenger.of(parentContext).showSnackBar(
-      const SnackBar(content: Text('لا توجد طوابق أخرى للنسخ إليها!')),
+      SnackBar(content: Text(l10n.copyFloorNoTargetWarning)),
     );
     return;
   }
@@ -86,13 +86,14 @@ class _CopyFloorDialogContentState extends State<_CopyFloorDialogContent> {
   }
 
   void _handleSave() {
+    final l10n = context.l10n;
     final hasEmpty = _newNumberControllers.values.any(
       (c) => c.text.trim().isEmpty,
     );
     if (hasEmpty || _selectedTargetFloor == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('يرجى تعبئة أرقام جميع الشقق!'),
+        SnackBar(
+          content: Text(l10n.copyFloorEmptyNumbersWarning),
           backgroundColor: Colors.red,
         ),
       );
@@ -101,15 +102,19 @@ class _CopyFloorDialogContentState extends State<_CopyFloorDialogContent> {
 
     final availableFloors =
         jsonDecode(widget.building.floorCoefficients) as Map<String, dynamic>;
-    final targetFloorPercentage = (availableFloors[_selectedTargetFloor] as num)
-        .toDouble();
+    final targetFloorPercentage =
+        (availableFloors[_selectedTargetFloor] as num?)?.toDouble() ?? 0.0;
 
     final cubit = context.read<BuildingsCubit>();
 
     for (final apt in widget.sourceApartments) {
       final copiedCoeffs =
           jsonDecode(apt.customCoefficients) as Map<String, dynamic>
-            ..removeWhere((key, value) => key.startsWith('الطابق'));
+            ..removeWhere(
+              (key, value) =>
+                  key.startsWith('الطابق') ||
+                  key.toLowerCase().contains('floor'),
+            );
 
       if (targetFloorPercentage != 0.0) {
         copiedCoeffs['الطابق ($_selectedTargetFloor)'] = targetFloorPercentage;
@@ -133,7 +138,7 @@ class _CopyFloorDialogContentState extends State<_CopyFloorDialogContent> {
     Navigator.pop(context);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('تم استنساخ الشقق إلى $_selectedTargetFloor بنجاح! ✅'),
+        content: Text(l10n.copyFloorSuccess(_selectedTargetFloor!)),
         backgroundColor: Colors.green,
       ),
     );
@@ -141,6 +146,8 @@ class _CopyFloorDialogContentState extends State<_CopyFloorDialogContent> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       titlePadding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
@@ -162,7 +169,7 @@ class _CopyFloorDialogContentState extends State<_CopyFloorDialogContent> {
           const SizedBox(width: 16),
           Expanded(
             child: Text(
-              'استنساخ شقق ${widget.sourceFloorName}',
+              l10n.copyFloorDialogTitle(widget.sourceFloorName),
               style: const TextStyle(
                 color: Colors.black87,
                 fontWeight: FontWeight.bold,
@@ -197,9 +204,7 @@ class _CopyFloorDialogContentState extends State<_CopyFloorDialogContent> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        'سيتم نسخ المساحات، الاتجاهات، ومعاملات الربح والوجيبة '
-                        'بدقة تامة. (سيتم تحديث النسبة المالية للطابق '
-                        'الجديد آلياً).',
+                        l10n.copyFloorInfoBanner,
                         style: TextStyle(
                           color: Colors.blue.shade900,
                           fontWeight: FontWeight.w600,
@@ -235,9 +240,9 @@ class _CopyFloorDialogContentState extends State<_CopyFloorDialogContent> {
                           color: Colors.orange.shade600,
                         ),
                         const SizedBox(width: 8),
-                        const Text(
-                          'الطابق الوجهة (الهدف)',
-                          style: TextStyle(
+                        Text(
+                          l10n.copyFloorTargetHeader,
+                          style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
                             color: Colors.orange,
@@ -254,7 +259,7 @@ class _CopyFloorDialogContentState extends State<_CopyFloorDialogContent> {
                         color: Colors.black87,
                       ),
                       decoration: InputDecoration(
-                        labelText: 'اختر الطابق المراد النسخ إليه',
+                        labelText: l10n.copyFloorSelectTargetLabel,
                         prefixIcon: Icon(
                           Icons.layers,
                           size: 20,
@@ -322,9 +327,9 @@ class _CopyFloorDialogContentState extends State<_CopyFloorDialogContent> {
                           color: Colors.indigo.shade400,
                         ),
                         const SizedBox(width: 8),
-                        const Text(
-                          'يرجى تحديد أرقام الشقق الجديدة لمنع التكرار',
-                          style: TextStyle(
+                        Text(
+                          l10n.copyFloorNewNumbersHeader,
+                          style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
                             color: Colors.indigo,
@@ -360,7 +365,9 @@ class _CopyFloorDialogContentState extends State<_CopyFloorDialogContent> {
                                           CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          'نسخة عن: ${apt.apartmentNumber}',
+                                          l10n.copyFloorCopyOf(
+                                            apt.apartmentNumber,
+                                          ),
                                           style: const TextStyle(
                                             fontWeight: FontWeight.bold,
                                             fontSize: 13,
@@ -369,7 +376,7 @@ class _CopyFloorDialogContentState extends State<_CopyFloorDialogContent> {
                                         ),
                                         const SizedBox(height: 2),
                                         Text(
-                                          'المساحة: ${apt.area} م²',
+                                          l10n.copyFloorAreaLabel(apt.area),
                                           style: TextStyle(
                                             fontWeight: FontWeight.bold,
                                             fontSize: 12,
@@ -391,7 +398,7 @@ class _CopyFloorDialogContentState extends State<_CopyFloorDialogContent> {
                                   fontWeight: FontWeight.bold,
                                 ),
                                 decoration: InputDecoration(
-                                  labelText: 'الرقم الجديد',
+                                  labelText: l10n.copyFloorNewNumberLabel,
                                   filled: true,
                                   fillColor: Colors.white,
                                   contentPadding: const EdgeInsets.symmetric(
@@ -438,9 +445,9 @@ class _CopyFloorDialogContentState extends State<_CopyFloorDialogContent> {
           style: TextButton.styleFrom(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
           ),
-          child: const Text(
-            'إلغاء',
-            style: TextStyle(
+          child: Text(
+            l10n.btnCancel,
+            style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
               color: Colors.grey,
@@ -459,9 +466,9 @@ class _CopyFloorDialogContentState extends State<_CopyFloorDialogContent> {
           ),
           onPressed: _handleSave,
           icon: const Icon(Icons.check_circle_outline),
-          label: const Text(
-            'اعتماد وحفظ النسخ',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          label: Text(
+            l10n.btnConfirmCopy,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
         ),
       ],

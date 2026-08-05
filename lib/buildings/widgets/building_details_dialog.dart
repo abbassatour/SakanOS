@@ -4,6 +4,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:local_storage_api/local_storage_api.dart' show Building;
+import 'package:our_home_erp_app/l10n/l10n.dart';
 
 void showBuildingDetailsDialog(BuildContext context, Building building) {
   unawaited(
@@ -21,6 +22,8 @@ class _BuildingDetailsDialogContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     var floorCoeffs = <String, dynamic>{};
     var generalCoeffs = <String, dynamic>{};
 
@@ -29,9 +32,7 @@ class _BuildingDetailsDialogContent extends StatelessWidget {
           jsonDecode(building.floorCoefficients) as Map<String, dynamic>;
       generalCoeffs =
           jsonDecode(building.directionCoefficients) as Map<String, dynamic>;
-    } catch (_) {
-      // تم تجاهل الخطأ بصمت لتفادي الانهيار إذا كانت القيمة فارغة أو تالفة
-    }
+    } catch (_) {}
 
     return AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -54,7 +55,7 @@ class _BuildingDetailsDialogContent extends StatelessWidget {
           const SizedBox(width: 16),
           Expanded(
             child: Text(
-              'تفاصيل محضر: ${building.name}',
+              l10n.bldDetailsDialogTitle(building.name),
               style: const TextStyle(
                 color: Colors.black87,
                 fontWeight: FontWeight.bold,
@@ -93,7 +94,7 @@ class _BuildingDetailsDialogContent extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'الموقع الجغرافي للمحضر',
+                            l10n.bldLocationHeader,
                             style: TextStyle(
                               fontSize: 12,
                               color: Colors.blue.shade800,
@@ -102,7 +103,7 @@ class _BuildingDetailsDialogContent extends StatelessWidget {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            building.location ?? 'غير محدد',
+                            building.location ?? l10n.bldUnspecified,
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
@@ -138,9 +139,9 @@ class _BuildingDetailsDialogContent extends StatelessWidget {
                       children: [
                         Icon(Icons.tune, color: Colors.teal.shade600),
                         const SizedBox(width: 8),
-                        const Text(
-                          'المعاملات العامة للمحضر والجهات',
-                          style: TextStyle(
+                        Text(
+                          l10n.bldGeneralCoeffsHeader,
+                          style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
                             color: Colors.teal,
@@ -156,10 +157,10 @@ class _BuildingDetailsDialogContent extends StatelessWidget {
                           color: Colors.grey.shade50,
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: const Center(
+                        child: Center(
                           child: Text(
-                            'لا توجد معاملات عامة مسجلة لهذا المحضر.',
-                            style: TextStyle(color: Colors.grey),
+                            l10n.bldNoGeneralCoeffs,
+                            style: const TextStyle(color: Colors.grey),
                           ),
                         ),
                       )
@@ -237,9 +238,9 @@ class _BuildingDetailsDialogContent extends StatelessWidget {
                       children: [
                         Icon(Icons.layers, color: Colors.indigo.shade600),
                         const SizedBox(width: 8),
-                        const Text(
-                          'هيكل الطوابق ونسب التمييز (الأسعار)',
-                          style: TextStyle(
+                        Text(
+                          l10n.bldFloorStructureHeader,
+                          style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
                             color: Colors.indigo,
@@ -255,10 +256,10 @@ class _BuildingDetailsDialogContent extends StatelessWidget {
                           color: Colors.grey.shade50,
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: const Center(
+                        child: Center(
                           child: Text(
-                            'لم يتم إعداد هيكل طوابق لهذا المحضر.',
-                            style: TextStyle(color: Colors.grey),
+                            l10n.bldNoFloorStructure,
+                            style: const TextStyle(color: Colors.grey),
                           ),
                         ),
                       )
@@ -267,7 +268,9 @@ class _BuildingDetailsDialogContent extends StatelessWidget {
                         spacing: 10,
                         runSpacing: 10,
                         children: floorCoeffs.entries.map((e) {
-                          final isBasement = e.key.contains('القبو');
+                          final isBasement =
+                              e.key.contains('القبو') ||
+                              e.key.toLowerCase().contains('basement');
                           final bgColor = isBasement
                               ? Colors.brown.shade50
                               : Colors.indigo.shade50;
@@ -345,9 +348,9 @@ class _BuildingDetailsDialogContent extends StatelessWidget {
               ),
             ),
             onPressed: () => Navigator.pop(context),
-            child: const Text(
-              'إغلاق التفاصيل',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            child: Text(
+              l10n.btnCloseDetails,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
           ),
         ),

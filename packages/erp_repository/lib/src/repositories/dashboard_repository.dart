@@ -34,6 +34,7 @@ class ActivityItem {
 class DashboardMetrics {
   DashboardMetrics({
     required this.totalRevenue,
+    required this.totalRefundedAmount, // 🌟 الإضافة الجديدة
     required this.totalAreaSold,
     required this.totalPaidMeters,
     required this.totalOverdueDebts,
@@ -46,9 +47,17 @@ class DashboardMetrics {
     required this.costTrend,
     required this.contractsByType,
     required this.recentActivities,
+    required this.allocatedSoldMeters,
+    required this.allocatedPaidMeters,
+    required this.unallocatedPaidMeters,
+    required this.allocatedUndeliveredMeters,
+    required this.overduePreHandover,
+    required this.overduePostHandover,
+    required this.totalAvailableArea,
   });
 
   final double totalRevenue;
+  final double totalRefundedAmount; // 🌟 الإضافة الجديدة
   final double totalAreaSold;
   final double totalPaidMeters;
   final double totalOverdueDebts;
@@ -61,6 +70,15 @@ class DashboardMetrics {
   final Map<String, double> costTrend;
   final Map<String, int> contractsByType;
   final List<ActivityItem> recentActivities;
+
+  // 🌟 حقول التحليل المالي والفصل المحاسبي الجديد
+  final double allocatedSoldMeters;
+  final double allocatedPaidMeters;
+  final double unallocatedPaidMeters;
+  final double allocatedUndeliveredMeters;
+  final double overduePreHandover;
+  final double overduePostHandover;
+  final double totalAvailableArea;
 }
 
 class DashboardRepository {
@@ -160,7 +178,7 @@ class DashboardRepository {
   }
 
   // ==========================================
-  // 📊 محرك الإحصائيات (Metrics Engine)
+  // 📊 محرك الإحصائيات وفصل الأصول والالتزامات
   // ==========================================
   int _monthsBetween(DateTime from, DateTime to) {
     final years = to.year - from.year;
@@ -185,24 +203,33 @@ class DashboardRepository {
     final dollarPrices = await _localApi.getAllDollarPricesHistory();
 
     var totalRevenue = 0.0;
-    var totalAreaSold = 0.0;
-    var totalPaidMeters = 0.0;
-    var totalOverdueDebts = 0.0;
-    var totalUndeliveredMeters = 0.0;
+    var totalRefundedAmount = 0.0;
+
+    // 🌟 تهيئة المتغيرات المفرزة الجديدة بدقة بالغة
+    var allocatedSoldMeters = 0.0;
+    var allocatedPaidMeters = 0.0;
+    var unallocatedPaidMeters = 0.0;
+    var allocatedUndeliveredMeters = 0.0;
+
+    var overduePreHandover = 0.0;
+    var overduePostHandover = 0.0;
+    var totalAvailableArea = 0.0;
 
     final inventoryStatus = {'متاحة': 0, 'مباعة': 0, 'مُسلّمة': 0};
     final tempGroupedRev = <String, double>{};
     final tempDollarTrend = <String, List<double>>{};
     final tempCostTrend = <String, List<double>>{};
 
-    final now = DateTime.now().toUtc();
+    final now = SecureTime.now();
+    final validDailyDates = <DateTime>[];
 
     // تهيئة الخرائط الزمنية
     if (timeFilter == DashboardTimeFilter.daily) {
       for (var i = 6; i >= 0; i--) {
-        final key = DateFormat(
-          'MM-dd',
-        ).format(refDate.subtract(Duration(days: i)));
+        final d = refDate.subtract(Duration(days: i));
+        validDailyDates.add(DateTime(d.year, d.month, d.day));
+
+        final key = DateFormat('MM-dd').format(d);
         tempGroupedRev[key] = 0.0;
         tempDollarTrend[key] = [];
         tempCostTrend[key] = [];
@@ -229,14 +256,33 @@ class DashboardRepository {
       }
     }
 
-    // 1. حساب المدفوعات الإجمالية والأمتار المحصلة
+    // 1. حساب المدفوعات وتوزيع الأمتار المحصلة بين مخصص ومحفظة لاحق التخصص
     for (final p in payments) {
-      totalRevenue += p.amountPaid;
-      totalPaidMeters += p.convertedMeters;
+      totalRevenue += p.amountPaid; // سيبقى يمثل (صافي الصندوق)
+      if (p.amountPaid < 0) {
+        totalRefundedAmount += p.amountPaid.abs(); // 🌟 تتبع الأموال الخارجة
+      }
+      final relatedContract = contracts.firstWhere(
+        (c) => c.id == p.contractId,
+        orElse: () => throw Exception('عقد مفقود'),
+      );
+
+      if (!relatedContract.isDeleted) {
+        if (relatedContract.contractType == 'متخصص') {
+          allocatedPaidMeters += p.convertedMeters;
+        } else {
+          unallocatedPaidMeters += p.convertedMeters;
+        }
+      }
 
       if (timeFilter == DashboardTimeFilter.daily) {
-        final key = DateFormat('MM-dd').format(p.paymentDate);
-        if (tempGroupedRev.containsKey(key)) {
+        final pDate = DateTime(
+          p.paymentDate.year,
+          p.paymentDate.month,
+          p.paymentDate.day,
+        );
+        if (validDailyDates.contains(pDate)) {
+          final key = DateFormat('MM-dd').format(pDate);
           tempGroupedRev[key] = tempGroupedRev[key]! + p.amountPaid;
         }
       } else if (timeFilter == DashboardTimeFilter.weekly &&
@@ -264,23 +310,37 @@ class DashboardRepository {
 
     final byType = <String, int>{};
 
-    // 2. تحليل العقود
+    // 2. تحليل العقود وحساب التزامات البناء والذمم الجارية والمستحقة بدقة
     for (final c in contracts) {
       if (c.isDeleted) continue;
 
-      totalAreaSold += c.totalArea;
+      if (c.contractType == 'متخصص') {
+        allocatedSoldMeters += c.totalArea;
+        if (!c.isHandedOver) {
+          allocatedUndeliveredMeters += c.totalArea;
+        }
+      }
+
       byType[c.contractType] = (byType[c.contractType] ?? 0) + 1;
 
-      if (!c.isHandedOver) totalUndeliveredMeters += c.totalArea;
-
-      if (!c.isCompleted && c.agreedMonthlyAmount > 0) {
+      // حساب المتأخرات والديون المالية وتوزيعها (ذمم مدينة مستحقة أو تحت الإنشاء)
+      if (!c.isCompleted) {
         var monthsPassed = _monthsBetween(c.contractDate, now);
         if (monthsPassed > c.installmentsCount) {
           monthsPassed = c.installmentsCount;
         }
 
-        final expectedPayment =
-            c.downPayment + (monthsPassed * c.agreedMonthlyAmount);
+        var expectedPayment = c.downPayment;
+        if (c.agreedMonthlyAmount > 0) {
+          expectedPayment += (monthsPassed * c.agreedMonthlyAmount);
+        }
+
+        final contractSchedules = await _localApi.getContractSchedule(c.id);
+        for (final s in contractSchedules) {
+          if (s.expectedAmount != null && s.dueDate.isBefore(now)) {
+            expectedPayment += s.expectedAmount!;
+          }
+        }
 
         var actualPaidForThisContract = 0.0;
         for (final p in payments.where(
@@ -312,7 +372,13 @@ class DashboardRepository {
         }
 
         if (overdue > 0) {
-          totalOverdueDebts += overdue;
+          if (c.isHandedOver) {
+            overduePostHandover +=
+                overdue; // ذمم مدينة مستحقة (مسلمة وبها فوائد)
+          } else {
+            overduePreHandover +=
+                overdue; // ذمم مدينة تحت الإنشاء (جارية وبدون غرامات)
+          }
         }
       }
     }
@@ -322,8 +388,13 @@ class DashboardRepository {
       if (d.isDeleted) continue;
 
       if (timeFilter == DashboardTimeFilter.daily) {
-        final key = DateFormat('MM-dd').format(d.effectiveDate);
-        if (tempDollarTrend.containsKey(key)) {
+        final dDate = DateTime(
+          d.effectiveDate.year,
+          d.effectiveDate.month,
+          d.effectiveDate.day,
+        );
+        if (validDailyDates.contains(dDate)) {
+          final key = DateFormat('MM-dd').format(dDate);
           tempDollarTrend[key]!.add(d.exchangeRate);
         }
       } else if (timeFilter == DashboardTimeFilter.weekly &&
@@ -352,6 +423,7 @@ class DashboardRepository {
     for (final apt in apartments) {
       if (apt.status == 'available') {
         inventoryStatus['متاحة'] = inventoryStatus['متاحة']! + 1;
+        totalAvailableArea += apt.area;
       } else if (apt.status == 'delivered') {
         inventoryStatus['مُسلّمة'] = inventoryStatus['مُسلّمة']! + 1;
       } else {
@@ -370,8 +442,13 @@ class DashboardRepository {
           (price.ordinaryWorkerWage * 1.0);
 
       if (timeFilter == DashboardTimeFilter.daily) {
-        final key = DateFormat('MM-dd').format(price.effectiveDate);
-        if (tempCostTrend.containsKey(key)) {
+        final pDate = DateTime(
+          price.effectiveDate.year,
+          price.effectiveDate.month,
+          price.effectiveDate.day,
+        );
+        if (validDailyDates.contains(pDate)) {
+          final key = DateFormat('MM-dd').format(pDate);
           tempCostTrend[key]!.add(baseCost);
         }
       } else if (timeFilter == DashboardTimeFilter.weekly &&
@@ -436,10 +513,13 @@ class DashboardRepository {
 
     return DashboardMetrics(
       totalRevenue: totalRevenue,
-      totalAreaSold: totalAreaSold,
-      totalPaidMeters: totalPaidMeters,
-      totalOverdueDebts: totalOverdueDebts,
-      totalUndeliveredMeters: totalUndeliveredMeters,
+      totalRefundedAmount: totalRefundedAmount, // 🌟 تمرير القيمة
+      // تأمين التوافقية البرمجية مع الحفاظ على المنطق المحاسبي سليم
+      totalAreaSold: allocatedSoldMeters + unallocatedPaidMeters,
+      totalPaidMeters: allocatedPaidMeters + unallocatedPaidMeters,
+      totalOverdueDebts: overduePreHandover + overduePostHandover,
+      totalUndeliveredMeters:
+          allocatedUndeliveredMeters + unallocatedPaidMeters,
       inventoryStatus: inventoryStatus,
       activeContractsCount: contracts
           .where((c) => !c.isDeleted && !c.isCompleted)
@@ -450,6 +530,14 @@ class DashboardRepository {
       costTrend: finalCostTrend,
       contractsByType: byType,
       recentActivities: activities,
+      // 🌟 الحقول الاحترافية المفرزة والمكشوفة حديثاً للإحصائيات المتخصصة
+      allocatedSoldMeters: allocatedSoldMeters,
+      allocatedPaidMeters: allocatedPaidMeters,
+      unallocatedPaidMeters: unallocatedPaidMeters,
+      allocatedUndeliveredMeters: allocatedUndeliveredMeters,
+      overduePreHandover: overduePreHandover,
+      overduePostHandover: overduePostHandover,
+      totalAvailableArea: totalAvailableArea,
     );
   }
 }

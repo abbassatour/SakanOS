@@ -2,6 +2,7 @@
 import 'dart:io';
 
 import 'package:drift/drift.dart';
+import 'package:local_storage_api/local_storage_api.dart';
 import 'package:drift/native.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
@@ -19,6 +20,9 @@ import 'tables/legal_actions.dart';
 import 'tables/local_users.dart';
 import 'tables/material_prices_history.dart';
 import 'tables/payments_ledger.dart';
+import 'tables/contract_attachments.dart';
+import 'tables/apartment_attachments.dart';
+import 'tables/building_attachments.dart';
 
 part 'database.g.dart';
 
@@ -36,10 +40,14 @@ part 'database.g.dart';
     LocalUsers,
     LegalActions,
     LegalActionAttachments,
+    ContractAttachments,
+    ApartmentAttachments,
+    BuildingAttachments, // 🌟 الجدول الجديد
   ],
 )
 class AppDatabase extends _$AppDatabase {
-  AppDatabase() : super(_openConnection());
+  // 🌟 تعديل هندسي: نسمح بتمرير (QueryExecutor) من الخارج من أجل اختبارات الـ In-Memory
+  AppDatabase({QueryExecutor? e}) : super(e ?? _openConnection());
 
   @override
   int get schemaVersion => 1;
@@ -62,7 +70,7 @@ class AppDatabase extends _$AppDatabase {
   // ==========================================
   Future<void> softDeleteClient(String clientId, String userId) async {
     return transaction(() async {
-      final nowUtc = Value(DateTime.now().toUtc());
+      final nowUtc = Value(SecureTime.now());
 
       await (update(clients)..where((t) => t.id.equals(clientId))).write(
         ClientsCompanion(
@@ -131,7 +139,7 @@ class AppDatabase extends _$AppDatabase {
       LegalActionsCompanion(
         isDeleted: const Value(true),
         userId: Value(userId),
-        updatedAt: Value(DateTime.now().toUtc()),
+        updatedAt: Value(SecureTime.now()),
         isSynced: const Value(false),
       ),
     );
@@ -142,7 +150,7 @@ class AppDatabase extends _$AppDatabase {
       legalActions,
     )..where((t) => t.id.equals(action.id.value))).write(
       action.copyWith(
-        updatedAt: Value(DateTime.now().toUtc()),
+        updatedAt: Value(SecureTime.now()),
         isSynced: const Value(false),
       ),
     );
@@ -163,7 +171,7 @@ class AppDatabase extends _$AppDatabase {
     String note,
     String userId,
   ) {
-    final nowUtc = DateTime.now().toUtc();
+    final nowUtc = SecureTime.now();
     return (update(contracts)..where((t) => t.id.equals(contractId))).write(
       ContractsCompanion(
         lastActionDate: Value(nowUtc),
@@ -186,7 +194,7 @@ class AppDatabase extends _$AppDatabase {
     String userId,
   ) async {
     return transaction(() async {
-      final nowUtc = DateTime.now().toUtc();
+      final nowUtc = SecureTime.now();
 
       await (update(contracts)..where((t) => t.id.equals(contractId))).write(
         ContractsCompanion(
@@ -223,7 +231,7 @@ class AppDatabase extends _$AppDatabase {
     String userId,
   ) async {
     return transaction(() async {
-      final nowUtc = DateTime.now().toUtc();
+      final nowUtc = SecureTime.now();
 
       await (update(contracts)..where((t) => t.id.equals(contractId))).write(
         ContractsCompanion(
@@ -252,46 +260,77 @@ class AppDatabase extends _$AppDatabase {
   }
 
   // ==========================================
-  // --- إضافة عقد مع قسط البداية فقط ---
+  // --- إضافة عقد شامل مع المعاملة المالية الموحدة (Atomic Transaction) ---
   // ==========================================
-  Future<void> insertContractWithSchedules(
-    ContractsCompanion contract,
-    int installmentsCount,
-    DateTime startDate,
-    String userId,
-    String contractType,
-  ) async {
+  Future<void> insertFullContractProcess({
+    required ContractsCompanion contract,
+    required DateTime startDate,
+    required String userId,
+    required PaymentsLedgerCompanion? downPaymentEntry,
+    required String? apartmentId,
+  }) async {
     return transaction(() async {
+      // 1. إضافة العقد
       final contractRow = await into(contracts).insertReturning(contract);
       final String newContractId = contractRow.id;
 
-      final int loopCount = 1;
+      // 2. إضافة القسط الأول فقط
+      final dueDate = DateTime.utc(
+        startDate.year,
+        startDate.month + 1,
+        startDate.day,
+      );
 
-      for (int i = 1; i <= loopCount; i++) {
-        final dueDate = DateTime.utc(
-          startDate.year,
-          startDate.month + i,
-          startDate.day,
-        );
+      final scheduleEntry = InstallmentsScheduleCompanion.insert(
+        contractId: newContractId,
+        installmentNumber: 1,
+        dueDate: dueDate,
+        status: const Value('pending'),
+        userId: userId,
+      );
+      await into(installmentsSchedule).insert(scheduleEntry);
 
-        final entry = InstallmentsScheduleCompanion.insert(
-          contractId: newContractId,
-          installmentNumber: i,
-          dueDate: dueDate,
-          status: const Value('pending'),
-          userId: userId,
+      // 3. إضافة الدفعة المقدمة (إن وُجدت)
+      if (downPaymentEntry != null) {
+        final maxExpr = paymentsLedger.receiptNumber.max();
+        final query = selectOnly(paymentsLedger)..addColumns([maxExpr]);
+        final result = await query.getSingle();
+        final currentMax = result.read(maxExpr) ?? 1000;
+
+        final newPaymentEntry = downPaymentEntry.copyWith(
+          contractId: Value(newContractId),
+          receiptNumber: Value(currentMax + 1),
         );
-        await into(installmentsSchedule).insert(entry);
+        await into(paymentsLedger).insert(newPaymentEntry);
+      }
+
+      // 4. تغيير حالة الشقة إلى "مباعة" لكي لا تُباع لشخصين في نفس اللحظة
+      if (apartmentId != null && apartmentId.isNotEmpty) {
+        await (update(
+          apartments,
+        )..where((t) => t.id.equals(apartmentId))).write(
+          ApartmentsCompanion(
+            status: const Value('sold'),
+            userId: Value(userId),
+            updatedAt: Value(SecureTime.now()),
+            isSynced: const Value(false),
+          ),
+        );
       }
     });
   }
 
-  Future<List<Contract>> getActiveContracts() =>
-      (select(contracts)..where((t) => t.isDeleted.equals(false))).get();
-
-  Future<void> softDeleteContract(String contractId, String userId) async {
+  // ==========================================
+  // 🗑️ الحذف والاستعادة للعقود (Cascading & Atomicity)
+  // ==========================================
+  Future<void> softDeleteContract(
+    String contractId,
+    String? apartmentId,
+    String userId,
+  ) async {
     return transaction(() async {
-      final nowUtc = Value(DateTime.now().toUtc());
+      final nowUtc = Value(SecureTime.now());
+
       await (update(contracts)..where((t) => t.id.equals(contractId))).write(
         ContractsCompanion(
           isDeleted: const Value(true),
@@ -320,8 +359,189 @@ class AppDatabase extends _$AppDatabase {
           isSynced: const Value(false),
         ),
       );
+      await (update(
+        legalActions,
+      )..where((t) => t.contractId.equals(contractId))).write(
+        LegalActionsCompanion(
+          isDeleted: const Value(true),
+          userId: Value(userId),
+          updatedAt: nowUtc,
+          isSynced: const Value(false),
+        ),
+      );
+
+      final actions = await (select(
+        legalActions,
+      )..where((t) => t.contractId.equals(contractId))).get();
+      for (final action in actions) {
+        await (update(
+          legalActionAttachments,
+        )..where((t) => t.legalActionId.equals(action.id))).write(
+          LegalActionAttachmentsCompanion(
+            isDeleted: const Value(true),
+            userId: Value(userId),
+            updatedAt: nowUtc,
+            isSynced: const Value(false),
+          ),
+        );
+
+        // 🌟 الحماية الجديدة: حذف مرفقات العقد آلياً
+        await (update(
+          contractAttachments,
+        )..where((t) => t.contractId.equals(contractId))).write(
+          ContractAttachmentsCompanion(
+            isDeleted: const Value(true),
+            userId: Value(userId),
+            updatedAt: nowUtc,
+            isSynced: const Value(false),
+          ),
+        );
+      }
+
+      // 🌟 الحماية الجديدة: تحرير الشقة لتعود متاحة للبيع
+      if (apartmentId != null && apartmentId.isNotEmpty) {
+        await (update(
+          apartments,
+        )..where((t) => t.id.equals(apartmentId))).write(
+          ApartmentsCompanion(
+            status: const Value('available'),
+            userId: Value(userId),
+            updatedAt: nowUtc,
+            isSynced: const Value(false),
+          ),
+        );
+      }
     });
   }
+
+  Future<void> restoreSoftDeletedContract(
+    String contractId,
+    String? apartmentId,
+    bool isHandedOver,
+    String userId,
+  ) async {
+    return transaction(() async {
+      final nowUtc = Value(SecureTime.now());
+
+      await (update(contracts)..where((t) => t.id.equals(contractId))).write(
+        ContractsCompanion(
+          isDeleted: const Value(false),
+          userId: Value(userId),
+          updatedAt: nowUtc,
+          isSynced: const Value(false),
+        ),
+      );
+      await (update(
+        installmentsSchedule,
+      )..where((t) => t.contractId.equals(contractId))).write(
+        InstallmentsScheduleCompanion(
+          isDeleted: const Value(false),
+          userId: Value(userId),
+          updatedAt: nowUtc,
+          isSynced: const Value(false),
+        ),
+      );
+      await (update(
+        paymentsLedger,
+      )..where((t) => t.contractId.equals(contractId))).write(
+        PaymentsLedgerCompanion(
+          isDeleted: const Value(false),
+          userId: Value(userId),
+          updatedAt: nowUtc,
+          isSynced: const Value(false),
+        ),
+      );
+      await (update(
+        legalActions,
+      )..where((t) => t.contractId.equals(contractId))).write(
+        LegalActionsCompanion(
+          isDeleted: const Value(false),
+          userId: Value(userId),
+          updatedAt: nowUtc,
+          isSynced: const Value(false),
+        ),
+      );
+
+      final actions = await (select(
+        legalActions,
+      )..where((t) => t.contractId.equals(contractId))).get();
+      for (final action in actions) {
+        await (update(
+          legalActionAttachments,
+        )..where((t) => t.legalActionId.equals(action.id))).write(
+          LegalActionAttachmentsCompanion(
+            isDeleted: const Value(false),
+            userId: Value(userId),
+            updatedAt: nowUtc,
+            isSynced: const Value(false),
+          ),
+        );
+      }
+
+      // 🌟 الحماية الجديدة: استعادة مرفقات العقد آلياً
+      await (update(
+        contractAttachments,
+      )..where((t) => t.contractId.equals(contractId))).write(
+        ContractAttachmentsCompanion(
+          isDeleted: const Value(false),
+          userId: Value(userId),
+          updatedAt: nowUtc,
+          isSynced: const Value(false),
+        ),
+      );
+
+      // 🌟 الحماية الجديدة: إعادة حجز الشقة
+      if (apartmentId != null && apartmentId.isNotEmpty) {
+        final targetStatus = isHandedOver ? 'delivered' : 'sold';
+        await (update(
+          apartments,
+        )..where((t) => t.id.equals(apartmentId))).write(
+          ApartmentsCompanion(
+            status: Value(targetStatus),
+            userId: Value(userId),
+            updatedAt: nowUtc,
+            isSynced: const Value(false),
+          ),
+        );
+      }
+    });
+  }
+
+  Future<void> hardDeleteContract(String contractId) async {
+    return transaction(() async {
+      // 🌟 حذف المرفقات والإجراءات القانونية
+      final actions = await (select(
+        legalActions,
+      )..where((t) => t.contractId.equals(contractId))).get();
+      for (final action in actions) {
+        await (delete(
+          legalActionAttachments,
+        )..where((t) => t.legalActionId.equals(action.id))).go();
+      }
+      await (delete(
+        legalActions,
+      )..where((t) => t.contractId.equals(contractId))).go();
+
+      // 🌟 حذف المدفوعات والأقساط
+      await (delete(
+        paymentsLedger,
+      )..where((t) => t.contractId.equals(contractId))).go();
+      await (delete(
+        installmentsSchedule,
+      )..where((t) => t.contractId.equals(contractId))).go();
+
+      // 🌟 حذف مرفقات العقد نهائياً (يجب أن يكون هنا قبل العقد)
+      await (delete(
+        contractAttachments,
+      )..where((t) => t.contractId.equals(contractId))).go();
+
+      // 🌟 أخيراً، حذف العقد نفسه
+      await (delete(contracts)..where((t) => t.id.equals(contractId))).go();
+    });
+  }
+
+  Future<List<Contract>> getActiveContracts() =>
+      (select(contracts)..where((t) => t.isDeleted.equals(false))).get();
 
   // ==========================================
   // --- استعلامات دفتر المدفوعات (Ledger) ---
@@ -339,8 +559,24 @@ class AppDatabase extends _$AppDatabase {
       (select(paymentsLedger)..where((t) => t.isDeleted.equals(false))).get();
 
   Future<String> insertLedgerEntry(PaymentsLedgerCompanion entry) async {
-    final row = await into(paymentsLedger).insertReturning(entry);
-    return row.id;
+    return transaction(() async {
+      // 🌟 1. استخراج أعلى رقم إيصال موجود حالياً في النظام
+      final maxExpr = paymentsLedger.receiptNumber.max();
+      final query = selectOnly(paymentsLedger)..addColumns([maxExpr]);
+      final result = await query.getSingle();
+
+      // إذا كانت القاعدة فارغة (أو كل الإيصالات القديمة بدون رقم)، سنبدأ من الرقم 1000 (شكل محاسبي احترافي)
+      final currentMax = result.read(maxExpr) ?? 1000;
+
+      // 🌟 2. دمج الرقم الجديد مع البيانات القادمة من الواجهة
+      final entryWithNumber = entry.copyWith(
+        receiptNumber: Value(currentMax + 1),
+      );
+
+      // 🌟 3. حفظ الإيصال
+      final row = await into(paymentsLedger).insertReturning(entryWithNumber);
+      return row.id;
+    });
   }
 
   Future<int> markWhatsAppAsSent(String entryId, String userId) {
@@ -348,7 +584,7 @@ class AppDatabase extends _$AppDatabase {
       PaymentsLedgerCompanion(
         isWhatsAppSent: const Value(true),
         userId: Value(userId),
-        updatedAt: Value(DateTime.now().toUtc()),
+        updatedAt: Value(SecureTime.now()),
         isSynced: const Value(false),
       ),
     );
@@ -406,7 +642,7 @@ class AppDatabase extends _$AppDatabase {
       InstallmentsScheduleCompanion(
         status: Value(status),
         userId: Value(userId),
-        updatedAt: Value(DateTime.now().toUtc()),
+        updatedAt: Value(SecureTime.now()),
         isSynced: const Value(false),
       ),
     );
@@ -416,14 +652,14 @@ class AppDatabase extends _$AppDatabase {
     return (update(installmentsSchedule)..where((t) => t.id.equals(id))).write(
       InstallmentsScheduleCompanion(
         isDeleted: const Value(true),
-        updatedAt: Value(DateTime.now().toUtc()),
+        updatedAt: Value(SecureTime.now()),
         isSynced: const Value(false),
       ),
     );
   }
 
   Future<List<InstallmentsScheduleData>> getAllOverdueSchedules() {
-    final nowUtc = DateTime.now().toUtc();
+    final nowUtc = SecureTime.now();
     return (select(installmentsSchedule)
           ..where(
             (t) =>
@@ -450,7 +686,7 @@ class AppDatabase extends _$AppDatabase {
         notes: Value(notes),
         expectedAmount: Value(expectedAmount),
         userId: Value(userId),
-        updatedAt: Value(DateTime.now().toUtc()),
+        updatedAt: Value(SecureTime.now()),
         isSynced: const Value(false),
       ),
     );
@@ -463,7 +699,7 @@ class AppDatabase extends _$AppDatabase {
     required String userId,
   }) async {
     return transaction(() async {
-      final nowUtc = Value(DateTime.now().toUtc());
+      final nowUtc = Value(SecureTime.now());
 
       final paidSchedules =
           await (select(installmentsSchedule)..where(
@@ -572,7 +808,7 @@ class AppDatabase extends _$AppDatabase {
       ApartmentsCompanion(
         status: Value(newStatus),
         userId: Value(userId),
-        updatedAt: Value(DateTime.now().toUtc()),
+        updatedAt: Value(SecureTime.now()),
         isSynced: const Value(false),
       ),
     );
@@ -580,6 +816,7 @@ class AppDatabase extends _$AppDatabase {
 
   Future<void> clearAllData() {
     return transaction(() async {
+      await delete(contractAttachments).go();
       await delete(legalActionAttachments).go();
       await delete(legalActions).go();
       await delete(localUsers).go();
@@ -592,32 +829,180 @@ class AppDatabase extends _$AppDatabase {
       await delete(apartments).go();
       await delete(buildings).go();
       await delete(clients).go();
+      await delete(apartmentAttachments).go(); // 🌟 السطر الجديد
     });
   }
+  // ==========================================
+  // ☁️ دوال الحقن السحابي المحصنة (Safe Sync Upserts)
+  // ==========================================
 
-  Future<void> syncClient(ClientsCompanion entity) =>
-      into(clients).insert(entity, mode: InsertMode.insertOrReplace);
+  Future<void> syncClient(ClientsCompanion entity) => into(clients).insert(
+    entity,
+    onConflict: DoUpdate(
+      (old) => entity,
+      target: [clients.id],
+      where: (old) => old.isSynced.equals(true), // 🛡️ الحماية هنا
+    ),
+  );
 
   Future<void> syncContract(ContractsCompanion entity) =>
-      into(contracts).insert(entity, mode: InsertMode.insertOrReplace);
+      into(contracts).insert(
+        entity,
+        onConflict: DoUpdate(
+          (old) => entity,
+          target: [contracts.id],
+          where: (old) => old.isSynced.equals(true),
+        ),
+      );
 
-  Future<void> syncMaterialPrice(MaterialPricesHistoryCompanion entity) => into(
-    materialPricesHistory,
-  ).insert(entity, mode: InsertMode.insertOrReplace);
+  Future<void> syncMaterialPrice(MaterialPricesHistoryCompanion entity) =>
+      into(materialPricesHistory).insert(
+        entity,
+        onConflict: DoUpdate(
+          (old) => entity,
+          target: [materialPricesHistory.id],
+          where: (old) => old.isSynced.equals(true),
+        ),
+      );
 
-  Future<void> syncSchedule(InstallmentsScheduleCompanion entity) => into(
-    installmentsSchedule,
-  ).insert(entity, mode: InsertMode.insertOrReplace);
+  Future<void> syncSchedule(InstallmentsScheduleCompanion entity) =>
+      into(installmentsSchedule).insert(
+        entity,
+        onConflict: DoUpdate(
+          (old) => entity,
+          target: [installmentsSchedule.id],
+          where: (old) => old.isSynced.equals(true),
+        ),
+      );
 
   Future<void> syncPayment(PaymentsLedgerCompanion entity) =>
-      into(paymentsLedger).insert(entity, mode: InsertMode.insertOrReplace);
+      into(paymentsLedger).insert(
+        entity,
+        onConflict: DoUpdate(
+          (old) => entity,
+          target: [paymentsLedger.id],
+          where: (old) => old.isSynced.equals(true),
+        ),
+      );
 
   Future<void> syncBuilding(BuildingsCompanion entity) =>
-      into(buildings).insert(entity, mode: InsertMode.insertOrReplace);
+      into(buildings).insert(
+        entity,
+        onConflict: DoUpdate(
+          (old) => entity,
+          target: [buildings.id],
+          where: (old) => old.isSynced.equals(true),
+        ),
+      );
 
   Future<void> syncApartment(ApartmentsCompanion entity) =>
-      into(apartments).insert(entity, mode: InsertMode.insertOrReplace);
+      into(apartments).insert(
+        entity,
+        onConflict: DoUpdate(
+          (old) => entity,
+          target: [apartments.id],
+          where: (old) => old.isSynced.equals(true),
+        ),
+      );
 
+  Future<void> syncAppRole(AppRolesCompanion entity) => into(appRoles).insert(
+    entity,
+    onConflict: DoUpdate(
+      (old) => entity,
+      target: [appRoles.id],
+      where: (old) => old.isSynced.equals(true),
+    ),
+  );
+
+  Future<void> syncLocalUser(LocalUsersCompanion entity) =>
+      into(localUsers).insert(
+        entity,
+        onConflict: DoUpdate(
+          (old) => entity,
+          target: [localUsers.id],
+          where: (old) => old.isSynced.equals(true),
+        ),
+      );
+
+  Future<void> syncDollarPrice(DollarPricesHistoryCompanion entity) =>
+      into(dollarPricesHistory).insert(
+        entity,
+        onConflict: DoUpdate(
+          (old) => entity,
+          target: [dollarPricesHistory.id],
+          where: (old) => old.isSynced.equals(true),
+        ),
+      );
+
+  // 🌟 دوال المرفقات والإجراءات القانونية (أضفناها هنا لنوحد الحماية)
+  Future<void> syncLegalAction(LegalActionsCompanion entity) =>
+      into(legalActions).insert(
+        entity,
+        onConflict: DoUpdate(
+          (old) => entity,
+          target: [legalActions.id],
+          where: (old) => old.isSynced.equals(true),
+        ),
+      );
+
+  Future<void> syncLegalActionAttachment(
+    LegalActionAttachmentsCompanion entity,
+  ) => into(legalActionAttachments).insert(
+    entity,
+    onConflict: DoUpdate(
+      (old) => entity,
+      target: [legalActionAttachments.id],
+      where: (old) => old.isSynced.equals(true),
+    ),
+  );
+  // ==========================================
+  // 📎 استعلامات مرفقات العقود (Contract Attachments)
+  // ==========================================
+  Future<List<ContractAttachment>> getAttachmentsForContract(
+    String contractId,
+  ) =>
+      (select(contractAttachments)
+            ..where(
+              (t) =>
+                  t.contractId.equals(contractId) & t.isDeleted.equals(false),
+            )
+            ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
+          .get();
+
+  Future<String> insertContractAttachment(
+    ContractAttachmentsCompanion attachment,
+  ) async {
+    final row = await into(contractAttachments).insertReturning(attachment);
+    return row.id;
+  }
+
+  Future<int> softDeleteContractAttachment(String attachmentId, String userId) {
+    return (update(
+      contractAttachments,
+    )..where((t) => t.id.equals(attachmentId))).write(
+      ContractAttachmentsCompanion(
+        isDeleted: const Value(true),
+        userId: Value(userId),
+        updatedAt: Value(SecureTime.now()),
+        isSynced: const Value(false),
+      ),
+    );
+  }
+
+  Future<List<ContractAttachment>> getAllContractAttachments() => (select(
+    contractAttachments,
+  )..where((t) => t.isDeleted.equals(false))).get();
+
+  // الحقن السحابي لمرفقات العقود
+  Future<void> syncContractAttachment(ContractAttachmentsCompanion entity) =>
+      into(contractAttachments).insert(
+        entity,
+        onConflict: DoUpdate(
+          (old) => entity,
+          target: [contractAttachments.id],
+          where: (old) => old.isSynced.equals(true),
+        ),
+      );
   // ==========================================
   // 🗑️ سلة المحذوفات (Recycle Bin) - العملاء
   // ==========================================
@@ -626,7 +1011,7 @@ class AppDatabase extends _$AppDatabase {
 
   Future<void> restoreSoftDeletedClient(String clientId, String userId) async {
     return transaction(() async {
-      final nowUtc = Value(DateTime.now().toUtc());
+      final nowUtc = Value(SecureTime.now());
       await (update(clients)..where((t) => t.id.equals(clientId))).write(
         ClientsCompanion(
           isDeleted: const Value(false),
@@ -643,9 +1028,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   Future<void> autoCleanOldDeletedClients() async {
-    final sevenDaysAgo = DateTime.now().toUtc().subtract(
-      const Duration(days: 7),
-    );
+    final sevenDaysAgo = SecureTime.now().subtract(const Duration(days: 7));
     await (delete(clients)..where(
           (t) =>
               t.isDeleted.equals(true) &
@@ -660,59 +1043,8 @@ class AppDatabase extends _$AppDatabase {
   Future<List<Contract>> getDeletedContracts() =>
       (select(contracts)..where((t) => t.isDeleted.equals(true))).get();
 
-  Future<void> restoreSoftDeletedContract(
-    String contractId,
-    String userId,
-  ) async {
-    return transaction(() async {
-      final nowUtc = Value(DateTime.now().toUtc());
-      await (update(contracts)..where((t) => t.id.equals(contractId))).write(
-        ContractsCompanion(
-          isDeleted: const Value(false),
-          userId: Value(userId),
-          updatedAt: nowUtc,
-          isSynced: const Value(false),
-        ),
-      );
-      await (update(
-        installmentsSchedule,
-      )..where((t) => t.contractId.equals(contractId))).write(
-        InstallmentsScheduleCompanion(
-          isDeleted: const Value(false),
-          userId: Value(userId),
-          updatedAt: nowUtc,
-          isSynced: const Value(false),
-        ),
-      );
-      await (update(
-        paymentsLedger,
-      )..where((t) => t.contractId.equals(contractId))).write(
-        PaymentsLedgerCompanion(
-          isDeleted: const Value(false),
-          userId: Value(userId),
-          updatedAt: nowUtc,
-          isSynced: const Value(false),
-        ),
-      );
-    });
-  }
-
-  Future<void> hardDeleteContract(String contractId) async {
-    return transaction(() async {
-      await (delete(
-        paymentsLedger,
-      )..where((t) => t.contractId.equals(contractId))).go();
-      await (delete(
-        installmentsSchedule,
-      )..where((t) => t.contractId.equals(contractId))).go();
-      await (delete(contracts)..where((t) => t.id.equals(contractId))).go();
-    });
-  }
-
   Future<void> autoCleanOldDeletedContracts() async {
-    final sevenDaysAgo = DateTime.now().toUtc().subtract(
-      const Duration(days: 7),
-    );
+    final sevenDaysAgo = SecureTime.now().subtract(const Duration(days: 7));
     final oldContracts =
         await (select(contracts)..where(
               (t) =>
@@ -741,7 +1073,7 @@ class AppDatabase extends _$AppDatabase {
         fees: Value(newDiscount),
         convertedMeters: Value(newConvertedMeters),
         userId: Value(userId),
-        updatedAt: Value(DateTime.now().toUtc()),
+        updatedAt: Value(SecureTime.now()),
         isSynced: const Value(false),
       ),
     );
@@ -752,7 +1084,7 @@ class AppDatabase extends _$AppDatabase {
       PaymentsLedgerCompanion(
         isDeleted: const Value(true),
         userId: Value(userId),
-        updatedAt: Value(DateTime.now().toUtc()),
+        updatedAt: Value(SecureTime.now()),
         isSynced: const Value(false),
       ),
     );
@@ -766,7 +1098,7 @@ class AppDatabase extends _$AppDatabase {
       PaymentsLedgerCompanion(
         isDeleted: const Value(false),
         userId: Value(userId),
-        updatedAt: Value(DateTime.now().toUtc()),
+        updatedAt: Value(SecureTime.now()),
         isSynced: const Value(false),
       ),
     );
@@ -777,9 +1109,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   Future<void> autoCleanOldDeletedLedgerEntries() async {
-    final sevenDaysAgo = DateTime.now().toUtc().subtract(
-      const Duration(days: 7),
-    );
+    final sevenDaysAgo = SecureTime.now().subtract(const Duration(days: 7));
     await (delete(paymentsLedger)..where(
           (t) =>
               t.isDeleted.equals(true) &
@@ -799,7 +1129,7 @@ class AppDatabase extends _$AppDatabase {
     required String userId,
   }) async {
     return transaction(() async {
-      final nowUtc = Value(DateTime.now().toUtc());
+      final nowUtc = Value(SecureTime.now());
 
       await (update(
         installmentsSchedule,
@@ -843,7 +1173,7 @@ class AppDatabase extends _$AppDatabase {
   // ==========================================
   Future<void> softDeleteBuilding(String buildingId, String userId) async {
     return transaction(() async {
-      final nowUtc = Value(DateTime.now().toUtc());
+      final nowUtc = Value(SecureTime.now());
 
       await (update(buildings)..where((t) => t.id.equals(buildingId))).write(
         BuildingsCompanion(
@@ -864,6 +1194,23 @@ class AppDatabase extends _$AppDatabase {
           isSynced: const Value(false),
         ),
       );
+
+      // ... بعد كود الـ apartments:
+      final bldApts = await (select(
+        apartments,
+      )..where((t) => t.buildingId.equals(buildingId))).get();
+      for (final apt in bldApts) {
+        await (update(
+          apartmentAttachments,
+        )..where((t) => t.apartmentId.equals(apt.id))).write(
+          ApartmentAttachmentsCompanion(
+            isDeleted: const Value(true),
+            userId: Value(userId),
+            updatedAt: nowUtc,
+            isSynced: const Value(false),
+          ),
+        );
+      }
     });
   }
 
@@ -872,7 +1219,7 @@ class AppDatabase extends _$AppDatabase {
     String userId,
   ) async {
     return transaction(() async {
-      final nowUtc = Value(DateTime.now().toUtc());
+      final nowUtc = Value(SecureTime.now());
       await (update(buildings)..where((t) => t.id.equals(buildingId))).write(
         BuildingsCompanion(
           isDeleted: const Value(false),
@@ -891,29 +1238,88 @@ class AppDatabase extends _$AppDatabase {
           isSynced: const Value(false),
         ),
       );
+
+      // ... بعد كود الـ apartments:
+      final bldApts = await (select(
+        apartments,
+      )..where((t) => t.buildingId.equals(buildingId))).get();
+      for (final apt in bldApts) {
+        await (update(
+          apartmentAttachments,
+        )..where((t) => t.apartmentId.equals(apt.id))).write(
+          ApartmentAttachmentsCompanion(
+            isDeleted: const Value(false),
+            userId: Value(userId),
+            updatedAt: nowUtc,
+            isSynced: const Value(false),
+          ),
+        );
+      }
     });
   }
 
-  Future<int> softDeleteApartment(String apartmentId, String userId) {
-    return (update(apartments)..where((t) => t.id.equals(apartmentId))).write(
-      ApartmentsCompanion(
-        isDeleted: const Value(true),
-        userId: Value(userId),
-        updatedAt: Value(DateTime.now().toUtc()),
-        isSynced: const Value(false),
-      ),
-    );
+  Future<void> softDeleteApartment(String apartmentId, String userId) {
+    return transaction(() async {
+      final nowUtc = Value(SecureTime.now());
+
+      await (update(apartments)..where((t) => t.id.equals(apartmentId))).write(
+        ApartmentsCompanion(
+          isDeleted: const Value(true),
+          userId: Value(userId),
+          updatedAt: nowUtc,
+          isSynced: const Value(false),
+        ),
+      );
+
+      // 🌟 الحذف المؤقت للمرفقات التابعة للشقة
+      await (update(
+        apartmentAttachments,
+      )..where((t) => t.apartmentId.equals(apartmentId))).write(
+        ApartmentAttachmentsCompanion(
+          isDeleted: const Value(true),
+          userId: Value(userId),
+          updatedAt: nowUtc,
+          isSynced: const Value(false),
+        ),
+      );
+    });
   }
 
-  Future<int> restoreSoftDeletedApartment(String apartmentId, String userId) {
-    return (update(apartments)..where((t) => t.id.equals(apartmentId))).write(
-      ApartmentsCompanion(
-        isDeleted: const Value(false),
-        userId: Value(userId),
-        updatedAt: Value(DateTime.now().toUtc()),
-        isSynced: const Value(false),
-      ),
-    );
+  Future<void> restoreSoftDeletedApartment(String apartmentId, String userId) {
+    return transaction(() async {
+      final nowUtc = Value(SecureTime.now());
+
+      await (update(apartments)..where((t) => t.id.equals(apartmentId))).write(
+        ApartmentsCompanion(
+          isDeleted: const Value(false),
+          userId: Value(userId),
+          updatedAt: nowUtc,
+          isSynced: const Value(false),
+        ),
+      );
+
+      // 🌟 استعادة المرفقات التابعة للشقة
+      await (update(
+        apartmentAttachments,
+      )..where((t) => t.apartmentId.equals(apartmentId))).write(
+        ApartmentAttachmentsCompanion(
+          isDeleted: const Value(false),
+          userId: Value(userId),
+          updatedAt: nowUtc,
+          isSynced: const Value(false),
+        ),
+      );
+    });
+  }
+
+  Future<void> hardDeleteApartment(String apartmentId) {
+    return transaction(() async {
+      // 🌟 يجب حذف المرفقات نهائياً قبل الشقة (بسبب الربط المرجعي FK)
+      await (delete(
+        apartmentAttachments,
+      )..where((t) => t.apartmentId.equals(apartmentId))).go();
+      await (delete(apartments)..where((t) => t.id.equals(apartmentId))).go();
+    });
   }
 
   Future<List<Building>> getDeletedBuildings() =>
@@ -924,6 +1330,16 @@ class AppDatabase extends _$AppDatabase {
 
   Future<void> hardDeleteBuilding(String buildingId) async {
     return transaction(() async {
+      // ... قبل حذف الـ apartments:
+      final bldApts = await (select(
+        apartments,
+      )..where((t) => t.buildingId.equals(buildingId))).get();
+      for (final apt in bldApts) {
+        await (delete(
+          apartmentAttachments,
+        )..where((t) => t.apartmentId.equals(apt.id))).go();
+      }
+
       await (delete(
         apartments,
       )..where((t) => t.buildingId.equals(buildingId))).go();
@@ -931,14 +1347,8 @@ class AppDatabase extends _$AppDatabase {
     });
   }
 
-  Future<int> hardDeleteApartment(String apartmentId) {
-    return (delete(apartments)..where((t) => t.id.equals(apartmentId))).go();
-  }
-
   Future<void> autoCleanOldDeletedBuildingsAndApartments() async {
-    final sevenDaysAgo = DateTime.now().toUtc().subtract(
-      const Duration(days: 7),
-    );
+    final sevenDaysAgo = SecureTime.now().subtract(const Duration(days: 7));
 
     await (delete(apartments)..where(
           (t) =>
@@ -973,7 +1383,7 @@ class AppDatabase extends _$AppDatabase {
     return (update(appRoles)..where((t) => t.id.equals(roleId))).write(
       AppRolesCompanion(
         permissionsJson: Value(newPermissionsJson),
-        updatedAt: Value(DateTime.now().toUtc()),
+        updatedAt: Value(SecureTime.now()),
         isSynced: const Value(false),
       ),
     );
@@ -996,20 +1406,35 @@ class AppDatabase extends _$AppDatabase {
             ? Value(revokedPermissionsJson)
             : const Value.absent(),
         isActive: isActive != null ? Value(isActive) : const Value.absent(),
-        updatedAt: Value(DateTime.now().toUtc()),
+        updatedAt: Value(SecureTime.now()),
+        isSynced: const Value(false),
+      ),
+    );
+  }
+
+  Future<void> softDeleteRole(String roleId) async {
+    final nowUtc = Value(SecureTime.now());
+    await (update(appRoles)..where((t) => t.id.equals(roleId))).write(
+      AppRolesCompanion(
+        isDeleted: const Value(true),
+        updatedAt: nowUtc,
         isSynced: const Value(false),
       ),
     );
   }
 
   // ==========================================
-  // ☁️ دوال الحقن السحابي الجديدة (Sync Upserts)
+  // 🔐 تحديث رمز الأمان (PIN) للمستخدم
   // ==========================================
-  Future<void> syncAppRole(AppRolesCompanion entity) =>
-      into(appRoles).insert(entity, mode: InsertMode.insertOrReplace);
-
-  Future<void> syncLocalUser(LocalUsersCompanion entity) =>
-      into(localUsers).insert(entity, mode: InsertMode.insertOrReplace);
+  Future<int> updateUserSecurityPin(String userId, String newPin) {
+    return (update(localUsers)..where((t) => t.id.equals(userId))).write(
+      LocalUsersCompanion(
+        securityPin: Value(newPin),
+        updatedAt: Value(SecureTime.now()),
+        isSynced: const Value(false),
+      ),
+    );
+  }
 
   Future<LocalUser?> getLocalUserById(String id) =>
       (select(localUsers)..where((t) => t.id.equals(id))).getSingleOrNull();
@@ -1049,7 +1474,7 @@ class AppDatabase extends _$AppDatabase {
     bool isCompleted,
     String userId,
   ) {
-    final nowUtc = DateTime.now().toUtc();
+    final nowUtc = SecureTime.now();
     return (update(contracts)..where((t) => t.id.equals(contractId))).write(
       ContractsCompanion(
         isCompleted: Value(isCompleted),
@@ -1091,7 +1516,7 @@ class AppDatabase extends _$AppDatabase {
       LegalActionAttachmentsCompanion(
         isDeleted: const Value(true),
         userId: Value(userId),
-        updatedAt: Value(DateTime.now().toUtc()),
+        updatedAt: Value(SecureTime.now()),
         isSynced: const Value(false),
       ),
     );
@@ -1133,19 +1558,116 @@ class AppDatabase extends _$AppDatabase {
         .watchSingleOrNull();
   }
 
-  Future<void> syncDollarPrice(DollarPricesHistoryCompanion entity) => into(
-    dollarPricesHistory,
-  ).insert(entity, mode: InsertMode.insertOrReplace);
-
   Future<int> softDeleteDollarPrice(String id) {
     return (update(dollarPricesHistory)..where((t) => t.id.equals(id))).write(
       DollarPricesHistoryCompanion(
         isDeleted: const Value(true),
-        updatedAt: Value(DateTime.now().toUtc()),
+        updatedAt: Value(SecureTime.now()),
         isSynced: const Value(false),
       ),
     );
   }
+
+  // ==========================================
+  // 📎 استعلامات مرفقات الشقق (Apartment Attachments)
+  // ==========================================
+  Future<List<ApartmentAttachment>> getAttachmentsForApartment(
+    String apartmentId,
+  ) =>
+      (select(apartmentAttachments)
+            ..where(
+              (t) =>
+                  t.apartmentId.equals(apartmentId) & t.isDeleted.equals(false),
+            )
+            ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
+          .get();
+
+  Future<String> insertApartmentAttachment(
+    ApartmentAttachmentsCompanion attachment,
+  ) async {
+    final row = await into(apartmentAttachments).insertReturning(attachment);
+    return row.id;
+  }
+
+  Future<int> softDeleteApartmentAttachment(
+    String attachmentId,
+    String userId,
+  ) {
+    return (update(
+      apartmentAttachments,
+    )..where((t) => t.id.equals(attachmentId))).write(
+      ApartmentAttachmentsCompanion(
+        isDeleted: const Value(true),
+        userId: Value(userId),
+        updatedAt: Value(SecureTime.now()),
+        isSynced: const Value(false),
+      ),
+    );
+  }
+
+  Future<List<ApartmentAttachment>> getAllApartmentAttachments() => (select(
+    apartmentAttachments,
+  )..where((t) => t.isDeleted.equals(false))).get();
+
+  // الحقن السحابي لمرفقات الشقق
+  Future<void> syncApartmentAttachment(ApartmentAttachmentsCompanion entity) =>
+      into(apartmentAttachments).insert(
+        entity,
+        onConflict: DoUpdate(
+          (old) => entity,
+          target: [apartmentAttachments.id],
+          where: (old) => old.isSynced.equals(true),
+        ),
+      );
+
+  // ==========================================
+  // 📎 استعلامات مرفقات المحاضر (Building Attachments)
+  // ==========================================
+  Future<List<BuildingAttachment>> getAttachmentsForBuilding(
+    String buildingId,
+  ) =>
+      (select(buildingAttachments)
+            ..where(
+              (t) =>
+                  t.buildingId.equals(buildingId) & t.isDeleted.equals(false),
+            )
+            ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
+          .get();
+
+  Future<String> insertBuildingAttachment(
+    BuildingAttachmentsCompanion attachment,
+  ) async {
+    final row = await into(buildingAttachments).insertReturning(attachment);
+    return row.id;
+  }
+
+  Future<int> softDeleteBuildingAttachment(String attachmentId, String userId) {
+    return (update(
+      buildingAttachments,
+    )..where((t) => t.id.equals(attachmentId))).write(
+      BuildingAttachmentsCompanion(
+        isDeleted: const Value(true),
+        userId: Value(userId),
+        updatedAt: Value(SecureTime.now()),
+        isSynced: const Value(false),
+      ),
+    );
+  }
+
+  Future<List<BuildingAttachment>> getAllBuildingAttachments() => (select(
+    buildingAttachments,
+  )..where((t) => t.isDeleted.equals(false))).get();
+
+  // الحقن السحابي למرفقات المحاضر
+  Future<void> syncBuildingAttachment(BuildingAttachmentsCompanion entity) =>
+      into(buildingAttachments).insert(
+        entity,
+        onConflict: DoUpdate(
+          (old) => entity,
+          target: [buildingAttachments.id],
+          where: (old) => old.isSynced.equals(true),
+        ),
+      );
 }
 
 LazyDatabase _openConnection() {

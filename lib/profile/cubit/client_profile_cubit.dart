@@ -3,7 +3,7 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:erp_repository/erp_repository.dart';
 import 'package:local_storage_api/local_storage_api.dart'
-    show Client, Contract, LegalAction;
+    show Client, Contract, LegalAction, SecureTime;
 
 part 'client_profile_state.dart';
 
@@ -43,7 +43,7 @@ class ClientProfileCubit extends Cubit<ClientProfileState> {
       double grandTotalPaid = 0.0;
       double globalOverdue = 0.0;
 
-      final now = DateTime.now().toUtc();
+      final now = SecureTime.now();
 
       // 2. الدخول في حلقة لجلب الإحصائيات الدقيقة لكل عقد
       for (final contract in clientContracts) {
@@ -69,15 +69,26 @@ class ClientProfileCubit extends Cubit<ClientProfileState> {
         double baseOverdueAmount = 0.0;
         double penaltyAmount = 0.0;
 
-        if (!contract.isCompleted && contract.agreedMonthlyAmount > 0) {
+        if (!contract.isCompleted) {
+          // أزلنا شرط > 0
           int monthsPassed = _monthsBetween(contract.contractDate, now);
-          if (monthsPassed > contract.installmentsCount)
+          if (monthsPassed > contract.installmentsCount) {
             monthsPassed = contract.installmentsCount;
+          }
 
-          // المبلغ المفترض دفعه = الدفعة الأولى + (الأشهر المنقضية × القسط الشهري)
-          double expectedPayment =
-              contract.downPayment +
-              (monthsPassed * contract.agreedMonthlyAmount);
+          // 1. حساب المتوجب الأساسي (مقدم + أقساط عادية)
+          double expectedPayment = contract.downPayment;
+          if (contract.agreedMonthlyAmount > 0) {
+            expectedPayment += (monthsPassed * contract.agreedMonthlyAmount);
+          }
+
+          // 2. 🌟 إضافة الدفعات الاستثنائية المستحقة
+          for (final s in schedules) {
+            if (s.expectedAmount != null && s.dueDate.isBefore(now)) {
+              expectedPayment += s.expectedAmount!;
+            }
+          }
+
           double overdue = expectedPayment - totalPaidForContract;
 
           if (overdue > 0) {

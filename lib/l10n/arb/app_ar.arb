@@ -1,0 +1,701 @@
+{
+  "@@locale": "ar",
+  "settingsTitle": "إعدادات النظام والأسعار",
+  "settingsLanguageTitle": "لغة واجهة التطبيق",
+  "settingsLanguageSubtitle": "اختر اللغة المعتمدة لشاشات وتقارير النظام",
+  "languageArabic": "العربية (افتراضي)",
+  "languageEnglish": "English",
+  "settingsDollarCardTitle": "سعر صرف الدولار (مبيع)",
+  "settingsDollarCardSubtitle": "يُستخدم لتقييم الدفعات، الأقساط، والتحويلات النقدية.",
+  "settingsDollarHistoryBtn": "سجل الدولار",
+  "settingsDollarInputLabel": "سعر 1 دولار (USD)",
+  "settingsDollarSaveBtn": "اعتماد سعر الصرف",
+
+  "settingsMaterialsCardTitle": "الأسعار الافرادية للمواد",
+  "settingsMaterialsCardSubtitle": "النظام سيضرب هذه الأرقام بالكميات الثابتة لحساب سعر المتر",
+  "settingsMaterialsHistoryBtn": "سجل أسعار المواد",
+  "settingsIronLabel": "سعر (1 كغ) حديد مبروم",
+  "settingsCementLabel": "سعر (1 كيس) اسمنت",
+  "settingsBlockLabel": "سعر (1 بلوكة) سماكة 15",
+  "settingsFormworkLabel": "أجور كوفراج وبيتون (1 م³)",
+  "settingsAggregatesLabel": "سعر (1 م³) مواد حصوية",
+  "settingsWorkerLabel": "أجرة (يوم) عامل 7 ساعات",
+  "settingsMaterialsSaveBtn": "اعتماد وحفظ الأسعار",
+
+  "settingsRecycleBinCardTitle": "إدارة المحذوفات (سلة المهملات)",
+  "settingsRecycleBinCardSubtitle": "استعادة العملاء، العقود، المحاضر، الشقق والإيصالات الملغاة أو حذفها نهائياً.",
+  "settingsRecycleBinOpenBtn": "فتح سلة المحذوفات الشاملة",
+
+  "settingsSecurityCardTitle": "رمز الأمان وحماية العمليات الحساسة",
+  "settingsSecurityCardSubtitle": "هذا الرمز يُطلب عند الحذف أو استرجاع الأموال والعمليات الإدارية الحساسة. (الرمز الافتراضي 0000)",
+  "settingsSecurityChangeBtn": "تغيير رمز الأمان (PIN)",
+
+  "settingsBackupCardTitle": "أمان قاعدة البيانات المحلية",
+  "settingsBackupCardSubtitle": "أخذ نسخة احتياطية يدوية أو استعادة بيانات سابقة.",
+  "settingsBackupManualBtn": "نسخ احتياطي يدوي",
+  "settingsBackupRestoreBtn": "استعادة البيانات",
+
+  "settingsLicenseCardTitle": "معلومات ترخيص النظام (License)",
+  "settingsLicenseExpiryLabel": "تاريخ انتهاء الاشتراك:",
+  "settingsLicenseExpired": "الرخصة منتهية الصلاحية!",
+  "settingsLicenseExpiringSoon": "الرخصة تقترب من الانتهاء",
+  "settingsLicenseActive": "الرخصة فعّالة وسارية",
+  "settingsLicenseDaysLeft": "متبقي {days} يوم",
+  "@settingsLicenseDaysLeft": {
+    "placeholders": {
+      "days": { "type": "int" }
+    }
+  },
+  "settingsLicenseDaysAgo": "منتهية منذ {days} يوم",
+  "@settingsLicenseDaysAgo": {
+    "placeholders": {
+      "days": { "type": "int" }
+    }
+  },
+
+  "navHome": "الرئيسية",
+  "navClients": "العملاء",
+  "navProjects": "المشاريع",
+  "navContracts": "العقود",
+  "navInstallments": "الأقساط",
+  "navMonitoring": "المراقبة",
+  "navSettings": "الإعدادات",
+  "navLegal": "القانونية",
+  "navAdmin": "الإدارة",
+
+  "navSyncTooltip": "مزامنة يدوية مع السحابة (Pull & Push)",
+  "navLogoutTooltip": "تسجيل الخروج (وإقفال النظام)",
+
+  "navCheckingInternet": "جاري فحص الاتصال بالإنترنت... 📡",
+  "navNoInternet": "لا يوجد اتصال بالإنترنت! يرجى التحقق من الشبكة. 🌐❌",
+  "navSyncingData": "الإنترنت متصل ✅ جاري مزامنة البيانات، يرجى الانتظار... ☁️🔄",
+  "navSyncError": "حدث خطأ غير متوقع أثناء المزامنة: {error}",
+  "@navSyncError": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+
+  "logoutDialogTitle": "تسجيل الخروج",
+  "logoutDialogMessage": "هل أنت متأكد أنك تريد تسجيل الخروج؟ سيتم إقفال ومسح البيانات المؤقتة من هذا الجهاز لحمايتها.",
+  "logoutCancel": "إلغاء",
+  "logoutConfirm": "تأكيد الخروج",
+
+  "pinLockedTooltip": "صلاحيات الإدارة مقفلة بأمان 🔒",
+  "pinLockedMessage": "النظام مقفل. سيُطلب الرمز عند أي عملية حساسة.",
+  "pinUnlockedTooltip": "صلاحيات الإدارة مفتوحة.\nانقر للقفل فوراً.",
+  "pinLockedSuccess": "تم قفل الصلاحيات الحساسة بنجاح 🔒",
+
+  "homeLoadingData": "جارٍ تحميل البيانات...",
+  "homeUnexpectedError": "حدث خطأ غير متوقع",
+  "homeRetry": "إعادة المحاولة",
+
+  "kpiNetLiquidityTitle": "السيولة النقدية (الصافي)",
+  "kpiNetLiquiditySubtitle": "إجمالي أموال الصندوق الحقيقية",
+  
+  "kpiRefundedTitle": "الأموال المستردة (سحوبات)",
+  "kpiRefundedSubtitle": "إجمالي المبالغ الخارجة من الصندوق",
+  "kpiRefundedDetails": "يمثل هذا الرقم إجمالي المبالغ التي تم دفعها من الصندوق كاستردادات للعملاء المنسحبين، أو كقيود عكسية وتسويات محاسبية.",
+
+  "kpiPreHandoverDebtTitle": "ديون جارية (قيد الإنشاء)",
+  "kpiPreHandoverDebtSubtitle": "أقساط متأخرة على شقق لم تُسلّم",
+  "kpiPreHandoverDebtDetails": "يمثل الأقساط الشهرية المتأخرة على الزبائن الذين اشتروا شققاً مخصصة، ولكن شققهم لا تزال تحت الإعمار ولم يستلموها بعد. (لا يُطبق عليها غرامات).",
+
+  "kpiPostHandoverDebtTitle": "ذمم مستحقة (شقق مُسلّمة)",
+  "kpiPostHandoverDebtSubtitle": "ديون عقارات تم تسليم مفاتيحها",
+  "kpiPostHandoverDebtDetails": "يمثل المبالغ المتأخرة على الزبائن الذين أتمت المكتب بناء شققهم وسلمتهم المفاتيح. يُعامل هذا الرقم بجدية ويُطبق عليه غرامات تأخير آلياً.",
+
+  "kpiAvailableUnitsTitle": "الوحدات المتاحة للبيع",
+  "kpiAvailableUnitsSubtitle": "شقق ومحلات جاهزة للتعاقد",
+  "kpiAvailableUnitsDetails": "يعرض عدد الوحدات العقارية (شقق/محلات) المُسجلة في كتالوج المحاضر والتي لم يتم ربطها بأي عقد مبيع حتى الآن.",
+
+  "kpiActiveContractsTitle": "العقود الفعّالة",
+  "kpiActiveContractsSubtitle": "إجمالي العقود الجارية المبرمة",
+
+  "kpiDialogTitle": "المنطق المالي لـ: {title}",
+  "@kpiDialogTitle": {
+    "placeholders": {
+      "title": { "type": "String" }
+    }
+  },
+  "kpiDialogDismiss": "مفهوم إداريّاً",
+  "kpiTooltipInfo": "انقر لمعرفة المفهوم المالي لمتخذ القرار",
+
+  "chartSectionTitle": "التحليلات الاستراتيجية",
+  "chartNavNextPeriod": "الفترة التالية",
+  "chartNavPrevPeriod": "الفترة السابقة",
+  "filterDaily": "يومي",
+  "filterWeekly": "أسبوعي",
+  "filterMonthly": "شهري",
+  "filterYearly": "سنوي",
+
+  "recentActivitiesTitle": "سجل النشاطات الحديثة",
+  "timeJustNow": "الآن",
+  "timeMinutesAgo": "منذ {minutes} دقيقة",
+  "@timeMinutesAgo": {
+    "placeholders": {
+      "minutes": { "type": "int" }
+    }
+  },
+  "timeHoursAgo": "منذ {hours} ساعة",
+  "@timeHoursAgo": {
+    "placeholders": {
+      "hours": { "type": "int" }
+    }
+  },
+  "timeYesterday": "أمس",
+  "timeDaysAgo": "منذ {days} أيام",
+  "@timeDaysAgo": {
+    "placeholders": {
+      "days": { "type": "int" }
+    }
+  },
+
+  "activityPaymentTitle": "حركة مالية (دفعة/تعديل)",
+  "activityContractTitle": "إضافة/تعديل عقد",
+  "activityAdminActionTitle": "إجراء إداري (ملاحظة)",
+  "activityClientTitle": "إضافة/تعديل عميل",
+
+  "chartAboutTitle": "عن المخطط: {title}",
+  "@chartAboutTitle": {
+    "placeholders": {
+      "title": { "type": "String" }
+    }
+  },
+  "chartDialogUnderstand": "حسناً، فهمت",
+  "chartOpenDetailsTooltip": "فتح التفاصيل",
+  "chartExplainTooltip": "شرح المخطط",
+  "chartNoData": "لا توجد بيانات في هذه الفترة",
+
+  "chartRevenueTitle": "التدفق النقدي والتحصيل",
+  "chartRevenueDesc": "يعرض إجمالي الأموال الفعلية التي دخلت الصندوق في كل فترة. يتم حسابه بناءً على (تاريخ الدفع) في إيصالات الزبائن.",
+  "chartRevenuePeak": "أعلى فترة تحصيل:",
+  "chartRevenueNone": "لا يوجد",
+  "chartRevenueNet": "صافي التدفق (الإجمالي):",
+
+  "chartDollarTrendTitle": "تطور سعر صرف الدولار",
+  "chartDollarTrendDesc": "يوضح التغير الزمني لمتوسط سعر صرف الدولار (USD) المعتمد في تقييم المدفوعات.",
+  "chartDollarTrendPeak": "أعلى سعر صرف:",
+
+  "chartContractsTypeTitle": "محفظة العقود حسب النوع",
+  "chartContractsTypeDesc": "يعرض التوزيع العددي والنسبي لأنواع العقود الموقعة.",
+  "chartContractsTopType": "الأكثر مبيعاً:",
+  "chartContractsTotal": "إجمالي العقود:",
+  "chartContractsUnit": "عقد",
+
+  "chartCostTrendTitle": "تطور سعر المتر لاحق التخصص",
+  "chartCostTrendDesc": "يتتبع التغير في تكلفة بناء المتر المربع باستخدام المعادلة الهندسية. يعكس التكلفة المباشرة (الخام).",
+  "chartCostTrendPeak": "أعلى فترة تكلفةً:",
+  "chartCostTrendActionTooltip": "تحليل تفصيلي لأسعار المواد الستة",
+
+  "chartTrendPeriodsCount": "عدد الفترات المدروسة:",
+  "chartTrendPeriodsUnit": "فترة",
+
+  "chartInventoryTitle": "المخزون العقاري (الوحدات)",
+  "chartInventoryDesc": "يوضح حالة جميع الشقق والمحلات التجارية المُسجلة في النظام. يُعتبر هذا المخطط (جرداً شاملاً وتراكمياً) ولا يتأثر بالفلتر الزمني العلوي.",
+  "chartInventoryUnit": "وحدة عقارية",
+  "chartInventoryStatusAvailable": "متاحة",
+  "chartInventoryStatusSold": "مباعة",
+  "chartInventoryStatusDelivered": "مُسلّمة",
+
+  "chartMetersProgressTitle": "ميزان حركة الأمتار المربعة والمحفظة الاستثمارية",
+  "chartMetersProgressDesc": "هذا المؤشر يقوم بفصل الأمتار والأسهم المباعة في المكتب إلى مجموعتين مستقلتين تماماً لتسهيل المتابعة على متخذ القرار وجدولة أعمال الكسوة الإنشائية:\n\n1. محفظة الشقق المخصصة (حقوق المكتب وأصولها على زبائنها):\n• مساحات مخصصة مسددة: المساحات الفعلية للشقق التي سدد الملاك ثمنها ودخلت أموالاً في الصندوق لتمويل صب الأسقف والتشطيبات.\n• أمتار متبقية كديون: مساحات حجزها الزبائن في شققهم المحددة ولكنهم لم يسددوا ثمنها بعد (وتعتبر ديوناً على الزبائن لصالح المكتب).\n• التزام الإنشاء المخصص: المساحات الإنشائية للشقق قيد البناء والتجهيز حالياً ولم نسلمها بعد.\n\n2. محفظة الأسهم لاحقة التخصص (التزامات المكتب وديونها تجاه مستثمريها):\n• أمتار الأسهم واجبة البناء والتخصيص: هي أمتار مجردة (حصص استثمارية) اشتراها مستثمرو المحافظ ودفعوا ثمنها بالكامل كاش في الصندوق، وهي غير مخصصة لعقار محدد بعد، والمكتب ملتزمة ببنائها وتخصيص شقق لهم مستقبلاً (وتعتبر التزاماً عينيّاً ودائناً على عاتق المكتب للغير).",
+  "chartMetersSectionAllocated": "1. محفظة الأمتار للعقود المتخصصة",
+  "chartMetersAllocatedPaid": "أمتار مخصصة تم تسديد ثمنها",
+  "chartMetersAllocatedDebt": "أمتار بذمة العملاء",
+  "chartMetersAllocatedUndelivered": "أمتار لم يتم تسليمها للمتخصصين",
+  "chartMetersSectionUnallocated": "2. محفظة الأمتار لاحقة التخصص",
+  "chartMetersUnallocatedPaid": "أمتار واجبة البناء والتخصيص",
+  "chartMetersUnallocatedSubtitle": "دين إنشائي والتزام تم قبض ثمنه كاش للمكتب",
+  "chartMetersTotalAvailable": "إجمالي مساحات الشقق والمحلات المتاحة للبيع:",
+
+
+  "clientAddButton": "إضافة عميل",
+  "clientAddTooltip": "إضافة عميل جديد",
+  "clientNoAddPermissionTooltip": "لا تملك صلاحية إضافة عملاء",
+  "clientUnexpectedError": "حدث خطأ غير متوقع",
+  "clientEmptyList": "لا يوجد عملاء مضافين حتى الآن.",
+  "clientNoSearchHits": "لا يوجد نتائج مطابقة لبحثك.",
+
+  "clientSearchHint": "ابحث عن اسم، هاتف، أو رقم وطني...",
+  "clientSearchCount": "{count} عملاء",
+  "@clientSearchCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+
+  "clientColId": "مُعرّف (ID)",
+  "clientColName": "الاسم / الملف التعريفي",
+  "clientColPhone": "رقم الهاتف",
+  "clientColNationalId": "الرقم الوطني",
+  "clientColCreatedAt": "تاريخ الإضافة",
+  "clientColUpdatedAt": "آخر تعديل بواسطة",
+  "clientColActions": "إجراءات",
+
+  "clientUnknownUser": "مجهول",
+  "clientEditTooltip": "تعديل بيانات",
+  "clientNoEditPermissionTooltip": "لا تملك الصلاحية",
+  "clientAddDialogTitle": "إضافة عميل جديد",
+  "clientAddDialogSubtitle": "يرجى إدخال بيانات العميل بدقة للتواصل وإعداد العقود.",
+  "clientEditDialogTitle": "تعديل بيانات العميل",
+  "clientSecurityWarning": "تنبيه أمني: إجراءات التعديل أو الحذف للعملاء تتطلب إدخال رمز الأمان الخاص بالإدارة للحفاظ على موثوقية العقود.",
+  "clientLabelFullName": "الاسم الثلاثي",
+  "clientLabelPhone": "رقم الهاتف",
+  "clientLabelNationalId": "الرقم الوطني",
+  "clientValidationFillNamePhone": "⚠️ يرجى إدخال الاسم ورقم الهاتف على الأقل!",
+  "clientSuccessAdd": "تمت إضافة العميل بنجاح ✅",
+  "clientSuccessUpdated": "تم تحديث بيانات العميل بنجاح ✅",
+  "clientSuccessDeleted": "تم نقل العميل لسلة المحذوفات",
+  "clientErrorSave": "حدث خطأ أثناء الحفظ: {error}",
+  "@clientErrorSave": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+
+  "btnCancel": "إلغاء",
+  "btnSaveClient": "حفظ العميل",
+  "btnSave": "حفظ",
+  "btnSaving": "جاري الحفظ...",
+  "btnDeleteAndBin": "حذف ونقل للسلة",
+
+  "pinDialogTitle": "تأكيد الصلاحية",
+  "pinDialogSubtitle": "هذه العملية حساسة ومراقبة. يرجى إدخال رمز الأمان (PIN) الخاص بك للمتابعة.",
+  "pinErrorInvalid": "الرمز غير صحيح! ❌",
+  "btnConfirmPin": "تأكيد الصلاحية",
+
+
+
+
+  "clientProfileTitle": "الملف التعريفي للعميل",
+  "clientProfileTotalContracts": "إجمالي العقود",
+  "clientProfileTotalPayments": "إجمالي المدفوعات",
+  "clientProfileOverdueDebts": "ديون متأخرة",
+  "clientProfilePortfolioTitle": "المحفظة العقارية للعميل",
+  "clientProfileNoContracts": "هذا العميل لا يملك أي عقود حالياً.",
+  "clientProfileContractDate": "توقيع:",
+  "clientProfileContractPaid": "المدفوع:",
+  "clientProfileContractOverdue": "متأخر",
+  "clientProfileContractHasPenalty": "يحتوي غرامات",
+  "clientProfileContractGoodStanding": "منتظم مالياً ✓",
+  "clientProfilePaidInstallmentsCount": "{count} حركات مسددة",
+  "@clientProfilePaidInstallmentsCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+
+  "contractHandoverDialogTitle": "إتمام تسليم العقار",
+  "contractHandoverDialogInfo": "عند تأكيد التسليم، سيبدأ النظام آلياً باحتساب غرامات التأخير (إن وجدت في العقد) بناءً على التاريخ المدخل هنا.",
+  "contractHandoverActualDate": "تاريخ التسليم الفعلي:",
+  "contractHandoverNotesHint": "ملاحظات وتفاصيل النواقص (إن وجدت)",
+  "contractHandoverConfirmBtn": "اعتماد التسليم",
+  "contractHandoverSuccess": "تم تسليم العقار بنجاح! ✅",
+  "contractHandoverCancelSuccess": "تم إلغاء التسليم بنجاح.",
+  "contractHandoverAptMissing": "بيانات الشقة غير متوفرة!",
+  "contractHandoverBldMissing": "بيانات المحضر غير متوفرة!",
+  "contractHandoverPdfGenerating": "جاري تجهيز محضر الاستلام... ⏳",
+
+  "contractDetailsTitle": "تفاصيل العقد والمحفظة",
+  "contractDetailsClientName": "عقد العميل: {name}",
+  "@contractDetailsClientName": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "contractDetailsContractNumber": "رقم العقد: {id}",
+  "@contractDetailsContractNumber": {
+    "placeholders": {
+      "id": { "type": "String" }
+    }
+  },
+  "contractDetailsMonthlyDue": "المطلوب شهرياً",
+  "contractDetailsBaseMeterPrice": "سعر المتر عند التوقيع",
+  "contractDetailsTotalArea": "المساحة الإجمالية",
+  "contractDetailsMeterPrice": "سعر المتر",
+  "contractDetailsMarketPrice": "حسب السوق",
+  "contractDetailsPayDay": "يوم الدفع",
+  "contractDetailsArea": "المساحة",
+  "contractDetailsShares": "أسهم",
+  "contractDetailsUnallocated": "غير مخصصة",
+
+  "contractDetailsArchivedTitle": "هذا العقد مُغلق ومؤرشف 🔒",
+  "contractDetailsArchivedDesc": "• السجل المالي: محفوظ بالكامل للاطلاع والتدقيق المحاسبي.\n• المدفوعات: تم إيقاف إضافة أو تعديل الدفعات لمنع التلاعب في الحسابات المنتهية.\n• المراقبة: تم سحب العقد من \"رادار المراقبة\" ولن تظهر له أي مطالبات أو متأخرات.\n• الإجراءات: يمكن للإدارة العليا فقط النقر على زر \"إلغاء الأرشفة\" من جدول العقود لإعادة فتحه عند الضرورة.",
+
+  "contractDetailsOperationalActions": "الإجراءات التشغيلية",
+  "contractDetailsInstallmentsPageBtn": "صفحة الأقساط",
+  "contractDetailsNavToInstallments": "تم تحويلك لصفحة الأقساط الخاصة بهذا العقد!",
+  "contractDetailsSchedulePageBtn": "جدول المراقبة والمستحقات",
+  "contractDetailsNavToSchedule": "تم تحويلك لجدول المراقبة الخاص بهذا العقد!",
+  "contractDetailsViewAttachmentBtn": "عرض ملف العقد المرفق (PDF/Word)",
+  "contractDetailsGeneratingLink": "جاري إنشاء رابط وصول آمن... ⏳",
+  "contractDetailsCannotOpenLink": "لا يمكن فتح الرابط السحابي.",
+  "contractDetailsLocalFileError": "⚠️ تعذر فتح الملف المحلي: {error}",
+  "@contractDetailsLocalFileError": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+
+  "contractDetailsInfoTitle": "تفاصيل العقد والوحدة",
+  "contractDetailsSignDate": "تاريخ توقيع العقد:",
+  "contractDetailsDuration": "المدة المسجلة:",
+  "contractDetailsMonths": "{count} أشهر",
+  "@contractDetailsMonths": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "contractDetailsGuarantor": "اسم الكفيل الضامن:",
+  "contractDetailsPropertyDesc": "الوصف العقاري:",
+
+  "contractDetailsHandoverStatusTitle": "حالة تسليم العقار (المفتاح)",
+  "contractDetailsHandoverDone": "تم تسليم الشقة للعميل",
+  "contractDetailsHandoverPending": "قيد الإنشاء / لم يتم التسليم بعد",
+  "contractDetailsAgreedHandoverDate": "الموعد المتفق عليه بالعقد:",
+  "contractDetailsGracePeriod": "فترة السماح (للمطور):",
+  "contractDetailsPenaltySystem": "نظام الفائدة (بعد التسليم):",
+  "contractDetailsPenaltyActive": "مُفعّل ({pct}% كل {interval} أشهر)",
+  "@contractDetailsPenaltyActive": {
+    "placeholders": {
+      "pct": { "type": "String" },
+      "interval": { "type": "int" }
+    }
+  },
+  "contractDetailsPenaltyInactive": "غير مُفعّل",
+  "contractDetailsActualHandoverDate": "تاريخ التسليم الفعلي:",
+  "contractDetailsHandoverNotes": "ملاحظات / نواقص التسليم:",
+
+  "contractDetailsPenaltyAlertTitle": "تنبيه محاسبي: غرامات متراكمة",
+  "contractDetailsPenaltyAlertDesc": "لقد مر الزمن المحدد بعد الاستلام والعميل لا يزال مديناً. النظام أضاف آلياً غرامة بقيمة {amount} ل.س إلى ديونه.",
+  "@contractDetailsPenaltyAlertDesc": {
+    "placeholders": {
+      "amount": { "type": "String" }
+    }
+  },
+
+  "contractDetailsHandoverBtn": "تسليم الشقة للعميل",
+  "contractDetailsCancelHandoverBtn": "إلغاء التسليم",
+  "contractDetailsPrintHandoverBtn": "طباعة محضر الاستلام",
+
+  "contractDetailsLegalSectionTitle": "السجل القانوني والإجراءات",
+  "contractDetailsLegalClean": "السجل نظيف. لا توجد أي إجراءات قانونية مسجلة.",
+  "contractDetailsLegalGalleryBtn": "معرض المرفقات",
+
+  "contractDetailsFinancialAnalysisTitle": "التحليل المالي والمعاملات (التميز)",
+  "contractDetailsNoCoefficients": "لا يوجد معاملات تميز إضافية مسجلة لهذا العقد.",
+  "contractDetailsUnallocatedPricingNote": "لا يوجد معاملات لتسعير المتر. المحفظة الاستثمارية تحسب السعر آلياً لحظة كل دفعة بناءً على أسعار المواد في يوم الدفع.",
+
+
+  "bldAddBuildingFab": "إضافة محضر جديد",
+  "bldUnexpectedError": "حدث خطأ غير متوقع",
+  "bldEmptyList": "لا توجد محاضر عقارية حتى الآن.",
+  "bldCatalogTitle": "كتالوج المشاريع والوحدات",
+  "bldTotalCount": "الإجمالي: {count}",
+  "@bldTotalCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+
+  "bldNoAddress": "بدون عنوان",
+  "bldApartmentsCount": "{count} شقق",
+  "@bldApartmentsCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "bldShopsCount": "{count} محلات",
+  "@bldShopsCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "bldLastUpdatedBy": "آخر تعديل بواسطة: ",
+  "bldUnknownUser": "مجهول",
+  "bldGalleryTooltip": "معرض مرفقات ومخططات المحضر",
+  "bldEditTooltip": "تعديل بيانات المحضر",
+  "bldDetailsTooltip": "عرض التفاصيل والنسب",
+  "bldNoFloorsWarning": "لم يتم إعداد الطوابق لهذا المحضر. يرجى تعديل المحضر أولاً.",
+  "bldFloorAptsCount": "{floorName} ( {count} شقق )",
+  "@bldFloorAptsCount": {
+    "placeholders": {
+      "floorName": { "type": "String" },
+      "count": { "type": "int" }
+    }
+  },
+  "bldNoAptsInFloor": "لا توجد شقق مضافة في هذا الطابق بعد.",
+  "bldColAptNumber": "رقم الشقة",
+  "bldColShopNumber": "رقم/رمز المحل",
+  "bldColArea": "المساحة",
+  "bldColDirection": "الاتجاه",
+  "bldColFacade": "الواجهة",
+  "bldColAttachments": "المرفقات",
+  "bldColStatus": "الحالة",
+  "bldColUpdatedAt": "آخر تعديل بواسطة",
+  "bldColActions": "إجراءات",
+
+  "bldStatusAvailable": "متاحة",
+  "bldStatusDelivered": "مُسلّمة",
+  "bldStatusSold": "مباعة",
+
+  "bldEditUnitTooltip": "تعديل الوحدة",
+  "bldViewUnitTooltip": "عرض التفاصيل",
+  "bldAddApartmentHere": "إضافة شقة هنا",
+  "bldCopyFloorModel": "نسخ نموذج الطابق",
+  "bldShopsHeader": "المحلات التجارية ( {count} محلات )",
+  "@bldShopsHeader": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "bldNoShopsWarning": "لا توجد محلات تجارية مضافة في هذا المحضر بعد.",
+  "bldAddShopHere": "إضافة محل تجاري هنا",
+
+
+  "bldDetailsDialogTitle": "تفاصيل محضر: {name}",
+  "@bldDetailsDialogTitle": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "bldLocationHeader": "الموقع الجغرافي للمحضر",
+  "bldUnspecified": "غير محدد",
+  "bldGeneralCoeffsHeader": "المعاملات العامة للمحضر والجهات",
+  "bldNoGeneralCoeffs": "لا توجد معاملات عامة مسجلة لهذا المحضر.",
+  "bldFloorStructureHeader": "هيكل الطوابق ونسب التمييز (الأسعار)",
+  "bldNoFloorStructure": "لم يتم إعداد هيكل طوابق لهذا المحضر.",
+  "btnCloseDetails": "إغلاق التفاصيل",
+
+  "aptDetailsDialogTitle": "تفاصيل الوحدة رقم: {number}",
+  "@aptDetailsDialogTitle": {
+    "placeholders": {
+      "number": { "type": "String" }
+    }
+  },
+  "aptStatusAvailableTag": "متاحة للبيع",
+  "aptStatusSoldTag": "مباعة / محجوزة",
+  "aptStatusAvailableDesc": "الحالة الحالية: لم يتم توقيع أي عقد عليها بعد وهي متاحة للتعاقد.",
+  "aptStatusSoldDesc": "الحالة الحالية: تم توقيع عقد ومربوطة بملف عميل مسبقاً.",
+  "aptFloorHeader": "الطابق / المنسوب",
+  "aptDirectionHeader": "الاتجاه / الواجهة",
+  "aptEngineeringHeader": "تفاصيل الحساب الهندسي",
+  "aptSalesAreaTitle": "المساحة البيعية المعتمدة",
+  "aptInputDataHeader": "البيانات المُدخلة للحساب:",
+  "aptFinancialCoeffsHeader": "المعاملات المالية المطبقة على هذه الوحدة",
+  "aptNoFinancialCoeffs": "لا توجد معاملات مالية خاصة مسجلة لهذه الوحدة.",
+
+  "copyFloorNoTargetWarning": "لا توجد طوابق أخرى للنسخ إليها!",
+  "copyFloorDialogTitle": "استنساخ شقق {floorName}",
+  "@copyFloorDialogTitle": {
+    "placeholders": {
+      "floorName": { "type": "String" }
+    }
+  },
+  "copyFloorInfoBanner": "سيتم نسخ المساحات، الاتجاهات، ومعاملات الربح والوجيبة بدقة تامة. (سيتم تحديث النسبة المالية للطابق الجديد آلياً).",
+  "copyFloorTargetHeader": "الطابق الوجهة (الهدف)",
+  "copyFloorSelectTargetLabel": "اختر الطابق المراد النسخ إليه",
+  "copyFloorNewNumbersHeader": "يرجى تحديد أرقام الشقق الجديدة لمنع التكرار",
+  "copyFloorCopyOf": "نسخة عن: {number}",
+  "@copyFloorCopyOf": {
+    "placeholders": {
+      "number": { "type": "String" }
+    }
+  },
+  "copyFloorAreaLabel": "المساحة: {area} م²",
+  "@copyFloorAreaLabel": {
+    "placeholders": {
+      "area": { "type": "Object" }
+    }
+  },
+  "copyFloorNewNumberLabel": "الرقم الجديد",
+  "copyFloorEmptyNumbersWarning": "يرجى تعبئة أرقام جميع الشقق!",
+  "copyFloorSuccess": "تم استنساخ الشقق إلى {targetFloor} بنجاح! ✅",
+  "@copyFloorSuccess": {
+    "placeholders": {
+      "targetFloor": { "type": "String" }
+    }
+  },
+  "btnConfirmCopy": "اعتماد وحفظ النسخ",
+
+  "bldAddDialogTitle": "إضافة محضر جديد (إعداد الهيكل)",
+  "bldLabelName": "اسم المحضر / المشروع",
+  "bldLabelLocation": "الموقع / العنوان",
+  "bldGeneralCoeffsTitle": "معاملات المحضر العامة (%)",
+  "bldCoeffLocation": "الموقع %",
+  "bldCoeffStreet": "الشارع %",
+  "bldCoeffElevator": "المصعد %",
+  "bldDirCoeffsTitle": "معاملات الجهات الجغرافية للمحضر (%)",
+  "bldCoeffNorth": "شمالي %",
+  "bldCoeffSouth": "جنوبي %",
+  "bldCoeffEast": "شرقي %",
+  "bldCoeffWest": "غربي %",
+  "bldFloorStructureTitle": "هيكل الطوابق ونسب التمييز لكل طابق",
+  "bldLabelBasementsCount": "عدد الأقبية (تحت الأرض)",
+  "bldBasementCountOption": "{count} قبو",
+  "@bldBasementCountOption": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "bldLabelFloorsCount": "عدد الطوابق (فوق الأرضي)",
+  "bldFloorCountOption": "{count} طابق",
+  "@bldFloorCountOption": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "bldFloorCoeffLabel": "نسبة التمييز المالي %",
+  "bldValidationFillName": "⚠️ الرجاء إدخال اسم المحضر!",
+  "bldBtnSave": "اعتماد وحفظ المحضر",
+
+  "bldEditDialogTitle": "تعديل بيانات المحضر",
+  "bldDeleteConfirmTitle": "تأكيد الحذف",
+  "bldDeleteConfirmMessage": "هل أنت متأكد من رغبتك في حذف هذا المحضر ونقله إلى سلة المحذوفات؟\n\n(سيتم حذف جميع الوحدات المتاحة داخله آلياً. ولن تتمكن من حذفه إذا كان يحتوي على وحدات مباعة)",
+  "bldBtnConfirmDelete": "نعم، احذف المحضر",
+  "bldEditInfoBanner": "يمكنك تعديل اسم المحضر وموقعه بحرية. لن يؤثر ذلك على العقود أو الحسابات المالية.",
+  "bldSuccessUpdate": "تم حفظ التعديلات بنجاح ✅",
+
+  "aptAddDialogTitle": "إضافة شقة للكتالوج",
+  "aptLabelNumber": "رقم الشقة / الرمز",
+  "aptLabelSelectFloor": "اختر الطابق (يحدد النسبة آلياً)",
+  "aptAreaHeader": "حساب المساحة البيعية (م²)",
+  "aptLabelSlabArea": "مساحة البلاطة (المسقوفة) م²",
+  "aptLabelTerraceArea": "مساحة التراس م²",
+  "aptLabelYardArea": "مساحة الوجيبة م²",
+  "aptSalesAreaResultTitle": "المساحة البيعية المعتمدة للعقد",
+  "aptDirectionHeaderTitle": "اختيار اتجاهات الشقة",
+  "aptFinancialCoeffsHeaderTitle": "المعاملات المالية الخاصة بالشقة",
+  "aptCoeffYard": "معامل الوجيبة %",
+  "aptCoeffProfit": "هامش الربح %",
+  "aptBtnSave": "حفظ الشقة",
+  "aptValidationFillNumber": "⚠️ الرجاء إدخال رقم الشقة!",
+  "aptValidationSelectFloor": "⚠️ الرجاء تحديد الطابق!",
+  "aptValidationFillSlab": "⚠️ الرجاء إدخال مساحة البلاطة!",
+  "aptValidationInvalidArea": "⚠️ المساحة المحسوبة غير صالحة!",
+
+  "aptEditDialogTitle": "تعديل الوحدة ( {number} )",
+  "@aptEditDialogTitle": {
+    "placeholders": {
+      "number": { "type": "String" }
+    }
+  },
+  "aptDeleteConfirmTitle": "تأكيد الحذف",
+  "aptDeleteConfirmMessage": "هل أنت متأكد من رغبتك في حذف هذه الوحدة ونقلها إلى سلة المحذوفات؟",
+  "aptBtnConfirmDelete": "نعم، احذف",
+  "aptSuccessDeleted": "تم نقل الوحدة لسلة المحذوفات",
+  "aptSuccessUpdated": "تم تحديث رقم الوحدة بنجاح",
+  "aptValidationEmptyNumber": "الرقم لا يمكن أن يكون فارغاً!",
+  "aptEditBannerAvailable": "للحفاظ على سلامة الحسابات والمعاملات المالية، يُسمح لك بتعديل \"الرقم/الرمز\" فقط. لتغيير المساحة أو الاتجاه، يرجى حذف الوحدة وإضافتها من جديد.",
+  "aptEditBannerDelivered": "هذه الوحدة تم تسليمها للعميل نهائياً وانتهت دورتها. يُمنع منعاً باتاً تعديل بياناتها أو حذفها للحفاظ على استقرار العقود والبيانات المالية.",
+  "aptEditBannerSold": "هذه الوحدة مباعة أو محجوزة بعقد نشط. يُمنع منعاً باتاً تعديل بياناتها أو حذفها للحفاظ على استقرار العقود المالية.",
+  "aptTagLockedDelivered": "مقفلة (مُسلّمة)",
+  "aptTagLockedSold": "مقفلة (مباعة)",
+  "aptLabelApprovedArea": "المساحة المعتمدة",
+  "aptLabelDirection": "الاتجاه / الواجهة",
+  "aptBtnSaveEdit": "حفظ التعديل",
+  "btnClose": "إغلاق",
+
+  "shopAddDialogTitle": "إضافة محل تجاري",
+  "shopLabelNumber": "رقم المحل / الرمز",
+  "shopEngineeringHeader": "البيانات الهندسية (المساحات والأبعاد)",
+  "shopLabelGroundArea": "مساحة الأرضي م²",
+  "shopLabelFacadeLength": "عرض الواجهة (متر)",
+  "shopSalesAreaResultTitle": "المساحة البيعية الإجمالية للمحل",
+  "shopFinancialCoeffsHeader": "المعاملات المالية المئوية",
+  "shopCoeffLocation": "نسبة الموقع %",
+  "shopCoeffStreet": "نسبة الشارع %",
+  "shopCoeffFacade": "نسبة التميز للواجهة %",
+  "shopBtnSave": "حفظ المحل",
+  "shopValidationIncomplete": "⚠️ بيانات غير مكتملة أو مساحة غير صالحة!",
+
+
+  "attErrorNoInternet": "❌ لا يوجد اتصال بالإنترنت! تأكد من الشبكة وحاول مجدداً.",
+  "attBtnUpload": "رفع ملفات",
+  "attBtnUploadNew": "رفع ملفات جديدة",
+  "attUploadProgress": "جاري معالجة ورفع الملف {current} من {total}",
+  "@attUploadProgress": {
+    "placeholders": {
+      "current": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "attUploadSpeed": "متوسط السرعة: {speed}",
+  "@attUploadSpeed": {
+    "placeholders": {
+      "speed": { "type": "String" }
+    }
+  },
+  "attBtnCancelling": "جاري الإيقاف...",
+  "attBtnCancel": "إلغاء العملية",
+  "attUnnamed": "بدون اسم",
+  "attOpeningFile": "جاري فتح \"{fileName}\"... ⏳",
+  "@attOpeningFile": {
+    "placeholders": {
+      "fileName": { "type": "String" }
+    }
+  },
+  "attLocalFileError": "⚠️ تعذر فتح الملف المحلي: {error}",
+  "@attLocalFileError": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+  "attFileError": "⚠️ تعذر فتح الملف: {error}",
+  "@attFileError": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+  "attOpenError": "❌ خطأ في فتح الملف: {error}",
+  "@attOpenError": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+  "attUploadCancelled": "⚠️ تم إلغاء الرفع. تم رفع {count} ملفات فقط.",
+  "@attUploadCancelled": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "attInternetLostDuringUpload": "❌ انقطع الاتصال بالإنترنت أثناء الرفع!",
+  "attUploadError": "❌ حدث خطأ أثناء رفع الملف ({fileName}): {error}",
+  "@attUploadError": {
+    "placeholders": {
+      "fileName": { "type": "String" },
+      "error": { "type": "String" }
+    }
+  },
+  "attUploadSuccess": "تم رفع {count} ملفات بنجاح! ✅",
+  "@attUploadSuccess": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "attWaitUploadNotice": "⚠️ الرجاء الانتظار حتى يكتمل الرفع.",
+  "attImageLoadError": "تعذر تحميل الصورة",
+
+  "bldAttPageTitle": "مرفقات المحضر: {name}",
+  "@bldAttPageTitle": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "bldAttEmptyGallery": "المعرض فارغ. لا توجد مرفقات لهذا المحضر.",
+
+  "aptAttPageTitleShop": "مرفقات المحل ({number})",
+  "@aptAttPageTitleShop": {
+    "placeholders": {
+      "number": { "type": "String" }
+    }
+  },
+  "aptAttPageTitleApartment": "مرفقات الشقة ({number})",
+  "@aptAttPageTitleApartment": {
+    "placeholders": {
+      "number": { "type": "String" }
+    }
+  },
+  "aptAttEmptyGallery": "المعرض فارغ. لا توجد مرفقات للوحدة."
+}

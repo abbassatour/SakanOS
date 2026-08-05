@@ -1,7 +1,7 @@
 // lib/payments/widgets/dialogs/edit_payment_dialog.dart
 
 import 'dart:async';
-
+import 'package:our_home_erp_app/env/env.dart';
 import 'package:erp_repository/erp_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -28,7 +28,6 @@ Future<void> showEditPaymentDialog(
 
   final isAuthorized = await showVerifyPinDialog(
     context: parentContext,
-    correctPin: '0938457732',
     message: 'تعديل القيود يتطلب صلاحيات الإدارة',
   );
   if (!isAuthorized) return;

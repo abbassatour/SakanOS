@@ -1,26 +1,50 @@
 // lib/home/view/widgets/recent_activities_section.dart
 import 'package:flutter/material.dart';
 import 'package:erp_repository/erp_repository.dart';
+import 'package:local_storage_api/local_storage_api.dart';
+import 'package:our_home_erp_app/l10n/l10n.dart';
 
 class RecentActivitiesSection extends StatelessWidget {
   final List<ActivityItem> activities;
 
   const RecentActivitiesSection({super.key, required this.activities});
 
-  // 🌟 دالة مساعدة لتحويل الوقت إلى صيغة (منذ 5 دقائق)
-  String _getTimeAgo(DateTime dateTime) {
-    final difference = DateTime.now().toUtc().difference(dateTime);
-    if (difference.inMinutes < 1) return 'الآن';
-    if (difference.inMinutes < 60) return 'منذ ${difference.inMinutes} دقيقة';
-    if (difference.inHours < 24) return 'منذ ${difference.inHours} ساعة';
-    if (difference.inDays == 1) return 'أمس';
-    if (difference.inDays < 7) return 'منذ ${difference.inDays} أيام';
+  String _getTimeAgo(BuildContext context, DateTime dateTime) {
+    final l10n = context.l10n;
+    final difference = SecureTime.now().difference(dateTime);
+
+    if (difference.inMinutes < 1) return l10n.timeJustNow;
+    if (difference.inMinutes < 60) {
+      return l10n.timeMinutesAgo(difference.inMinutes);
+    }
+    if (difference.inHours < 24) {
+      return l10n.timeHoursAgo(difference.inHours);
+    }
+    if (difference.inDays == 1) return l10n.timeYesterday;
+    if (difference.inDays < 7) {
+      return l10n.timeDaysAgo(difference.inDays);
+    }
     return '${dateTime.year}/${dateTime.month.toString().padLeft(2, '0')}/${dateTime.day.toString().padLeft(2, '0')}';
+  }
+
+  String _getActivityTitle(BuildContext context, ActivityType type) {
+    final l10n = context.l10n;
+    switch (type) {
+      case ActivityType.payment:
+        return l10n.activityPaymentTitle;
+      case ActivityType.contract:
+        return l10n.activityContractTitle;
+      case ActivityType.client:
+        return l10n.activityClientTitle;
+      case ActivityType.adminAction:
+        return l10n.activityAdminActionTitle;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     if (activities.isEmpty) return const SizedBox.shrink();
+    final l10n = context.l10n;
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -38,7 +62,6 @@ class RecentActivitiesSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 🌟 ترويسة القسم
           Row(
             children: [
               Container(
@@ -54,9 +77,9 @@ class RecentActivitiesSection extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 12),
-              const Text(
-                'سجل النشاطات الحديثة',
-                style: TextStyle(
+              Text(
+                l10n.recentActivitiesTitle,
+                style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: Color(0xFF1A237E),
@@ -65,14 +88,11 @@ class RecentActivitiesSection extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 24),
-
-          // 🌟 شريط التتبع (Timeline)
           ...activities.asMap().entries.map((entry) {
             final index = entry.key;
             final activity = entry.value;
             final isLast = index == activities.length - 1;
 
-            // تحديد اللون والأيقونة بناءً على نوع النشاط
             Color iconColor;
             IconData iconData;
 
@@ -94,7 +114,6 @@ class RecentActivitiesSection extends StatelessWidget {
             return Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // 📍 خط الزمن والأيقونة
                 Column(
                   children: [
                     Container(
@@ -112,19 +131,15 @@ class RecentActivitiesSection extends StatelessWidget {
                     if (!isLast)
                       Container(
                         width: 2,
-                        height: 50, // طول الخط الفاصل
+                        height: 50,
                         color: Colors.grey.shade200,
                       ),
                   ],
                 ),
                 const SizedBox(width: 16),
-
-                // 📝 المحتوى النصي للنشاط
                 Expanded(
                   child: Padding(
-                    padding: const EdgeInsets.only(
-                      bottom: 16.0,
-                    ), // إبعاد العناصر عن بعضها
+                    padding: const EdgeInsets.only(bottom: 16.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -132,14 +147,14 @@ class RecentActivitiesSection extends StatelessWidget {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              activity.title,
+                              _getActivityTitle(context, activity.type),
                               style: const TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 14,
                               ),
                             ),
                             Text(
-                              _getTimeAgo(activity.timestamp),
+                              _getTimeAgo(context, activity.timestamp),
                               style: TextStyle(
                                 color: Colors.grey.shade500,
                                 fontSize: 12,
@@ -156,8 +171,6 @@ class RecentActivitiesSection extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 8),
-
-                        // 👤 اسم المستخدم الملون
                         Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 8,

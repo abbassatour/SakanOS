@@ -1,6 +1,9 @@
 // packages/erp_repository/lib/src/repositories/sync_repository.dart
 // ignore_for_file: depend_on_referenced_packages
-
+import 'dart:io';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:path/path.dart' as p;
 import 'package:cloud_storage_api/cloud_storage_api.dart';
 import 'package:drift/drift.dart' as drift;
 import 'package:local_storage_api/local_storage_api.dart';
@@ -24,6 +27,16 @@ class SyncRepository {
     try {
       await syncPendingData();
       await pullDataFromCloud();
+
+      // لا يتم تحديث النبضة والوقت إلا إذا نجحت العمليتان
+      await _updateHeartbeat();
+
+      // 🌟 المكان الآمن: الآن نحن متأكدون أن الوقت المعتمد حقيقي وليس مزوراً
+      await _localApi.autoCleanOldDeletedClients();
+      await _localApi.autoCleanOldDeletedContracts();
+      await _localApi.autoCleanOldDeletedLedgerEntries();
+      await _localApi.database.autoCleanOldDeletedBuildingsAndApartments();
+
       return 'تمت المزامنة مع السحابة بنجاح! ☁️✓';
     } on Exception catch (e) {
       return 'حدث خطأ أثناء المزامنة: $e';
@@ -31,28 +44,80 @@ class SyncRepository {
   }
 
   Future<void> pullDataFromCloud() async {
+    // 🌟 فحص سريع للإنترنت لمنع تجميد التطبيق عند التشغيل بدون شبكة
+    try {
+      final result = await InternetAddress.lookup(
+        'google.com',
+      ).timeout(const Duration(seconds: 3));
+      if (result.isEmpty || result[0].rawAddress.isEmpty) {
+        throw Exception('لا يوجد اتصال بالإنترنت.');
+      }
+    } catch (_) {
+      throw Exception('لا يوجد اتصال بالإنترنت لجلب بياناتك.');
+    }
+
     try {
       final prefs = await SharedPreferences.getInstance();
+
+      // 👇👇 [الأسطر الجديدة الخاصة بالاشتراك] 👇👇
+      // 💳 جلب حالة الاشتراك من السحابة وتحديثها محلياً
+      final subStatus = await _cloudApi.getSubscriptionStatus();
+      if (subStatus != null) {
+        final isSuspended = subStatus['is_suspended'] == true;
+        final expiryStr = subStatus['subscription_end_date']?.toString();
+
+        if (isSuspended) {
+          // إذا قمت بإيقافهم يدوياً من السيرفر، نعين التاريخ للماضي ليُقفل التطبيق فوراً
+          await _updateSubscriptionExpiryLocally(DateTime(2000).toUtc());
+        } else if (expiryStr != null) {
+          final expiryDate = DateTime.tryParse(expiryStr)?.toUtc();
+          if (expiryDate != null) {
+            await _updateSubscriptionExpiryLocally(expiryDate);
+          }
+        }
+      }
+      // 👆👆 [نهاية إضافة الاشتراك] 👆👆
+
       final lastSyncStr = prefs.getString('last_pull_timestamp');
+      // ... باقي الكود يبقى كما هو (سحب العملاء، العقود، الخ)...
       DateTime? lastSyncTime;
 
       final existingClients = await _localApi.getClients();
       final isDatabaseEmpty = existingClients.isEmpty;
 
-      final cloudDollarPrices = await _cloudApi.getDollarPrices();
-      for (final cloudJson in cloudDollarPrices) {
-        await _localApi.syncDollarPrice(_mapCloudToDollarPrice(cloudJson));
-      }
-
       if (lastSyncStr != null && !isDatabaseEmpty) {
         lastSyncTime = DateTime.parse(lastSyncStr).toUtc();
-      } else {
-        lastSyncTime = null;
+      }
+
+      // ==========================================
+      // 🌟 الحل السحري: تتبع أحدث توقيت قادم من السيرفر
+      // ==========================================
+      DateTime? latestServerTimestamp;
+
+      void trackLatestTime(String? dateStr) {
+        if (dateStr == null || dateStr.isEmpty) return;
+        final date = DateTime.tryParse(dateStr)?.toUtc();
+        if (date != null) {
+          if (latestServerTimestamp == null ||
+              date.isAfter(latestServerTimestamp!)) {
+            latestServerTimestamp = date;
+          }
+        }
+      }
+
+      // 0. سحب أسعار الدولار
+      final cloudDollarPrices = await _cloudApi.getDollarPrices(
+        lastSync: lastSyncTime,
+      );
+      for (final d in cloudDollarPrices) {
+        trackLatestTime(d['updated_at']?.toString());
+        await _localApi.syncDollarPrice(_mapCloudToDollarPrice(d));
       }
 
       // 1. سحب العملاء
       final cloudClients = await _cloudApi.getClients(lastSync: lastSyncTime);
       for (final c in cloudClients) {
+        trackLatestTime(c['updated_at']?.toString());
         final client = ClientsCompanion.insert(
           id: drift.Value(c['id'].toString()),
           name: c['name'].toString(),
@@ -62,7 +127,7 @@ class SyncRepository {
           isDeleted: drift.Value(c['is_deleted'] == true),
           updatedAt: drift.Value(
             DateTime.tryParse(c['updated_at']?.toString() ?? '')?.toUtc() ??
-                DateTime.now().toUtc(),
+                SecureTime.now(),
           ),
           isSynced: const drift.Value(true),
         );
@@ -74,6 +139,7 @@ class SyncRepository {
         lastSync: lastSyncTime,
       );
       for (final c in cloudContracts) {
+        trackLatestTime(c['updated_at']?.toString());
         final contract = ContractsCompanion.insert(
           id: drift.Value(c['id'].toString()),
           clientId: c['client_id'].toString(),
@@ -131,7 +197,7 @@ class SyncRepository {
               DateTime.tryParse(
                 c['contract_date']?.toString() ?? '',
               )?.toUtc() ??
-              DateTime.now().toUtc(),
+              SecureTime.now(),
           guarantorName: c['guarantor_name']?.toString() ?? 'بدون كفيل',
           contractFileUrl: drift.Value(c['contract_file_url']?.toString()),
           userId: c['user_id']?.toString() ?? '',
@@ -145,7 +211,7 @@ class SyncRepository {
           isDeleted: drift.Value(c['is_deleted'] == true),
           updatedAt: drift.Value(
             DateTime.tryParse(c['updated_at']?.toString() ?? '')?.toUtc() ??
-                DateTime.now().toUtc(),
+                SecureTime.now(),
           ),
           isSynced: const drift.Value(true),
         );
@@ -155,6 +221,7 @@ class SyncRepository {
       // 3. سحب أسعار المواد
       final cloudPrices = await _cloudApi.getMaterialPrices();
       for (final p in cloudPrices) {
+        trackLatestTime(p['updated_at']?.toString());
         final price = MaterialPricesHistoryCompanion.insert(
           id: drift.Value(p['id'].toString()),
           ironPrice: double.tryParse(p['iron_price']?.toString() ?? '0') ?? 0.0,
@@ -177,7 +244,7 @@ class SyncRepository {
               0.0,
           effectiveDate: drift.Value(
             DateTime.tryParse(p['effective_date']?.toString() ?? '')?.toUtc() ??
-                DateTime.now().toUtc(),
+                SecureTime.now(),
           ),
           userId: p['user_id']?.toString() ?? '',
           isDeleted: drift.Value(p['is_deleted'] == true),
@@ -191,6 +258,7 @@ class SyncRepository {
         lastSync: lastSyncTime,
       );
       for (final s in cloudSchedules) {
+        trackLatestTime(s['updated_at']?.toString());
         final schedule = InstallmentsScheduleCompanion.insert(
           id: drift.Value(s['id'].toString()),
           contractId: s['contract_id'].toString(),
@@ -198,7 +266,7 @@ class SyncRepository {
               int.tryParse(s['installment_number']?.toString() ?? '1') ?? 1,
           dueDate:
               DateTime.tryParse(s['due_date']?.toString() ?? '')?.toUtc() ??
-              DateTime.now().toUtc(),
+              SecureTime.now(),
           status: drift.Value(s['status']?.toString() ?? 'pending'),
           notes: drift.Value(s['notes']?.toString()),
           expectedAmount: drift.Value(
@@ -210,7 +278,7 @@ class SyncRepository {
           isDeleted: drift.Value(s['is_deleted'] == true),
           updatedAt: drift.Value(
             DateTime.tryParse(s['updated_at']?.toString() ?? '')?.toUtc() ??
-                DateTime.now().toUtc(),
+                SecureTime.now(),
           ),
           isSynced: const drift.Value(true),
         );
@@ -220,13 +288,19 @@ class SyncRepository {
       // 5. سحب الأقساط (الدفعات)
       final cloudPayments = await _cloudApi.getPayments(lastSync: lastSyncTime);
       for (final p in cloudPayments) {
+        trackLatestTime(p['updated_at']?.toString());
         final payment = PaymentsLedgerCompanion.insert(
           id: drift.Value(p['id'].toString()),
           contractId: p['contract_id'].toString(),
           scheduleId: drift.Value(p['schedule_id']?.toString()),
+          receiptNumber: drift.Value(
+            p['receipt_number'] != null
+                ? int.tryParse(p['receipt_number'].toString())
+                : null,
+          ),
           paymentDate:
               DateTime.tryParse(p['payment_date']?.toString() ?? '')?.toUtc() ??
-              DateTime.now().toUtc(),
+              SecureTime.now(),
           amountPaid:
               double.tryParse(p['amount_paid']?.toString() ?? '0') ?? 0.0,
           meterPriceAtPayment:
@@ -243,7 +317,7 @@ class SyncRepository {
           isDeleted: drift.Value(p['is_deleted'] == true),
           updatedAt: drift.Value(
             DateTime.tryParse(p['updated_at']?.toString() ?? '')?.toUtc() ??
-                DateTime.now().toUtc(),
+                SecureTime.now(),
           ),
           isSynced: const drift.Value(true),
         );
@@ -253,6 +327,7 @@ class SyncRepository {
       // 6. سحب المحاضر
       final cloudBuildings = await _cloudApi.getBuildings();
       for (final b in cloudBuildings) {
+        trackLatestTime(b['updated_at']?.toString());
         final building = BuildingsCompanion.insert(
           id: drift.Value(b['id'].toString()),
           name: b['name'].toString(),
@@ -267,7 +342,7 @@ class SyncRepository {
           isDeleted: drift.Value(b['is_deleted'] == true),
           updatedAt: drift.Value(
             DateTime.tryParse(b['updated_at']?.toString() ?? '')?.toUtc() ??
-                DateTime.now().toUtc(),
+                SecureTime.now(),
           ),
           isSynced: const drift.Value(true),
         );
@@ -277,6 +352,7 @@ class SyncRepository {
       // 7. سحب الشقق
       final cloudApartments = await _cloudApi.getApartments();
       for (final a in cloudApartments) {
+        trackLatestTime(a['updated_at']?.toString());
         final apartment = ApartmentsCompanion.insert(
           id: drift.Value(a['id'].toString()),
           buildingId: a['building_id'].toString(),
@@ -293,7 +369,7 @@ class SyncRepository {
           isDeleted: drift.Value(a['is_deleted'] == true),
           updatedAt: drift.Value(
             DateTime.tryParse(a['updated_at']?.toString() ?? '')?.toUtc() ??
-                DateTime.now().toUtc(),
+                SecureTime.now(),
           ),
           isSynced: const drift.Value(true),
         );
@@ -303,6 +379,7 @@ class SyncRepository {
       // 8. سحب قوالب الأدوار
       final cloudRoles = await _cloudApi.getAppRoles(lastSync: lastSyncTime);
       for (final r in cloudRoles) {
+        trackLatestTime(r['updated_at']?.toString());
         final role = AppRolesCompanion.insert(
           id: drift.Value(r['id'].toString()),
           name: r['name'].toString(),
@@ -311,7 +388,7 @@ class SyncRepository {
           isDeleted: drift.Value(r['is_deleted'] == true),
           updatedAt: drift.Value(
             DateTime.tryParse(r['updated_at']?.toString() ?? '')?.toUtc() ??
-                DateTime.now().toUtc(),
+                SecureTime.now(),
           ),
           isSynced: const drift.Value(true),
         );
@@ -321,11 +398,16 @@ class SyncRepository {
       // 9. سحب المستخدمين
       final cloudUsers = await _cloudApi.getAppUsers(lastSync: lastSyncTime);
       for (final u in cloudUsers) {
+        trackLatestTime(u['updated_at']?.toString());
         final user = LocalUsersCompanion.insert(
           id: u['id'].toString(),
           email: u['email']?.toString() ?? '',
           fullName: drift.Value(u['full_name']?.toString()),
           roleId: drift.Value(u['role_id']?.toString()),
+
+          // 🌟 السطر الجديد: جلب الـ PIN من السحابة
+          securityPin: drift.Value(u['security_pin']?.toString() ?? '0000'),
+
           extraPermissionsJson: drift.Value(
             u['extra_permissions']?.toString() ?? '[]',
           ),
@@ -335,7 +417,7 @@ class SyncRepository {
           isActive: drift.Value(u['is_active'] != false),
           updatedAt: drift.Value(
             DateTime.tryParse(u['updated_at']?.toString() ?? '')?.toUtc() ??
-                DateTime.now().toUtc(),
+                SecureTime.now(),
           ),
           isSynced: const drift.Value(true),
         );
@@ -347,6 +429,7 @@ class SyncRepository {
         lastSync: lastSyncTime,
       );
       for (final a in cloudLegalActions) {
+        trackLatestTime(a['updated_at']?.toString());
         final action = LegalActionsCompanion.insert(
           id: drift.Value(a['id'].toString()),
           contractId: a['contract_id'].toString(),
@@ -357,13 +440,11 @@ class SyncRepository {
           isDeleted: drift.Value(a['is_deleted'] == true),
           updatedAt: drift.Value(
             DateTime.tryParse(a['updated_at']?.toString() ?? '')?.toUtc() ??
-                DateTime.now().toUtc(),
+                SecureTime.now(),
           ),
           isSynced: const drift.Value(true),
         );
-        await _localApi.database
-            .into(_localApi.database.legalActions)
-            .insert(action, mode: drift.InsertMode.insertOrReplace);
+        await _localApi.database.syncLegalAction(action);
       }
 
       // 11. سحب المرفقات القانونية
@@ -371,6 +452,7 @@ class SyncRepository {
         lastSync: lastSyncTime,
       );
       for (final att in cloudAttachments) {
+        trackLatestTime(att['updated_at']?.toString());
         final attachment = LegalActionAttachmentsCompanion.insert(
           id: drift.Value(att['id'].toString()),
           legalActionId: att['legal_action_id'].toString(),
@@ -381,30 +463,132 @@ class SyncRepository {
           isDeleted: drift.Value(att['is_deleted'] == true),
           updatedAt: drift.Value(
             DateTime.tryParse(att['updated_at']?.toString() ?? '')?.toUtc() ??
-                DateTime.now().toUtc(),
+                SecureTime.now(),
           ),
           isSynced: const drift.Value(true),
         );
-        await _localApi.database
-            .into(_localApi.database.legalActionAttachments)
-            .insert(attachment, mode: drift.InsertMode.insertOrReplace);
+        await _localApi.database.syncLegalActionAttachment(attachment);
       }
 
-      await prefs.setString(
-        'last_pull_timestamp',
-        DateTime.now().toUtc().toIso8601String(),
+      // 12. سحب المرفقات الخاصة بالعقود
+      final cloudContractAttachments = await _cloudApi.getContractAttachments(
+        lastSync: lastSyncTime,
       );
+      for (final att in cloudContractAttachments) {
+        trackLatestTime(att['updated_at']?.toString());
+        final attachment = ContractAttachmentsCompanion.insert(
+          id: drift.Value(att['id'].toString()),
+          contractId: att['contract_id'].toString(),
+          fileUrl: att['file_url'].toString(),
+          fileName: drift.Value(att['file_name']?.toString()),
+          fileType: drift.Value(att['file_type']?.toString()),
+          userId: att['user_id']?.toString() ?? '',
+          isDeleted: drift.Value(att['is_deleted'] == true),
+          updatedAt: drift.Value(
+            DateTime.tryParse(att['updated_at']?.toString() ?? '')?.toUtc() ??
+                SecureTime.now(),
+          ),
+          isSynced: const drift.Value(true),
+        );
+        await _localApi.database.syncContractAttachment(attachment);
+      }
+
+      // 13. سحب المرفقات الخاصة بالشقق
+      final cloudApartmentAttachments = await _cloudApi.getApartmentAttachments(
+        lastSync: lastSyncTime,
+      );
+      for (final att in cloudApartmentAttachments) {
+        trackLatestTime(att['updated_at']?.toString());
+        final attachment = ApartmentAttachmentsCompanion.insert(
+          id: drift.Value(att['id'].toString()),
+          apartmentId: att['apartment_id'].toString(),
+          fileUrl: att['file_url'].toString(),
+          fileName: drift.Value(att['file_name']?.toString()),
+          fileType: drift.Value(att['file_type']?.toString()),
+          userId: att['user_id']?.toString() ?? '',
+          isDeleted: drift.Value(att['is_deleted'] == true),
+          updatedAt: drift.Value(
+            DateTime.tryParse(att['updated_at']?.toString() ?? '')?.toUtc() ??
+                SecureTime.now(),
+          ),
+          isSynced: const drift.Value(true),
+        );
+        await _localApi.database.syncApartmentAttachment(attachment);
+      }
+
+      // 13. سحب المرفقات الخاصة بالمحاضر
+      final cloudBuildingAttachments = await _cloudApi.getBuildingAttachments(
+        lastSync: lastSyncTime,
+      );
+      for (final att in cloudBuildingAttachments) {
+        trackLatestTime(att['updated_at']?.toString());
+        final attachment = BuildingAttachmentsCompanion.insert(
+          id: drift.Value(att['id'].toString()),
+          buildingId: att['building_id'].toString(),
+          fileUrl: att['file_url'].toString(),
+          fileName: drift.Value(att['file_name']?.toString()),
+          fileType: drift.Value(att['file_type']?.toString()),
+          userId: att['user_id']?.toString() ?? '',
+          isDeleted: drift.Value(att['is_deleted'] == true),
+          updatedAt: drift.Value(
+            DateTime.tryParse(att['updated_at']?.toString() ?? '')?.toUtc() ??
+                SecureTime.now(),
+          ),
+          isSynced: const drift.Value(true),
+        );
+        await _localApi.database.syncBuildingAttachment(attachment);
+      }
+
+      // ==========================================
+      // 🌟 حفظ أحدث توقيت سيرفر للمزامنة القادمة (إن وُجد)
+      // ==========================================
+      if (latestServerTimestamp != null) {
+        await prefs.setString(
+          'last_pull_timestamp',
+          latestServerTimestamp!.toIso8601String(),
+        );
+      }
+
+      // ==========================================
+      // 🌟 حفظ أحدث توقيت سيرفر للمزامنة القادمة (إن وُجد)
+      // ==========================================
+      if (latestServerTimestamp != null) {
+        await prefs.setString(
+          'last_pull_timestamp',
+          latestServerTimestamp!.toIso8601String(),
+        );
+      }
+
+      // ❌ تم إزالة _updateHeartbeat() من هنا ❌
     } on Exception catch (e) {
-      // ignore: avoid_print
       print('❌ Cloud Pull Failed: $e');
+      // 🌟 إجبار الدالة على رمي الخطأ ليوقفه forceSyncWithCloud
+      throw Exception(
+        'تعذر استرداد البيانات من السحابة. تحقق من اتصالك أو من صحة تاريخ الكمبيوتر.',
+      );
     }
-  }
+  } // ✅ هذا القوس فقط لإنهاء دالة pullDataFromCloud
 
   Future<void> syncPendingData() async {
     if (_isSyncing || currentUserId == null) return;
+
+    // 🌟 فحص سريع للإنترنت، في حال عدم وجود شبكة، يخرج بصمت ليدعم وضع الـ Offline
+    try {
+      final result = await InternetAddress.lookup(
+        'google.com',
+      ).timeout(const Duration(seconds: 3));
+      if (result.isEmpty || result[0].rawAddress.isEmpty) {
+        return;
+      }
+    } catch (_) {
+      return;
+    }
+
     _isSyncing = true;
 
+    bool hasErrors = false;
     final db = _localApi.database;
+    // ... باقي الكود يبقى كما هو ...
 
     double safeNum(double? val) {
       if (val == null) return 0.0;
@@ -432,8 +616,8 @@ class SyncRepository {
         );
       }
     } on Exception catch (e) {
-      // ignore: avoid_print
       print('Sync Clients Failed: $e');
+      hasErrors = true;
     }
 
     // 2. مزامنة العقود
@@ -481,8 +665,8 @@ class SyncRepository {
         );
       }
     } on Exception catch (e) {
-      // ignore: avoid_print
       print('Sync Contracts Failed: $e');
+      hasErrors = true;
     }
 
     // 3. مزامنة جدول الاستحقاقات
@@ -519,8 +703,8 @@ class SyncRepository {
         }
       }
     } on Exception catch (e) {
-      // ignore: avoid_print
       print('Sync Schedules Failed: $e');
+      hasErrors = true;
     }
 
     // 4. مزامنة الدفعات
@@ -533,6 +717,7 @@ class SyncRepository {
           'id': p.id,
           'contract_id': p.contractId,
           'schedule_id': p.scheduleId,
+          'receipt_number': p.receiptNumber,
           'payment_date': p.paymentDate.toUtc().toIso8601String(),
           'amount_paid': safeNum(p.amountPaid),
           'meter_price_at_payment': safeNum(p.meterPriceAtPayment),
@@ -548,8 +733,8 @@ class SyncRepository {
             .write(const PaymentsLedgerCompanion(isSynced: drift.Value(true)));
       }
     } on Exception catch (e) {
-      // ignore: avoid_print
       print('Sync Payments Failed: $e');
+      hasErrors = true;
     }
 
     // 5. مزامنة أسعار المواد
@@ -569,7 +754,7 @@ class SyncRepository {
           'ordinary_worker_wage': safeNum(p.ordinaryWorkerWage),
           'user_id': p.userId,
           'is_deleted': p.isDeleted,
-          'updated_at': DateTime.now().toUtc().toIso8601String(),
+          'updated_at': SecureTime.now().toIso8601String(),
         });
         await (db.update(
           db.materialPricesHistory,
@@ -578,8 +763,8 @@ class SyncRepository {
         );
       }
     } on Exception catch (e) {
-      // ignore: avoid_print
       print('Sync Prices Failed: $e');
+      hasErrors = true;
     }
 
     // 6. مزامنة المحاضر
@@ -603,8 +788,8 @@ class SyncRepository {
         );
       }
     } on Exception catch (e) {
-      // ignore: avoid_print
       print('Sync Buildings Failed: $e');
+      hasErrors = true;
     }
 
     // 7. مزامنة الشقق
@@ -632,8 +817,8 @@ class SyncRepository {
         );
       }
     } on Exception catch (e) {
-      // ignore: avoid_print
       print('Sync Apartments Failed: $e');
+      hasErrors = true;
     }
 
     // 8. مزامنة قوالب الأدوار
@@ -655,8 +840,8 @@ class SyncRepository {
         );
       }
     } on Exception catch (e) {
-      // ignore: avoid_print
       print('Sync Roles Failed: $e');
+      hasErrors = true;
     }
 
     // 9. مزامنة المستخدمين
@@ -670,6 +855,7 @@ class SyncRepository {
           'full_name': u.fullName,
           'email': u.email,
           'role_id': u.roleId,
+          'security_pin': u.securityPin,
           'extra_permissions': u.extraPermissionsJson,
           'revoked_permissions': u.revokedPermissionsJson,
           'is_active': u.isActive,
@@ -680,8 +866,8 @@ class SyncRepository {
         );
       }
     } on Exception catch (e) {
-      // ignore: avoid_print
       print('Sync Users Failed: $e');
+      hasErrors = true;
     }
 
     // 10. مزامنة الإجراءات القانونية
@@ -704,8 +890,8 @@ class SyncRepository {
             .write(const LegalActionsCompanion(isSynced: drift.Value(true)));
       }
     } on Exception catch (e) {
-      // ignore: avoid_print
       print('Sync Legal Actions Failed: $e');
+      hasErrors = true;
     }
 
     // 11. مزامنة المرفقات القانونية
@@ -714,10 +900,42 @@ class SyncRepository {
         db.legalActionAttachments,
       )..where((t) => t.isSynced.equals(false))).get();
       for (final att in pendingAttachments) {
+        String finalFileUrl = att.fileUrl;
+
+        if (!finalFileUrl.startsWith('http')) {
+          try {
+            final localFile = File(finalFileUrl);
+            if (await localFile.exists()) {
+              final extension = att.fileType ?? 'pdf';
+              finalFileUrl = await _cloudApi.uploadLegalAttachmentFile(
+                attachmentId: att.id,
+                file: localFile,
+                extension: extension,
+              );
+              await (db.update(
+                db.legalActionAttachments,
+              )..where((t) => t.id.equals(att.id))).write(
+                LegalActionAttachmentsCompanion(
+                  fileUrl: drift.Value(finalFileUrl),
+                ),
+              );
+            } else {
+              await (db.delete(
+                db.legalActionAttachments,
+              )..where((t) => t.id.equals(att.id))).go();
+              continue;
+            }
+          } catch (e) {
+            print('⚠️ فشل رفع المرفق: $e');
+            hasErrors = true;
+            continue;
+          }
+        }
+
         await _cloudApi.upsertLegalActionAttachment({
           'id': att.id,
           'legal_action_id': att.legalActionId,
-          'file_url': att.fileUrl,
+          'file_url': finalFileUrl,
           'file_name': att.fileName,
           'file_type': att.fileType,
           'user_id': att.userId,
@@ -731,8 +949,8 @@ class SyncRepository {
         );
       }
     } on Exception catch (e) {
-      // ignore: avoid_print
       print('Sync Legal Attachments Failed: $e');
+      hasErrors = true;
     }
 
     // 12. مزامنة أسعار الدولار
@@ -749,11 +967,201 @@ class SyncRepository {
         );
       }
     } on Exception catch (e) {
-      // ignore: avoid_print
       print('Sync Dollar Prices Failed: $e');
+      hasErrors = true;
+    }
+
+    // 13. مزامنة المرفقات الخاصة بالعقود
+    try {
+      final pendingContractAttachments = await (db.select(
+        db.contractAttachments,
+      )..where((t) => t.isSynced.equals(false))).get();
+
+      for (final att in pendingContractAttachments) {
+        String finalFileUrl = att.fileUrl;
+
+        if (!finalFileUrl.startsWith('http')) {
+          try {
+            final localFile = File(finalFileUrl);
+            if (await localFile.exists()) {
+              final extension = att.fileType ?? 'pdf';
+              finalFileUrl = await _cloudApi.uploadContractAttachmentFile(
+                attachmentId: att.id,
+                file: localFile,
+                extension: extension,
+              );
+              await (db.update(
+                db.contractAttachments,
+              )..where((t) => t.id.equals(att.id))).write(
+                ContractAttachmentsCompanion(
+                  fileUrl: drift.Value(finalFileUrl),
+                ),
+              );
+            } else {
+              await (db.delete(
+                db.contractAttachments,
+              )..where((t) => t.id.equals(att.id))).go();
+              continue;
+            }
+          } catch (e) {
+            print('⚠️ فشل رفع مرفق العقد: $e');
+            hasErrors = true;
+            continue;
+          }
+        }
+
+        await _cloudApi.upsertContractAttachment({
+          'id': att.id,
+          'contract_id': att.contractId,
+          'file_url': finalFileUrl,
+          'file_name': att.fileName,
+          'file_type': att.fileType,
+          'user_id': att.userId,
+          'is_deleted': att.isDeleted,
+          'updated_at': att.updatedAt.toUtc().toIso8601String(),
+        });
+
+        await (db.update(
+          db.contractAttachments,
+        )..where((t) => t.id.equals(att.id))).write(
+          const ContractAttachmentsCompanion(isSynced: drift.Value(true)),
+        );
+      }
+    } on Exception catch (e) {
+      print('Sync Contract Attachments Failed: $e');
+      hasErrors = true;
+    }
+
+    // 14. مزامنة المرفقات الخاصة بالشقق
+    try {
+      final pendingApartmentAttachments = await (db.select(
+        db.apartmentAttachments,
+      )..where((t) => t.isSynced.equals(false))).get();
+
+      for (final att in pendingApartmentAttachments) {
+        String finalFileUrl = att.fileUrl;
+
+        if (!finalFileUrl.startsWith('http')) {
+          try {
+            final localFile = File(finalFileUrl);
+            if (await localFile.exists()) {
+              final extension = att.fileType ?? 'pdf';
+              finalFileUrl = await _cloudApi.uploadApartmentAttachmentFile(
+                attachmentId: att.id,
+                file: localFile,
+                extension: extension,
+              );
+              await (db.update(
+                db.apartmentAttachments,
+              )..where((t) => t.id.equals(att.id))).write(
+                ApartmentAttachmentsCompanion(
+                  fileUrl: drift.Value(finalFileUrl),
+                ),
+              );
+            } else {
+              await (db.delete(
+                db.apartmentAttachments,
+              )..where((t) => t.id.equals(att.id))).go();
+              continue;
+            }
+          } catch (e) {
+            print('⚠️ فشل رفع مرفق الشقة: $e');
+            hasErrors = true;
+            continue;
+          }
+        }
+
+        await _cloudApi.upsertApartmentAttachment({
+          'id': att.id,
+          'apartment_id': att.apartmentId,
+          'file_url': finalFileUrl,
+          'file_name': att.fileName,
+          'file_type': att.fileType,
+          'user_id': att.userId,
+          'is_deleted': att.isDeleted,
+          'updated_at': att.updatedAt.toUtc().toIso8601String(),
+        });
+
+        await (db.update(
+          db.apartmentAttachments,
+        )..where((t) => t.id.equals(att.id))).write(
+          const ApartmentAttachmentsCompanion(isSynced: drift.Value(true)),
+        );
+      }
+    } on Exception catch (e) {
+      print('Sync Apartment Attachments Failed: $e');
+      hasErrors = true;
+    }
+
+    // 14. مزامنة المرفقات الخاصة بالمحاضر
+    try {
+      final pendingBuildingAttachments = await (db.select(
+        db.buildingAttachments,
+      )..where((t) => t.isSynced.equals(false))).get();
+
+      for (final att in pendingBuildingAttachments) {
+        String finalFileUrl = att.fileUrl;
+
+        if (!finalFileUrl.startsWith('http')) {
+          try {
+            final localFile = File(finalFileUrl);
+            if (await localFile.exists()) {
+              final extension = att.fileType ?? 'pdf';
+              finalFileUrl = await _cloudApi.uploadBuildingAttachmentFile(
+                attachmentId: att.id,
+                file: localFile,
+                extension: extension,
+              );
+              await (db.update(
+                db.buildingAttachments,
+              )..where((t) => t.id.equals(att.id))).write(
+                BuildingAttachmentsCompanion(
+                  fileUrl: drift.Value(finalFileUrl),
+                ),
+              );
+            } else {
+              await (db.delete(
+                db.buildingAttachments,
+              )..where((t) => t.id.equals(att.id))).go();
+              continue;
+            }
+          } catch (e) {
+            print('⚠️ فشل رفع مرفق المحضر: $e');
+            hasErrors = true;
+            continue;
+          }
+        }
+
+        await _cloudApi.upsertBuildingAttachment({
+          'id': att.id,
+          'building_id': att.buildingId,
+          'file_url': finalFileUrl,
+          'file_name': att.fileName,
+          'file_type': att.fileType,
+          'user_id': att.userId,
+          'is_deleted': att.isDeleted,
+          'updated_at': att.updatedAt.toUtc().toIso8601String(),
+        });
+
+        await (db.update(
+          db.buildingAttachments,
+        )..where((t) => t.id.equals(att.id))).write(
+          const BuildingAttachmentsCompanion(isSynced: drift.Value(true)),
+        );
+      }
+    } on Exception catch (e) {
+      print('Sync Building Attachments Failed: $e');
+      hasErrors = true;
     }
 
     _isSyncing = false;
+
+    if (hasErrors) {
+      throw Exception(
+        'فشل رفع بعض التعديلات المحلية. تم إيقاف السحب من السحابة لحماية بياناتك من المسح.',
+      );
+    }
+    // ❌ تم إزالة _updateHeartbeat() من هنا ❌
   }
 
   Map<String, dynamic> _mapDollarPriceToCloud(
@@ -789,5 +1197,149 @@ class SyncRepository {
       isDeleted: drift.Value(cloudData['is_deleted'] == true),
       isSynced: const drift.Value(true),
     );
+  }
+  // ==========================================
+  // 💓 دوال نبض السحابة المحصنة (Encrypted Heartbeat)
+  // ==========================================
+
+  // 1. المفتاح السري الديناميكي (يتغير حسب المستخدم لمنع نسخ الملفات بين الحواسيب)
+  String get _secretKey => '${currentUserId ?? "SYSTEM"}_ERP_OUR_HOME_2026_!@#';
+
+  // 2. خوارزمية التشفير (XOR + Base64)
+  String _encodeToken(String text) {
+    final textBytes = utf8.encode(text);
+    final keyBytes = utf8.encode(_secretKey);
+    final encrypted = <int>[];
+    for (int i = 0; i < textBytes.length; i++) {
+      encrypted.add(textBytes[i] ^ keyBytes[i % keyBytes.length]);
+    }
+    return base64.encode(encrypted);
+  }
+
+  // 3. خوارزمية فك التشفير
+  String? _decodeToken(String base64Text) {
+    try {
+      final encrypted = base64.decode(base64Text);
+      final keyBytes = utf8.encode(_secretKey);
+      final decrypted = <int>[];
+      for (int i = 0; i < encrypted.length; i++) {
+        decrypted.add(encrypted[i] ^ keyBytes[i % keyBytes.length]);
+      }
+      return utf8.decode(decrypted);
+    } catch (_) {
+      // 🚨 تم اكتشاف محاولة تلاعب بالملف!
+      return null;
+    }
+  }
+
+  // ==========================================
+  // 💓 دوال نبض السحابة والوقت الآمن المحصنة
+  // ==========================================
+
+  // 🌟 (الثغرة الثالثة) جلب التوقيت الحقيقي من عدة سيرفرات لمنع حجب الخدمة
+  Future<DateTime> _getTrueNetworkTime() async {
+    final testUrls = [
+      'https://google.com',
+      'https://cloudflare.com',
+      'https://microsoft.com',
+    ];
+
+    for (final url in testUrls) {
+      try {
+        final response = await http
+            .head(Uri.parse(url))
+            .timeout(const Duration(seconds: 4));
+        final dateHeader = response.headers['date'];
+        if (dateHeader != null) {
+          return HttpDate.parse(dateHeader).toUtc();
+        }
+      } catch (_) {
+        continue; // إذا فشل أو تم حجبه، جرب السيرفر الذي يليه
+      }
+    }
+    throw Exception(
+      'لا يمكن التحقق من الوقت الفعلي. تأكد من أنك لست متصلاً بشبكة مقيدة (Captive Portal).',
+    );
+  }
+
+  /// دالة تحديث التوقيت المشفر وتحديث الفجوة (Offset)
+  Future<void> _updateHeartbeat() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    // 1. جلب الوقت الحقيقي
+    final realTime = await _getTrueNetworkTime();
+    final localTime = SecureTime.now();
+
+    // 2. حساب الفجوة الزمنية (Offset) بين السيرفر والجهاز
+    final offset = realTime.difference(localTime);
+    SecureTime.setOffset(offset); // تحديثها في الذاكرة الحية
+
+    // حفظ الفجوة مشفرة (نحفظ الثواني)
+    final encryptedOffset = _encodeToken(offset.inSeconds.toString());
+    await prefs.setString('sys_time_drift_offset', encryptedOffset);
+
+    // 3. تشفير تاريخ النبضة (Heartbeat)
+    final encryptedToken = _encodeToken(realTime.toIso8601String());
+    await prefs.setString('sys_pulse_token', encryptedToken);
+    await prefs.remove('heartbeat_last_sync');
+  }
+
+  /// دالة لتحميل الـ Offset فور فتح التطبيق
+  Future<void> loadSecureTimeOffsetLocally() async {
+    final prefs = await SharedPreferences.getInstance();
+    final encryptedOffset = prefs.getString('sys_time_drift_offset');
+
+    if (encryptedOffset != null) {
+      // 🌟 التصحيح هنا: استخدام encryptedOffset بدلاً من encryptedToken
+      final decryptedStr = _decodeToken(encryptedOffset);
+      if (decryptedStr != null) {
+        final seconds = int.tryParse(decryptedStr) ?? 0;
+        SecureTime.setOffset(Duration(seconds: seconds));
+      }
+    }
+  }
+
+  /// دالة استخراج التوقيت (نبضة السحابة)
+  Future<DateTime?> getLastHeartbeatTime() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    final encryptedToken = prefs.getString('sys_pulse_token');
+    if (encryptedToken != null) {
+      final decryptedStr = _decodeToken(encryptedToken);
+      if (decryptedStr != null) {
+        return DateTime.tryParse(decryptedStr)?.toUtc();
+      }
+      return null;
+    }
+
+    final oldTimeStr = prefs.getString('heartbeat_last_sync');
+    if (oldTimeStr != null) {
+      return DateTime.tryParse(oldTimeStr)?.toUtc();
+    }
+
+    return null;
+  }
+
+  /// 💳 دالة حفظ توقيت انتهاء الاشتراك السحابي بشكل مشفر
+  Future<void> _updateSubscriptionExpiryLocally(DateTime expiryDate) async {
+    final prefs = await SharedPreferences.getInstance();
+    // تشفير التاريخ
+    final encryptedToken = _encodeToken(expiryDate.toUtc().toIso8601String());
+    // حفظه باسم مبهم لا يلفت الانتباه
+    await prefs.setString('sys_config_node_exp', encryptedToken);
+  }
+
+  /// 💳 دالة استخراج توقيت انتهاء الاشتراك محلياً
+  Future<DateTime?> getLocalSubscriptionExpiry() async {
+    final prefs = await SharedPreferences.getInstance();
+    final encryptedToken = prefs.getString('sys_config_node_exp');
+
+    if (encryptedToken != null) {
+      final decryptedStr = _decodeToken(encryptedToken);
+      if (decryptedStr != null) {
+        return DateTime.tryParse(decryptedStr)?.toUtc();
+      }
+    }
+    return null; // إذا فشل أو تم التلاعب به
   }
 }

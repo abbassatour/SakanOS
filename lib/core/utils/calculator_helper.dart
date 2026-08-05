@@ -84,4 +84,69 @@ class CalculatorHelper {
           lastInstallment, // يفضل إرسال القسط الأخير للواجهة وعرضه إذا كان يختلف عن باقي الأقساط
     };
   }
+
+  // 🌟 ثوابت لتجنب الأرقام السحرية (Magic Numbers) لسهولة التعديل مستقبلاً
+  static const double _vipLongTermDiscount = 0.70;
+  static const double _vipStandardDiscount = 0.85;
+  static const double _loyalCustomerDiscount = 0.90;
+  static const int _vipLongTermYearsThreshold = 5;
+  static const int _loyalCustomerYearsThreshold = 2;
+
+  /// Applies a special discount to [originalPrice] based on customer loyalty
+  /// and VIP status.
+  ///
+  /// The discount is determined by the following rules, evaluated in order:
+  ///
+  /// 1. If [isVip] is `true` and [loyalYears] is greater than 5, a 30% discount
+  ///    is applied (i.e., 70% of [originalPrice] is returned).
+  /// 2. Otherwise, if [isVip] is `true`, a 15% discount is applied (85% of
+  ///    [originalPrice] is returned), regardless of [loyalYears].
+  /// 3. Otherwise, if [loyalYears] is greater than 2, a 10% discount is
+  ///    applied (90% of [originalPrice] is returned).
+  /// 4. If none of the above conditions are met, [originalPrice] is returned
+  ///    unchanged.
+  ///
+  /// Note: VIP status takes precedence over years of loyalty — a VIP customer
+  /// with 3 loyal years receives the VIP discount (15%), not the loyalty
+  /// discount (10%).
+  ///
+  /// [originalPrice] must be a non-negative value representing the price
+  /// before any discount is applied.
+  ///
+  /// [isVip] indicates whether the customer holds VIP status.
+  ///
+  /// [loyalYears] is the number of years the customer has been loyal; it
+  /// should be a non-negative integer.
+  ///
+  /// Returns the discounted price as a [double].
+  ///
+  /// Example:
+  /// ```dart
+  /// CalculatorHelper.applySpecialDiscount(1000.0, true, 6);  // 700.0
+  /// CalculatorHelper.applySpecialDiscount(1000.0, true, 1);  // 850.0
+  /// CalculatorHelper.applySpecialDiscount(1000.0, false, 3); // 900.0
+  /// CalculatorHelper.applySpecialDiscount(1000.0, false, 1); // 1000.0
+  /// ```
+  static double applySpecialDiscount(
+    double originalPrice,
+    bool isVip,
+    int loyalYears,
+  ) {
+    // 🛡️ التحقق من المدخلات (Input Validation) لمنع الكوارث المالية المحاسبية
+    if (originalPrice < 0) {
+      throw ArgumentError('Original price cannot be negative.');
+    }
+    if (loyalYears < 0) {
+      throw ArgumentError('Loyal years cannot be negative.');
+    }
+
+    if (isVip && loyalYears > _vipLongTermYearsThreshold) {
+      return originalPrice * _vipLongTermDiscount;
+    } else if (isVip) {
+      return originalPrice * _vipStandardDiscount;
+    } else if (loyalYears > _loyalCustomerYearsThreshold) {
+      return originalPrice * _loyalCustomerDiscount;
+    }
+    return originalPrice;
+  }
 }

@@ -3,12 +3,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:our_home_erp_app/buildings/cubit/buildings_cubit.dart';
 import 'package:our_home_erp_app/buildings/widgets/widgets.dart';
+import 'package:our_home_erp_app/l10n/l10n.dart';
 
 class BuildingsView extends StatelessWidget {
   const BuildingsView({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
       floatingActionButton: FloatingActionButton.extended(
@@ -16,9 +19,9 @@ class BuildingsView extends StatelessWidget {
         backgroundColor: Colors.indigo.shade600,
         onPressed: () => showAddBuildingDialog(context),
         icon: const Icon(Icons.domain_add, color: Colors.white),
-        label: const Text(
-          'إضافة محضر جديد',
-          style: TextStyle(
+        label: Text(
+          l10n.bldAddBuildingFab,
+          style: const TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.bold,
             letterSpacing: 0.5,
@@ -33,7 +36,7 @@ class BuildingsView extends StatelessWidget {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(
-                    state.errorMessage ?? 'حدث خطأ',
+                    state.errorMessage ?? l10n.bldUnexpectedError,
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
@@ -46,9 +49,6 @@ class BuildingsView extends StatelessWidget {
             }
           },
           child: BlocBuilder<BuildingsCubit, BuildingsState>(
-            buildWhen: (previous, current) =>
-                previous.status == BuildingsStatus.loading ||
-                previous.buildings.length != current.buildings.length,
             builder: (context, state) {
               if (state.status == BuildingsStatus.loading &&
                   state.buildings.isEmpty) {
@@ -75,7 +75,7 @@ class BuildingsView extends StatelessWidget {
                             ),
                             const SizedBox(height: 16),
                             Text(
-                              'لا توجد محاضر عقارية حتى الآن.',
+                              l10n.bldEmptyList,
                               style: TextStyle(
                                 fontSize: 18,
                                 color: Colors.blueGrey.shade400,
@@ -118,7 +118,6 @@ class BuildingsView extends StatelessWidget {
   }
 }
 
-/// 🌟 تم استخراج دالة الهيدر إلى كلاس مستقل لتحسين الأداء والمقروئية
 class _BuildingsHeader extends StatelessWidget {
   const _BuildingsHeader({required this.count});
 
@@ -126,16 +125,18 @@ class _BuildingsHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
       child: Row(
         children: [
           const Icon(Icons.domain, color: Colors.indigo, size: 30),
           const SizedBox(width: 12),
-          const Expanded(
+          Expanded(
             child: Text(
-              'كتالوج المشاريع والوحدات',
-              style: TextStyle(
+              l10n.bldCatalogTitle,
+              style: const TextStyle(
                 fontSize: 26,
                 fontWeight: FontWeight.bold,
                 color: Colors.blueGrey,
@@ -151,7 +152,7 @@ class _BuildingsHeader extends StatelessWidget {
               border: Border.all(color: Colors.indigo.shade100),
             ),
             child: Text(
-              'الإجمالي: $count',
+              l10n.bldTotalCount(count),
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 color: Colors.indigo.shade700,

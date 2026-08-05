@@ -2,7 +2,10 @@
 // ignore_for_file: depend_on_referenced_packages
 
 import 'dart:developer';
+import 'dart:io'; // 🌟 السطر الجديد
 
+import 'package:local_storage_api/local_storage_api.dart'
+    show Apartment, Building, BuildingAttachment;
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:erp_repository/erp_repository.dart';
@@ -27,12 +30,30 @@ class BuildingsCubit extends Cubit<BuildingsState> {
         for (final user in allUsers) user.id: user.fullName ?? 'مدير النظام',
       };
 
+      // 🌟 1. جلب مرفقات المحاضر وتوزيعها
+      final allBldAttachments = await _erpRepository
+          .getAllBuildingAttachments();
+      final attachmentsMap = <String, List<BuildingAttachment>>{};
+      for (final att in allBldAttachments) {
+        attachmentsMap.putIfAbsent(att.buildingId, () => []).add(att);
+      }
+
+      // 🌟 2. جلب مرفقات الشقق وتوزيعها
+      final allAptAttachments = await _erpRepository
+          .getAllApartmentAttachments();
+      final aptAttachmentsMap = <String, List<ApartmentAttachment>>{};
+      for (final att in allAptAttachments) {
+        aptAttachmentsMap.putIfAbsent(att.apartmentId, () => []).add(att);
+      }
+
       emit(
         state.copyWith(
           status: BuildingsStatus.success,
           buildings: buildings,
           apartments: apartments,
           userNamesMap: namesMap,
+          attachmentsMap: attachmentsMap, // 🌟 خريطة المحاضر
+          apartmentAttachmentsMap: aptAttachmentsMap, // 🌟 خريطة الشقق
         ),
       );
     } catch (e, stackTrace) {
@@ -177,6 +198,118 @@ class BuildingsCubit extends Cubit<BuildingsState> {
           errorMessage: e.toString().replaceAll('Exception:', '').trim(),
         ),
       );
+    }
+  }
+
+  // ==========================================
+  // 📎 دوال إدارة المرفقات للشقق
+  // ==========================================
+
+  Future<void> attachFileToApartmentGallery({
+    required String apartmentId,
+    required String filePath,
+    required String extension,
+    required String originalFileName,
+  }) async {
+    emit(state.copyWith(status: BuildingsStatus.loading));
+    try {
+      final file = File(filePath);
+
+      await _erpRepository.attachFileToApartmentGallery(
+        apartmentId: apartmentId,
+        file: file,
+        extension: extension,
+        originalFileName: originalFileName,
+      );
+
+      await loadData(); // تحديث الواجهة بعد الرفع
+    } on Exception catch (e) {
+      emit(
+        state.copyWith(
+          status: BuildingsStatus.failure,
+          errorMessage: 'فشل إرفاق الملف: $e',
+        ),
+      );
+    }
+  }
+
+  Future<void> deleteApartmentAttachment(String attachmentId) async {
+    emit(state.copyWith(status: BuildingsStatus.loading));
+    try {
+      await _erpRepository.deleteApartmentAttachment(attachmentId);
+      await loadData();
+    } on Exception catch (e) {
+      emit(
+        state.copyWith(
+          status: BuildingsStatus.failure,
+          errorMessage: 'فشل حذف المرفق: $e',
+        ),
+      );
+    }
+  }
+
+  // ==========================================
+  // 📎 دوال إدارة مرفقات المحاضر
+  // ==========================================
+
+  Future<void> attachFileToBuildingGallery({
+    required String buildingId,
+    required String filePath,
+    required String extension,
+    required String originalFileName,
+  }) async {
+    emit(state.copyWith(status: BuildingsStatus.loading));
+    try {
+      final file = File(filePath);
+
+      await _erpRepository.attachFileToBuildingGallery(
+        buildingId: buildingId,
+        file: file,
+        extension: extension,
+        originalFileName: originalFileName,
+      );
+
+      await loadData(); // تحديث الواجهة بعد الرفع
+    } on Exception catch (e) {
+      emit(
+        state.copyWith(
+          status: BuildingsStatus.failure,
+          errorMessage: 'فشل إرفاق الملف: $e',
+        ),
+      );
+    }
+  }
+
+  Future<void> deleteBuildingAttachment(String attachmentId) async {
+    emit(state.copyWith(status: BuildingsStatus.loading));
+    try {
+      await _erpRepository.deleteBuildingAttachment(attachmentId);
+      await loadData();
+    } on Exception catch (e) {
+      emit(
+        state.copyWith(
+          status: BuildingsStatus.failure,
+          errorMessage: 'فشل حذف المرفق: $e',
+        ),
+      );
+    }
+  }
+
+  Future<String?> getSecureAttachmentUrl(String storedPath) async {
+    try {
+      // 🌟 نطلب الرابط الآمن من السلة الجديدة building_attachments
+      return await _erpRepository.resolveFileUrl(
+        'building_attachments',
+        storedPath,
+      );
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: BuildingsStatus.failure,
+          errorMessage: 'فشل إنشاء الرابط الآمن: $e',
+        ),
+      );
+      return null;
     }
   }
 }

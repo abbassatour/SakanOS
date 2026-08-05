@@ -6,3 +6,4 @@ export 'dialogs/edit_payment_dialog.dart';
 export 'dialogs/verify_pin_dialog.dart';
 export 'payments_data_table.dart';
 export 'payments_top_bar.dart';
+export 'payment_summary_card.dart'; // 🌟 السطر الجديد

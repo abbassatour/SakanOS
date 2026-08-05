@@ -47,7 +47,7 @@ class HandoverPledgePdfHelper {
                     crossAxisAlignment: pw.CrossAxisAlignment.start,
                     children: [
                       pw.Text(
-                        'Our Home',
+                        'SakanOS',
                         style: pw.TextStyle(
                           font: arabicBoldFont,
                           fontSize: 24,
@@ -147,7 +147,7 @@ class HandoverPledgePdfHelper {
               pw.SizedBox(height: 8),
               pw.Paragraph(
                 text:
-                    'أقر أنا الموقع أدناه (الفريق الثاني)، بأنني قد استلمت الوحدة العقارية المذكورة أعلاه من شركة Our Home للتطوير العقاري (الفريق الأول)، وذلك بعد معاينتها والتأكد من مطابقتها للمواصفات المتفق عليها في العقد الأساسي، وبذلك أُبرئ ذمة الفريق الأول من ناحية التسليم المبدئي للوحدة.',
+                    'أقر أنا الموقع أدناه (الفريق الثاني)، بأنني قد استلمت الوحدة العقارية المذكورة أعلاه من مكتب SakanOS للتطوير العقاري (الفريق الأول)، وذلك بعد معاينتها والتأكد من مطابقتها للمواصفات المتفق عليها في العقد الأساسي، وبذلك أُبرئ ذمة الفريق الأول من ناحية التسليم المبدئي للوحدة.',
                 style: pw.TextStyle(
                   font: arabicFont,
                   fontSize: 12,
@@ -165,7 +165,7 @@ class HandoverPledgePdfHelper {
               ),
               pw.Paragraph(
                 text:
-                    'وأتعهد أيضاً بعدم إحداث أي تغييرات هندسية أو معمارية تمس بالواجهة الخارجية للمحضر أو الأقسام المشتركة دون الحصول على موافقة خطية مسبقة من إدارة الشركة.',
+                    'وأتعهد أيضاً بعدم إحداث أي تغييرات هندسية أو معمارية تمس بالواجهة الخارجية للمحضر أو الأقسام المشتركة دون الحصول على موافقة خطية مسبقة من إدارة المكتب.',
                 style: pw.TextStyle(
                   font: arabicBoldFont,
                   fontSize: 12,
@@ -275,7 +275,7 @@ class HandoverPledgePdfHelper {
                     crossAxisAlignment: pw.CrossAxisAlignment.center,
                     children: [
                       pw.Text(
-                        'ختم الشركة (الفريق الأول)',
+                        'ختم المكتب (الفريق الأول)',
                         style: pw.TextStyle(font: arabicBoldFont, fontSize: 12),
                       ),
                       pw.SizedBox(height: 40),

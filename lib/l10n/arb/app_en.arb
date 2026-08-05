@@ -1,7 +1,706 @@
 {
-    "@@locale": "en",
-    "counterAppBarTitle": "Counter",
-    "@counterAppBarTitle": {
-        "description": "Text shown in the AppBar of the Counter Page"
+  "@@locale": "en",
+  "settingsTitle": "System & Pricing Settings",
+  "settingsLanguageTitle": "App Interface Language",
+  "settingsLanguageSubtitle": "Choose default language for UI screens and reports",
+  "languageArabic": "العربية (Arabic)",
+  "languageEnglish": "English",
+  "settingsDollarCardTitle": "Dollar Exchange Rate (Sell)",
+  "settingsDollarCardSubtitle": "Used to evaluate payments, installments, and cash transfers.",
+  "settingsDollarHistoryBtn": "Dollar History",
+  "settingsDollarInputLabel": "Price of 1 Dollar (USD)",
+  "settingsDollarSaveBtn": "Apply Exchange Rate",
+
+  "settingsMaterialsCardTitle": "Individual Material Prices",
+  "settingsMaterialsCardSubtitle": "The system multiplies these figures by fixed quantities to calculate the meter price.",
+  "settingsMaterialsHistoryBtn": "Prices History",
+  "settingsIronLabel": "Price (1 kg) Rebar Iron",
+  "settingsCementLabel": "Price (1 bag) Cement",
+  "settingsBlockLabel": "Price (1 block) 15cm",
+  "settingsFormworkLabel": "Formwork & Pouring (1 m³)",
+  "settingsAggregatesLabel": "Price (1 m³) Aggregates",
+  "settingsWorkerLabel": "Worker Wage (7 hours/day)",
+  "settingsMaterialsSaveBtn": "Apply & Save Prices",
+
+  "settingsRecycleBinCardTitle": "Recycle Bin Management",
+  "settingsRecycleBinCardSubtitle": "Restore deleted clients, contracts, buildings, apartments, and receipts, or permanently delete them.",
+  "settingsRecycleBinOpenBtn": "Open Global Recycle Bin",
+
+  "settingsSecurityCardTitle": "Security PIN & Sensitive Operations",
+  "settingsSecurityCardSubtitle": "Required for deletion, refunds, and sensitive admin tasks. (Default: 0000)",
+  "settingsSecurityChangeBtn": "Change Security PIN",
+
+  "settingsBackupCardTitle": "Local Database Security",
+  "settingsBackupCardSubtitle": "Create a manual backup or restore previous data.",
+  "settingsBackupManualBtn": "Manual Backup",
+  "settingsBackupRestoreBtn": "Restore Data",
+
+  "settingsLicenseCardTitle": "System License Information",
+  "settingsLicenseExpiryLabel": "Subscription Expiry Date:",
+  "settingsLicenseExpired": "License Expired!",
+  "settingsLicenseExpiringSoon": "License Expiring Soon",
+  "settingsLicenseActive": "License is Active & Valid",
+  "settingsLicenseDaysLeft": "{days} days left",
+  "@settingsLicenseDaysLeft": {
+    "placeholders": {
+      "days": { "type": "int" }
     }
+  },
+  "settingsLicenseDaysAgo": "Expired {days} days ago",
+  "@settingsLicenseDaysAgo": {
+    "placeholders": {
+      "days": { "type": "int" }
+    }
+  },
+
+  "navHome": "Home",
+  "navClients": "Clients",
+  "navProjects": "Projects",
+  "navContracts": "Contracts",
+  "navInstallments": "Installments",
+  "navMonitoring": "Monitoring",
+  "navSettings": "Settings",
+  "navLegal": "Legal",
+  "navAdmin": "Admin",
+
+  "navSyncTooltip": "Manual Cloud Sync (Pull & Push)",
+  "navLogoutTooltip": "Logout & Lock System",
+
+  "navCheckingInternet": "Checking internet connection... 📡",
+  "navNoInternet": "No internet connection! Please check your network. 🌐❌",
+  "navSyncingData": "Internet connected ✅ Syncing data, please wait... ☁️🔄",
+  "navSyncError": "Unexpected sync error: {error}",
+  "@navSyncError": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+
+  "logoutDialogTitle": "Logout",
+  "logoutDialogMessage": "Are you sure you want to log out? Temporary data will be cleared from this device for protection.",
+  "logoutCancel": "Cancel",
+  "logoutConfirm": "Confirm Logout",
+
+  "pinLockedTooltip": "Admin permissions securely locked 🔒",
+  "pinLockedMessage": "System locked. PIN will be required for sensitive tasks.",
+  "pinUnlockedTooltip": "Admin permissions unlocked.\nClick to lock immediately.",
+  "pinLockedSuccess": "Sensitive permissions locked successfully 🔒",
+
+
+  "homeLoadingData": "Loading data...",
+  "homeUnexpectedError": "An unexpected error occurred",
+  "homeRetry": "Retry",
+
+  "kpiNetLiquidityTitle": "Net Liquidity",
+  "kpiNetLiquiditySubtitle": "Total actual fund balance",
+
+  "kpiRefundedTitle": "Refunded Funds (Withdrawals)",
+  "kpiRefundedSubtitle": "Total cash outflows from funds",
+  "kpiRefundedDetails": "Represents total cash paid out from funds as refunds to withdrawing clients or reverse accounting entries.",
+
+  "kpiPreHandoverDebtTitle": "Current Debts (Under Construction)",
+  "kpiPreHandoverDebtSubtitle": "Overdue installments on undelivered units",
+  "kpiPreHandoverDebtDetails": "Represents overdue monthly installments for clients who purchased assigned units that are still under construction (no penalties applied).",
+
+  "kpiPostHandoverDebtTitle": "Due Debts (Delivered Units)",
+  "kpiPostHandoverDebtSubtitle": "Debts for properties with handed-over keys",
+  "kpiPostHandoverDebtDetails": "Represents overdue amounts for clients whose units are completed and delivered. Overdue penalties apply automatically.",
+
+  "kpiAvailableUnitsTitle": "Available Units for Sale",
+  "kpiAvailableUnitsSubtitle": "Apartments & shops ready for contract",
+  "kpiAvailableUnitsDetails": "Displays available property units (apartments/shops) registered in the catalog that are not linked to any sale contract.",
+
+  "kpiActiveContractsTitle": "Active Contracts",
+  "kpiActiveContractsSubtitle": "Total active contracts signed",
+
+  "kpiDialogTitle": "Financial logic for: {title}",
+  "@kpiDialogTitle": {
+    "placeholders": {
+      "title": { "type": "String" }
+    }
+  },
+  "kpiDialogDismiss": "Understood",
+  "kpiTooltipInfo": "Click to learn decision-maker financial logic",
+
+  "chartSectionTitle": "Strategic Analytics",
+  "chartNavNextPeriod": "Next Period",
+  "chartNavPrevPeriod": "Previous Period",
+  "filterDaily": "Daily",
+  "filterWeekly": "Weekly",
+  "filterMonthly": "Monthly",
+  "filterYearly": "Yearly",
+
+  "recentActivitiesTitle": "Recent Activities Log",
+  "timeJustNow": "Just now",
+  "timeMinutesAgo": "{minutes} mins ago",
+  "@timeMinutesAgo": {
+    "placeholders": {
+      "minutes": { "type": "int" }
+    }
+  },
+  "timeHoursAgo": "{hours} hrs ago",
+  "@timeHoursAgo": {
+    "placeholders": {
+      "hours": { "type": "int" }
+    }
+  },
+  "timeYesterday": "Yesterday",
+  "timeDaysAgo": "{days} days ago",
+  "@timeDaysAgo": {
+    "placeholders": {
+      "days": { "type": "int" }
+    }
+  },
+
+  "activityPaymentTitle": "Financial Activity (Payment/Edit)",
+  "activityContractTitle": "Contract Added/Edited",
+  "activityAdminActionTitle": "Admin Action (Note)",
+  "activityClientTitle": "Client Added/Edited",
+
+
+  "chartAboutTitle": "About chart: {title}",
+  "@chartAboutTitle": {
+    "placeholders": {
+      "title": { "type": "String" }
+    }
+  },
+  "chartDialogUnderstand": "Understood",
+  "chartOpenDetailsTooltip": "Open Details",
+  "chartExplainTooltip": "Explain Chart",
+  "chartNoData": "No data in this period",
+
+  "chartRevenueTitle": "Cash Flow & Collections",
+  "chartRevenueDesc": "Shows total actual cash collected in each period based on receipt payment dates.",
+  "chartRevenuePeak": "Peak Collection Period:",
+  "chartRevenueNone": "None",
+  "chartRevenueNet": "Net Cash Flow (Total):",
+
+  "chartDollarTrendTitle": "USD Exchange Rate Trend",
+  "chartDollarTrendDesc": "Shows the change over time of the average USD exchange rate used in payment evaluations.",
+  "chartDollarTrendPeak": "Highest Exchange Rate:",
+
+  "chartContractsTypeTitle": "Contract Portfolio by Type",
+  "chartContractsTypeDesc": "Shows the numerical and percentage distribution of signed contract types.",
+  "chartContractsTopType": "Top Selling:",
+  "chartContractsTotal": "Total Contracts:",
+  "chartContractsUnit": "contract(s)",
+
+  "chartCostTrendTitle": "Meter Cost Trend (Unallocated)",
+  "chartCostTrendDesc": "Tracks changes in construction cost per square meter using the engineering formula. Reflects direct raw costs.",
+  "chartCostTrendPeak": "Highest Cost Period:",
+  "chartCostTrendActionTooltip": "Detailed analysis of 6 material prices",
+
+  "chartTrendPeriodsCount": "Studied Periods:",
+  "chartTrendPeriodsUnit": "period(s)",
+
+  "chartInventoryTitle": "Real Estate Inventory (Units)",
+  "chartInventoryDesc": "Shows the status of all apartments and commercial shops registered in the system. This chart is a comprehensive cumulative inventory unaffected by the top time filter.",
+  "chartInventoryUnit": "real estate unit(s)",
+  "chartInventoryStatusAvailable": "Available",
+  "chartInventoryStatusSold": "Sold",
+  "chartInventoryStatusDelivered": "Delivered",
+
+  "chartMetersProgressTitle": "Square Meters Movement & Portfolio Balance",
+  "chartMetersProgressDesc": "This indicator separates sold meters and shares into two independent groups for decision-makers and construction scheduling:\n\n1. Assigned Units Portfolio (Office rights & client assets):\n• Paid assigned area: Actual apartment areas paid for by owners.\n• Remaining debt meters: Reserved areas not yet paid.\n• Assigned construction commitment: Units currently under construction.\n\n2. Unallocated Shares Portfolio (Office obligations to investors):\n• Meters to build & assign: Abstract investment shares paid in cash, awaiting unit assignment.",
+  "chartMetersSectionAllocated": "1. Allocated Contracts Meter Portfolio",
+  "chartMetersAllocatedPaid": "Paid Assigned Meters",
+  "chartMetersAllocatedDebt": "Client Debt Meters",
+  "chartMetersAllocatedUndelivered": "Undelivered Assigned Meters",
+  "chartMetersSectionUnallocated": "2. Unallocated Contracts Meter Portfolio",
+  "chartMetersUnallocatedPaid": "Meters to Build & Assign",
+  "chartMetersUnallocatedSubtitle": "Construction liability & cash-collected obligation",
+  "chartMetersTotalAvailable": "Total Available Apartment & Shop Area:",
+
+
+  "clientAddButton": "Add Client",
+  "clientAddTooltip": "Add a new client",
+  "clientNoAddPermissionTooltip": "You do not have permission to add clients",
+  "clientUnexpectedError": "An unexpected error occurred",
+  "clientEmptyList": "No clients added yet.",
+  "clientNoSearchHits": "No results match your search.",
+
+  "clientSearchHint": "Search name, phone, or national ID...",
+  "clientSearchCount": "{count} client(s)",
+  "@clientSearchCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+
+  "clientColId": "ID",
+  "clientColName": "Name / Profile",
+  "clientColPhone": "Phone Number",
+  "clientColNationalId": "National ID",
+  "clientColCreatedAt": "Date Added",
+  "clientColUpdatedAt": "Last Updated By",
+  "clientColActions": "Actions",
+
+  "clientUnknownUser": "Unknown",
+  "clientEditTooltip": "Edit Data",
+  "clientNoEditPermissionTooltip": "No Permission",
+
+
+  "clientAddDialogTitle": "Add New Client",
+  "clientAddDialogSubtitle": "Please enter client details accurately for communication and contract preparation.",
+  "clientEditDialogTitle": "Edit Client Details",
+  "clientSecurityWarning": "Security Alert: Modifying or deleting client records requires admin security PIN to maintain contract integrity.",
+  "clientLabelFullName": "Full Name",
+  "clientLabelPhone": "Phone Number",
+  "clientLabelNationalId": "National ID",
+  "clientValidationFillNamePhone": "⚠️ Please enter at least the full name and phone number!",
+  "clientSuccessAdd": "Client added successfully ✅",
+  "clientSuccessUpdated": "Client details updated successfully ✅",
+  "clientSuccessDeleted": "Client moved to recycle bin",
+  "clientErrorSave": "Error while saving: {error}",
+  "@clientErrorSave": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+
+  "btnCancel": "Cancel",
+  "btnSaveClient": "Save Client",
+  "btnSave": "Save",
+  "btnSaving": "Saving...",
+  "btnDeleteAndBin": "Delete & Move to Bin",
+
+  "pinDialogTitle": "Verify Authority",
+  "pinDialogSubtitle": "This operation is sensitive and monitored. Please enter your security PIN to proceed.",
+  "pinErrorInvalid": "Incorrect PIN! ❌",
+  "btnConfirmPin": "Confirm Authority",
+
+
+  "clientProfileTitle": "Client Profile",
+  "clientProfileTotalContracts": "Total Contracts",
+  "clientProfileTotalPayments": "Total Payments",
+  "clientProfileOverdueDebts": "Overdue Debts",
+  "clientProfilePortfolioTitle": "Client Real Estate Portfolio",
+  "clientProfileNoContracts": "This client has no contracts currently.",
+  "clientProfileContractDate": "Signed:",
+  "clientProfileContractPaid": "Paid:",
+  "clientProfileContractOverdue": "Overdue",
+  "clientProfileContractHasPenalty": "Has Penalties",
+  "clientProfileContractGoodStanding": "Good Standing ✓",
+  "clientProfilePaidInstallmentsCount": "{count} paid installments",
+  "@clientProfilePaidInstallmentsCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+
+  "contractHandoverDialogTitle": "Complete Property Handover",
+  "contractHandoverDialogInfo": "Upon confirming handover, the system will automatically calculate delay penalties (if applicable) based on the date entered here.",
+  "contractHandoverActualDate": "Actual Handover Date:",
+  "contractHandoverNotesHint": "Notes and missing items (if any)",
+  "contractHandoverConfirmBtn": "Confirm Handover",
+  "contractHandoverSuccess": "Property handed over successfully! ✅",
+  "contractHandoverCancelSuccess": "Handover cancelled successfully.",
+  "contractHandoverAptMissing": "Apartment data not available!",
+  "contractHandoverBldMissing": "Building data not available!",
+  "contractHandoverPdfGenerating": "Generating handover record... ⏳",
+
+  "contractDetailsTitle": "Contract & Portfolio Details",
+  "contractDetailsClientName": "Client Contract: {name}",
+  "@contractDetailsClientName": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "contractDetailsContractNumber": "Contract No: {id}",
+  "@contractDetailsContractNumber": {
+    "placeholders": {
+      "id": { "type": "String" }
+    }
+  },
+  "contractDetailsMonthlyDue": "Monthly Due",
+  "contractDetailsBaseMeterPrice": "Meter Price at Signing",
+  "contractDetailsTotalArea": "Total Area",
+  "contractDetailsMeterPrice": "Meter Price",
+  "contractDetailsMarketPrice": "Market Rate",
+  "contractDetailsPayDay": "Pay Day",
+  "contractDetailsArea": "Area",
+  "contractDetailsShares": "Shares",
+  "contractDetailsUnallocated": "Unallocated",
+
+  "contractDetailsArchivedTitle": "This contract is closed and archived 🔒",
+  "contractDetailsArchivedDesc": "• Financial Record: Fully preserved for review and auditing.\n• Payments: Adding, editing, or deleting payments is disabled to prevent tampering.\n• Monitoring: The contract is removed from the \"Monitoring Radar\" and will not show overdue claims.\n• Actions: Only Top Management can click \"Unarchive\" from the contracts table to reopen it if necessary.",
+
+  "contractDetailsOperationalActions": "Operational Actions",
+  "contractDetailsInstallmentsPageBtn": "Installments Page",
+  "contractDetailsNavToInstallments": "Redirected to installments page for this contract!",
+  "contractDetailsSchedulePageBtn": "Monitoring & Dues Table",
+  "contractDetailsNavToSchedule": "Redirected to monitoring schedule for this contract!",
+  "contractDetailsViewAttachmentBtn": "View Attached Contract (PDF/Word)",
+  "contractDetailsGeneratingLink": "Generating secure access link... ⏳",
+  "contractDetailsCannotOpenLink": "Cannot open the cloud link.",
+  "contractDetailsLocalFileError": "⚠️ Failed to open local file: {error}",
+  "@contractDetailsLocalFileError": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+
+  "contractDetailsInfoTitle": "Contract & Unit Details",
+  "contractDetailsSignDate": "Contract Sign Date:",
+  "contractDetailsDuration": "Registered Duration:",
+  "contractDetailsMonths": "{count} months",
+  "@contractDetailsMonths": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "contractDetailsGuarantor": "Guarantor Name:",
+  "contractDetailsPropertyDesc": "Property Description:",
+
+  "contractDetailsHandoverStatusTitle": "Property Handover Status (Keys)",
+  "contractDetailsHandoverDone": "Apartment delivered to client",
+  "contractDetailsHandoverPending": "Under Construction / Not delivered yet",
+  "contractDetailsAgreedHandoverDate": "Agreed Handover Date:",
+  "contractDetailsGracePeriod": "Developer Grace Period:",
+  "contractDetailsPenaltySystem": "Penalty System (Post Handover):",
+  "contractDetailsPenaltyActive": "Active ({pct}% every {interval} months)",
+  "@contractDetailsPenaltyActive": {
+    "placeholders": {
+      "pct": { "type": "String" },
+      "interval": { "type": "int" }
+    }
+  },
+  "contractDetailsPenaltyInactive": "Inactive",
+  "contractDetailsActualHandoverDate": "Actual Handover Date:",
+  "contractDetailsHandoverNotes": "Handover Notes / Missing items:",
+
+  "contractDetailsPenaltyAlertTitle": "Accounting Alert: Accumulated Penalties",
+  "contractDetailsPenaltyAlertDesc": "The specified time post-handover has passed and the client is still in debt. The system automatically added a penalty of {amount} to their debt.",
+  "@contractDetailsPenaltyAlertDesc": {
+    "placeholders": {
+      "amount": { "type": "String" }
+    }
+  },
+
+  "contractDetailsHandoverBtn": "Deliver Apartment to Client",
+  "contractDetailsCancelHandoverBtn": "Cancel Handover",
+  "contractDetailsPrintHandoverBtn": "Print Handover Record",
+
+  "contractDetailsLegalSectionTitle": "Legal Record & Actions",
+  "contractDetailsLegalClean": "Clean record. No legal actions registered.",
+  "contractDetailsLegalGalleryBtn": "Attachments Gallery",
+
+  "contractDetailsFinancialAnalysisTitle": "Financial Analysis & Multipliers",
+  "contractDetailsNoCoefficients": "No extra excellence multipliers registered for this contract.",
+  "contractDetailsUnallocatedPricingNote": "No meter pricing multipliers. The investment portfolio calculates the price automatically at the moment of each payment based on material prices on the pay day.",
+
+
+  "bldAddBuildingFab": "Add New Building",
+  "bldUnexpectedError": "An unexpected error occurred",
+  "bldEmptyList": "No real estate buildings added yet.",
+  "bldCatalogTitle": "Projects & Units Catalog",
+  "bldTotalCount": "Total: {count}",
+  "@bldTotalCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+
+  "bldNoAddress": "No Address",
+  "bldApartmentsCount": "{count} apartment(s)",
+  "@bldApartmentsCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "bldShopsCount": "{count} shop(s)",
+  "@bldShopsCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "bldLastUpdatedBy": "Last updated by: ",
+  "bldUnknownUser": "Unknown",
+  "bldGalleryTooltip": "Building Attachments & Blueprints Gallery",
+  "bldEditTooltip": "Edit Building Details",
+  "bldDetailsTooltip": "View Details & Multipliers",
+  "bldNoFloorsWarning": "Floors have not been configured for this building. Please edit the building first.",
+  "bldFloorAptsCount": "{floorName} ( {count} apartment(s) )",
+  "@bldFloorAptsCount": {
+    "placeholders": {
+      "floorName": { "type": "String" },
+      "count": { "type": "int" }
+    }
+  },
+  "bldNoAptsInFloor": "No apartments added to this floor yet.",
+  "bldColAptNumber": "Apt No.",
+  "bldColShopNumber": "Shop No./Symbol",
+  "bldColArea": "Area",
+  "bldColDirection": "Direction",
+  "bldColFacade": "Frontage",
+  "bldColAttachments": "Attachments",
+  "bldColStatus": "Status",
+  "bldColUpdatedAt": "Last Updated By",
+  "bldColActions": "Actions",
+
+  "bldStatusAvailable": "Available",
+  "bldStatusDelivered": "Delivered",
+  "bldStatusSold": "Sold",
+
+  "bldEditUnitTooltip": "Edit Unit",
+  "bldViewUnitTooltip": "View Details",
+  "bldAddApartmentHere": "Add Apartment Here",
+  "bldCopyFloorModel": "Copy Floor Model",
+  "bldShopsHeader": "Commercial Shops ( {count} shop(s) )",
+  "@bldShopsHeader": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "bldNoShopsWarning": "No commercial shops added to this building yet.",
+  "bldAddShopHere": "Add Commercial Shop Here",
+
+
+  "bldDetailsDialogTitle": "Building Details: {name}",
+  "@bldDetailsDialogTitle": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "bldLocationHeader": "Building Location",
+  "bldUnspecified": "Unspecified",
+  "bldGeneralCoeffsHeader": "General & Directional Multipliers",
+  "bldNoGeneralCoeffs": "No general multipliers recorded for this building.",
+  "bldFloorStructureHeader": "Floor Structure & Price Multipliers",
+  "bldNoFloorStructure": "Floor structure has not been configured for this building.",
+  "btnCloseDetails": "Close Details",
+
+  "aptDetailsDialogTitle": "Unit Details No: {number}",
+  "@aptDetailsDialogTitle": {
+    "placeholders": {
+      "number": { "type": "String" }
+    }
+  },
+  "aptStatusAvailableTag": "Available for Sale",
+  "aptStatusSoldTag": "Sold / Reserved",
+  "aptStatusAvailableDesc": "Current Status: No contract has been signed yet; available for contracting.",
+  "aptStatusSoldDesc": "Current Status: Contract signed and linked to a client profile.",
+  "aptFloorHeader": "Floor / Level",
+  "aptDirectionHeader": "Direction / Facade",
+  "aptEngineeringHeader": "Engineering Calculation Details",
+  "aptSalesAreaTitle": "Approved Sales Area",
+  "aptInputDataHeader": "Data entered for calculation:",
+  "aptFinancialCoeffsHeader": "Financial Multipliers Applied to This Unit",
+  "aptNoFinancialCoeffs": "No special financial multipliers recorded for this unit.",
+
+  "copyFloorNoTargetWarning": "No other floors available to copy to!",
+  "copyFloorDialogTitle": "Clone Apartments from {floorName}",
+  "@copyFloorDialogTitle": {
+    "placeholders": {
+      "floorName": { "type": "String" }
+    }
+  },
+  "copyFloorInfoBanner": "Areas, directions, profit, and yard multipliers will be cloned accurately. (The financial percentage for the new floor will be updated automatically).",
+  "copyFloorTargetHeader": "Target Floor",
+  "copyFloorSelectTargetLabel": "Select floor to clone to",
+  "copyFloorNewNumbersHeader": "Please specify new unit numbers to prevent duplicates",
+  "copyFloorCopyOf": "Copy of: {number}",
+  "@copyFloorCopyOf": {
+    "placeholders": {
+      "number": { "type": "String" }
+    }
+  },
+  "copyFloorAreaLabel": "Area: {area} m²",
+  "@copyFloorAreaLabel": {
+    "placeholders": {
+      "area": { "type": "Object" }
+    }
+  },
+  "copyFloorNewNumberLabel": "New Unit Number",
+  "copyFloorEmptyNumbersWarning": "Please fill in numbers for all units!",
+  "copyFloorSuccess": "Apartments cloned to {targetFloor} successfully! ✅",
+  "@copyFloorSuccess": {
+    "placeholders": {
+      "targetFloor": { "type": "String" }
+    }
+  },
+  "btnConfirmCopy": "Confirm & Save Clones",
+
+
+
+  "bldAddDialogTitle": "Add New Building (Structure Setup)",
+  "bldLabelName": "Building / Project Name",
+  "bldLabelLocation": "Location / Address",
+  "bldGeneralCoeffsTitle": "Building General Multipliers (%)",
+  "bldCoeffLocation": "Location %",
+  "bldCoeffStreet": "Street %",
+  "bldCoeffElevator": "Elevator %",
+  "bldDirCoeffsTitle": "Directional Multipliers (%)",
+  "bldCoeffNorth": "North %",
+  "bldCoeffSouth": "South %",
+  "bldCoeffEast": "East %",
+  "bldCoeffWest": "West %",
+  "bldFloorStructureTitle": "Floor Structure & Price Multipliers per Floor",
+  "bldLabelBasementsCount": "Number of Basements (Underground)",
+  "bldBasementCountOption": "{count} basement(s)",
+  "@bldBasementCountOption": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "bldLabelFloorsCount": "Number of Floors (Above Ground)",
+  "bldFloorCountOption": "{count} floor(s)",
+  "@bldFloorCountOption": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "bldFloorCoeffLabel": "Price Multiplier %",
+  "bldValidationFillName": "⚠️ Please enter the building name!",
+  "bldBtnSave": "Confirm & Save Building",
+
+  "bldEditDialogTitle": "Edit Building Details",
+  "bldDeleteConfirmTitle": "Confirm Deletion",
+  "bldDeleteConfirmMessage": "Are you sure you want to delete this building and move it to the recycle bin?\n\n(All available units inside it will be deleted automatically. You cannot delete it if it contains sold units)",
+  "bldBtnConfirmDelete": "Yes, Delete Building",
+  "bldEditInfoBanner": "You can freely edit the building name and location. This will not affect contracts or financial accounts.",
+  "bldSuccessUpdate": "Changes saved successfully ✅",
+  "bldBtnSaveEdits": "Save Edits",
+
+  "aptAddDialogTitle": "Add Apartment to Catalog",
+  "aptLabelNumber": "Apartment Number / Symbol",
+  "aptLabelSelectFloor": "Select Floor (Auto-sets multiplier)",
+  "aptAreaHeader": "Sales Area Calculation (m²)",
+  "aptLabelSlabArea": "Slab (Covered) Area m²",
+  "aptLabelTerraceArea": "Terrace Area m²",
+  "aptLabelYardArea": "Yard Area m²",
+  "aptSalesAreaResultTitle": "Approved Sales Area for Contract",
+  "aptDirectionHeaderTitle": "Select Apartment Directions",
+  "aptFinancialCoeffsHeaderTitle": "Financial Multipliers for Apartment",
+  "aptCoeffYard": "Yard Multiplier %",
+  "aptCoeffProfit": "Profit Margin %",
+  "aptBtnSave": "Save Apartment",
+  "aptValidationFillNumber": "⚠️ Please enter the apartment number!",
+  "aptValidationSelectFloor": "⚠️ Please select a floor!",
+  "aptValidationFillSlab": "⚠️ Please enter slab area!",
+  "aptValidationInvalidArea": "⚠️ Calculated area is invalid!",
+
+  "aptEditDialogTitle": "Edit Unit ( {number} )",
+  "@aptEditDialogTitle": {
+    "placeholders": {
+      "number": { "type": "String" }
+    }
+  },
+  "aptDeleteConfirmTitle": "Confirm Deletion",
+  "aptDeleteConfirmMessage": "Are you sure you want to delete this unit and move it to the recycle bin?",
+  "aptBtnConfirmDelete": "Yes, Delete",
+  "aptSuccessDeleted": "Unit moved to recycle bin",
+  "aptSuccessUpdated": "Unit number updated successfully",
+  "aptValidationEmptyNumber": "Number cannot be empty!",
+  "aptEditBannerAvailable": "To maintain financial integrity, you are only allowed to edit the 'Number/Symbol'. To change area or direction, please delete the unit and add it again.",
+  "aptEditBannerDelivered": "This unit has been delivered to the client. Modifying or deleting its data is strictly prohibited to preserve financial records.",
+  "aptEditBannerSold": "This unit is sold or reserved under an active contract. Modifying or deleting its data is strictly prohibited.",
+  "aptTagLockedDelivered": "Locked (Delivered)",
+  "aptTagLockedSold": "Locked (Sold)",
+  "aptLabelApprovedArea": "Approved Area",
+  "aptLabelDirection": "Direction / Facade",
+  "aptBtnSaveEdit": "Save Edits",
+  "btnClose": "Close",
+
+  "shopAddDialogTitle": "Add Commercial Shop",
+  "shopLabelNumber": "Shop Number / Symbol",
+  "shopEngineeringHeader": "Engineering Data (Areas & Dimensions)",
+  "shopLabelGroundArea": "Ground Area m²",
+  "shopLabelFacadeLength": "Facade Width (meters)",
+  "shopSalesAreaResultTitle": "Total Sales Area for Shop",
+  "shopFinancialCoeffsHeader": "Percentage Financial Multipliers",
+  "shopCoeffLocation": "Location %",
+  "shopCoeffStreet": "Street %",
+  "shopCoeffFacade": "Facade Multiplier %",
+  "shopBtnSave": "Save Shop",
+  "shopValidationIncomplete": "⚠️ Incomplete data or invalid area!",
+
+  "attErrorNoInternet": "❌ No internet connection! Check network and try again.",
+  "attBtnUpload": "Upload Files",
+  "attBtnUploadNew": "Upload New Files",
+  "attUploadProgress": "Processing & uploading file {current} of {total}",
+  "@attUploadProgress": {
+    "placeholders": {
+      "current": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "attUploadSpeed": "Avg speed: {speed}",
+  "@attUploadSpeed": {
+    "placeholders": {
+      "speed": { "type": "String" }
+    }
+  },
+  "attBtnCancelling": "Cancelling...",
+  "attBtnCancel": "Cancel Operation",
+  "attUnnamed": "Unnamed",
+  "attOpeningFile": "Opening \"{fileName}\"... ⏳",
+  "@attOpeningFile": {
+    "placeholders": {
+      "fileName": { "type": "String" }
+    }
+  },
+  "attLocalFileError": "⚠️ Could not open local file: {error}",
+  "@attLocalFileError": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+  "attFileError": "⚠️ Could not open file: {error}",
+  "@attFileError": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+  "attOpenError": "❌ Error opening file: {error}",
+  "@attOpenError": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+  "attUploadCancelled": "⚠️ Upload cancelled. Only {count} file(s) uploaded.",
+  "@attUploadCancelled": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "attInternetLostDuringUpload": "❌ Internet connection lost during upload!",
+  "attUploadError": "❌ Error uploading file ({fileName}): {error}",
+  "@attUploadError": {
+    "placeholders": {
+      "fileName": { "type": "String" },
+      "error": { "type": "String" }
+    }
+  },
+  "attUploadSuccess": "{count} file(s) uploaded successfully! ✅",
+  "@attUploadSuccess": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "attWaitUploadNotice": "⚠️ Please wait until upload completes.",
+  "attImageLoadError": "Could not load image",
+
+  "bldAttPageTitle": "Building Attachments: {name}",
+  "@bldAttPageTitle": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "bldAttEmptyGallery": "Gallery is empty. No attachments for this building.",
+
+  "aptAttPageTitleShop": "Shop Attachments ({number})",
+  "@aptAttPageTitleShop": {
+    "placeholders": {
+      "number": { "type": "String" }
+    }
+  },
+  "aptAttPageTitleApartment": "Apartment Attachments ({number})",
+  "@aptAttPageTitleApartment": {
+    "placeholders": {
+      "number": { "type": "String" }
+    }
+  },
+  "aptAttEmptyGallery": "Gallery is empty. No attachments for this unit."
+  
 }

@@ -4,6 +4,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:erp_repository/erp_repository.dart';
+import 'package:local_storage_api/local_storage_api.dart';
 
 part 'schedule_state.dart';
 
@@ -32,6 +33,9 @@ class ScheduleCubit extends Cubit<ScheduleState> {
 
       final overdueAlerts = await _generateOverdueRadar(contracts, clients);
 
+      // 🌟 الحماية هنا: إذا تم إقفال التطبيق أو تسجيل الخروج أثناء الحساب، توقف!
+      if (isClosed) return;
+
       emit(
         state.copyWith(
           status: ScheduleStatus.success,
@@ -42,6 +46,7 @@ class ScheduleCubit extends Cubit<ScheduleState> {
         ),
       );
     } on Exception catch (e) {
+      if (isClosed) return; // 🌟 وهنا أيضاً
       emit(
         state.copyWith(
           status: ScheduleStatus.failure,
@@ -63,12 +68,14 @@ class ScheduleCubit extends Cubit<ScheduleState> {
     }
 
     final alerts = <OverdueContractAlert>[];
-    final now = DateTime.now().toUtc();
+    final now = SecureTime.now();
 
     grouped.forEach((contractId, schedules) {
       final contractIdx = allContracts.indexWhere((c) => c.id == contractId);
       if (contractIdx == -1) return;
       final contract = allContracts[contractIdx];
+
+      if (contract.isCompleted) return;
 
       final clientIdx = allClients.indexWhere(
         (c) => c.id == contract.clientId,
@@ -135,7 +142,14 @@ class ScheduleCubit extends Cubit<ScheduleState> {
       if (averageMetersPerMonth > 0) {
         var metersLeft = targetAllocationMeters - accumulatedMeters;
         if (metersLeft < 0) metersLeft = 0;
-        estimatedMonthsLeft = (metersLeft / averageMetersPerMonth).ceil();
+        // 🛡️ حماية ضد الأرقام الفلكية أو الـ Infinity
+        final double calcMonths = metersLeft / averageMetersPerMonth;
+        if (calcMonths.isInfinite || calcMonths.isNaN) {
+          estimatedMonthsLeft = 999;
+        } else {
+          final int ceilMonths = calcMonths.ceil();
+          estimatedMonthsLeft = ceilMonths > 999 ? 999 : ceilMonths;
+        }
       }
 
       var hasRecentAction = false;

@@ -3,12 +3,13 @@
 
 import 'dart:convert';
 import 'dart:io';
-
+import 'sync_repository.dart';
+import 'package:uuid/uuid.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as p;
 import 'package:cloud_storage_api/cloud_storage_api.dart';
 import 'package:drift/drift.dart' as drift;
 import 'package:local_storage_api/local_storage_api.dart';
-
-import 'sync_repository.dart';
 
 class ContractsRepository {
   const ContractsRepository({
@@ -82,7 +83,7 @@ class ContractsRepository {
     final userId = _getCurrentUserId();
     if (userId == null) throw Exception('يجب تسجيل الدخول أولاً.');
 
-    final contractDateToSave = customDate?.toUtc() ?? DateTime.now().toUtc();
+    final contractDateToSave = customDate?.toUtc() ?? SecureTime.now();
 
     // 1. حفظ سعر الدولار التاريخي
     if (customDate != null && histDollarRate != null) {
@@ -94,7 +95,6 @@ class ContractsRepository {
         );
         await _localApi.saveDollarPrice(historicalDollar);
       } on Exception catch (e) {
-        // ignore: avoid_print
         print('⚠️ تحذير: فشل حفظ تسعيرة الدولار التاريخية: $e');
       }
     }
@@ -145,16 +145,8 @@ class ContractsRepository {
       userId: userId,
     );
 
-    // إضافة العقد والأقساط الأولية
-    await _localApi.addContractWithSchedules(
-      newContract,
-      installmentsCount,
-      contractDateToSave,
-      userId,
-      contractType,
-    );
-
-    // 5. حفظ الدفعة الأولى إن وجدت
+    // 5. تجهيز الدفعة الأولى (إن وُجدت)
+    PaymentsLedgerCompanion? downPaymentEntry;
     if (downPayment > 0) {
       final rawConverted = basePrice > 0 ? (downPayment / basePrice) : 0;
       final snapshotData = <String, dynamic>{
@@ -183,12 +175,8 @@ class ContractsRepository {
         }
       }
 
-      // نحتاج جلب الـ ID الخاص بالعقد الجديد الذي أُضيف للتو من القاعدة
-      final latestContracts = await _localApi.getAllContracts();
-      final addedContract = latestContracts.last; // آخر عقد تمت إضافته
-
-      final downPaymentEntry = PaymentsLedgerCompanion.insert(
-        contractId: addedContract.id,
+      downPaymentEntry = PaymentsLedgerCompanion.insert(
+        contractId: 'TEMP', // سيتم استبدالها آلياً داخل قاعدة البيانات
         paymentDate: contractDateToSave,
         amountPaid: downPayment,
         meterPriceAtPayment: basePrice,
@@ -196,14 +184,18 @@ class ContractsRepository {
         pricesSnapshot: drift.Value(jsonEncode(snapshotData)),
         userId: userId,
       );
-
-      await _localApi.addLedgerEntry(downPaymentEntry);
     }
 
-    // 6. تغيير حالة الشقة
-    if (apartmentId != null && apartmentId.isNotEmpty) {
-      await _localApi.changeApartmentStatus(apartmentId, 'sold', userId);
-    }
+    // ==========================================
+    // 🛡️ التنفيذ الذري (Atomic Transaction)
+    // ==========================================
+    await _localApi.database.insertFullContractProcess(
+      contract: newContract,
+      startDate: contractDateToSave,
+      userId: userId,
+      downPaymentEntry: downPaymentEntry,
+      apartmentId: apartmentId,
+    );
 
     await _syncRepo.syncPendingData();
   }
@@ -240,7 +232,7 @@ class ContractsRepository {
         penaltyPercentage: drift.Value(safePenaltyPct),
         penaltyIntervalMonths: drift.Value(penaltyIntervalMonths),
         userId: drift.Value(userId),
-        updatedAt: drift.Value(DateTime.now().toUtc()),
+        updatedAt: drift.Value(SecureTime.now()),
         isSynced: const drift.Value(false),
       ),
     );
@@ -268,10 +260,8 @@ class ContractsRepository {
     final userId = _getCurrentUserId();
     if (userId == null) throw Exception('يجب تسجيل الدخول أولاً.');
 
-    await _localApi.deleteContract(contractId, userId);
-    if (apartmentId != null && apartmentId.isNotEmpty) {
-      await _localApi.changeApartmentStatus(apartmentId, 'available', userId);
-    }
+    // السطر السحري: عملية واحدة محمية 100%
+    await _localApi.deleteContract(contractId, apartmentId, userId);
     await _syncRepo.syncPendingData();
   }
 
@@ -283,11 +273,13 @@ class ContractsRepository {
     final userId = _getCurrentUserId();
     if (userId == null) throw Exception('يجب تسجيل الدخول أولاً.');
 
-    await _localApi.restoreContract(contractId, userId);
-    if (apartmentId != null && apartmentId.isNotEmpty) {
-      final targetStatus = isHandedOver ? 'delivered' : 'sold';
-      await _localApi.changeApartmentStatus(apartmentId, targetStatus, userId);
-    }
+    // السطر السحري: عملية واحدة محمية 100%
+    await _localApi.restoreContract(
+      contractId,
+      apartmentId,
+      isHandedOver,
+      userId,
+    );
     await _syncRepo.syncPendingData();
   }
 
@@ -344,23 +336,32 @@ class ContractsRepository {
     final userId = _getCurrentUserId();
     if (userId == null) throw Exception('يجب تسجيل الدخول أولاً.');
 
-    final fileUrl = await _cloudApi.uploadContractFile(
-      contractId: contractId,
-      file: file,
-      extension: extension,
-    );
+    // 1. إنشاء مجلد محلي آمن داخل مجلد التطبيق
+    final dir = await getApplicationSupportDirectory();
+    final localDirPath = p.join(dir.path, 'pending_uploads');
+    final localDir = Directory(localDirPath);
+    if (!await localDir.exists()) await localDir.create(recursive: true);
 
+    // 2. نسخ الملف المختار إلى هذا المجلد المحلي
+    final fileName = 'contract_$contractId.$extension';
+    final localFile = await file.copy(p.join(localDir.path, fileName));
+
+    // 3. حفظ المسار المحلي في قاعدة البيانات بدلاً من الرابط السحابي
     final db = _localApi.database;
     await (db.update(
       db.contracts,
     )..where((t) => t.id.equals(contractId))).write(
       ContractsCompanion(
-        contractFileUrl: drift.Value(fileUrl),
+        contractFileUrl: drift.Value(
+          localFile.path,
+        ), // 🌟 حفظ المسار المحلي هنا
         userId: drift.Value(userId),
-        updatedAt: drift.Value(DateTime.now().toUtc()),
-        isSynced: const drift.Value(false),
+        updatedAt: drift.Value(SecureTime.now()),
+        isSynced: const drift.Value(false), // 🌟 تأشير كـ "غير متزامن"
       ),
     );
+
+    // 4. محاولة المزامنة (إذا كان هناك إنترنت سيرفع فوراً، وإلا سينتظر)
     await _syncRepo.syncPendingData();
   }
 
@@ -407,10 +408,64 @@ class ContractsRepository {
       ContractsCompanion(
         contractDate: drift.Value(contractDate.toUtc()),
         userId: drift.Value(userId),
-        updatedAt: drift.Value(DateTime.now().toUtc()),
+        updatedAt: drift.Value(SecureTime.now()),
         isSynced: const drift.Value(false),
       ),
     );
+    await _syncRepo.syncPendingData();
+  }
+
+  // ==========================================
+  // 📎 إدارة المرفقات المتعددة للعقود (النظام الجديد)
+  // ==========================================
+
+  Future<List<ContractAttachment>> getAllContractAttachments() =>
+      _localApi.database.getAllContractAttachments();
+
+  Future<List<ContractAttachment>> getAttachmentsForContract(
+    String contractId,
+  ) => _localApi.database.getAttachmentsForContract(contractId);
+
+  Future<void> attachFileToContractGallery({
+    required String contractId,
+    required File file,
+    required String extension,
+    required String originalFileName,
+  }) async {
+    final userId = _getCurrentUserId();
+    if (userId == null) throw Exception('يجب تسجيل الدخول أولاً.');
+
+    final attachmentId = const Uuid().v7();
+
+    // 1. الحفظ المحلي المؤقت
+    final dir = await getApplicationSupportDirectory();
+    final localDirPath = p.join(dir.path, 'pending_uploads');
+    final localDir = Directory(localDirPath);
+    if (!await localDir.exists()) await localDir.create(recursive: true);
+
+    final fileName = 'attach_$attachmentId.$extension';
+    final localFile = await file.copy(p.join(localDir.path, fileName));
+
+    // 2. الحفظ في الداتابيز
+    final newAttachment = ContractAttachmentsCompanion.insert(
+      id: drift.Value(attachmentId),
+      contractId: contractId,
+      fileUrl: localFile.path,
+      fileName: drift.Value(originalFileName),
+      fileType: drift.Value(extension),
+      userId: userId,
+      isSynced: const drift.Value(false),
+    );
+
+    await _localApi.database.insertContractAttachment(newAttachment);
+    await _syncRepo.syncPendingData();
+  }
+
+  Future<void> deleteContractAttachment(String attachmentId) async {
+    final userId = _getCurrentUserId();
+    if (userId == null) throw Exception('يجب تسجيل الدخول أولاً.');
+
+    await _localApi.database.softDeleteContractAttachment(attachmentId, userId);
     await _syncRepo.syncPendingData();
   }
 }

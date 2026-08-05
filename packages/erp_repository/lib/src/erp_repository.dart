@@ -99,13 +99,9 @@ class ErpRepository {
     _dashboardRepo = DashboardRepository(localApi: _localApi);
 
     if (currentUserId != null) {
+      _syncRepo.loadSecureTimeOffsetLocally();
       _startCloudListener();
       _backupRepo.autoBackupSilent(); // 🌟 توجيه النداء للمستودع الفرعي
-
-      _localApi.autoCleanOldDeletedClients();
-      _localApi.autoCleanOldDeletedContracts();
-      _localApi.autoCleanOldDeletedLedgerEntries();
-      _localApi.database.autoCleanOldDeletedBuildingsAndApartments();
     }
   }
 
@@ -131,8 +127,9 @@ class ErpRepository {
     _cloudApi.startListeningToCloudChanges(
       onDataChanged: () {
         // ignore: avoid_print
-        print('🔄 جاري سحب الأسعار الجديدة من السحابة بسبب تحديث حي...');
-        pullDataFromCloud();
+        print('🔄 جاري المزامنة الشاملة (دفع ثم سحب) بسبب تحديث حي...');
+        // 🌟 التعديل السحري: نستخدم forceSyncWithCloud لكي يرفع البيانات المحلية أولاً قبل أن يسحب!
+        forceSyncWithCloud();
       },
     );
   }
@@ -169,6 +166,9 @@ class ErpRepository {
   Future<String> forceSyncWithCloud() => _syncRepo.forceSyncWithCloud();
   Future<void> pullDataFromCloud() => _syncRepo.pullDataFromCloud();
   Future<void> syncPendingData() => _syncRepo.syncPendingData();
+  Future<DateTime?> getLastHeartbeatTime() => _syncRepo.getLastHeartbeatTime();
+  Future<DateTime?> getLocalSubscriptionExpiry() =>
+      _syncRepo.getLocalSubscriptionExpiry();
 
   // ==========================================
   // 👥 العملاء (Clients Facade)
@@ -332,12 +332,6 @@ class ErpRepository {
     isCompleted: isCompleted,
   );
 
-  Future<void> attachContractFile(
-    String contractId,
-    File file,
-    String extension,
-  ) => _contractsRepo.attachContractFile(contractId, file, extension);
-
   Future<void> markContractActionTaken({
     required String contractId,
     required String note,
@@ -355,6 +349,27 @@ class ErpRepository {
     newRemainingMonths: newRemainingMonths,
     newStartDate: newStartDate,
   );
+
+  // ==========================================
+  // 📎 مرفقات العقود (الواجهة المكشوفة)
+  // ==========================================
+  Future<List<ContractAttachment>> getAllContractAttachments() =>
+      _contractsRepo.getAllContractAttachments();
+
+  Future<void> attachFileToContractGallery({
+    required String contractId,
+    required File file,
+    required String extension,
+    required String originalFileName,
+  }) => _contractsRepo.attachFileToContractGallery(
+    contractId: contractId,
+    file: file,
+    extension: extension,
+    originalFileName: originalFileName,
+  );
+
+  Future<void> deleteContractAttachment(String attachmentId) =>
+      _contractsRepo.deleteContractAttachment(attachmentId);
 
   // ==========================================
   // 📅 جدول الاستحقاقات (Schedules Facade)
@@ -599,6 +614,43 @@ class ErpRepository {
   Future<List<Apartment>> getDeletedApartments() =>
       _buildingsRepo.getDeletedApartments();
 
+  Future<List<BuildingAttachment>> getAllBuildingAttachments() =>
+      _buildingsRepo.getAllBuildingAttachments();
+
+  Future<void> attachFileToBuildingGallery({
+    required String buildingId,
+    required File file,
+    required String extension,
+    required String originalFileName,
+  }) => _buildingsRepo.attachFileToBuildingGallery(
+    buildingId: buildingId,
+    file: file,
+    extension: extension,
+    originalFileName: originalFileName,
+  );
+
+  Future<void> deleteBuildingAttachment(String attachmentId) =>
+      _buildingsRepo.deleteBuildingAttachment(attachmentId);
+  // ==========================================
+  // 📎 مرفقات الشقق (الواجهة المكشوفة)
+  // ==========================================
+  Future<List<ApartmentAttachment>> getAllApartmentAttachments() =>
+      _buildingsRepo.getAllApartmentAttachments();
+
+  Future<void> attachFileToApartmentGallery({
+    required String apartmentId,
+    required File file,
+    required String extension,
+    required String originalFileName,
+  }) => _buildingsRepo.attachFileToApartmentGallery(
+    apartmentId: apartmentId,
+    file: file,
+    extension: extension,
+    originalFileName: originalFileName,
+  );
+
+  Future<void> deleteApartmentAttachment(String attachmentId) =>
+      _buildingsRepo.deleteApartmentAttachment(attachmentId);
   // ==========================================
   // 📡 محرك الاستماع السحابي الحي (Realtime Sync)
   // ==========================================
@@ -619,43 +671,6 @@ class ErpRepository {
           },
         )
         .subscribe();
-  }
-
-  // ==========================================
-  // 🌟 إرفاق ملف Word للعقد
-  // ==========================================
-  Future<void> attachFileToContract(
-    String contractId,
-    File file,
-    String extension,
-  ) async {
-    final String? safeUserId = currentUserId;
-    if (safeUserId == null) throw Exception('يجب تسجيل الدخول أولاً.');
-
-    try {
-      final fileUrl = await _cloudApi.uploadContractFile(
-        contractId: contractId,
-        file: file,
-        extension: extension,
-      );
-
-      final db = _localApi.database;
-      await (db.update(
-        db.contracts,
-      )..where((t) => t.id.equals(contractId))).write(
-        ContractsCompanion(
-          contractFileUrl: drift.Value(fileUrl),
-          userId: drift.Value(safeUserId),
-          updatedAt: drift.Value(DateTime.now().toUtc()),
-          isSynced: const drift.Value(false),
-        ),
-      );
-      await syncPendingData();
-    } catch (e, stacktrace) {
-      print('❌❌ خطأ فادح أثناء إرفاق الملف: $e');
-      print('🔍 التفاصيل: $stacktrace');
-      throw Exception('فشل الإرفاق: $e');
-    }
   }
 
   // ==========================================
@@ -680,6 +695,8 @@ class ErpRepository {
     permissions: permissions,
   );
 
+  Future<void> deleteRole(String roleId) => _adminRepo.deleteRole(roleId);
+
   Future<void> updateUserRoleAndPermissions({
     required String userId,
     required String roleId,
@@ -693,6 +710,11 @@ class ErpRepository {
     revokedPermissions: revokedPermissions,
     isActive: isActive,
   );
+
+  Future<void> updateUserSecurityPin(String userId, String newPin) async {
+    await _localApi.updateUserSecurityPin(userId, newPin);
+    await syncPendingData();
+  }
 
   // ==========================================
   // ⚖️ الإجراءات القانونية (Legal Facade)
@@ -760,4 +782,25 @@ class ErpRepository {
     timeFilter: timeFilter,
     refDate: refDate,
   );
-} // <--- نهاية كلاس ErpRepository
+
+  // دالة ذكية تحلل المسار: إن كان محلياً تفتحه، وإن كان سحابياً تجلب له رابطاً آمناً
+  Future<String> resolveFileUrl(String bucketName, String storedPath) async {
+    try {
+      final localFile = File(storedPath);
+      // إذا كان الملف محلياً ولم يتم رفعه بعد، نعيده كما هو
+      if (localFile.isAbsolute && await localFile.exists()) {
+        return storedPath;
+      }
+    } catch (_) {}
+
+    // إذا كان سحابياً، نطلب رابطاً مؤقتاً
+    return await _cloudApi.getSecureSignedUrl(bucketName, storedPath);
+  }
+
+  // ==========================================
+  // 🧹 تنظيف الذاكرة وإغلاق القنوات (Dispose)
+  // ==========================================
+  void dispose() {
+    _pricesChannel?.unsubscribe();
+  }
+}

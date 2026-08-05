@@ -1,6 +1,4 @@
-// مسار الملف: lib/dashboard/view/dashboard_page.dart
-// المسؤولية: إدارة التبويبات الرئيسية وحقن جميع كلاسات إدارة الحالة (Cubits) في بداية التطبيق.
-
+// lib/dashboard/view/dashboard_page.dart
 import 'dart:io';
 
 import 'package:erp_repository/erp_repository.dart';
@@ -18,6 +16,7 @@ import '../../contracts/view/contracts_page.dart';
 import '../../core/constants/app_permissions.dart';
 import '../../home/cubit/home_cubit.dart';
 import '../../home/view/home_page.dart';
+import '../../l10n/l10n.dart'; // 🌟 استدعاء مكتبة الترجمة
 import '../../legal/cubit/legal_affairs_cubit.dart';
 import '../../legal/view/legal_affairs_page.dart';
 import '../../payments/cubit/payments_cubit.dart';
@@ -28,9 +27,6 @@ import '../../settings/cubit/settings_cubit.dart';
 import '../../settings/view/settings_page.dart';
 import '../cubit/dashboard_cubit.dart';
 
-// ==========================================
-// 🧩 كلاس مساعد لتعريف التبويبات بمرونة
-// ==========================================
 class NavTab {
   NavTab({
     required this.label,
@@ -58,7 +54,6 @@ class DashboardPage extends StatelessWidget {
       providers: [
         BlocProvider(create: (_) => DashboardCubit()),
         BlocProvider(create: (_) => HomeCubit(repo)..fetchDashboardData()),
-        // 🌟 هنا تم الإصلاح: استخدام المعامل المسمى (erpRepository: repo)
         BlocProvider(
           create: (_) => ClientsCubit(erpRepository: repo)..fetchClients(),
         ),
@@ -81,14 +76,12 @@ class DashboardView extends StatelessWidget {
   Widget build(BuildContext context) {
     final selectedIndex = context.watch<DashboardCubit>().state;
     final authState = context.watch<AuthCubit>().state;
+    final l10n = context.l10n; // 🌟 استخدام اختصار الترجمة
 
-    // ==========================================
-    // 🌟 بناء قائمة التبويبات بناءً على الصلاحيات
-    // ==========================================
     final availableTabs = <NavTab>[
-      // 1. الرئيسية (الكل يراها)
+      // 1. الرئيسية
       NavTab(
-        label: 'الرئيسية',
+        label: l10n.navHome,
         icon: Icons.dashboard_outlined,
         selectedIcon: Icons.dashboard,
         page: const HomePage(),
@@ -100,7 +93,7 @@ class DashboardView extends StatelessWidget {
     if (authState.hasPermission(AppPermissions.viewClients)) {
       availableTabs.add(
         NavTab(
-          label: 'العملاء',
+          label: l10n.navClients,
           icon: Icons.people_alt_outlined,
           selectedIcon: Icons.people_alt,
           page: const ClientsPage(),
@@ -113,7 +106,7 @@ class DashboardView extends StatelessWidget {
     if (authState.hasPermission(AppPermissions.manageBuildings)) {
       availableTabs.add(
         NavTab(
-          label: 'المشاريع',
+          label: l10n.navProjects,
           icon: Icons.domain_outlined,
           selectedIcon: Icons.domain,
           page: const BuildingsPage(),
@@ -126,7 +119,7 @@ class DashboardView extends StatelessWidget {
     if (authState.hasPermission(AppPermissions.viewContracts)) {
       availableTabs.add(
         NavTab(
-          label: 'العقود',
+          label: l10n.navContracts,
           icon: Icons.description_outlined,
           selectedIcon: Icons.description,
           page: const ContractsPage(),
@@ -135,11 +128,11 @@ class DashboardView extends StatelessWidget {
       );
     }
 
-    // 5. الأقساط والدفعات
+    // 5. الأقساط
     if (authState.hasPermission(AppPermissions.viewPayments)) {
       availableTabs.add(
         NavTab(
-          label: 'الأقساط',
+          label: l10n.navInstallments,
           icon: Icons.receipt_long_outlined,
           selectedIcon: Icons.receipt_long,
           page: const PaymentsPage(),
@@ -152,7 +145,7 @@ class DashboardView extends StatelessWidget {
     if (authState.hasPermission(AppPermissions.viewPayments)) {
       availableTabs.add(
         NavTab(
-          label: 'المراقبة',
+          label: l10n.navMonitoring,
           icon: Icons.calendar_month_outlined,
           selectedIcon: Icons.calendar_month,
           page: const SchedulePage(),
@@ -165,7 +158,7 @@ class DashboardView extends StatelessWidget {
     if (authState.hasPermission(AppPermissions.viewPrices)) {
       availableTabs.add(
         NavTab(
-          label: 'الإعدادات',
+          label: l10n.navSettings,
           icon: Icons.settings_outlined,
           selectedIcon: Icons.settings,
           page: const SettingsPage(),
@@ -174,11 +167,11 @@ class DashboardView extends StatelessWidget {
       );
     }
 
-    // 8. الشؤون القانونية والأرشيف
+    // 8. الشؤون القانونية
     if (authState.hasPermission(AppPermissions.viewLegalAffairs)) {
       availableTabs.add(
         NavTab(
-          label: 'القانونية',
+          label: l10n.navLegal,
           icon: Icons.gavel_outlined,
           selectedIcon: Icons.gavel,
           page: const LegalAffairsPage(),
@@ -187,11 +180,11 @@ class DashboardView extends StatelessWidget {
       );
     }
 
-    // 9. لوحة تحكم الإدارة (خاصة بالـ Super Admin فقط)
+    // 9. لوحة الإدارة
     if (authState.isSystemAdmin) {
       availableTabs.add(
         NavTab(
-          label: 'الإدارة',
+          label: l10n.navAdmin,
           icon: Icons.admin_panel_settings_outlined,
           selectedIcon: Icons.admin_panel_settings,
           page: const AdminPage(),
@@ -200,7 +193,6 @@ class DashboardView extends StatelessWidget {
       );
     }
 
-    // حماية إضافية: إذا كان الـ index المحفوظ أكبر من عدد التبويبات المتاحة
     var safeIndex = selectedIndex;
     if (safeIndex >= availableTabs.length) {
       safeIndex = 0;
@@ -216,15 +208,20 @@ class DashboardView extends StatelessWidget {
               availableTabs[index].onSelected(context);
             },
             labelType: NavigationRailLabelType.all,
-            backgroundColor: Colors.blue.shade900,
-            unselectedIconTheme: const IconThemeData(color: Colors.white70),
-            unselectedLabelTextStyle: const TextStyle(color: Colors.white70),
-            selectedIconTheme: const IconThemeData(
-              color: Colors.white,
+            backgroundColor: Colors.blue.shade50,
+            indicatorColor: Colors.white,
+            unselectedIconTheme: IconThemeData(
+              color: Colors.blueGrey.shade400,
+            ),
+            unselectedLabelTextStyle: TextStyle(
+              color: Colors.blueGrey.shade600,
+            ),
+            selectedIconTheme: IconThemeData(
+              color: Colors.blue.shade700,
               size: 30,
             ),
-            selectedLabelTextStyle: const TextStyle(
-              color: Colors.white,
+            selectedLabelTextStyle: TextStyle(
+              color: Colors.blue.shade800,
               fontWeight: FontWeight.bold,
             ),
             destinations: availableTabs
@@ -246,25 +243,27 @@ class DashboardView extends StatelessWidget {
                     children: [
                       Text(
                         authState.roleName ?? '',
-                        style: const TextStyle(
-                          color: Colors.amber,
+                        style: TextStyle(
+                          color: Colors.blue.shade800,
                           fontWeight: FontWeight.bold,
                           fontSize: 12,
                         ),
                       ),
+                      const SizedBox(height: 8),
+                      const _PinSessionIndicator(),
                       const SizedBox(height: 16),
                       IconButton(
-                        icon: const Icon(
+                        icon: Icon(
                           Icons.sync,
-                          color: Colors.greenAccent,
+                          color: Colors.teal.shade600,
                           size: 28,
                         ),
-                        tooltip: 'مزامنة يدوية مع السحابة (Pull & Push)',
+                        tooltip: l10n.navSyncTooltip,
                         onPressed: () async {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('جاري فحص الاتصال بالإنترنت... 📡'),
-                              duration: Duration(seconds: 2),
+                            SnackBar(
+                              content: Text(l10n.navCheckingInternet),
+                              duration: const Duration(seconds: 2),
                             ),
                           );
 
@@ -286,14 +285,15 @@ class DashboardView extends StatelessWidget {
                             if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
-                                  content: const Row(
+                                  content: Row(
                                     children: [
-                                      Icon(Icons.wifi_off, color: Colors.white),
-                                      SizedBox(width: 12),
+                                      const Icon(
+                                        Icons.wifi_off,
+                                        color: Colors.white,
+                                      ),
+                                      const SizedBox(width: 12),
                                       Expanded(
-                                        child: Text(
-                                          'لا يوجد اتصال بالإنترنت! يرجى التحقق من الشبكة. 🌐❌',
-                                        ),
+                                        child: Text(l10n.navNoInternet),
                                       ),
                                     ],
                                   ),
@@ -307,11 +307,9 @@ class DashboardView extends StatelessWidget {
 
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                  'الإنترنت متصل ✅ جاري مزامنة البيانات، يرجى الانتظار... ☁️🔄',
-                                ),
-                                duration: Duration(seconds: 10),
+                              SnackBar(
+                                content: Text(l10n.navSyncingData),
+                                duration: const Duration(seconds: 10),
                               ),
                             );
                           }
@@ -343,7 +341,7 @@ class DashboardView extends StatelessWidget {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(
-                                    'حدث خطأ غير متوقع أثناء المزامنة: $e',
+                                    l10n.navSyncError(e.toString()),
                                   ),
                                   backgroundColor: Colors.red.shade900,
                                   behavior: SnackBarBehavior.floating,
@@ -355,27 +353,25 @@ class DashboardView extends StatelessWidget {
                       ),
                       const SizedBox(height: 16),
                       IconButton(
-                        icon: const Icon(
+                        icon: Icon(
                           Icons.logout,
-                          color: Colors.redAccent,
+                          color: Colors.red.shade400,
                           size: 28,
                         ),
-                        tooltip: 'تسجيل الخروج (وإقفال النظام)',
+                        tooltip: l10n.navLogoutTooltip,
                         onPressed: () {
                           showDialog<void>(
                             context: context,
                             builder: (ctx) => AlertDialog(
-                              title: const Text(
-                                'تسجيل الخروج',
-                                style: TextStyle(color: Colors.red),
+                              title: Text(
+                                l10n.logoutDialogTitle,
+                                style: const TextStyle(color: Colors.red),
                               ),
-                              content: const Text(
-                                'هل أنت متأكد أنك تريد تسجيل الخروج؟ سيتم إقفال ومسح البيانات المؤقتة من هذا الجهاز لحمايتها.',
-                              ),
+                              content: Text(l10n.logoutDialogMessage),
                               actions: [
                                 TextButton(
                                   onPressed: () => Navigator.pop(ctx),
-                                  child: const Text('إلغاء'),
+                                  child: Text(l10n.logoutCancel),
                                 ),
                                 ElevatedButton(
                                   style: ElevatedButton.styleFrom(
@@ -386,7 +382,7 @@ class DashboardView extends StatelessWidget {
                                     Navigator.pop(ctx);
                                     await context.read<AuthCubit>().logout();
                                   },
-                                  child: const Text('تأكيد الخروج'),
+                                  child: Text(l10n.logoutConfirm),
                                 ),
                               ],
                             ),
@@ -399,7 +395,10 @@ class DashboardView extends StatelessWidget {
               ),
             ),
           ),
-          const VerticalDivider(thickness: 1, width: 1),
+          Container(
+            width: 1,
+            color: Colors.blue.shade100,
+          ),
           Expanded(
             child: IndexedStack(
               index: safeIndex,
@@ -408,6 +407,88 @@ class DashboardView extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _PinSessionIndicator extends StatelessWidget {
+  const _PinSessionIndicator();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
+    return BlocBuilder<AuthCubit, AuthState>(
+      builder: (context, state) {
+        final isActive = state.isPinGracePeriodActive;
+
+        if (!isActive) {
+          return Tooltip(
+            message: l10n.pinLockedTooltip,
+            child: IconButton(
+              icon: Icon(
+                Icons.lock_outline,
+                color: Colors.blueGrey.shade400,
+              ),
+              onPressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(l10n.pinLockedMessage),
+                    duration: const Duration(seconds: 2),
+                  ),
+                );
+              },
+            ),
+          );
+        }
+
+        final expiryTime = state.lastPinVerificationTime!.add(
+          const Duration(minutes: 5),
+        );
+        final remainingDuration = expiryTime.difference(DateTime.now());
+        final remainingSeconds = remainingDuration.inSeconds.clamp(0, 300);
+        final percentage = remainingSeconds / 300.0;
+
+        return Tooltip(
+          message: l10n.pinUnlockedTooltip,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              SizedBox(
+                width: 38,
+                height: 38,
+                child: TweenAnimationBuilder<double>(
+                  tween: Tween<double>(begin: percentage, end: 0.0),
+                  duration: Duration(seconds: remainingSeconds),
+                  builder: (context, value, child) {
+                    return CircularProgressIndicator(
+                      value: value,
+                      color: Colors.teal.shade500,
+                      backgroundColor: Colors.transparent,
+                      strokeWidth: 2.5,
+                    );
+                  },
+                ),
+              ),
+              IconButton(
+                icon: Icon(
+                  Icons.lock_open,
+                  color: Colors.teal.shade700,
+                ),
+                onPressed: () {
+                  context.read<AuthCubit>().lockPinSession();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(l10n.pinLockedSuccess),
+                      backgroundColor: Colors.blueGrey,
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

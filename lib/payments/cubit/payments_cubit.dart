@@ -12,7 +12,8 @@ import 'package:local_storage_api/local_storage_api.dart'
         Client,
         Contract,
         MaterialPricesHistoryData,
-        PaymentsLedgerData;
+        PaymentsLedgerData,
+        SecureTime;
 import 'package:our_home_erp_app/core/utils/calculator_helper.dart';
 
 part 'payments_state.dart';
@@ -33,7 +34,10 @@ class PaymentsCubit extends Cubit<PaymentsState> {
     }
     try {
       final clients = await _erpRepository.getClients();
-      final contracts = await _erpRepository.getAllContracts();
+      final allContracts = await _erpRepository.getAllContracts();
+      final activeContracts = allContracts
+          .where((c) => !c.isCompleted)
+          .toList();
       final apartments = await _erpRepository.getAllApartments();
       final buildings = await _erpRepository.getBuildings();
 
@@ -46,7 +50,7 @@ class PaymentsCubit extends Cubit<PaymentsState> {
         state.copyWith(
           status: PaymentsStatus.success,
           clients: clients,
-          contracts: contracts,
+          contracts: activeContracts,
           apartments: apartments,
           buildings: buildings,
           userNamesMap: namesMap,
@@ -124,7 +128,7 @@ class PaymentsCubit extends Cubit<PaymentsState> {
       final safeAreaForCalculation = contract.totalArea > 0
           ? contract.totalArea
           : 1.0;
-      final paymentDateToSave = customDate?.toUtc() ?? DateTime.now().toUtc();
+      final paymentDateToSave = customDate?.toUtc() ?? SecureTime.now();
 
       var rawMeterPriceToUse = 0.0;
       var pricesSnapshotJson = '{}';
@@ -280,30 +284,68 @@ class PaymentsCubit extends Cubit<PaymentsState> {
     }
   }
 
-  Future<void> softDeleteLastEntry(PaymentsLedgerData entryToDelete) async {
+  // 🌟 الدالة الجديدة المدمجة: تطبيق المنطق المصرفي (Bank-Level Logic)
+  Future<void> cancelPaymentSmartly(PaymentsLedgerData entryToCancel) async {
     emit(state.copyWith(status: PaymentsStatus.loading));
     try {
+      // 1. التحقق: هل هذه الدفعة هي "آخر دفعة" فعلاً؟
       final allEntriesForContract = await _erpRepository.getContractLedger(
-        entryToDelete.contractId,
+        entryToCancel.contractId,
       );
 
       if (allEntriesForContract.isEmpty ||
-          allEntriesForContract.first.id != entryToDelete.id) {
+          allEntriesForContract.first.id != entryToCancel.id) {
         throw Exception(
-          'تحذير مالي: لا يمكن حذف دفعة قديمة، يمكنك فقط تعديل قيمتها بصلاحيات '
-          'الإدارة. يسمح بحذف آخر دفعة فقط.',
+          'تحذير محاسبي: لا يمكن إلغاء دفعة قديمة! يجب التراجع عن الدفعات الأحدث أولاً لتسوية الحسابات بالترتيب.',
         );
       }
 
-      await _erpRepository.softDeleteLedgerEntry(entryToDelete.id);
+      // 2. حساب الوقت المنقضي
+      final minutesPassed = DateTime.now()
+          .toUtc()
+          .difference(entryToCancel.createdAt)
+          .inMinutes;
 
-      await selectContract(entryToDelete.contractId);
+      if (minutesPassed <= 5) {
+        // ==========================================
+        // 🗑️ الخيار الأول: إبطال فوري (خلال 5 دقائق)
+        // ==========================================
+        await _erpRepository.softDeleteLedgerEntry(entryToCancel.id);
+      } else {
+        // ==========================================
+        // 🔄 الخيار الثاني: قيد عكسي آلي (بعد 5 دقائق)
+        // ==========================================
+        final receiptNum =
+            entryToCancel.receiptNumber ??
+            entryToCancel.id.split('-').first.toUpperCase();
+
+        await _erpRepository.addLedgerEntry(
+          contractId: entryToCancel.contractId,
+          amountPaid: -(entryToCancel.amountPaid), // 🌟 نعكس المبلغ
+          convertedMeters: -(entryToCancel.convertedMeters), // 🌟 نعكس الأمتار
+          meterPriceAtPayment:
+              entryToCancel.meterPriceAtPayment, // السعر يبقى موجباً لأنه مؤشر
+          discountPercentage: 0, // تصفير البونص في العكسي
+          pricesSnapshotJson: jsonEncode({
+            'note':
+                'قيد عكسي آلي وتسوية محاسبية لإلغاء الإيصال رقم ($receiptNum)',
+          }),
+        );
+      }
+
+      // 🌟 3. الخطوة الأهم: إعادة فتح القسط للعميل (في كلتا الحالتين)
+      if (entryToCancel.scheduleId != null) {
+        await _erpRepository.updateScheduleStatus(
+          entryToCancel.scheduleId!,
+          'pending',
+        );
+      }
+
+      // 4. تحديث الواجهة
+      await selectContract(entryToCancel.contractId);
 
       unawaited(
         _erpRepository.forceSyncWithCloud().catchError((Object e) {
-          // reason: Logging background sync failures
-          // ignore: avoid_print
-          print('Sync Error: $e');
           return '';
         }),
       );

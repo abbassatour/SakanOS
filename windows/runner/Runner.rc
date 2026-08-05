@@ -95,7 +95,7 @@ BEGIN
             VALUE "InternalName", "our_home_erp_app" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2026 com.ourhome.our-home-erp-app. All rights reserved." "\0"
             VALUE "OriginalFilename", "our_home_erp_app.exe" "\0"
-            VALUE "ProductName", "Our Home Erp App" "\0"
+            VALUE "ProductName", "SakanOS App" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

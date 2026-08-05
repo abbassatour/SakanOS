@@ -60,17 +60,17 @@ android {
         create("production") {
             dimension = "default"
             applicationIdSuffix = ""
-            manifestPlaceholders["appName"] = "Our Home Erp App"
+            manifestPlaceholders["appName"] = "SakanOS App"
         }
         create("staging") {
             dimension = "default"
             applicationIdSuffix = ".stg"
-            manifestPlaceholders["appName"] = "[STG] Our Home Erp App"
+            manifestPlaceholders["appName"] = "[STG] SakanOS App"
         }
         create("development") {
             dimension = "default"
             applicationIdSuffix = ".dev"
-            manifestPlaceholders["appName"] = "[DEV] Our Home Erp App"
+            manifestPlaceholders["appName"] = "[DEV] SakanOS App"
         }
     }
 

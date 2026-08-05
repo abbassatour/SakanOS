@@ -78,4 +78,9 @@ class AdminRepository {
     );
     await _syncRepo.syncPendingData();
   }
+
+  Future<void> deleteRole(String roleId) async {
+    await _localApi.deleteRole(roleId);
+    await _syncRepo.syncPendingData();
+  }
 }

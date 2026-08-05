@@ -2,8 +2,8 @@
 // ignore_for_file: depend_on_referenced_packages
 
 import 'package:drift/drift.dart' as drift;
+import 'package:erp_repository/src/repositories/sync_repository.dart';
 import 'package:local_storage_api/local_storage_api.dart';
-
 import 'sync_repository.dart';
 
 class PaymentsRepository {
@@ -45,7 +45,7 @@ class PaymentsRepository {
     final userId = _getCurrentUserId();
     if (userId == null) throw Exception('يجب تسجيل الدخول أولاً.');
 
-    final paymentDateToSave = customDate?.toUtc() ?? DateTime.now().toUtc();
+    final paymentDateToSave = customDate?.toUtc() ?? SecureTime.now();
 
     // 1. حفظ سعر الدولار التاريخي
     if (customDate != null && histDollarRate != null) {

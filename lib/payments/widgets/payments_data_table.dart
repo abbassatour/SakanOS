@@ -48,8 +48,8 @@ class PaymentsDataTable extends StatelessWidget {
                 headingRowColor: WidgetStateProperty.all(
                   Colors.deepOrange.shade50,
                 ),
-                dataRowMinHeight: 55,
-                dataRowMaxHeight: 70,
+                dataRowMinHeight: 60, // زيادة طفيفة لاستيعاب سطرين براحة
+                dataRowMaxHeight: 75,
                 columns: const [
                   DataColumn(
                     label: Text(
@@ -69,9 +69,20 @@ class PaymentsDataTable extends StatelessWidget {
                       ),
                     ),
                   ),
+                  // 🌟 توضيح أن هذا هو السعر المرجعي (الأساسي)
                   DataColumn(
                     label: Text(
-                      'سعر المتر',
+                      'سعر المتر الأساسي',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.deepOrange,
+                      ),
+                    ),
+                  ),
+                  // 🌟 العمود الاحترافي الذي يجمع النسبة والسعر الفعلي الجديد
+                  DataColumn(
+                    label: Text(
+                      'تأثير النسبة (الفعلي)',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         color: Colors.deepOrange,
@@ -89,6 +100,15 @@ class PaymentsDataTable extends StatelessWidget {
                   ),
                   DataColumn(
                     label: Text(
+                      'نسبة الإنجاز',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.deepOrange,
+                      ),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Text(
                       'تاريخ الدفع',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
@@ -98,7 +118,7 @@ class PaymentsDataTable extends StatelessWidget {
                   ),
                   DataColumn(
                     label: Text(
-                      'آخر تعديل بواسطة',
+                      'آخر تعديل',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         color: Colors.deepOrange,
@@ -120,6 +140,36 @@ class PaymentsDataTable extends StatelessWidget {
                   final entry = mapEntry.value;
                   final isLatestEntry = index == 0;
                   final isRefund = entry.amountPaid < 0;
+                  final minutesPassed = DateTime.now()
+                      .toUtc()
+                      .difference(entry.createdAt)
+                      .inMinutes;
+                  final isGracePeriod = minutesPassed <= 5;
+
+                  // 🌟 استخراج قيمة البونص / الغرامة وتحديد نوعها
+                  final double feesValue = entry.fees;
+                  final bool hasFees = feesValue != 0;
+                  final bool isPenalty =
+                      feesValue < 0; // سالبة تعني غرامة تأخير
+
+                  // 🌟 الحساب الرياضي الدقيق لسعر المتر الفعلي بعد تطبيق النسبة
+                  final double effectiveMeterPrice = entry.convertedMeters != 0
+                      ? (entry.amountPaid.abs() / entry.convertedMeters.abs())
+                      : entry.meterPriceAtPayment;
+
+                  // استخراج العقد الحالي لحساب نسبة الإنجاز
+                  final contractIdx = state.contracts.indexWhere(
+                    (c) => c.id == entry.contractId,
+                  );
+                  final contract = contractIdx >= 0
+                      ? state.contracts[contractIdx]
+                      : state.contracts.first;
+
+                  final isAllocated = contract.contractType == 'متخصص';
+                  final double percentage =
+                      (isAllocated && contract.totalArea > 0)
+                      ? (entry.convertedMeters.abs() / contract.totalArea) * 100
+                      : 0.0;
 
                   return DataRow(
                     color: WidgetStateProperty.resolveWith<Color?>(
@@ -133,7 +183,9 @@ class PaymentsDataTable extends StatelessWidget {
                     cells: [
                       DataCell(
                         Text(
-                          entry.id.split('-').first.toUpperCase(),
+                          entry.receiptNumber != null
+                              ? entry.receiptNumber.toString()
+                              : entry.id.split('-').first.toUpperCase(),
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             color: Colors.grey.shade600,
@@ -166,14 +218,99 @@ class PaymentsDataTable extends StatelessWidget {
                           ],
                         ),
                       ),
+
+                      // 🌟 سعر المتر المرجعي الأساسي
                       DataCell(
                         Text(
-                          '${NumberFormatters.formatWithCommas(
+                          NumberFormatters.formatWithCommas(
                             entry.meterPriceAtPayment,
-                          )} ل.س',
-                          style: const TextStyle(color: Colors.black87),
+                          ),
+                          style: TextStyle(
+                            color: hasFees
+                                ? Colors.grey.shade600
+                                : Colors.black87,
+                            decoration: hasFees
+                                ? TextDecoration.lineThrough
+                                : null, // شطب السعر القديم إذا كان هناك تعديل
+                          ),
                         ),
                       ),
+
+                      // 🌟 الخلية الاحترافية (تأثير النسبة = نسبة مئوية + السعر الفعلي الجديد)
+                      DataCell(
+                        hasFees
+                            ? Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 6,
+                                      vertical: 2,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: isPenalty
+                                          ? Colors.red.shade50
+                                          : Colors.teal.shade50,
+                                      borderRadius: BorderRadius.circular(4),
+                                      border: Border.all(
+                                        color: isPenalty
+                                            ? Colors.red.shade200
+                                            : Colors.teal.shade200,
+                                      ),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(
+                                          // الغرامة ترفع السعر (سهم صاعد أحمر)، البونص يخفض السعر (سهم هابط أخضر)
+                                          isPenalty
+                                              ? Icons.trending_up
+                                              : Icons.trending_down,
+                                          size: 14,
+                                          color: isPenalty
+                                              ? Colors.red.shade700
+                                              : Colors.teal.shade700,
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          '${isPenalty ? "" : "+"}${feesValue.toStringAsFixed(1)}%',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color: isPenalty
+                                                ? Colors.red.shade700
+                                                : Colors.teal.shade700,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'الفعلي: ${NumberFormatters.formatWithCommas(effectiveMeterPrice)}',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: isPenalty
+                                          ? Colors.red.shade900
+                                          : Colors.teal.shade900,
+                                    ),
+                                  ),
+                                ],
+                              )
+                            : const Center(
+                                child: Text(
+                                  '-',
+                                  style: TextStyle(
+                                    color: Colors.grey,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                              ),
+                      ),
+
                       DataCell(
                         Container(
                           padding: const EdgeInsets.symmetric(
@@ -205,6 +342,61 @@ class PaymentsDataTable extends StatelessWidget {
                           ),
                         ),
                       ),
+
+                      // 🌟 نسبة الإنجاز
+                      DataCell(
+                        isAllocated
+                            ? Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    '${isRefund ? "-" : "+"}%${percentage.toStringAsFixed(2)}',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 13,
+                                      color: isRefund
+                                          ? Colors.red.shade700
+                                          : Colors.green.shade700,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  SizedBox(
+                                    width: 60,
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(4),
+                                      child: LinearProgressIndicator(
+                                        value: percentage / 100,
+                                        backgroundColor: Colors.grey.shade200,
+                                        color: isRefund
+                                            ? Colors.red.shade400
+                                            : Colors.green.shade500,
+                                        minHeight: 5,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              )
+                            : Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade100,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  'أسهم استثمارية',
+                                  style: TextStyle(
+                                    color: Colors.grey.shade600,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                      ),
+
                       DataCell(
                         Text(
                           '${entry.paymentDate.year}/'
@@ -426,14 +618,22 @@ class PaymentsDataTable extends StatelessWidget {
                             if (canDelete)
                               IconButton(
                                 icon: Icon(
-                                  Icons.delete_forever,
+                                  isLatestEntry
+                                      ? (isGracePeriod
+                                            ? Icons.delete_forever
+                                            : Icons.autorenew)
+                                      : Icons.delete_forever,
                                   color: isLatestEntry
-                                      ? Colors.red
+                                      ? (isGracePeriod
+                                            ? Colors.red
+                                            : Colors.orange.shade800)
                                       : Colors.grey.shade300,
                                 ),
                                 tooltip: isLatestEntry
-                                    ? 'إلغاء آخر دفعة'
-                                    : 'لا يمكن حذف الدفعات القديمة',
+                                    ? (isGracePeriod
+                                          ? 'إلغاء فوري للإيصال (متبقي ${5 - minutesPassed} دقائق)'
+                                          : 'تسوية محاسبية (قيد عكسي)')
+                                    : 'لا يمكن إلغاء دفعات قديمة',
                                 onPressed: isLatestEntry
                                     ? () => showDeletePaymentDialog(
                                         context,

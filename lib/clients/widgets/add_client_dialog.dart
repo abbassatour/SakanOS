@@ -1,9 +1,10 @@
-// مسار الملف: lib/clients/widgets/add_client_dialog.dart
+// lib/clients/widgets/add_client_dialog.dart
 import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:our_home_erp_app/clients/cubit/clients_cubit.dart';
+import 'package:our_home_erp_app/l10n/l10n.dart';
 
 void showAddClientDialog(BuildContext parentContext) {
   final clientsCubit = parentContext.read<ClientsCubit>();
@@ -94,14 +95,15 @@ class _AddClientDialogState extends State<_AddClientDialogContent> {
   }
 
   Future<void> _saveClient() async {
+    final l10n = context.l10n;
     final name = _nameController.text.trim();
     final phone = _phoneController.text.trim();
     final nationalId = _nationalIdController.text.trim();
 
     if (name.isEmpty || phone.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('⚠️ يرجى إدخال الاسم ورقم الهاتف على الأقل!'),
+        SnackBar(
+          content: Text(l10n.clientValidationFillNamePhone),
           backgroundColor: Colors.red,
         ),
       );
@@ -120,8 +122,8 @@ class _AddClientDialogState extends State<_AddClientDialogContent> {
       if (mounted && widget.parentContext.mounted) {
         Navigator.pop(context);
         ScaffoldMessenger.of(widget.parentContext).showSnackBar(
-          const SnackBar(
-            content: Text('تمت إضافة العميل بنجاح ✅'),
+          SnackBar(
+            content: Text(l10n.clientSuccessAdd),
             backgroundColor: Colors.green,
           ),
         );
@@ -131,7 +133,7 @@ class _AddClientDialogState extends State<_AddClientDialogContent> {
         setState(() => _isSaving = false);
         ScaffoldMessenger.of(widget.parentContext).showSnackBar(
           SnackBar(
-            content: Text('حدث خطأ أثناء الحفظ: $e'),
+            content: Text(l10n.clientErrorSave(e.toString())),
             backgroundColor: Colors.red,
           ),
         );
@@ -141,6 +143,8 @@ class _AddClientDialogState extends State<_AddClientDialogContent> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       titlePadding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
@@ -160,9 +164,9 @@ class _AddClientDialogState extends State<_AddClientDialogContent> {
             ),
           ),
           const SizedBox(width: 16),
-          const Text(
-            'إضافة عميل جديد',
-            style: TextStyle(
+          Text(
+            l10n.clientAddDialogTitle,
+            style: const TextStyle(
               color: Colors.black87,
               fontWeight: FontWeight.bold,
               fontSize: 22,
@@ -177,14 +181,14 @@ class _AddClientDialogState extends State<_AddClientDialogContent> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'يرجى إدخال بيانات العميل بدقة للتواصل وإعداد العقود.',
-                style: TextStyle(color: Colors.grey, fontSize: 14),
+              Text(
+                l10n.clientAddDialogSubtitle,
+                style: const TextStyle(color: Colors.grey, fontSize: 14),
               ),
               const SizedBox(height: 24),
               _buildField(
                 controller: _nameController,
-                label: 'الاسم الثلاثي',
+                label: l10n.clientLabelFullName,
                 icon: Icons.person,
               ),
               const SizedBox(height: 16),
@@ -193,7 +197,7 @@ class _AddClientDialogState extends State<_AddClientDialogContent> {
                   Expanded(
                     child: _buildField(
                       controller: _phoneController,
-                      label: 'رقم الهاتف',
+                      label: l10n.clientLabelPhone,
                       icon: Icons.phone_android,
                       keyboardType: TextInputType.phone,
                     ),
@@ -202,7 +206,7 @@ class _AddClientDialogState extends State<_AddClientDialogContent> {
                   Expanded(
                     child: _buildField(
                       controller: _nationalIdController,
-                      label: 'الرقم الوطني',
+                      label: l10n.clientLabelNationalId,
                       icon: Icons.badge,
                       keyboardType: TextInputType.number,
                     ),
@@ -220,9 +224,9 @@ class _AddClientDialogState extends State<_AddClientDialogContent> {
           style: TextButton.styleFrom(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
           ),
-          child: const Text(
-            'إلغاء',
-            style: TextStyle(
+          child: Text(
+            l10n.btnCancel,
+            style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
               color: Colors.grey,
@@ -251,7 +255,7 @@ class _AddClientDialogState extends State<_AddClientDialogContent> {
                 )
               : const Icon(Icons.check_circle_outline),
           label: Text(
-            _isSaving ? 'جاري الحفظ...' : 'حفظ العميل',
+            _isSaving ? l10n.btnSaving : l10n.btnSaveClient,
             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
         ),

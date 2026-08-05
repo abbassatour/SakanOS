@@ -1,4 +1,4 @@
-// contracts/cubit/contracts_state.dart
+// lib/contracts/cubit/contracts_state.dart
 
 part of 'contracts_cubit.dart';
 
@@ -11,6 +11,7 @@ class ContractsState extends Equatable {
     this.deletedContracts = const [],
     this.clients = const [],
     this.userNamesMap = const {},
+    this.attachmentsMap = const {}, // 🌟 المتغير الجديد
     this.errorMessage,
   });
 
@@ -19,6 +20,10 @@ class ContractsState extends Equatable {
   final List<Contract> deletedContracts;
   final List<Client> clients;
   final Map<String, String> userNamesMap;
+
+  // 🌟 الخريطة الجديدة: المفتاح هو contractId، والقيمة هي قائمة مرفقات هذا العقد
+  final Map<String, List<ContractAttachment>> attachmentsMap;
+
   final String? errorMessage;
 
   ContractsState copyWith({
@@ -27,6 +32,7 @@ class ContractsState extends Equatable {
     List<Contract>? deletedContracts,
     List<Client>? clients,
     Map<String, String>? userNamesMap,
+    Map<String, List<ContractAttachment>>? attachmentsMap, // 🌟
     String? errorMessage,
   }) {
     return ContractsState(
@@ -35,6 +41,7 @@ class ContractsState extends Equatable {
       deletedContracts: deletedContracts ?? this.deletedContracts,
       clients: clients ?? this.clients,
       userNamesMap: userNamesMap ?? this.userNamesMap,
+      attachmentsMap: attachmentsMap ?? this.attachmentsMap, // 🌟
       errorMessage: errorMessage ?? this.errorMessage,
     );
   }
@@ -46,6 +53,7 @@ class ContractsState extends Equatable {
     deletedContracts,
     clients,
     userNamesMap,
+    attachmentsMap, // 🌟
     errorMessage,
   ];
 }

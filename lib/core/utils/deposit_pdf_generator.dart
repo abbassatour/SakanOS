@@ -63,7 +63,7 @@ class DepositPdfGenerator {
           children: [
             pw.Center(
               child: pw.Text(
-                'بيتنا Our Home',
+                ' SakanOS',
                 style: pw.TextStyle(
                   font: arabicBoldFont,
                   fontSize: 11,
@@ -86,7 +86,8 @@ class DepositPdfGenerator {
               mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
               children: [
                 pw.Text(
-                  'رقم: ${entry.id.split('-').first.toUpperCase()}',
+                  // 🌟 التعديل هنا:
+                  'رقم: ${entry.receiptNumber != null ? entry.receiptNumber : entry.id.split('-').first.toUpperCase()}',
                   style: pw.TextStyle(font: arabicFont, fontSize: 8),
                 ),
                 pw.Text(
@@ -182,7 +183,7 @@ class DepositPdfGenerator {
                             font: arabicFont,
                             boldFont: arabicBoldFont,
                             title: isPenalty
-                                ? 'السعر بعد الغرامة:'
+                                ? 'سعر المتر بعد الغرامة :'
                                 : 'السعر بعد البونص:',
                             value: '${_fmtMoney(meterPriceAfterBonus)} ل.س',
                             valueColor: PdfColors.blue800,
@@ -249,7 +250,7 @@ class DepositPdfGenerator {
               mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
               children: [
                 pw.Text(
-                  'توقيع الشركة',
+                  'توقيع المكتب',
                   style: pw.TextStyle(
                     font: arabicBoldFont,
                     fontSize: 8,
@@ -283,7 +284,7 @@ class DepositPdfGenerator {
             height: 148 * PdfPageFormat.mm,
             child: pw.Row(
               children: [
-                pw.Expanded(child: buildCompactReceipt('نسخة الشركة')),
+                pw.Expanded(child: buildCompactReceipt('نسخة المكتب')),
                 pw.SizedBox(width: 20),
                 pw.Expanded(child: buildCompactReceipt('نسخة العميل')),
               ],

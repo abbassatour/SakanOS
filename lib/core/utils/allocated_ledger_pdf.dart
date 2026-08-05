@@ -158,7 +158,7 @@ class AllocatedLedgerPdf {
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
                     pw.Text(
-                      'Our Home',
+                      'SakanOS',
                       style: pw.TextStyle(
                         font: arabicBoldFont,
                         fontSize: 18,
@@ -219,7 +219,7 @@ class AllocatedLedgerPdf {
               mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
               children: [
                 pw.Text(
-                  'نظام Our Home العقاري لإدارة الأملاك',
+                  'نظام SakanOS العقاري لإدارة الأملاك',
                   style: pw.TextStyle(
                     font: arabicFont,
                     color: PdfColors.grey600,
@@ -347,7 +347,7 @@ class AllocatedLedgerPdf {
                   [
                     'موعد التسليم المتفق عليه',
                     'تاريخ التسليم الفعلي',
-                    'فترة السماح',
+                    'فترة السماح للمطور',
                     'غرامة التأخير (بعد التسليم)',
                   ],
                   [
@@ -391,7 +391,7 @@ class AllocatedLedgerPdf {
                 ),
                 pw.Container(width: 1, height: 24, color: PdfColors.grey500),
                 buildSummaryCol(
-                  'الأمتار المتبقية لصالح الشركة',
+                  'الأمتار المتبقية لصالح المكتب',
                   '${remainingMeters > 0 ? remainingMeters.toStringAsFixed(3) : "0 (مكتمل)"} م²',
                   remainingMeters > 0 ? PdfColors.red300 : PdfColors.green400,
                 ),
@@ -464,7 +464,10 @@ class AllocatedLedgerPdf {
                         mainAxisAlignment: pw.MainAxisAlignment.center,
                         children: [
                           pw.Text(
-                            entry.id.split('-').first.toUpperCase(),
+                            // 🌟 التعديل هنا:
+                            entry.receiptNumber != null
+                                ? entry.receiptNumber.toString()
+                                : entry.id.split('-').first.toUpperCase(),
                             style: pw.TextStyle(font: arabicFont, fontSize: 8),
                           ),
                           if (isFirstPayment && !isRefund)

@@ -25,12 +25,12 @@ class WhatsAppHelper {
 وذلك عن شقة (${contract.apartmentDetails}).
 
 *تفاصيل الدفعة:*
-- رقم الإيصال: ${entry.id.split('-').first}
+- رقم الإيصال: ${entry.receiptNumber != null ? entry.receiptNumber : entry.id.split('-').first.toUpperCase()}
 - تاريخ الدفع: ${entry.paymentDate.year}/${entry.paymentDate.month}/${entry.paymentDate.day}
 - سعر المتر المعتمد وقت الدفع: ${entry.meterPriceAtPayment.toStringAsFixed(0)} ل.س
 - الأمتار المحولة بهذه الدفعة: ${entry.convertedMeters.toStringAsFixed(3)} م2
 
-شكراً لثقتكم بنا في "بيتنا Our Home". 🏢
+شكراً لثقتكم بنا في " SakanOS". 🏢
 ''';
 
     final String encodedMessage = Uri.encodeComponent(message);
@@ -70,7 +70,7 @@ class WhatsAppHelper {
 
 🗓️ *تاريخ الاستحقاق:* ${schedule.dueDate.year}/${schedule.dueDate.month}/${schedule.dueDate.day}
 
-نتمنى لكم يوماً سعيداً، وشكراً لتعاونكم مع شركة "بيتنا Our Home". 🏢
+نتمنى لكم يوماً سعيداً، وشكراً لتعاونكم مع مكتب " SakanOS". 🏢
 ''';
 
     final String encodedMessage = Uri.encodeComponent(message);

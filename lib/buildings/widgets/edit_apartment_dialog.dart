@@ -1,11 +1,10 @@
 // lib/buildings/widgets/edit_apartment_dialog.dart
-// ignore_for_file: always_use_package_imports, depend_on_referenced_packages
-
 import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:local_storage_api/local_storage_api.dart' show Apartment;
+import 'package:our_home_erp_app/l10n/l10n.dart';
 
 import '../cubit/buildings_cubit.dart';
 
@@ -89,6 +88,8 @@ class _EditApartmentDialogContentState
   }
 
   void _confirmDelete() {
+    final l10n = context.l10n;
+
     unawaited(
       showDialog<void>(
         context: context,
@@ -96,21 +97,21 @@ class _EditApartmentDialogContentState
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
-          title: const Row(
+          title: Row(
             children: [
-              Icon(Icons.warning_amber_rounded, color: Colors.red),
-              SizedBox(width: 8),
-              Text('تأكيد الحذف'),
+              const Icon(Icons.warning_amber_rounded, color: Colors.red),
+              const SizedBox(width: 8),
+              Text(l10n.aptDeleteConfirmTitle),
             ],
           ),
-          content: const Text(
-            'هل أنت متأكد من رغبتك في حذف هذه الوحدة ونقلها إلى سلة المحذوفات؟',
-            style: TextStyle(fontSize: 16),
+          content: Text(
+            l10n.aptDeleteConfirmMessage,
+            style: const TextStyle(fontSize: 16),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(confirmCtx),
-              child: const Text('إلغاء'),
+              child: Text(l10n.btnCancel),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
@@ -126,16 +127,16 @@ class _EditApartmentDialogContentState
                 if (mounted) {
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('تم نقل الوحدة لسلة المحذوفات'),
+                    SnackBar(
+                      content: Text(l10n.aptSuccessDeleted),
                       backgroundColor: Colors.green,
                     ),
                   );
                 }
               },
-              child: const Text(
-                'نعم، احذف',
-                style: TextStyle(fontWeight: FontWeight.bold),
+              child: Text(
+                l10n.aptBtnConfirmDelete,
+                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
             ),
           ],
@@ -145,6 +146,8 @@ class _EditApartmentDialogContentState
   }
 
   void _handleSave() {
+    final l10n = context.l10n;
+
     if (_numberController.text.trim().isNotEmpty) {
       unawaited(
         context.read<BuildingsCubit>().updateApartment(
@@ -156,15 +159,15 @@ class _EditApartmentDialogContentState
       );
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('تم تحديث رقم الوحدة بنجاح'),
+        SnackBar(
+          content: Text(l10n.aptSuccessUpdated),
           backgroundColor: Colors.green,
         ),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('الرقم لا يمكن أن يكون فارغاً!'),
+        SnackBar(
+          content: Text(l10n.aptValidationEmptyNumber),
           backgroundColor: Colors.red,
         ),
       );
@@ -173,6 +176,8 @@ class _EditApartmentDialogContentState
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     final isAvailable = widget.apt.status == 'available';
     final isDelivered = widget.apt.status == 'delivered';
 
@@ -187,27 +192,19 @@ class _EditApartmentDialogContentState
       borderColor = Colors.amber.shade200;
       iconTextColor = Colors.brown.shade800;
       alertIcon = Icons.info_outline;
-      alertText =
-          'للحفاظ على سلامة الحسابات والمعاملات المالية، يُسمح لك '
-          'بتعديل "الرقم/الرمز" فقط. لتغيير المساحة أو الاتجاه، يرجى حذف '
-          'الوحدة وإضافتها من جديد.';
+      alertText = l10n.aptEditBannerAvailable;
     } else if (isDelivered) {
       boxColor = Colors.teal.shade50;
       borderColor = Colors.teal.shade200;
       iconTextColor = Colors.teal.shade900;
       alertIcon = Icons.verified_user;
-      alertText =
-          'هذه الوحدة تم تسليمها للعميل نهائياً وانتهت دورتها. '
-          'يُمنع منعاً باتاً تعديل بياناتها أو حذفها للحفاظ على استقرار '
-          'العقود والبيانات المالية.';
+      alertText = l10n.aptEditBannerDelivered;
     } else {
       boxColor = Colors.red.shade50;
       borderColor = Colors.red.shade200;
       iconTextColor = Colors.red.shade900;
       alertIcon = Icons.gavel;
-      alertText =
-          'هذه الوحدة مباعة أو محجوزة بعقد نشط. يُمنع منعاً باتاً '
-          'تعديل بياناتها أو حذفها للحفاظ على استقرار العقود المالية.';
+      alertText = l10n.aptEditBannerSold;
     }
 
     return AlertDialog(
@@ -237,7 +234,7 @@ class _EditApartmentDialogContentState
               ),
               const SizedBox(width: 16),
               Text(
-                'تعديل الوحدة ( ${widget.apt.apartmentNumber} )',
+                l10n.aptEditDialogTitle(widget.apt.apartmentNumber),
                 style: const TextStyle(
                   color: Colors.black87,
                   fontWeight: FontWeight.bold,
@@ -253,7 +250,7 @@ class _EditApartmentDialogContentState
                 color: Colors.red,
                 size: 28,
               ),
-              tooltip: 'حذف الوحدة',
+              tooltip: l10n.aptBtnConfirmDelete,
               onPressed: _confirmDelete,
             )
           else
@@ -279,7 +276,9 @@ class _EditApartmentDialogContentState
                   ),
                   const SizedBox(width: 6),
                   Text(
-                    isDelivered ? 'مقفلة (مُسلّمة)' : 'مقفلة (مباعة)',
+                    isDelivered
+                        ? l10n.aptTagLockedDelivered
+                        : l10n.aptTagLockedSold,
                     style: TextStyle(
                       color: isDelivered
                           ? Colors.teal.shade700
@@ -334,7 +333,7 @@ class _EditApartmentDialogContentState
                   fontSize: 16,
                 ),
                 decoration: InputDecoration(
-                  labelText: 'رقم الوحدة / الرمز',
+                  labelText: l10n.aptLabelNumber,
                   prefixIcon: Icon(
                     Icons.tag,
                     color: isAvailable ? Colors.orange.shade600 : Colors.grey,
@@ -358,15 +357,15 @@ class _EditApartmentDialogContentState
                 children: [
                   Expanded(
                     child: _buildReadOnlyField(
-                      'المساحة المعتمدة',
-                      '${widget.apt.area} م²',
+                      l10n.aptLabelApprovedArea,
+                      '${widget.apt.area} m²',
                       Icons.architecture,
                     ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
                     child: _buildReadOnlyField(
-                      'الاتجاه / الواجهة',
+                      l10n.aptLabelDirection,
                       widget.apt.directionName,
                       Icons.explore,
                     ),
@@ -385,7 +384,7 @@ class _EditApartmentDialogContentState
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
           ),
           child: Text(
-            isAvailable ? 'إلغاء' : 'إغلاق',
+            isAvailable ? l10n.btnCancel : l10n.btnClose,
             style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
@@ -408,9 +407,9 @@ class _EditApartmentDialogContentState
             ),
             onPressed: _handleSave,
             icon: const Icon(Icons.save),
-            label: const Text(
-              'حفظ التعديل',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            label: Text(
+              l10n.aptBtnSaveEdit,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
           ),
       ],

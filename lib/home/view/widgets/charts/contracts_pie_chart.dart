@@ -1,18 +1,19 @@
 // lib/home/view/widgets/charts/contracts_pie_chart.dart
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:our_home_erp_app/l10n/l10n.dart';
 import 'chart_colors.dart';
 import 'chart_shared_widgets.dart';
 
 class ContractsPieChart extends StatelessWidget {
   final String title;
-  final String description; // 🌟 1. أضفنا الشرح
+  final String description;
   final Map<String, int> data;
 
   const ContractsPieChart({
     super.key,
     required this.title,
-    required this.description, // 🌟 2. أضفناه للمشيد
+    required this.description,
     required this.data,
   });
 
@@ -27,6 +28,8 @@ class ContractsPieChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     String topType = '—';
     int maxCount = 0;
     int total = 0;
@@ -43,7 +46,7 @@ class ContractsPieChart extends StatelessWidget {
 
     return ChartCard(
       title: title,
-      description: description, // 🌟 3. مررنا الشرح إلى كرت العرض المشترك
+      description: description,
       titleIcon: Icons.donut_large_rounded,
       iconColor: ChartColors.primary,
       chart: data.isEmpty
@@ -74,7 +77,7 @@ class ContractsPieChart extends StatelessWidget {
                         );
                       }).toList(),
                     ),
-                    duration: Duration.zero, // 👈 تم إلغاء الأنميشن
+                    duration: Duration.zero,
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -113,14 +116,14 @@ class ContractsPieChart extends StatelessWidget {
         FooterRow(
           icon: Icons.emoji_events_rounded,
           iconColor: Colors.amber,
-          label: 'الأكثر مبيعاً:',
+          label: l10n.chartContractsTopType,
           value: topType,
         ),
         FooterRow(
           icon: Icons.format_list_numbered_rounded,
           iconColor: ChartColors.primary,
-          label: 'إجمالي العقود:',
-          value: '$total عقد',
+          label: l10n.chartContractsTotal,
+          value: '$total ${l10n.chartContractsUnit}',
         ),
       ],
     );

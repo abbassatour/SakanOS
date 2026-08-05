@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:our_home_erp_app/home/cubit/home_cubit.dart';
+import 'package:our_home_erp_app/l10n/l10n.dart';
 
 class KpiSection extends StatelessWidget {
   const KpiSection({required this.state, super.key});
@@ -9,88 +10,71 @@ class KpiSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final numberFormatter = NumberFormat.decimalPattern('ar_AR');
+    final l10n = context.l10n;
+    final numberFormatter = NumberFormat.decimalPattern(
+      Localizations.localeOf(context).languageCode,
+    );
 
     final kpis = [
-      // 1. الأرقام القديمة
       _KpiData(
         icon: Icons.account_balance_wallet_rounded,
-        gradient: const LinearGradient(
-          colors: [Color(0xFF11998e), Color(0xFF38ef7d)],
-        ),
-        title: 'إجمالي المحصّل',
-        value: '${numberFormatter.format(state.totalRevenue.toInt())} ل.س',
-        subtitle: 'إجمالي المدفوعات المسجلة',
-        iconBg: const Color(0xFF11998e),
+        mainColor: Colors.teal.shade600,
+        title: l10n.kpiNetLiquidityTitle,
+        value: '${numberFormatter.format(state.totalRevenue.toInt())} ',
+        subtitle: l10n.kpiNetLiquiditySubtitle,
       ),
       _KpiData(
-        icon: Icons.square_foot_rounded,
-        gradient: const LinearGradient(
-          colors: [Color(0xFF1A237E), Color(0xFF3949AB)],
-        ),
-        title: 'إجمالي المباع',
-        value: '${numberFormatter.format(state.totalAreaSold)} م²',
-        subtitle: 'المساحة الكلية للعقود',
-        iconBg: const Color(0xFF1A237E),
+        icon: Icons.money_off_rounded,
+        mainColor: Colors.red.shade600,
+        title: l10n.kpiRefundedTitle,
+        value: '${numberFormatter.format(state.totalRefundedAmount.toInt())} ',
+        subtitle: l10n.kpiRefundedSubtitle,
+        infoDetails: l10n.kpiRefundedDetails,
       ),
-
-      // ==========================================
-      // 🌟 البطاقات الإدارية الخطيرة
-      // ==========================================
+      _KpiData(
+        icon: Icons.hourglass_bottom_rounded,
+        mainColor: Colors.orange.shade600,
+        title: l10n.kpiPreHandoverDebtTitle,
+        value: '${numberFormatter.format(state.overduePreHandover.toInt())} ',
+        subtitle: l10n.kpiPreHandoverDebtSubtitle,
+        infoDetails: l10n.kpiPreHandoverDebtDetails,
+      ),
       _KpiData(
         icon: Icons.warning_amber_rounded,
-        gradient: const LinearGradient(
-          colors: [Color(0xFFe53935), Color(0xFFe35d5b)],
-        ), // أحمر تحذيري
-        title: 'الديون المتأخرة الفورية',
-        value: '${numberFormatter.format(state.totalOverdueDebts.toInt())} ل.س',
-        subtitle: 'أقساط تجاوزت موعد الاستحقاق',
-        iconBg: const Color(0xFFe53935),
+        mainColor: Colors.red.shade800,
+        title: l10n.kpiPostHandoverDebtTitle,
+        value: '${numberFormatter.format(state.overduePostHandover.toInt())} ',
+        subtitle: l10n.kpiPostHandoverDebtSubtitle,
+        infoDetails: l10n.kpiPostHandoverDebtDetails,
       ),
       _KpiData(
-        icon: Icons.construction_rounded,
-        gradient: const LinearGradient(
-          colors: [Color(0xFFf5af19), Color(0xFFf12711)],
-        ), // برتقالي تنبيهي
-        title: 'الأمتار المتبقية ',
-        value: '${numberFormatter.format(state.remainingMetersInDebt)} م²',
-        subtitle: 'أمتار للشركة لم يتم قبض ثمنها',
-        iconBg: const Color(0xFFf5af19),
-      ),
-
-      // ==========================================
-      // 🌟 [التعديل هنا]: استبدال متوسط السعر القديم بمؤشر الأمتار قيد التسليم
-      // ==========================================
-      _KpiData(
-        icon: Icons.vpn_key_rounded,
-        gradient: const LinearGradient(
-          colors: [Color(0xFFf7971e), Color(0xFFffd200)],
-        ),
-        title: 'أمتار قيد التسليم',
-        value: '${numberFormatter.format(state.totalUndeliveredMeters)} م²',
-        subtitle: 'مساحات مباعة لم تُسلم للعملاء بعد',
-        iconBg: const Color(0xFFf7971e),
+        icon: Icons.vpn_key_outlined,
+        mainColor: Colors.blue.shade600,
+        title: l10n.kpiAvailableUnitsTitle,
+        value: numberFormatter.format(state.inventoryStatus['متاحة'] ?? 0),
+        subtitle: l10n.kpiAvailableUnitsSubtitle,
+        infoDetails: l10n.kpiAvailableUnitsDetails,
       ),
       _KpiData(
         icon: Icons.description_rounded,
-        gradient: const LinearGradient(
-          colors: [Color(0xFF7b4397), Color(0xFFdc2430)],
-        ),
-        title: 'العقود الفعّالة',
+        mainColor: Colors.purple.shade600,
+        title: l10n.kpiActiveContractsTitle,
         value: numberFormatter.format(state.activeContractsCount),
-        subtitle: 'إجمالي العقود المبرمة غير المؤرشفة',
-        iconBg: const Color(0xFF7b4397),
+        subtitle: l10n.kpiActiveContractsSubtitle,
       ),
     ];
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        // ✅ شبكة تكيّفية: 2 عمود للصغير، 3 للوسط، 6 للكبير جداً
-        var crossAxisCount = 2;
-        if (constraints.maxWidth >= 1200) {
+        int crossAxisCount;
+        if (constraints.maxWidth >= 1300) {
           crossAxisCount = 6;
-        } else if (constraints.maxWidth >= 800) {
+        } else if (constraints.maxWidth >= 900) {
           crossAxisCount = 3;
+        } else if (constraints.maxWidth >= 550) {
+          crossAxisCount = 2;
+        } else {
+          crossAxisCount = 1;
         }
 
         return GridView.builder(
@@ -100,9 +84,7 @@ class KpiSection extends StatelessWidget {
             crossAxisCount: crossAxisCount,
             crossAxisSpacing: 16,
             mainAxisSpacing: 16,
-            childAspectRatio: constraints.maxWidth >= 1200
-                ? 1.4
-                : 1.6, // تعديل بسيط ليتناسب مع الشاشات العريضة
+            mainAxisExtent: 135,
           ),
           itemCount: kpis.length,
           itemBuilder: (context, index) => _KpiCard(data: kpis[index]),
@@ -112,76 +94,152 @@ class KpiSection extends StatelessWidget {
   }
 }
 
-// ✅ نموذج بيانات الكرت (بقي كما هو بدون أي مساس)
 class _KpiData {
   const _KpiData({
     required this.icon,
-    required this.gradient,
+    required this.mainColor,
     required this.title,
     required this.value,
     required this.subtitle,
-    required this.iconBg,
+    this.infoDetails,
   });
   final IconData icon;
-  final LinearGradient gradient;
+  final Color mainColor;
   final String title;
   final String value;
   final String subtitle;
-  final Color iconBg;
+  final String? infoDetails;
 }
 
 class _KpiCard extends StatelessWidget {
   const _KpiCard({required this.data});
   final _KpiData data;
 
+  void _showInfoDialog(BuildContext context) {
+    final l10n = context.l10n;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Icon(
+              Icons.analytics_outlined,
+              color: Colors.blue.shade700,
+              size: 28,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                l10n.kpiDialogTitle(data.title),
+                style: TextStyle(
+                  color: Colors.blue.shade900,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          data.infoDetails!,
+          style: const TextStyle(
+            height: 1.6,
+            fontSize: 14,
+            color: Colors.black87,
+          ),
+        ),
+        actions: [
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue.shade700,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(l10n.kpiDialogDismiss),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return Container(
       decoration: BoxDecoration(
-        gradient: data.gradient,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: Colors.lightBlue.shade100,
+          width: 1.5,
+        ),
         boxShadow: [
           BoxShadow(
-            color: data.iconBg.withOpacity(0.35),
-            blurRadius: 12,
-            offset: const Offset(0, 6),
+            color: Colors.blue.shade900.withOpacity(0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Flexible(
-                  child: Text(
-                    data.title,
-                    style: const TextStyle(
-                      color: Colors.white70,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                    ),
-                    overflow: TextOverflow.ellipsis,
+                Expanded(
+                  child: Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          data.title,
+                          style: TextStyle(
+                            color: Colors.blueGrey.shade600,
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (data.infoDetails != null) ...[
+                        const SizedBox(width: 6),
+                        Tooltip(
+                          message: l10n.kpiTooltipInfo,
+                          child: InkWell(
+                            onTap: () => _showInfoDialog(context),
+                            borderRadius: BorderRadius.circular(12),
+                            child: Icon(
+                              Icons.info_outline,
+                              color: Colors.blue.shade300,
+                              size: 16,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                 ),
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
+                    color: data.mainColor.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Icon(data.icon, color: Colors.white, size: 20),
+                  child: Icon(data.icon, color: data.mainColor, size: 20),
                 ),
               ],
             ),
             Text(
               data.value,
-              style: const TextStyle(
-                color: Colors.white,
+              style: TextStyle(
+                color: Colors.blue.shade900,
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
                 letterSpacing: 0.3,
@@ -190,8 +248,8 @@ class _KpiCard extends StatelessWidget {
             ),
             Text(
               data.subtitle,
-              style: const TextStyle(
-                color: Colors.white60,
+              style: TextStyle(
+                color: Colors.grey.shade500,
                 fontSize: 11,
               ),
               overflow: TextOverflow.ellipsis,

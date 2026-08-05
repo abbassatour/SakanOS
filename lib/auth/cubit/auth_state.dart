@@ -1,6 +1,16 @@
+// lib/auth/cubit/auth_state.dart
 part of 'auth_cubit.dart';
 
-enum AuthStatus { initial, loading, authenticated, unauthenticated, error }
+// 🌟 التعديل هنا: إضافة subscriptionExpired
+enum AuthStatus {
+  initial,
+  loading,
+  authenticated,
+  unauthenticated,
+  error,
+  offlineLock,
+  subscriptionExpired,
+}
 
 class AuthState extends Equatable {
   const AuthState({
@@ -8,23 +18,33 @@ class AuthState extends Equatable {
     this.userId,
     this.userName,
     this.roleName,
+    this.securityPin = '0000',
     this.isSystemAdmin = false,
     this.permissions = const [],
     this.errorMessage,
+    this.lastPinVerificationTime, // 🌟 [جديد] وقت آخر إدخال للـ PIN
   });
 
   final AuthStatus status;
   final String? userId;
   final String? userName;
   final String? roleName;
-  final bool isSystemAdmin; // 🌟 إذا كانت true، هذا المستخدم يتخطى كل الفحوصات
-  final List<String> permissions; // قائمة الصلاحيات النهائية الصافية
+  final String securityPin;
+  final bool isSystemAdmin;
+  final List<String> permissions;
   final String? errorMessage;
+  final DateTime? lastPinVerificationTime; // 🌟 [جديد]
 
-  // 🌟 هذه هي الدالة السحرية التي سنستخدمها في الواجهة (UI) لإخفاء/إظهار الأزرار
   bool hasPermission(String permission) {
-    if (isSystemAdmin) return true; // الآدمن يرى كل شيء دائماً
+    if (isSystemAdmin) return true;
     return permissions.contains(permission);
+  }
+
+  // 🌟 [جديد] دالة للتحقق من صلاحية الجلسة المفتوحة (5 دقائق)
+  bool get isPinGracePeriodActive {
+    if (lastPinVerificationTime == null) return false;
+    final difference = DateTime.now().difference(lastPinVerificationTime!);
+    return difference.inMinutes < 5; // يمكنك تغيير الرقم حسب رغبتك
   }
 
   AuthState copyWith({
@@ -32,18 +52,26 @@ class AuthState extends Equatable {
     String? userId,
     String? userName,
     String? roleName,
+    String? securityPin,
     bool? isSystemAdmin,
     List<String>? permissions,
     String? errorMessage,
+    DateTime? lastPinVerificationTime,
+    bool clearGracePeriod = false, // 🌟 [جديد] لإجبار مسح الجلسة
   }) {
     return AuthState(
       status: status ?? this.status,
       userId: userId ?? this.userId,
       userName: userName ?? this.userName,
       roleName: roleName ?? this.roleName,
+      securityPin: securityPin ?? this.securityPin,
       isSystemAdmin: isSystemAdmin ?? this.isSystemAdmin,
       permissions: permissions ?? this.permissions,
       errorMessage: errorMessage ?? this.errorMessage,
+      // 🌟 إذا تم طلب المسح، نجعله null، وإلا نأخذ الجديد، وإلا نحتفظ بالقديم
+      lastPinVerificationTime: clearGracePeriod
+          ? null
+          : (lastPinVerificationTime ?? this.lastPinVerificationTime),
     );
   }
 
@@ -53,8 +81,10 @@ class AuthState extends Equatable {
     userId,
     userName,
     roleName,
+    securityPin,
     isSystemAdmin,
     permissions,
     errorMessage,
+    lastPinVerificationTime, // 🌟
   ];
 }

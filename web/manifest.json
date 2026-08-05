@@ -1,11 +1,11 @@
 {
-    "name": "Our Home Erp App",
-    "short_name": "Our Home Erp App",
+    "name": "SakanOS App",
+    "short_name": "SakanOS App",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "Our Home ERP System",
+    "description": "SakanOS System",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

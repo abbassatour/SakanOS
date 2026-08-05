@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:local_storage_api/local_storage_api.dart';
 import '../../cubit/schedule_cubit.dart';
 
 // أداة تنسيق الأرقام بالآلاف
@@ -33,7 +34,7 @@ void showAddCustomScheduleDialog(
 ) {
   final amountController = TextEditingController();
   final notesController = TextEditingController();
-  DateTime selectedDate = DateTime.now().toUtc();
+  DateTime selectedDate = SecureTime.now();
 
   showDialog(
     context: parentContext,

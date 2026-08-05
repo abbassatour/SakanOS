@@ -56,7 +56,7 @@ class _LegalAttachmentsPageState extends State<LegalAttachmentsPage> {
   // ==========================================
   // دالة لفتح الصور داخل التطبيق (In-App Viewer)
   // ==========================================
-  void _openImageInApp(String url, String fileName) {
+  void _openImageInApp(String urlOrPath, String fileName, bool isLocal) {
     showDialog(
       context: context,
       builder: (dialogCtx) => Dialog(
@@ -71,28 +71,39 @@ class _LegalAttachmentsPageState extends State<LegalAttachmentsPage> {
               maxScale: 4.0,
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(12),
-                child: Image.network(
-                  url,
-                  fit: BoxFit.contain,
-                  loadingBuilder: (context, child, loadingProgress) {
-                    if (loadingProgress == null) return child;
-                    return const Center(
-                      child: CircularProgressIndicator(color: Colors.white),
-                    );
-                  },
-                  errorBuilder: (c, e, s) => Container(
-                    color: Colors.white,
-                    padding: const EdgeInsets.all(20),
-                    child: const Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.broken_image, color: Colors.red, size: 50),
-                        SizedBox(height: 10),
-                        Text('تعذر تحميل الصورة'),
-                      ],
-                    ),
-                  ),
-                ),
+                child: isLocal
+                    ? Image.file(
+                        File(urlOrPath),
+                        fit: BoxFit.contain,
+                      )
+                    : Image.network(
+                        urlOrPath,
+                        fit: BoxFit.contain,
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          return const Center(
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                            ),
+                          );
+                        },
+                        errorBuilder: (c, e, s) => Container(
+                          color: Colors.white,
+                          padding: const EdgeInsets.all(20),
+                          child: const Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.broken_image,
+                                color: Colors.red,
+                                size: 50,
+                              ),
+                              SizedBox(height: 10),
+                              Text('تعذر تحميل الصورة'),
+                            ],
+                          ),
+                        ),
+                      ),
               ),
             ),
             Positioned(
@@ -132,22 +143,40 @@ class _LegalAttachmentsPageState extends State<LegalAttachmentsPage> {
     );
   }
 
-  Future<void> _downloadAndOpenFile(String url, String fileName) async {
+  // ==========================================
+  // دالة تحميل وفتح الملفات (PDF وغيرها)
+  // ==========================================
+  Future<void> _downloadAndOpenFile(String urlOrPath, String fileName) async {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('جاري تنزيل وفتح "$fileName"... ⏳'),
+        content: Text('جاري فتح "$fileName"... ⏳'),
         backgroundColor: Colors.indigo,
         duration: const Duration(seconds: 2),
       ),
     );
 
     try {
+      // 🌟 التعديل السحري: إذا كان المسار محلياً، نفتح الملف مباشرة دون تحميل
+      if (!urlOrPath.startsWith('http')) {
+        final result = await OpenFilex.open(urlOrPath);
+        if (result.type != ResultType.done && mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('⚠️ تعذر فتح الملف المحلي: ${result.message}'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+        return;
+      }
+
+      // إذا كان الرابط سحابياً (Secure URL)، نحمله للملفات المؤقتة ثم نفتحه
       final tempDir = await getTemporaryDirectory();
       final filePath = '${tempDir.path}/$fileName';
       final file = File(filePath);
 
       if (!await file.exists()) {
-        final response = await http.get(Uri.parse(url));
+        final response = await http.get(Uri.parse(urlOrPath));
         if (response.statusCode == 200) {
           await file.writeAsBytes(response.bodyBytes);
         } else {
@@ -486,8 +515,7 @@ class _LegalAttachmentsPageState extends State<LegalAttachmentsPage> {
             child: GridView.builder(
               padding: const EdgeInsets.all(16),
               gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                maxCrossAxisExtent:
-                    220, // 🌟 كبرنا حجم المربعات لأننا بشاشة كاملة
+                maxCrossAxisExtent: 220,
                 childAspectRatio: 0.85,
                 crossAxisSpacing: 16,
                 mainAxisSpacing: 16,
@@ -513,133 +541,158 @@ class _LegalAttachmentsPageState extends State<LegalAttachmentsPage> {
                   fileColor = Colors.blue.shade800;
                 }
 
-                return Card(
-                  elevation: 4,
-                  clipBehavior: Clip.antiAlias,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    side: BorderSide(color: Colors.grey.shade200),
-                  ),
-                  child: Stack(
-                    children: [
-                      InkWell(
-                        onTap: () {
-                          if (isImage) {
-                            _openImageInApp(
-                              att.fileUrl,
-                              att.fileName ?? 'صورة',
-                            );
-                          } else {
-                            _downloadAndOpenFile(
-                              att.fileUrl,
-                              att.fileName ?? 'ملف.$ext',
-                            );
-                          }
-                        },
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Expanded(
-                              child: ColoredBox(
-                                color: isImage
-                                    ? Colors.black12
-                                    : Colors.grey.shade100,
-                                child: isImage
-                                    ? Image.network(
-                                        att.fileUrl,
-                                        fit: BoxFit.cover,
-                                        errorBuilder: (c, e, s) => const Icon(
-                                          Icons.broken_image,
-                                          color: Colors.grey,
-                                          size: 50,
-                                        ),
-                                      )
-                                    : Icon(
-                                        fileIcon,
-                                        size: 80,
-                                        color: fileColor,
-                                      ),
-                              ),
-                            ),
-                            Container(
-                              padding: const EdgeInsets.all(12),
-                              color: Colors.white,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    att.fileName ?? 'بدون اسم',
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    DateFormat(
-                                      'yyyy/MM/dd',
-                                    ).format(att.createdAt.toLocal()),
-                                    style: const TextStyle(
-                                      color: Colors.grey,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
+                // 🌟 استخدام FutureBuilder لجلب الرابط الآمن 🌟
+                return FutureBuilder<String?>(
+                  future: context
+                      .read<LegalAffairsCubit>()
+                      .getSecureAttachmentUrl(att.fileUrl),
+                  builder: (context, snapshot) {
+                    final secureUrl = snapshot.data;
+                    final isLoading =
+                        snapshot.connectionState == ConnectionState.waiting;
+                    final isLocal =
+                        secureUrl != null && !secureUrl.startsWith('http');
+
+                    return Card(
+                      elevation: 4,
+                      clipBehavior: Clip.antiAlias,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        side: BorderSide(color: Colors.grey.shade200),
                       ),
-                      if (widget.canManage)
-                        Positioned(
-                          top: 8,
-                          right: 8,
-                          child: CircleAvatar(
-                            radius: 16,
-                            backgroundColor: Colors.white.withOpacity(0.9),
-                            child: IconButton(
-                              padding: EdgeInsets.zero,
-                              icon: const Icon(
-                                Icons.delete_forever,
-                                color: Colors.red,
-                                size: 20,
-                              ),
-                              tooltip: 'حذف المرفق',
-                              onPressed: () {
-                                context
-                                    .read<LegalAffairsCubit>()
-                                    .deleteAttachment(att.id);
-                              },
+                      child: Stack(
+                        children: [
+                          InkWell(
+                            onTap: secureUrl == null
+                                ? null
+                                : () {
+                                    if (isImage) {
+                                      _openImageInApp(
+                                        secureUrl,
+                                        att.fileName ?? 'صورة',
+                                        isLocal,
+                                      );
+                                    } else {
+                                      _downloadAndOpenFile(
+                                        secureUrl,
+                                        att.fileName ?? 'ملف.$ext',
+                                      );
+                                    }
+                                  },
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                Expanded(
+                                  child: ColoredBox(
+                                    color: isImage
+                                        ? Colors.black12
+                                        : Colors.grey.shade100,
+                                    child: isLoading
+                                        ? const Center(
+                                            child: CircularProgressIndicator(),
+                                          )
+                                        : isImage
+                                        ? (isLocal
+                                              ? Image.file(
+                                                  File(secureUrl!),
+                                                  fit: BoxFit.cover,
+                                                )
+                                              : Image.network(
+                                                  secureUrl!,
+                                                  fit: BoxFit.cover,
+                                                  errorBuilder: (c, e, s) =>
+                                                      const Icon(
+                                                        Icons.broken_image,
+                                                        color: Colors.grey,
+                                                        size: 50,
+                                                      ),
+                                                ))
+                                        : Icon(
+                                            fileIcon,
+                                            size: 80,
+                                            color: fileColor,
+                                          ),
+                                  ),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.all(12),
+                                  color: Colors.white,
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        att.fileName ?? 'بدون اسم',
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        DateFormat(
+                                          'yyyy/MM/dd',
+                                        ).format(att.createdAt.toLocal()),
+                                        style: const TextStyle(
+                                          color: Colors.grey,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ),
-                      if (isImage)
-                        Positioned(
-                          top: 10,
-                          left: 10,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.black54,
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Text(
-                              ext.toUpperCase(),
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
+                          if (widget.canManage)
+                            Positioned(
+                              top: 8,
+                              right: 8,
+                              child: CircleAvatar(
+                                radius: 16,
+                                backgroundColor: Colors.white.withOpacity(0.9),
+                                child: IconButton(
+                                  padding: EdgeInsets.zero,
+                                  icon: const Icon(
+                                    Icons.delete_forever,
+                                    color: Colors.red,
+                                    size: 20,
+                                  ),
+                                  onPressed: () => context
+                                      .read<LegalAffairsCubit>()
+                                      .deleteAttachment(att.id),
+                                ),
                               ),
                             ),
-                          ),
-                        ),
-                    ],
-                  ),
+                          if (isImage)
+                            Positioned(
+                              top: 10,
+                              left: 10,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.black54,
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text(
+                                  ext.toUpperCase(),
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    );
+                  },
                 );
               },
             ),

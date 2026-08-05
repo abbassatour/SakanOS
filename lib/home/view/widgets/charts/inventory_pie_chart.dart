@@ -1,6 +1,7 @@
 // lib/home/view/widgets/charts/inventory_pie_chart.dart
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:our_home_erp_app/l10n/l10n.dart';
 import 'chart_colors.dart';
 import 'chart_shared_widgets.dart';
 
@@ -12,13 +13,18 @@ class InventoryPieChart extends StatelessWidget {
     required this.data,
   });
 
-  // 🌟 ألوان ذات دلالة بصرية للإدارة
+  String _getLocalizedStatusName(BuildContext context, String rawStatus) {
+    final l10n = context.l10n;
+    if (rawStatus == 'متاحة') return l10n.chartInventoryStatusAvailable;
+    if (rawStatus == 'مباعة') return l10n.chartInventoryStatusSold;
+    if (rawStatus == 'مُسلّمة') return l10n.chartInventoryStatusDelivered;
+    return rawStatus;
+  }
+
   Color _getColorForStatus(String status) {
-    if (status == 'متاحة') return Colors.teal.shade400; // أخضر: جاهز للبيع
-    if (status == 'مباعة')
-      return Colors.orange.shade500; // برتقالي: التزام قيد البناء
-    if (status == 'مُسلّمة')
-      return Colors.indigo.shade600; // أزرق غامق: إنجاز نهائي
+    if (status == 'متاحة') return Colors.teal.shade400;
+    if (status == 'مباعة') return Colors.orange.shade500;
+    if (status == 'مُسلّمة') return Colors.indigo.shade600;
     return Colors.grey;
   }
 
@@ -31,15 +37,13 @@ class InventoryPieChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     int total = data.values.fold(0, (sum, val) => sum + val);
-
-    // 🌟 حماية مكتبة fl_chart من الانهيار بسبب القيم الصفرية
     final validData = data.entries.where((e) => e.value > 0).toList();
 
     return ChartCard(
-      title: 'المخزون العقاري (الوحدات)',
-      description:
-          'يوضح حالة جميع الشقق والمحلات التجارية المُسجلة في النظام. يُعتبر هذا المخطط (جرداً شاملاً وتراكمياً) ولا يتأثر بالفلتر الزمني العلوي.',
+      title: l10n.chartInventoryTitle,
+      description: l10n.chartInventoryDesc,
       titleIcon: Icons.apartment_rounded,
       iconColor: Colors.teal.shade700,
       chart: total == 0 || validData.isEmpty
@@ -51,7 +55,6 @@ class InventoryPieChart extends StatelessWidget {
                   child: Stack(
                     alignment: Alignment.center,
                     children: [
-                      // نص في منتصف الدائرة
                       Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -63,9 +66,9 @@ class InventoryPieChart extends StatelessWidget {
                               color: ChartColors.titleColor,
                             ),
                           ),
-                          const Text(
-                            'وحدة عقارية',
-                            style: TextStyle(
+                          Text(
+                            l10n.chartInventoryUnit,
+                            style: const TextStyle(
                               fontSize: 11,
                               color: ChartColors.axisLabel,
                             ),
@@ -75,7 +78,7 @@ class InventoryPieChart extends StatelessWidget {
                       PieChart(
                         PieChartData(
                           sectionsSpace: 4,
-                          centerSpaceRadius: 55, // جعلها Doughnut
+                          centerSpaceRadius: 55,
                           startDegreeOffset: 270,
                           sections: validData.map((e) {
                             final pct = (e.value / total) * 100;
@@ -117,13 +120,16 @@ class InventoryPieChart extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 24),
-                // مفتاح المخطط الأنيق
                 Wrap(
                   spacing: 16,
                   runSpacing: 12,
                   alignment: WrapAlignment.center,
                   children: data.entries.map((e) {
                     final pct = total == 0 ? 0.0 : (e.value / total) * 100;
+                    final localizedName = _getLocalizedStatusName(
+                      context,
+                      e.key,
+                    );
                     return Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 12,
@@ -146,7 +152,7 @@ class InventoryPieChart extends StatelessWidget {
                           ),
                           const SizedBox(width: 6),
                           Text(
-                            '${e.key} (${pct.toStringAsFixed(1)}%)',
+                            '$localizedName (${pct.toStringAsFixed(1)}%)',
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
