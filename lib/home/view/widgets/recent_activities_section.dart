@@ -41,6 +41,43 @@ class RecentActivitiesSection extends StatelessWidget {
     }
   }
 
+  String _getActivityDescription(BuildContext context, ActivityItem activity) {
+    final l10n = context.l10n;
+    final desc = activity.description;
+
+    switch (activity.type) {
+      case ActivityType.client:
+        if (desc.startsWith('العميل: ')) {
+          final name = desc.replaceFirst('العميل: ', '');
+          return l10n.activityDescClient(name);
+        }
+        return desc;
+
+      case ActivityType.contract:
+        if (desc.startsWith('عقد جديد أو معدل للعميل ')) {
+          final clientId = desc
+              .replaceFirst('عقد جديد أو معدل للعميل ', '')
+              .replaceAll('...', '');
+          return l10n.activityDescContract(clientId);
+        }
+        return desc;
+
+      case ActivityType.payment:
+        final match = RegExp(
+          r'دفعة بقيمة ([\d\.]+) للعقد ([\w-]+)',
+        ).firstMatch(desc);
+        if (match != null) {
+          final amount = match.group(1) ?? '';
+          final contractId = match.group(2) ?? '';
+          return l10n.activityDescPayment(amount, contractId);
+        }
+        return desc;
+
+      case ActivityType.adminAction:
+        return l10n.activityDescAdminAction(desc);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (activities.isEmpty) return const SizedBox.shrink();
@@ -164,7 +201,7 @@ class RecentActivitiesSection extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          activity.description,
+                          _getActivityDescription(context, activity),
                           style: TextStyle(
                             color: Colors.grey.shade700,
                             fontSize: 13,

@@ -1473,5 +1473,32 @@
     "placeholders": {
       "title": { "type": "String" }
     }
+  },
+
+
+  "activityDescClient": "Client: {name}",
+  "@activityDescClient": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "activityDescContract": "New or modified contract for client: {clientId}",
+  "@activityDescContract": {
+    "placeholders": {
+      "clientId": { "type": "String" }
+    }
+  },
+  "activityDescPayment": "Payment of {amount} for contract {contractId}",
+  "@activityDescPayment": {
+    "placeholders": {
+      "amount": { "type": "String" },
+      "contractId": { "type": "String" }
+    }
+  },
+  "activityDescAdminAction": "Admin note: {note}",
+  "@activityDescAdminAction": {
+    "placeholders": {
+      "note": { "type": "String" }
+    }
   }
 }

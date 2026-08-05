@@ -1468,5 +1468,31 @@
     "placeholders": {
       "title": { "type": "String" }
     }
+  },
+
+  "activityDescClient": "العميل: {name}",
+  "@activityDescClient": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "activityDescContract": "عقد جديد أو مُعدّل للعميل: {clientId}",
+  "@activityDescContract": {
+    "placeholders": {
+      "clientId": { "type": "String" }
+    }
+  },
+  "activityDescPayment": "دفعة بقيمة {amount} للعقد {contractId}",
+  "@activityDescPayment": {
+    "placeholders": {
+      "amount": { "type": "String" },
+      "contractId": { "type": "String" }
+    }
+  },
+  "activityDescAdminAction": "ملاحظة إدارية: {note}",
+  "@activityDescAdminAction": {
+    "placeholders": {
+      "note": { "type": "String" }
+    }
   }
 }
