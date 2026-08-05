@@ -1,7 +1,7 @@
 // lib/payments/widgets/add_payment_sections/historical_section.dart
 
 import 'package:flutter/material.dart';
-
+import 'package:our_home_erp_app/l10n/l10n.dart';
 import 'package:our_home_erp_app/payments/widgets/add_payment_sections/thousands_formatter.dart';
 
 class HistoricalSection extends StatelessWidget {
@@ -44,9 +44,10 @@ class HistoricalSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return Column(
       children: [
-        // 🌟 التصحيح هنا: الأقواس مرتبة بشكل سليم
         Container(
           decoration: BoxDecoration(
             color: isHistoricalPayment
@@ -60,22 +61,20 @@ class HistoricalSection extends StatelessWidget {
           child: Material(
             color: Colors.transparent,
             child: SwitchListTile(
-              title: const Text(
-                'إدخال عملية قديمة (تاريخية)',
-                style: TextStyle(
+              title: Text(
+                l10n.paymentAddHistTitle,
+                style: const TextStyle(
                   color: Colors.blue,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              subtitle: const Text(
-                'لتسجيل حركات سابقة وإدخال سعر المتر يدوياً.',
-              ),
+              subtitle: Text(l10n.paymentAddHistSubtitle),
               value: isHistoricalPayment,
               activeThumbColor: Colors.blue,
               onChanged: onHistoricalToggle,
             ),
           ),
-        ), // 🌟 هذا القوس كان مفقوداً في الكود الخاص بك!
+        ),
 
         if (isHistoricalPayment) ...[
           const SizedBox(height: 12),
@@ -92,9 +91,9 @@ class HistoricalSection extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
-                      '📅 تاريخ العملية:',
-                      style: TextStyle(
+                    Text(
+                      l10n.paymentAddHistDateLabel,
+                      style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
                       ),
@@ -141,7 +140,7 @@ class HistoricalSection extends StatelessWidget {
                     controller: histDollarRateCtrl,
                     inputFormatters: [ThousandsFormatter()],
                     decoration: InputDecoration(
-                      labelText: 'سعر صرف 1 دولار في ذلك التاريخ (ل.س)',
+                      labelText: l10n.paymentAddHistDollarLabel,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
@@ -178,19 +177,19 @@ class HistoricalSection extends StatelessWidget {
                               onChanged: (v) =>
                                   onDetailedModeToggle(v ?? false),
                             ),
-                            const Column(
+                            Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'إدخال مباشر',
-                                  style: TextStyle(
+                                  l10n.paymentAddHistModeDirect,
+                                  style: const TextStyle(
                                     fontSize: 13,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
                                 Text(
-                                  'سعر المتر فقط',
-                                  style: TextStyle(fontSize: 11),
+                                  l10n.paymentAddHistModeDirectSub,
+                                  style: const TextStyle(fontSize: 11),
                                 ),
                               ],
                             ),
@@ -210,19 +209,19 @@ class HistoricalSection extends StatelessWidget {
                               onChanged: (v) =>
                                   onDetailedModeToggle(v ?? false),
                             ),
-                            const Column(
+                            Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'إدخال تفصيلي',
-                                  style: TextStyle(
+                                  l10n.paymentAddHistModeDetailed,
+                                  style: const TextStyle(
                                     fontSize: 13,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
                                 Text(
-                                  'مواد تُحفظ بالسجل',
-                                  style: TextStyle(fontSize: 11),
+                                  l10n.paymentAddHistModeDetailedSub,
+                                  style: const TextStyle(fontSize: 11),
                                 ),
                               ],
                             ),
@@ -237,10 +236,10 @@ class HistoricalSection extends StatelessWidget {
                   TextField(
                     controller: meterPriceCtrl,
                     inputFormatters: [ThousandsFormatter()],
-                    decoration: const InputDecoration(
-                      labelText: 'سعر المتر المربع (ل.س)',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.speed, color: Colors.blue),
+                    decoration: InputDecoration(
+                      labelText: l10n.paymentAddHistMeterPrice,
+                      border: const OutlineInputBorder(),
+                      prefixIcon: const Icon(Icons.speed, color: Colors.blue),
                       filled: true,
                       fillColor: Colors.white,
                     ),
@@ -256,9 +255,9 @@ class HistoricalSection extends StatelessWidget {
                             child: TextField(
                               controller: histIronCtrl,
                               inputFormatters: [ThousandsFormatter()],
-                              decoration: const InputDecoration(
-                                labelText: 'الحديد',
-                                border: OutlineInputBorder(),
+                              decoration: InputDecoration(
+                                labelText: l10n.contractHistIron,
+                                border: const OutlineInputBorder(),
                                 isDense: true,
                               ),
                               keyboardType: TextInputType.number,
@@ -270,9 +269,9 @@ class HistoricalSection extends StatelessWidget {
                             child: TextField(
                               controller: histCementCtrl,
                               inputFormatters: [ThousandsFormatter()],
-                              decoration: const InputDecoration(
-                                labelText: 'الإسمنت',
-                                border: OutlineInputBorder(),
+                              decoration: InputDecoration(
+                                labelText: l10n.contractHistCement,
+                                border: const OutlineInputBorder(),
                                 isDense: true,
                               ),
                               keyboardType: TextInputType.number,
@@ -288,9 +287,9 @@ class HistoricalSection extends StatelessWidget {
                             child: TextField(
                               controller: histBlockCtrl,
                               inputFormatters: [ThousandsFormatter()],
-                              decoration: const InputDecoration(
-                                labelText: 'البلوك 15',
-                                border: OutlineInputBorder(),
+                              decoration: InputDecoration(
+                                labelText: l10n.contractHistBlock,
+                                border: const OutlineInputBorder(),
                                 isDense: true,
                               ),
                               keyboardType: TextInputType.number,
@@ -302,9 +301,9 @@ class HistoricalSection extends StatelessWidget {
                             child: TextField(
                               controller: histFormworkCtrl,
                               inputFormatters: [ThousandsFormatter()],
-                              decoration: const InputDecoration(
-                                labelText: 'الكوفراج',
-                                border: OutlineInputBorder(),
+                              decoration: InputDecoration(
+                                labelText: l10n.contractHistFormwork,
+                                border: const OutlineInputBorder(),
                                 isDense: true,
                               ),
                               keyboardType: TextInputType.number,
@@ -320,9 +319,9 @@ class HistoricalSection extends StatelessWidget {
                             child: TextField(
                               controller: histAggregatesCtrl,
                               inputFormatters: [ThousandsFormatter()],
-                              decoration: const InputDecoration(
-                                labelText: 'المواد الحصوية',
-                                border: OutlineInputBorder(),
+                              decoration: InputDecoration(
+                                labelText: l10n.contractHistAggregates,
+                                border: const OutlineInputBorder(),
                                 isDense: true,
                               ),
                               keyboardType: TextInputType.number,
@@ -334,9 +333,9 @@ class HistoricalSection extends StatelessWidget {
                             child: TextField(
                               controller: histWorkerCtrl,
                               inputFormatters: [ThousandsFormatter()],
-                              decoration: const InputDecoration(
-                                labelText: 'أجرة العامل',
-                                border: OutlineInputBorder(),
+                              decoration: InputDecoration(
+                                labelText: l10n.contractHistWorker,
+                                border: const OutlineInputBorder(),
                                 isDense: true,
                               ),
                               keyboardType: TextInputType.number,

@@ -1,6 +1,7 @@
 // lib/payments/widgets/add_payment_sections/payment_type_section.dart
 
 import 'package:flutter/material.dart';
+import 'package:our_home_erp_app/l10n/l10n.dart';
 
 class PaymentTypeSection extends StatelessWidget {
   const PaymentTypeSection({
@@ -16,6 +17,8 @@ class PaymentTypeSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 4),
       decoration: BoxDecoration(
@@ -36,9 +39,9 @@ class PaymentTypeSection extends StatelessWidget {
                     activeColor: Colors.deepOrange,
                     onChanged: (_) => onDepositTapped(),
                   ),
-                  const Text(
-                    'إيداع (قبض)',
-                    style: TextStyle(
+                  Text(
+                    l10n.paymentAddTypeDeposit,
+                    style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
                     ),
@@ -58,9 +61,9 @@ class PaymentTypeSection extends StatelessWidget {
                     activeColor: Colors.red,
                     onChanged: (_) => onWithdrawTapped(),
                   ),
-                  const Text(
-                    'استرداد (سحب)',
-                    style: TextStyle(
+                  Text(
+                    l10n.paymentAddTypeWithdraw,
+                    style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
                       color: Colors.red,

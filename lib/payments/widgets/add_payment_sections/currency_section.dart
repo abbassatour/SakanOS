@@ -1,8 +1,8 @@
 // lib/payments/widgets/add_payment_sections/currency_section.dart
 
 import 'package:flutter/material.dart';
-
 import 'package:our_home_erp_app/core/utils/formatters.dart';
+import 'package:our_home_erp_app/l10n/l10n.dart';
 
 class CurrencySection extends StatelessWidget {
   const CurrencySection({
@@ -20,6 +20,8 @@ class CurrencySection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -30,12 +32,10 @@ class CurrencySection extends StatelessWidget {
         borderRadius: BorderRadius.circular(8),
       ),
       child: Material(
-        // 🌟 أضفنا Material هنا
-        color: Colors.transparent, // 🌟 بخلفية شفافة
+        color: Colors.transparent,
         child: SwitchListTile(
           title: Text(
-            'إدخال المبلغ بالدولار الأمريكي (USD)',
-
+            l10n.paymentAddCurrencyTitle,
             style: TextStyle(
               fontWeight: FontWeight.bold,
               color: isDollarPayment ? Colors.green.shade700 : Colors.black87,
@@ -43,24 +43,24 @@ class CurrencySection extends StatelessWidget {
             ),
           ),
           subtitle: isHistoricalPayment
-              ? const Text(
-                  'أدخل سعر صرف الدولار القديم في الأسفل',
-                  style: TextStyle(color: Colors.green),
+              ? Text(
+                  l10n.paymentAddCurrencyHistSub,
+                  style: const TextStyle(color: Colors.green),
                 )
               : (currentDollarRate != null
                     ? Text(
-                        'سعر الصرف: '
-                        '${NumberFormatters.formatWithCommas(currentDollarRate!)} '
-                        'ل.س',
+                        l10n.paymentAddCurrencyCurrentSub(
+                          NumberFormatters.formatWithCommas(currentDollarRate!),
+                        ),
                         style: TextStyle(
                           color: isDollarPayment
                               ? Colors.green.shade900
                               : Colors.grey,
                         ),
                       )
-                    : const Text(
-                        '⚠️ جاري تحميل التسعيرة أو لم يتم تعيينها',
-                        style: TextStyle(color: Colors.red),
+                    : Text(
+                        l10n.paymentAddCurrencyMissing,
+                        style: const TextStyle(color: Colors.red),
                       )),
           value: isDollarPayment,
           activeThumbColor: Colors.green,

@@ -10,6 +10,7 @@ import 'package:our_home_erp_app/core/utils/formatters.dart';
 import 'package:our_home_erp_app/core/utils/pdf_preview_page.dart';
 import 'package:our_home_erp_app/core/utils/refund_pdf_generator.dart';
 import 'package:our_home_erp_app/core/utils/whatsapp_helper.dart';
+import 'package:our_home_erp_app/l10n/l10n.dart';
 import 'package:our_home_erp_app/payments/cubit/payments_cubit.dart';
 import 'package:our_home_erp_app/payments/widgets/widgets.dart';
 
@@ -27,6 +28,8 @@ class PaymentsDataTable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
@@ -48,13 +51,13 @@ class PaymentsDataTable extends StatelessWidget {
                 headingRowColor: WidgetStateProperty.all(
                   Colors.deepOrange.shade50,
                 ),
-                dataRowMinHeight: 60, // زيادة طفيفة لاستيعاب سطرين براحة
+                dataRowMinHeight: 60,
                 dataRowMaxHeight: 75,
-                columns: const [
+                columns: [
                   DataColumn(
                     label: Text(
-                      'رقم الإيصال',
-                      style: TextStyle(
+                      l10n.paymentColReceipt,
+                      style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         color: Colors.deepOrange,
                       ),
@@ -62,28 +65,8 @@ class PaymentsDataTable extends StatelessWidget {
                   ),
                   DataColumn(
                     label: Text(
-                      'المبلغ (إيداع / سحب)',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.deepOrange,
-                      ),
-                    ),
-                  ),
-                  // 🌟 توضيح أن هذا هو السعر المرجعي (الأساسي)
-                  DataColumn(
-                    label: Text(
-                      'سعر المتر الأساسي',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.deepOrange,
-                      ),
-                    ),
-                  ),
-                  // 🌟 العمود الاحترافي الذي يجمع النسبة والسعر الفعلي الجديد
-                  DataColumn(
-                    label: Text(
-                      'تأثير النسبة (الفعلي)',
-                      style: TextStyle(
+                      l10n.paymentColAmount,
+                      style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         color: Colors.deepOrange,
                       ),
@@ -91,8 +74,8 @@ class PaymentsDataTable extends StatelessWidget {
                   ),
                   DataColumn(
                     label: Text(
-                      'الأمتار المحولة',
-                      style: TextStyle(
+                      l10n.paymentColBaseMeter,
+                      style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         color: Colors.deepOrange,
                       ),
@@ -100,8 +83,8 @@ class PaymentsDataTable extends StatelessWidget {
                   ),
                   DataColumn(
                     label: Text(
-                      'نسبة الإنجاز',
-                      style: TextStyle(
+                      l10n.paymentColRatioEffect,
+                      style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         color: Colors.deepOrange,
                       ),
@@ -109,8 +92,8 @@ class PaymentsDataTable extends StatelessWidget {
                   ),
                   DataColumn(
                     label: Text(
-                      'تاريخ الدفع',
-                      style: TextStyle(
+                      l10n.paymentColMeters,
+                      style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         color: Colors.deepOrange,
                       ),
@@ -118,8 +101,8 @@ class PaymentsDataTable extends StatelessWidget {
                   ),
                   DataColumn(
                     label: Text(
-                      'آخر تعديل',
-                      style: TextStyle(
+                      l10n.paymentColProgress,
+                      style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         color: Colors.deepOrange,
                       ),
@@ -127,8 +110,26 @@ class PaymentsDataTable extends StatelessWidget {
                   ),
                   DataColumn(
                     label: Text(
-                      'إجراءات',
-                      style: TextStyle(
+                      l10n.paymentColDate,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.deepOrange,
+                      ),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Text(
+                      l10n.paymentColUpdated,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.deepOrange,
+                      ),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Text(
+                      l10n.paymentColActions,
+                      style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         color: Colors.deepOrange,
                       ),
@@ -146,18 +147,14 @@ class PaymentsDataTable extends StatelessWidget {
                       .inMinutes;
                   final isGracePeriod = minutesPassed <= 5;
 
-                  // 🌟 استخراج قيمة البونص / الغرامة وتحديد نوعها
                   final double feesValue = entry.fees;
                   final bool hasFees = feesValue != 0;
-                  final bool isPenalty =
-                      feesValue < 0; // سالبة تعني غرامة تأخير
+                  final bool isPenalty = feesValue < 0;
 
-                  // 🌟 الحساب الرياضي الدقيق لسعر المتر الفعلي بعد تطبيق النسبة
                   final double effectiveMeterPrice = entry.convertedMeters != 0
                       ? (entry.amountPaid.abs() / entry.convertedMeters.abs())
                       : entry.meterPriceAtPayment;
 
-                  // استخراج العقد الحالي لحساب نسبة الإنجاز
                   final contractIdx = state.contracts.indexWhere(
                     (c) => c.id == entry.contractId,
                   );
@@ -218,8 +215,6 @@ class PaymentsDataTable extends StatelessWidget {
                           ],
                         ),
                       ),
-
-                      // 🌟 سعر المتر المرجعي الأساسي
                       DataCell(
                         Text(
                           NumberFormatters.formatWithCommas(
@@ -231,12 +226,10 @@ class PaymentsDataTable extends StatelessWidget {
                                 : Colors.black87,
                             decoration: hasFees
                                 ? TextDecoration.lineThrough
-                                : null, // شطب السعر القديم إذا كان هناك تعديل
+                                : null,
                           ),
                         ),
                       ),
-
-                      // 🌟 الخلية الاحترافية (تأثير النسبة = نسبة مئوية + السعر الفعلي الجديد)
                       DataCell(
                         hasFees
                             ? Column(
@@ -263,7 +256,6 @@ class PaymentsDataTable extends StatelessWidget {
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
                                         Icon(
-                                          // الغرامة ترفع السعر (سهم صاعد أحمر)، البونص يخفض السعر (سهم هابط أخضر)
                                           isPenalty
                                               ? Icons.trending_up
                                               : Icons.trending_down,
@@ -288,7 +280,11 @@ class PaymentsDataTable extends StatelessWidget {
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
-                                    'الفعلي: ${NumberFormatters.formatWithCommas(effectiveMeterPrice)}',
+                                    l10n.paymentCellActualPrice(
+                                      NumberFormatters.formatWithCommas(
+                                        effectiveMeterPrice,
+                                      ),
+                                    ),
                                     style: TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.bold,
@@ -310,7 +306,6 @@ class PaymentsDataTable extends StatelessWidget {
                                 ),
                               ),
                       ),
-
                       DataCell(
                         Container(
                           padding: const EdgeInsets.symmetric(
@@ -342,8 +337,6 @@ class PaymentsDataTable extends StatelessWidget {
                           ),
                         ),
                       ),
-
-                      // 🌟 نسبة الإنجاز
                       DataCell(
                         isAllocated
                             ? Column(
@@ -387,7 +380,7 @@ class PaymentsDataTable extends StatelessWidget {
                                   borderRadius: BorderRadius.circular(4),
                                 ),
                                 child: Text(
-                                  'أسهم استثمارية',
+                                  l10n.paymentCellInvestmentShares,
                                   style: TextStyle(
                                     color: Colors.grey.shade600,
                                     fontSize: 11,
@@ -396,7 +389,6 @@ class PaymentsDataTable extends StatelessWidget {
                                 ),
                               ),
                       ),
-
                       DataCell(
                         Text(
                           '${entry.paymentDate.year}/'
@@ -420,7 +412,8 @@ class PaymentsDataTable extends StatelessWidget {
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
-                                  state.userNamesMap[entry.userId] ?? 'مجهول',
+                                  state.userNamesMap[entry.userId] ??
+                                      l10n.clientUnknownUser,
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 13,
@@ -441,19 +434,10 @@ class PaymentsDataTable extends StatelessWidget {
                                 const SizedBox(width: 4),
                                 Text(
                                   '${entry.updatedAt.year}/'
-                                  '${entry.updatedAt.month.toString().padLeft(
-                                    2,
-                                    '0',
-                                  )}/'
-                                  '${entry.updatedAt.day.toString().padLeft(
-                                    2,
-                                    '0',
-                                  )} '
+                                  '${entry.updatedAt.month.toString().padLeft(2, '0')}/'
+                                  '${entry.updatedAt.day.toString().padLeft(2, '0')} '
                                   '${entry.updatedAt.hour}:'
-                                  '${entry.updatedAt.minute.toString().padLeft(
-                                    2,
-                                    '0',
-                                  )}',
+                                  '${entry.updatedAt.minute.toString().padLeft(2, '0')}',
                                   style: const TextStyle(
                                     fontSize: 11,
                                     color: Colors.grey,
@@ -470,7 +454,7 @@ class PaymentsDataTable extends StatelessWidget {
                           children: [
                             IconButton(
                               icon: const Icon(Icons.print, color: Colors.blue),
-                              tooltip: 'معاينة وطباعة الفاتورة',
+                              tooltip: l10n.paymentActionPrintTooltip,
                               onPressed: () async {
                                 final contractIdx = state.contracts.indexWhere(
                                   (c) => c.id == entry.contractId,
@@ -485,8 +469,10 @@ class PaymentsDataTable extends StatelessWidget {
                                 final client = state.clients[clientIdx];
 
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('جاري تجهيز الفاتورة...'),
+                                  SnackBar(
+                                    content: Text(
+                                      l10n.paymentActionPrintLoading,
+                                    ),
                                   ),
                                 );
 
@@ -563,8 +549,8 @@ class PaymentsDataTable extends StatelessWidget {
                                     : Colors.green,
                               ),
                               tooltip: entry.isWhatsAppSent
-                                  ? 'تم الإرسال (إعادة إرسال)'
-                                  : 'إرسال الفاتورة عبر واتساب',
+                                  ? l10n.paymentActionWhatsappSent
+                                  : l10n.paymentActionWhatsappSend,
                               onPressed: () async {
                                 final cIdx = state.contracts.indexWhere(
                                   (c) => c.id == entry.contractId,
@@ -609,8 +595,8 @@ class PaymentsDataTable extends StatelessWidget {
                                     : Colors.grey.shade300,
                               ),
                               tooltip: canEdit
-                                  ? 'تعديل قيمة الدفعة (للإدارة فقط)'
-                                  : 'لا تملك صلاحية تعديل الدفعات',
+                                  ? l10n.paymentActionEditTooltip
+                                  : l10n.paymentActionEditNoPerm,
                               onPressed: canEdit
                                   ? () => showEditPaymentDialog(context, entry)
                                   : null,
@@ -631,9 +617,11 @@ class PaymentsDataTable extends StatelessWidget {
                                 ),
                                 tooltip: isLatestEntry
                                     ? (isGracePeriod
-                                          ? 'إلغاء فوري للإيصال (متبقي ${5 - minutesPassed} دقائق)'
-                                          : 'تسوية محاسبية (قيد عكسي)')
-                                    : 'لا يمكن إلغاء دفعات قديمة',
+                                          ? l10n.paymentActionDeleteGraceTooltip(
+                                              5 - minutesPassed,
+                                            )
+                                          : l10n.paymentActionDeleteReverseTooltip)
+                                    : l10n.paymentActionDeleteNoPerm,
                                 onPressed: isLatestEntry
                                     ? () => showDeletePaymentDialog(
                                         context,

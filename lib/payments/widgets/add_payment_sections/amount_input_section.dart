@@ -1,7 +1,7 @@
 // lib/payments/widgets/add_payment_sections/amount_input_section.dart
 
 import 'package:flutter/material.dart';
-
+import 'package:our_home_erp_app/l10n/l10n.dart';
 import 'package:our_home_erp_app/payments/widgets/add_payment_sections/thousands_formatter.dart';
 
 class AmountInputSection extends StatelessWidget {
@@ -24,6 +24,8 @@ class AmountInputSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return Column(
       children: [
         TextField(
@@ -31,8 +33,12 @@ class AmountInputSection extends StatelessWidget {
           inputFormatters: [ThousandsFormatter()],
           decoration: InputDecoration(
             labelText: isDollarPayment
-                ? 'المبلغ ${isDeposit ? "المدفوع" : "المسترد"} بالدولار (USD)'
-                : 'المبلغ ${isDeposit ? "المدفوع" : "المسترد"} (ل.س)',
+                ? (isDeposit
+                      ? l10n.paymentAddAmountUsdDeposit
+                      : l10n.paymentAddAmountUsdWithdraw)
+                : (isDeposit
+                      ? l10n.paymentAddAmountSypDeposit
+                      : l10n.paymentAddAmountSypWithdraw),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
             ),
@@ -65,8 +71,8 @@ class AmountInputSection extends StatelessWidget {
           controller: discountController,
           decoration: InputDecoration(
             labelText: isDeposit
-                ? 'نسبة الخصم / البونص المئوية'
-                : 'نسبة البونص المُراد استرجاعها',
+                ? l10n.paymentAddDiscountDeposit
+                : l10n.paymentAddDiscountWithdraw,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
             ),

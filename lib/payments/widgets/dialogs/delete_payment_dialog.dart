@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:erp_repository/erp_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:our_home_erp_app/l10n/l10n.dart';
 import 'package:our_home_erp_app/payments/cubit/payments_cubit.dart';
 import 'package:our_home_erp_app/payments/widgets/dialogs/verify_pin_dialog.dart';
 
@@ -11,12 +12,11 @@ Future<void> showDeletePaymentDialog(
 ) async {
   final isAuthorized = await showVerifyPinDialog(
     context: parentContext,
-    message: 'إلغاء الإيصالات المالية يتطلب مصادقة الإدارة',
   );
   if (!isAuthorized) return;
   if (!parentContext.mounted) return;
 
-  // 🌟 حساب الوقت لمعرفة تصميم النافذة المطلوبة
+  final l10n = parentContext.l10n;
   final minutesPassed = DateTime.now()
       .toUtc()
       .difference(entry.createdAt)
@@ -40,8 +40,8 @@ Future<void> showDeletePaymentDialog(
               const SizedBox(width: 8),
               Text(
                 isGracePeriod
-                    ? 'إبطال الإيصال (إلغاء فوري)'
-                    : 'تسوية محاسبية (قيد عكسي)',
+                    ? l10n.paymentDeleteTitleGrace
+                    : l10n.paymentDeleteTitleReverse,
                 style: TextStyle(
                   color: isGracePeriod ? Colors.red : Colors.orange.shade800,
                   fontWeight: FontWeight.bold,
@@ -66,30 +66,33 @@ Future<void> showDeletePaymentDialog(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 if (isGracePeriod) ...[
-                  const Text(
-                    '⚠️ أنت ضمن فترة السماح للمطور (5 دقائق).',
-                    style: TextStyle(
+                  Text(
+                    l10n.paymentDeleteWarningGrace,
+                    style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       color: Colors.red,
                     ),
                   ),
                   const SizedBox(height: 8),
-                  const Text(
-                    'سيتم مسح هذا الإيصال بالكامل من كشف حساب العميل لتجنب التشويه، وسيتم إعادة فتح القسط المرتبط به.',
-                    style: TextStyle(fontSize: 13),
+                  Text(
+                    l10n.paymentDeleteDescGrace,
+                    style: const TextStyle(fontSize: 13),
                   ),
                 ] else ...[
                   Text(
-                    '🔒 انتهت فترة السماح للمطور (مر ${minutesPassed ~/ 60} ساعة و ${minutesPassed % 60} دقيقة).',
-                    style: TextStyle(
+                    l10n.paymentDeleteWarningReverse(
+                      minutesPassed ~/ 60,
+                      minutesPassed % 60,
+                    ),
+                    style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       color: Colors.deepOrange,
                     ),
                   ),
                   const SizedBox(height: 8),
-                  const Text(
-                    'لا يمكن مسح الإيصال من الدفاتر المحاسبية لضمان سلامة التدقيق. بدلاً من ذلك، سيقوم النظام آلياً بإنشاء "سند استرداد بقيمة سالبة" لمعاكسة هذا الإيصال، وسيتم إعادة فتح القسط للعميل.',
-                    style: TextStyle(fontSize: 13, height: 1.5),
+                  Text(
+                    l10n.paymentDeleteDescReverse,
+                    style: const TextStyle(fontSize: 13, height: 1.5),
                   ),
                 ],
               ],
@@ -98,9 +101,9 @@ Future<void> showDeletePaymentDialog(
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogContext),
-              child: const Text(
-                'تراجع',
-                style: TextStyle(fontWeight: FontWeight.bold),
+              child: Text(
+                l10n.btnCancel,
+                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
             ),
             ElevatedButton.icon(
@@ -116,8 +119,8 @@ Future<void> showDeletePaymentDialog(
                   SnackBar(
                     content: Text(
                       isGracePeriod
-                          ? 'جاري الإبطال الفوري وإعادة فتح القسط...'
-                          : 'جاري إنشاء القيد العكسي...',
+                          ? l10n.paymentDeleteLoadingGrace
+                          : l10n.paymentDeleteLoadingReverse,
                     ),
                     backgroundColor: isGracePeriod
                         ? Colors.red
@@ -125,7 +128,6 @@ Future<void> showDeletePaymentDialog(
                   ),
                 );
 
-                // 🌟 استدعاء الدالة الجديدة المدمجة
                 unawaited(
                   parentContext.read<PaymentsCubit>().cancelPaymentSmartly(
                     entry,
@@ -136,7 +138,9 @@ Future<void> showDeletePaymentDialog(
                 isGracePeriod ? Icons.delete_forever : Icons.receipt_long,
               ),
               label: Text(
-                isGracePeriod ? 'إبطال نهائي' : 'اعتماد وإنشاء قيد عكسي',
+                isGracePeriod
+                    ? l10n.paymentDeleteBtnGrace
+                    : l10n.paymentDeleteBtnReverse,
               ),
             ),
           ],

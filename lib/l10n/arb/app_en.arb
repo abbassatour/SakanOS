@@ -999,7 +999,7 @@
   "paymentColReceipt": "Receipt No.",
   "paymentColAmount": "Amount (In/Out)",
   "paymentColBaseMeter": "Base Meter Price",
-  "paymentColRatioEffect": "Ratio Effect (Actual)",
+  "paymentColRatioEffect": "Ratio Effect ",
   "paymentColMeters": "Converted Meters",
   "paymentColProgress": "Progress %",
   "paymentColDate": "Payment Date",

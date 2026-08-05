@@ -1,8 +1,8 @@
 // lib/payments/widgets/add_payment_sections/live_preview_section.dart
 
 import 'package:flutter/material.dart';
-
 import 'package:our_home_erp_app/core/utils/formatters.dart';
+import 'package:our_home_erp_app/l10n/l10n.dart';
 
 class LivePreviewSection extends StatelessWidget {
   const LivePreviewSection({
@@ -27,6 +27,7 @@ class LivePreviewSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (enteredAmount <= 0) return const SizedBox.shrink();
+    final l10n = context.l10n;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -52,13 +53,12 @@ class LivePreviewSection extends StatelessWidget {
               ),
               child: Column(
                 children: [
-                  const Text(
-                    'يعادل بالليرة السورية:',
-                    style: TextStyle(fontSize: 12, color: Colors.green),
+                  Text(
+                    l10n.paymentAddPreviewSypEq,
+                    style: const TextStyle(fontSize: 12, color: Colors.green),
                   ),
                   Text(
-                    '${NumberFormatters.formatWithCommas(sypEquivalentAmount)} '
-                    'ل.س',
+                    '${NumberFormatters.formatWithCommas(sypEquivalentAmount)} ل.س',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 18,
@@ -72,8 +72,8 @@ class LivePreviewSection extends StatelessWidget {
           ],
           Text(
             isDeposit
-                ? 'المبلغ النهائي (مع البونص):'
-                : 'الرقم الإجمالي الذي سيُخصم من الرصيد:',
+                ? l10n.paymentAddPreviewFinalDeposit
+                : l10n.paymentAddPreviewFinalWithdraw,
             style: TextStyle(
               fontSize: 13,
               color: Colors.grey.shade700,
@@ -91,7 +91,7 @@ class LivePreviewSection extends StatelessWidget {
           if (calculatedMeterPrice > 0) ...[
             const Divider(height: 24),
             Text(
-              'سعر المتر المعتمد لعملية التحويل:',
+              l10n.paymentAddPreviewMeterPrice,
               style: TextStyle(
                 fontSize: 13,
                 color: Colors.grey.shade700,
@@ -108,8 +108,8 @@ class LivePreviewSection extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               isDeposit
-                  ? 'الأمتار المضافة لرصيد العميل:'
-                  : 'الأمتار المخصومة من رصيد العميل:',
+                  ? l10n.paymentAddPreviewMetersDeposit
+                  : l10n.paymentAddPreviewMetersWithdraw,
               style: TextStyle(
                 fontSize: 13,
                 color: Colors.grey.shade700,
@@ -126,19 +126,18 @@ class LivePreviewSection extends StatelessWidget {
             ),
           ] else ...[
             const Divider(height: 24),
-            const Row(
+            Row(
               children: [
-                Icon(
+                const Icon(
                   Icons.warning_amber_rounded,
                   color: Colors.red,
                   size: 20,
                 ),
-                SizedBox(width: 8),
+                const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'يرجى التأكد من إدخال تسعيرة المواد ليتمكن '
-                    'النظام من حساب الأمتار.',
-                    style: TextStyle(
+                    l10n.paymentAddPreviewWarning,
+                    style: const TextStyle(
                       color: Colors.red,
                       fontSize: 12,
                     ),

@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:our_home_erp_app/core/utils/calculator_helper.dart';
+import 'package:our_home_erp_app/l10n/l10n.dart';
 import 'package:our_home_erp_app/payments/cubit/payments_cubit.dart';
 import 'package:our_home_erp_app/payments/widgets/add_payment_sections/amount_input_section.dart';
 import 'package:our_home_erp_app/payments/widgets/add_payment_sections/currency_section.dart';
@@ -56,7 +57,6 @@ class _AddPaymentDialogContent extends StatefulWidget {
 }
 
 class _AddPaymentDialogContentState extends State<_AddPaymentDialogContent> {
-  // Controllers
   final amountController = TextEditingController();
   final discountController = TextEditingController(text: '0');
   final histDollarRateCtrl = TextEditingController();
@@ -93,7 +93,7 @@ class _AddPaymentDialogContentState extends State<_AddPaymentDialogContent> {
   void _onInputChanged(String _) => setState(() {});
 
   void _showErrorSnackBar(String message) {
-    if (!context.mounted) return; // تم التعديل هنا
+    if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message), backgroundColor: Colors.red),
     );
@@ -101,6 +101,7 @@ class _AddPaymentDialogContentState extends State<_AddPaymentDialogContent> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final contract = context.read<PaymentsCubit>().state.contracts.firstWhere(
       (c) => c.id == widget.contractId,
     );
@@ -215,8 +216,8 @@ class _AddPaymentDialogContentState extends State<_AddPaymentDialogContent> {
 
         final mainColor = isDeposit ? Colors.deepOrange : Colors.red.shade800;
         final titleText = isDeposit
-            ? 'إدخال دفعة (إيداع)'
-            : 'سحب / استرداد مبلغ';
+            ? l10n.paymentAddTitleDeposit
+            : l10n.paymentAddTitleWithdraw;
 
         return AlertDialog(
           title: Row(
@@ -248,7 +249,7 @@ class _AddPaymentDialogContentState extends State<_AddPaymentDialogContent> {
                       final authorized = await showVerifyPinDialog(
                         context: widget.parentContext,
                       );
-                      if (!context.mounted) return; // تم التعديل هنا
+                      if (!context.mounted) return;
                       if (!widget.parentContext.mounted) return;
                       if (authorized) {
                         setState(() => isDeposit = false);
@@ -285,7 +286,7 @@ class _AddPaymentDialogContentState extends State<_AddPaymentDialogContent> {
                         final authorized = await showVerifyPinDialog(
                           context: widget.parentContext,
                         );
-                        if (!context.mounted) return; // تم التعديل هنا
+                        if (!context.mounted) return;
                         if (authorized) {
                           setState(() => isHistoricalPayment = true);
                           final pickedDate = await showDatePicker(
@@ -294,7 +295,7 @@ class _AddPaymentDialogContentState extends State<_AddPaymentDialogContent> {
                             firstDate: DateTime(2000),
                             lastDate: DateTime.now(),
                           );
-                          if (!context.mounted) return; // تم التعديل هنا
+                          if (!context.mounted) return;
                           if (pickedDate != null) {
                             setState(
                               () => selectedHistoricalDate = pickedDate,
@@ -342,9 +343,9 @@ class _AddPaymentDialogContentState extends State<_AddPaymentDialogContent> {
           actions: [
             TextButton(
               onPressed: _isSaving ? null : () => Navigator.pop(context),
-              child: const Text(
-                'إلغاء',
-                style: TextStyle(fontWeight: FontWeight.bold),
+              child: Text(
+                l10n.btnCancel,
+                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
             ),
             ElevatedButton.icon(
@@ -371,8 +372,10 @@ class _AddPaymentDialogContentState extends State<_AddPaymentDialogContent> {
                   : const Icon(Icons.check_circle, size: 18),
               label: Text(
                 _isSaving
-                    ? 'جاري الحفظ...'
-                    : (isDeposit ? 'تأكيد وحفظ الدفعة' : 'تأكيد السحب'),
+                    ? l10n.btnSaving
+                    : (isDeposit
+                          ? l10n.paymentAddBtnDeposit
+                          : l10n.paymentAddBtnWithdraw),
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
               onPressed:
@@ -389,18 +392,18 @@ class _AddPaymentDialogContentState extends State<_AddPaymentDialogContent> {
                       if (isHistoricalPayment) {
                         if (isDollarPayment &&
                             histDollarRateCtrl.text.isEmpty) {
-                          _showErrorSnackBar('الرجاء إدخال السعر التاريخي!');
+                          _showErrorSnackBar(l10n.paymentAddErrorValDollar);
                           return;
                         }
                         if (!isDetailedMode && meterPriceCtrl.text.isEmpty) {
-                          _showErrorSnackBar('الرجاء إدخال سعر المتر!');
+                          _showErrorSnackBar(l10n.paymentAddErrorValMeter);
                           return;
                         }
                         if (isDetailedMode &&
                             (histIronCtrl.text.isEmpty ||
                                 histCementCtrl.text.isEmpty ||
                                 histWorkerCtrl.text.isEmpty)) {
-                          _showErrorSnackBar('الرجاء إدخال أسعار المواد!');
+                          _showErrorSnackBar(l10n.paymentAddErrorValMaterials);
                           return;
                         }
                       }
@@ -460,7 +463,7 @@ class _AddPaymentDialogContentState extends State<_AddPaymentDialogContent> {
                               : null,
                         );
 
-                        if (!context.mounted) return; // تم التعديل هنا
+                        if (!context.mounted) return;
                         if (!widget.parentContext.mounted) return;
 
                         Navigator.pop(context);
@@ -468,14 +471,14 @@ class _AddPaymentDialogContentState extends State<_AddPaymentDialogContent> {
                           SnackBar(
                             content: Text(
                               isDeposit
-                                  ? 'تمت إضافة الدفعة بنجاح! ✅'
-                                  : 'تم خصم المبلغ بنجاح! ✅',
+                                  ? l10n.paymentAddSuccessDeposit
+                                  : l10n.paymentAddSuccessWithdraw,
                             ),
                             backgroundColor: Colors.green,
                           ),
                         );
                       } on Exception catch (e) {
-                        if (!context.mounted) return; // تم التعديل هنا
+                        if (!context.mounted) return;
                         setState(() => _isSaving = false);
 
                         if (!widget.parentContext.mounted) return;
