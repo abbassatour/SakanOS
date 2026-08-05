@@ -1,6 +1,7 @@
 // lib/schedule/view/schedule_page.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:our_home_erp_app/l10n/l10n.dart';
 import '../cubit/schedule_cubit.dart';
 
 import 'tabs/radar_tab.dart';
@@ -21,7 +22,6 @@ class _SchedulePageState extends State<SchedulePage>
   @override
   void initState() {
     super.initState();
-    // 🌟 1. إنشاء المتحكم وقراءة الرقم الحالي من الكيوبت (في حال تم فتحه من شاشة أخرى)
     final initialIndex = context.read<ScheduleCubit>().state.activeTabIndex;
     _tabController = TabController(
       initialIndex: initialIndex,
@@ -29,7 +29,6 @@ class _SchedulePageState extends State<SchedulePage>
       vsync: this,
     );
 
-    // 🌟 2. إذا قام المستخدم بتغيير التبويب بيده (سحب الشاشة)، نخبر الكيوبت
     _tabController.addListener(() {
       if (!_tabController.indexIsChanging) {
         final cubit = context.read<ScheduleCubit>();
@@ -48,7 +47,8 @@ class _SchedulePageState extends State<SchedulePage>
 
   @override
   Widget build(BuildContext context) {
-    // 🌟 3. السحر هنا: نستمع للكيوبت بشكل دائم، وإذا أرسل أمر انتقال، نحرك الشاشة آلياً!
+    final l10n = context.l10n;
+
     return BlocListener<ScheduleCubit, ScheduleState>(
       listenWhen: (previous, current) =>
           previous.activeTabIndex != current.activeTabIndex,
@@ -69,7 +69,7 @@ class _SchedulePageState extends State<SchedulePage>
               borderRadius: BorderRadius.circular(25),
             ),
             child: TabBar(
-              controller: _tabController, // 🌟 ربط المتحكم الذكي
+              controller: _tabController,
               dividerColor: Colors.transparent,
               indicatorSize: TabBarIndicatorSize.tab,
               indicator: BoxDecoration(
@@ -87,9 +87,15 @@ class _SchedulePageState extends State<SchedulePage>
               unselectedLabelColor: Colors.white70,
               labelPadding: EdgeInsets.zero,
               tabs: [
-                _buildCompactTab(Icons.warning_amber_rounded, 'المتعثرين'),
-                _buildCompactTab(Icons.radar, 'الرادار'),
-                _buildCompactTab(Icons.table_chart, 'الجدول'),
+                _buildCompactTab(
+                  Icons.warning_amber_rounded,
+                  l10n.scheduleTabOverdue,
+                ),
+                _buildCompactTab(Icons.radar, l10n.scheduleTabRadar),
+                _buildCompactTab(
+                  Icons.table_chart,
+                  l10n.scheduleTabTraditional,
+                ),
               ],
             ),
           ),
@@ -101,20 +107,20 @@ class _SchedulePageState extends State<SchedulePage>
               return const Center(child: CircularProgressIndicator());
             }
             if (state.clients.isEmpty || state.contracts.isEmpty) {
-              return const Center(
+              return Center(
                 child: Text(
-                  'لا يوجد بيانات كافية.',
-                  style: TextStyle(fontSize: 18, color: Colors.grey),
+                  l10n.scheduleNoData,
+                  style: const TextStyle(fontSize: 18, color: Colors.grey),
                 ),
               );
             }
 
             return TabBarView(
-              controller: _tabController, // 🌟 ربط المتحكم بالشاشات الداخلية
+              controller: _tabController,
               children: [
-                OverdueRadarTab(state: state), // Index 0
-                RadarTab(state: state), // Index 1
-                TraditionalScheduleTab(state: state), // Index 2
+                OverdueRadarTab(state: state),
+                RadarTab(state: state),
+                TraditionalScheduleTab(state: state),
               ],
             );
           },
@@ -123,7 +129,6 @@ class _SchedulePageState extends State<SchedulePage>
     );
   }
 
-  // 🌟 دالة مساعدة لإنشاء التبويبات
   Widget _buildCompactTab(IconData icon, String title) {
     return Tab(
       child: Row(

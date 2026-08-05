@@ -1,5 +1,6 @@
 // lib/schedule/view/tabs/overdue_radar_tab.dart
 import 'package:flutter/material.dart';
+import 'package:our_home_erp_app/l10n/l10n.dart';
 import '../../cubit/schedule_cubit.dart';
 import '../../../core/utils/whatsapp_helper.dart';
 
@@ -10,6 +11,8 @@ class OverdueRadarTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     if (state.overdueAlerts.isEmpty) {
       return Center(
         child: Column(
@@ -22,7 +25,7 @@ class OverdueRadarTab extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             Text(
-              'الوضع ممتاز! لا يوجد أي عميل متأخر حالياً.',
+              l10n.overdueRadarAllClear,
               style: TextStyle(
                 fontSize: 16,
                 color: Colors.green.shade700,
@@ -49,17 +52,17 @@ class OverdueRadarTab extends StatelessWidget {
           borderColor = Colors.redAccent;
           bgColor = Colors.red.shade50;
           icon = Icons.cancel;
-          warningTitle = 'حرج';
+          warningTitle = l10n.severityCritical;
         } else if (alert.severity == 'warning') {
           borderColor = Colors.orange;
           bgColor = Colors.orange.shade50;
           icon = Icons.warning_amber;
-          warningTitle = 'إنذار';
+          warningTitle = l10n.severityWarning;
         } else {
           borderColor = Colors.amber.shade700;
           bgColor = Colors.amber.shade50;
           icon = Icons.notifications_active;
-          warningTitle = 'سماح';
+          warningTitle = l10n.severityNotice;
         }
 
         final oldestSchedule = alert.overdueSchedules.first;
@@ -72,15 +75,12 @@ class OverdueRadarTab extends StatelessWidget {
             borderRadius: BorderRadius.circular(8),
             side: BorderSide(color: borderColor.withOpacity(0.5), width: 1),
           ),
-
           child: LayoutBuilder(
             builder: (context, constraints) {
               final double cardWidth = constraints.maxWidth > 850
                   ? constraints.maxWidth
                   : 850;
 
-              // 🌟 الحل هنا: تم حذف Scrollbar بالكامل، وأبقينا SingleChildScrollView فقط!
-              // هذا يضمن السحب المخفي، ويمنع ظهور الخطأ الأحمر في الكونسول نهائياً.
               return SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 physics: const BouncingScrollPhysics(),
@@ -133,7 +133,7 @@ class OverdueRadarTab extends StatelessWidget {
                                         ),
                                         const SizedBox(width: 4),
                                         Text(
-                                          '$warningTitle (${alert.maxDaysOverdue} يوم)',
+                                          '$warningTitle (${l10n.overdueDays(alert.maxDaysOverdue)})',
                                           style: const TextStyle(
                                             fontSize: 10,
                                             fontWeight: FontWeight.bold,
@@ -181,15 +181,17 @@ class OverdueRadarTab extends StatelessWidget {
                                     color: Colors.indigo,
                                   ),
                                   const SizedBox(width: 4),
-                                  const Text(
-                                    'الديون المتراكمة: ',
-                                    style: TextStyle(
+                                  Text(
+                                    l10n.overdueAccumulatedDebt,
+                                    style: const TextStyle(
                                       fontSize: 11,
                                       color: Colors.blueGrey,
                                     ),
                                   ),
                                   Text(
-                                    '${alert.overdueSchedules.length} أقساط',
+                                    l10n.overdueInstallmentsCount(
+                                      alert.overdueSchedules.length,
+                                    ),
                                     style: const TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.bold,
@@ -209,7 +211,13 @@ class OverdueRadarTab extends StatelessWidget {
                                   const SizedBox(width: 4),
                                   Flexible(
                                     child: Text(
-                                      'أقدم قسط: رقم (${oldestSchedule.installmentNumber}) مستحق في ${oldestSchedule.dueDate.year}/${oldestSchedule.dueDate.month}/${oldestSchedule.dueDate.day}',
+                                      l10n.overdueOldestInstallment(
+                                        oldestSchedule.installmentNumber
+                                            .toString(),
+                                        oldestSchedule.dueDate.year.toString(),
+                                        oldestSchedule.dueDate.month.toString(),
+                                        oldestSchedule.dueDate.day.toString(),
+                                      ),
                                       style: TextStyle(
                                         fontSize: 11,
                                         color: borderColor,
@@ -243,9 +251,9 @@ class OverdueRadarTab extends StatelessWidget {
                               ),
                             ),
                             icon: const Icon(Icons.chat, size: 14),
-                            label: const Text(
-                              'مطالبة',
-                              style: TextStyle(
+                            label: Text(
+                              l10n.actionClaim,
+                              style: const TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -260,18 +268,16 @@ class OverdueRadarTab extends StatelessWidget {
                               if (context.mounted) {
                                 if (success) {
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                        'تم فتح الواتساب للمطالبة!',
-                                      ),
+                                    SnackBar(
+                                      content: Text(l10n.whatsappOpenedSuccess),
                                       backgroundColor: Colors.green,
                                       behavior: SnackBarBehavior.floating,
                                     ),
                                   );
                                 } else {
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('فشل فتح تطبيق الواتساب.'),
+                                    SnackBar(
+                                      content: Text(l10n.whatsappOpenedError),
                                       backgroundColor: Colors.red,
                                       behavior: SnackBarBehavior.floating,
                                     ),

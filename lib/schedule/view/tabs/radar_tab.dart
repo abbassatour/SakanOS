@@ -1,6 +1,7 @@
 // lib/schedule/view/tabs/radar_tab.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:our_home_erp_app/l10n/l10n.dart';
 import '../../cubit/schedule_cubit.dart';
 import '../dialogs/take_action_dialog.dart';
 
@@ -14,24 +15,22 @@ class RadarTab extends StatefulWidget {
 }
 
 class _RadarTabState extends State<RadarTab> {
-  // 🌟 متغيرات الفلترة المتعددة
   String _urgencyFilter = 'all';
-
-  // 🌟 متغير شريط السحب للسرعة (المدى الافتراضي من 0 إلى 10)
   RangeValues _speedRange = const RangeValues(0.0, 10.0);
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     if (widget.state.allocationAlerts.isEmpty) {
-      return const Center(
+      return Center(
         child: Text(
-          'لا يوجد عقود "لاحق التخصص" حالياً لمراقبتها.',
-          style: TextStyle(fontSize: 16, color: Colors.grey),
+          l10n.radarNoUnallocatedContracts,
+          style: const TextStyle(fontSize: 16, color: Colors.grey),
         ),
       );
     }
 
-    // 🌟 تطبيق الفلترة المركبة (خطورة + سرعة دقيقة)
     final filteredAlerts = widget.state.allocationAlerts.where((alert) {
       bool passUrgency = true;
       if (_urgencyFilter != 'all') {
@@ -53,22 +52,19 @@ class _RadarTabState extends State<RadarTab> {
 
     return Scaffold(
       backgroundColor: Colors.transparent,
-
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _showFilterBottomSheet,
         backgroundColor: Colors.indigo,
         foregroundColor: Colors.white,
         elevation: 4,
         icon: const Icon(Icons.filter_alt),
-        label: const Text(
-          'فرز وتصفية',
-          style: TextStyle(fontWeight: FontWeight.bold),
+        label: Text(
+          l10n.radarFilterBtn,
+          style: const TextStyle(fontWeight: FontWeight.bold),
         ),
       ),
-
       body: Column(
         children: [
-          // 🌟 شريط الفلاتر النشطة
           if (hasActiveFilters)
             Container(
               margin: const EdgeInsets.all(16),
@@ -96,12 +92,15 @@ class _RadarTabState extends State<RadarTab> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'الفلاتر النشطة حالياً:',
-                          style: TextStyle(color: Colors.grey, fontSize: 12),
+                        Text(
+                          l10n.radarActiveFilters,
+                          style: const TextStyle(
+                            color: Colors.grey,
+                            fontSize: 12,
+                          ),
                         ),
                         Text(
-                          '${_getUrgencyName(_urgencyFilter)}  |  السرعة: ${_speedRange.start.toStringAsFixed(1)} إلى ${_speedRange.end == 10.0 ? '10+' : _speedRange.end.toStringAsFixed(1)} م²',
+                          '${_getUrgencyName(context, _urgencyFilter)}  |  ${l10n.radarSpeedLabel} ${_speedRange.start.toStringAsFixed(1)} إلى ${_speedRange.end == 10.0 ? '10+' : _speedRange.end.toStringAsFixed(1)} m²',
                           style: const TextStyle(
                             color: Colors.indigo,
                             fontWeight: FontWeight.bold,
@@ -112,7 +111,6 @@ class _RadarTabState extends State<RadarTab> {
                     ),
                   ),
                   const SizedBox(width: 12),
-
                   ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.red.shade50,
@@ -130,9 +128,9 @@ class _RadarTabState extends State<RadarTab> {
                       });
                     },
                     icon: const Icon(Icons.clear, size: 18),
-                    label: const Text(
-                      'إلغاء الفلاتر',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                    label: Text(
+                      l10n.radarClearFilters,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),
                 ],
@@ -151,9 +149,12 @@ class _RadarTabState extends State<RadarTab> {
                           color: Colors.grey.shade400,
                         ),
                         const SizedBox(height: 16),
-                        const Text(
-                          'لا يوجد نتائج تطابق الفلاتر المحددة',
-                          style: TextStyle(color: Colors.grey, fontSize: 16),
+                        Text(
+                          l10n.radarNoHits,
+                          style: const TextStyle(
+                            color: Colors.grey,
+                            fontSize: 16,
+                          ),
                         ),
                       ],
                     ),
@@ -182,26 +183,32 @@ class _RadarTabState extends State<RadarTab> {
                         cardColor = Colors.grey;
                         progressColor = Colors.grey.shade500;
                         urgencyIcon = Icons.done_all;
-                        urgencyText = 'تم إجراء';
+                        urgencyText = l10n.urgencyActionTaken;
                       } else if (alert.urgencyLevel == 'high') {
                         cardColor = Colors.redAccent;
                         progressColor = Colors.redAccent;
                         urgencyIcon = Icons.local_fire_department;
                         urgencyText = alert.accumulatedMeters >= target
-                            ? 'تجاوز!'
-                            : 'خطر (${alert.estimatedMonthsLeft} ش)';
+                            ? l10n.urgencyExceeded
+                            : l10n.urgencyCritical(
+                                alert.estimatedMonthsLeft.toString(),
+                              );
                       } else if (alert.urgencyLevel == 'medium') {
                         cardColor = Colors.orange;
                         progressColor = Colors.orange;
                         urgencyIcon = Icons.warning_amber_rounded;
-                        urgencyText = 'متوسط (${alert.estimatedMonthsLeft} ش)';
+                        urgencyText = l10n.urgencyMedium(
+                          alert.estimatedMonthsLeft.toString(),
+                        );
                       } else {
                         cardColor = Colors.green;
                         progressColor = Colors.green;
                         urgencyIcon = Icons.shield;
                         urgencyText = alert.estimatedMonthsLeft == 999
-                            ? 'لا دفعات'
-                            : 'آمن (${alert.estimatedMonthsLeft} ش)';
+                            ? l10n.urgencyNoPayments
+                            : l10n.urgencySafe(
+                                alert.estimatedMonthsLeft.toString(),
+                              );
                       }
 
                       final bool isActionTaken =
@@ -222,13 +229,8 @@ class _RadarTabState extends State<RadarTab> {
                             width: 1,
                           ),
                         ),
-
-                        // ==========================================
-                        // 🌟 سحر التمرير الأفقي لكل بطاقة بشكل منفصل
-                        // ==========================================
                         child: LayoutBuilder(
                           builder: (context, constraints) {
-                            // نحدد عرض المحتوى الداخلي: إما أن يتمدد مع الشاشة، أو يتوقف عند 950 بكسل ويبدأ التمرير
                             final double cardWidth = constraints.maxWidth > 950
                                 ? constraints.maxWidth
                                 : 950;
@@ -239,8 +241,7 @@ class _RadarTabState extends State<RadarTab> {
                                 scrollDirection: Axis.horizontal,
                                 physics: const BouncingScrollPhysics(),
                                 child: SizedBox(
-                                  width:
-                                      cardWidth, // 👈 تثبيت العرض لكي تعمل عناصر الـ Expanded
+                                  width: cardWidth,
                                   child: Padding(
                                     padding: const EdgeInsets.symmetric(
                                       horizontal: 16,
@@ -250,7 +251,6 @@ class _RadarTabState extends State<RadarTab> {
                                       crossAxisAlignment:
                                           CrossAxisAlignment.center,
                                       children: [
-                                        // 1. قسم الاسم (عرض ثابت لا يتقلص أبداً)
                                         SizedBox(
                                           width: 250,
                                           child: Column(
@@ -335,10 +335,7 @@ class _RadarTabState extends State<RadarTab> {
                                             ],
                                           ),
                                         ),
-
                                         const SizedBox(width: 16),
-
-                                        // 2. قسم شريط التقدم
                                         Expanded(
                                           flex: 3,
                                           child: Column(
@@ -348,9 +345,9 @@ class _RadarTabState extends State<RadarTab> {
                                             children: [
                                               Row(
                                                 children: [
-                                                  const Text(
-                                                    'التخصص: ',
-                                                    style: TextStyle(
+                                                  Text(
+                                                    l10n.radarAllocationProgress,
+                                                    style: const TextStyle(
                                                       fontSize: 11,
                                                       color: Colors.blueGrey,
                                                     ),
@@ -399,7 +396,25 @@ class _RadarTabState extends State<RadarTab> {
                                                     const SizedBox(width: 4),
                                                     Expanded(
                                                       child: Text(
-                                                        'إجراء سابق (${alert.lastActionDate?.year}/${alert.lastActionDate?.month}/${alert.lastActionDate?.day}): ${alert.lastActionNote}',
+                                                        l10n.radarPreviousAction(
+                                                          alert
+                                                                  .lastActionDate
+                                                                  ?.year
+                                                                  .toString() ??
+                                                              '',
+                                                          alert
+                                                                  .lastActionDate
+                                                                  ?.month
+                                                                  .toString() ??
+                                                              '',
+                                                          alert
+                                                                  .lastActionDate
+                                                                  ?.day
+                                                                  .toString() ??
+                                                              '',
+                                                          alert.lastActionNote ??
+                                                              '',
+                                                        ),
                                                         style: const TextStyle(
                                                           fontSize: 11,
                                                           color: Colors.teal,
@@ -415,10 +430,7 @@ class _RadarTabState extends State<RadarTab> {
                                             ],
                                           ),
                                         ),
-
                                         const SizedBox(width: 16),
-
-                                        // 3. قسم المقاييس (تم تعديل المسافة بينها بناءً على طلبك)
                                         Expanded(
                                           flex: 3,
                                           child: Row(
@@ -427,8 +439,8 @@ class _RadarTabState extends State<RadarTab> {
                                             children: [
                                               _buildDesktopMetric(
                                                 Icons.speed,
-                                                'السرعة',
-                                                '${alert.averageMetersPerMonth.toStringAsFixed(1)} م²/ش',
+                                                l10n.radarSpeedMetric,
+                                                '${alert.averageMetersPerMonth.toStringAsFixed(1)} m²/m',
                                                 isActionTaken
                                                     ? Colors.grey
                                                     : Colors.blue,
@@ -436,8 +448,8 @@ class _RadarTabState extends State<RadarTab> {
                                               const SizedBox(width: 24),
                                               _buildDesktopMetric(
                                                 Icons.timelapse,
-                                                'العمر',
-                                                '${DateTime.now().difference(alert.contract.contractDate).inDays ~/ 30} ش',
+                                                l10n.radarAgeMetric,
+                                                '${DateTime.now().difference(alert.contract.contractDate).inDays ~/ 30} m',
                                                 isActionTaken
                                                     ? Colors.grey
                                                     : Colors.purple,
@@ -445,19 +457,16 @@ class _RadarTabState extends State<RadarTab> {
                                               const SizedBox(width: 24),
                                               _buildDesktopMetric(
                                                 Icons.flag,
-                                                'المتبقي',
+                                                l10n.radarRemainingMetric,
                                                 alert.estimatedMonthsLeft == 999
                                                     ? '∞'
-                                                    : '${alert.estimatedMonthsLeft} ش',
+                                                    : '${alert.estimatedMonthsLeft} m',
                                                 progressColor,
                                               ),
                                             ],
                                           ),
                                         ),
-
                                         const SizedBox(width: 16),
-
-                                        // 4. قسم الزر
                                         SizedBox(
                                           width: 110,
                                           height: 36,
@@ -486,7 +495,9 @@ class _RadarTabState extends State<RadarTab> {
                                               size: 14,
                                             ),
                                             label: Text(
-                                              isActionTaken ? 'تحديث' : 'إجراء',
+                                              isActionTaken
+                                                  ? l10n.radarUpdateBtn
+                                                  : l10n.radarActionBtn,
                                               style: const TextStyle(
                                                 fontSize: 12,
                                                 fontWeight: FontWeight.bold,
@@ -552,6 +563,7 @@ class _RadarTabState extends State<RadarTab> {
   void _showFilterBottomSheet() {
     String tempUrgency = _urgencyFilter;
     RangeValues tempSpeedRange = _speedRange;
+    final l10n = context.l10n;
 
     showModalBottomSheet(
       context: context,
@@ -568,13 +580,17 @@ class _RadarTabState extends State<RadarTab> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Row(
+                  Row(
                     children: [
-                      Icon(Icons.filter_alt, color: Colors.indigo, size: 28),
-                      SizedBox(width: 8),
+                      const Icon(
+                        Icons.filter_alt,
+                        color: Colors.indigo,
+                        size: 28,
+                      ),
+                      const SizedBox(width: 8),
                       Text(
-                        'فرز وتصفية رادار التخصص',
-                        style: TextStyle(
+                        l10n.radarFilterDialogTitle,
+                        style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
                           color: Colors.indigo,
@@ -583,10 +599,9 @@ class _RadarTabState extends State<RadarTab> {
                     ],
                   ),
                   const SizedBox(height: 24),
-
-                  const Text(
-                    '1. مستوى الخطورة والاقتراب من الهدف:',
-                    style: TextStyle(
+                  Text(
+                    l10n.radarFilterDangerLvl,
+                    style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       color: Colors.black87,
                     ),
@@ -598,50 +613,48 @@ class _RadarTabState extends State<RadarTab> {
                     children: [
                       _buildChipRadio(
                         'all',
-                        '🌐 الكل',
+                        l10n.radarFilterAll,
                         tempUrgency,
                         Colors.indigo,
                         (v) => setModalState(() => tempUrgency = v),
                       ),
                       _buildChipRadio(
                         'high',
-                        '🔴 حالات حرجة',
+                        l10n.radarFilterHigh,
                         tempUrgency,
                         Colors.red,
                         (v) => setModalState(() => tempUrgency = v),
                       ),
                       _buildChipRadio(
                         'medium',
-                        '🟠 حالات متوسطة',
+                        l10n.radarFilterMedium,
                         tempUrgency,
                         Colors.orange,
                         (v) => setModalState(() => tempUrgency = v),
                       ),
                       _buildChipRadio(
                         'low',
-                        '🟢 حالات آمنة',
+                        l10n.radarFilterLow,
                         tempUrgency,
                         Colors.green,
                         (v) => setModalState(() => tempUrgency = v),
                       ),
                       _buildChipRadio(
                         'action_taken',
-                        '⚪  تم اتخاذ إجراء مؤخراً',
+                        l10n.radarFilterActionTaken,
                         tempUrgency,
                         Colors.grey.shade700,
                         (v) => setModalState(() => tempUrgency = v),
                       ),
                     ],
                   ),
-
                   const Divider(height: 32, thickness: 1.5),
-
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
-                        '2. تحديد مجال سرعة الدفع (م² / شهر):',
-                        style: TextStyle(
+                      Text(
+                        l10n.radarFilterSpeedRange,
+                        style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           color: Colors.black87,
                         ),
@@ -666,7 +679,6 @@ class _RadarTabState extends State<RadarTab> {
                     ],
                   ),
                   const SizedBox(height: 16),
-
                   SliderTheme(
                     data: SliderTheme.of(context).copyWith(
                       activeTrackColor: Colors.indigo,
@@ -697,9 +709,7 @@ class _RadarTabState extends State<RadarTab> {
                       },
                     ),
                   ),
-
                   const SizedBox(height: 32),
-
                   SizedBox(
                     width: double.infinity,
                     height: 50,
@@ -709,9 +719,9 @@ class _RadarTabState extends State<RadarTab> {
                         foregroundColor: Colors.white,
                       ),
                       icon: const Icon(Icons.check_circle),
-                      label: const Text(
-                        'تطبيق الفرز',
-                        style: TextStyle(
+                      label: Text(
+                        l10n.radarFilterApply,
+                        style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
@@ -764,18 +774,19 @@ class _RadarTabState extends State<RadarTab> {
     );
   }
 
-  String _getUrgencyName(String filter) {
+  String _getUrgencyName(BuildContext context, String filter) {
+    final l10n = context.l10n;
     switch (filter) {
       case 'high':
-        return '🔴 حالات حرجة';
+        return l10n.radarFilterHigh;
       case 'medium':
-        return '🟠 حالات متوسطة';
+        return l10n.radarFilterMedium;
       case 'low':
-        return '🟢 حالات آمنة';
+        return l10n.radarFilterLow;
       case 'action_taken':
-        return '⚪ تم إجراء (مؤجلة)';
+        return l10n.radarFilterActionTaken;
       default:
-        return '🌐 جميع الحالات';
+        return l10n.radarFilterAll;
     }
   }
 }
