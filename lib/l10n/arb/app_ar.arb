@@ -1494,5 +1494,22 @@
     "placeholders": {
       "note": { "type": "String" }
     }
-  }
+  },
+
+  "coeffLocation": "الموقع",
+  "coeffStreet": "الشارع",
+  "coeffElevator": "المصعد",
+  "coeffNorth": "شمالي",
+  "coeffSouth": "جنوبي",
+  "coeffEast": "شرقي",
+  "coeffWest": "غربي",
+  "coeffCommercialFacade": "واجهة تجارية",
+  "coeffCommercial": "تجاري",
+  "coeffSlabArea": "مساحة البلاطة (م2)",
+  "coeffTerraceArea": "مساحة التراس (م2)",
+  "coeffYardArea": "مساحة الوجيبة (م2)",
+  "coeffFacadeLength": "عرض الواجهة الفعلي (متر)",
+  "coeffYardExcellence": "معامل التميز للوجيبة",
+  "coeffProfitMargin": "هامش الربح",
+  "coeffFacadeExcellence": "تميز الواجهة"
 }

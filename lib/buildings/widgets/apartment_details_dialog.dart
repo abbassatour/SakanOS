@@ -20,6 +20,42 @@ class _ApartmentDetailsDialogContent extends StatelessWidget {
 
   final Apartment apt;
 
+  String _getLocalizedKey(BuildContext context, String key) {
+    final l10n = context.l10n;
+    switch (key) {
+      case 'مساحة البلاطة (م2)':
+        return l10n.coeffSlabArea;
+      case 'مساحة التراس (م2)':
+        return l10n.coeffTerraceArea;
+      case 'مساحة الوجيبة (م2)':
+        return l10n.coeffYardArea;
+      case 'عرض الواجهة الفعلي (متر)':
+        return l10n.coeffFacadeLength;
+      case 'معامل التميز للوجيبة':
+        return l10n.coeffYardExcellence;
+      case 'هامش الربح':
+        return l10n.coeffProfitMargin;
+      case 'تميز الواجهة':
+        return l10n.coeffFacadeExcellence;
+      case 'الموقع':
+        return l10n.coeffLocation;
+      case 'الشارع':
+        return l10n.coeffStreet;
+      default:
+        return key;
+    }
+  }
+
+  String _getLocalizedDirection(BuildContext context, String direction) {
+    final l10n = context.l10n;
+    return direction
+        .replaceAll('شمالي', l10n.coeffNorth)
+        .replaceAll('جنوبي', l10n.coeffSouth)
+        .replaceAll('شرقي', l10n.coeffEast)
+        .replaceAll('غربي', l10n.coeffWest)
+        .replaceAll('واجهة تجارية', l10n.coeffCommercialFacade);
+  }
+
   Widget _buildInfoCard(
     String title,
     String value,
@@ -178,8 +214,8 @@ class _ApartmentDetailsDialogContent extends StatelessWidget {
                 ),
                 decoration: BoxDecoration(
                   color: isAvailable
-                      ? Colors.green.shade50.withValues(alpha: 0.5)
-                      : Colors.red.shade50.withValues(alpha: 0.5),
+                      ? Colors.green.shade50.withOpacity(0.5)
+                      : Colors.red.shade50.withOpacity(0.5),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
@@ -210,7 +246,7 @@ class _ApartmentDetailsDialogContent extends StatelessWidget {
                   Expanded(
                     child: _buildInfoCard(
                       l10n.aptDirectionHeader,
-                      apt.directionName,
+                      _getLocalizedDirection(context, apt.directionName),
                       Icons.explore,
                       Colors.teal,
                     ),
@@ -227,7 +263,7 @@ class _ApartmentDetailsDialogContent extends StatelessWidget {
                   border: Border.all(color: Colors.indigo.shade100, width: 1.5),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.indigo.withValues(alpha: 0.03),
+                      color: Colors.indigo.withOpacity(0.03),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),
@@ -308,7 +344,7 @@ class _ApartmentDetailsDialogContent extends StatelessWidget {
                               const SizedBox(width: 8),
                               Expanded(
                                 child: Text(
-                                  e.key,
+                                  _getLocalizedKey(context, e.key),
                                   style: const TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.w600,
@@ -341,7 +377,7 @@ class _ApartmentDetailsDialogContent extends StatelessWidget {
                   border: Border.all(color: Colors.green.shade200, width: 1.5),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.green.withValues(alpha: 0.03),
+                      color: Colors.green.withOpacity(0.03),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),
@@ -398,7 +434,7 @@ class _ApartmentDetailsDialogContent extends StatelessWidget {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Text(
-                                  e.key,
+                                  _getLocalizedKey(context, e.key),
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     color: Colors.green.shade900,

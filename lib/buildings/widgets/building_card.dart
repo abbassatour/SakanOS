@@ -73,6 +73,16 @@ class BuildingCard extends StatelessWidget {
     );
   }
 
+  String _getLocalizedDirection(BuildContext context, String direction) {
+    final l10n = context.l10n;
+    return direction
+        .replaceAll('شمالي', l10n.coeffNorth)
+        .replaceAll('جنوبي', l10n.coeffSouth)
+        .replaceAll('شرقي', l10n.coeffEast)
+        .replaceAll('غربي', l10n.coeffWest)
+        .replaceAll('واجهة تجارية', l10n.coeffCommercialFacade);
+  }
+
   DataRow _buildDataRow(
     BuildContext context,
     Apartment apt, {
@@ -139,7 +149,7 @@ class BuildingCard extends StatelessWidget {
         ),
         DataCell(
           Text(
-            apt.directionName,
+            _getLocalizedDirection(context, apt.directionName),
             style: TextStyle(color: Colors.grey.shade700),
           ),
         ),
@@ -519,7 +529,7 @@ class BuildingCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(12),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.02),
+                            color: Colors.black.withOpacity(0.02),
                             blurRadius: 5,
                             offset: const Offset(0, 2),
                           ),
@@ -590,8 +600,8 @@ class BuildingCard extends StatelessWidget {
                                       columnSpacing: 30,
                                       dividerThickness: 0.5,
                                       headingRowColor: WidgetStateProperty.all(
-                                        Colors.indigo.shade50.withValues(
-                                          alpha: 0.5,
+                                        Colors.indigo.shade50.withOpacity(
+                                          0.5,
                                         ),
                                       ),
                                       columns: [
@@ -678,8 +688,8 @@ class BuildingCard extends StatelessWidget {
                             Container(
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: Colors.indigo.shade50.withValues(
-                                  alpha: 0.3,
+                                color: Colors.indigo.shade50.withOpacity(
+                                  0.3,
                                 ),
                                 borderRadius: const BorderRadius.vertical(
                                   bottom: Radius.circular(12),
@@ -751,7 +761,7 @@ class BuildingCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.orange.shade900.withValues(alpha: 0.04),
+                          color: Colors.orange.shade900.withOpacity(0.04),
                           blurRadius: 8,
                           offset: const Offset(0, 4),
                         ),
@@ -900,8 +910,8 @@ class BuildingCard extends StatelessWidget {
                             padding: const EdgeInsets.all(12),
                             width: double.infinity,
                             decoration: BoxDecoration(
-                              color: Colors.orange.shade50.withValues(
-                                alpha: 0.5,
+                              color: Colors.orange.shade50.withOpacity(
+                                0.5,
                               ),
                               borderRadius: const BorderRadius.vertical(
                                 bottom: Radius.circular(12),

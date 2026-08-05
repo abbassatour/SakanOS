@@ -1500,5 +1500,22 @@
     "placeholders": {
       "note": { "type": "String" }
     }
-  }
+  },
+
+  "coeffLocation": "Location",
+  "coeffStreet": "Street",
+  "coeffElevator": "Elevator",
+  "coeffNorth": "North",
+  "coeffSouth": "South",
+  "coeffEast": "East",
+  "coeffWest": "West",
+  "coeffCommercialFacade": "Commercial Facade",
+  "coeffCommercial": "Commercial",
+  "coeffSlabArea": "Slab Area (m²)",
+  "coeffTerraceArea": "Terrace Area (m²)",
+  "coeffYardArea": "Yard Area (m²)",
+  "coeffFacadeLength": "Facade Width (m)",
+  "coeffYardExcellence": "Yard Distinction Coeff",
+  "coeffProfitMargin": "Profit Margin",
+  "coeffFacadeExcellence": "Facade Distinction"
 }

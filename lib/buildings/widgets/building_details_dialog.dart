@@ -20,6 +20,28 @@ class _BuildingDetailsDialogContent extends StatelessWidget {
 
   final Building building;
 
+  String _getLocalizedKey(BuildContext context, String key) {
+    final l10n = context.l10n;
+    switch (key) {
+      case 'الموقع':
+        return l10n.coeffLocation;
+      case 'الشارع':
+        return l10n.coeffStreet;
+      case 'المصعد':
+        return l10n.coeffElevator;
+      case 'شمالي':
+        return l10n.coeffNorth;
+      case 'جنوبي':
+        return l10n.coeffSouth;
+      case 'شرقي':
+        return l10n.coeffEast;
+      case 'غربي':
+        return l10n.coeffWest;
+      default:
+        return key;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
@@ -126,7 +148,7 @@ class _BuildingDetailsDialogContent extends StatelessWidget {
                   border: Border.all(color: Colors.teal.shade200, width: 1.5),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.teal.withValues(alpha: 0.03),
+                      color: Colors.teal.withOpacity(0.03),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),
@@ -183,7 +205,7 @@ class _BuildingDetailsDialogContent extends StatelessWidget {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Text(
-                                  e.key,
+                                  _getLocalizedKey(context, e.key),
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     color: Colors.teal.shade900,
@@ -225,7 +247,7 @@ class _BuildingDetailsDialogContent extends StatelessWidget {
                   border: Border.all(color: Colors.indigo.shade200, width: 1.5),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.indigo.withValues(alpha: 0.03),
+                      color: Colors.indigo.withOpacity(0.03),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),
