@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:erp_repository/erp_repository.dart';
+import 'package:our_home_erp_app/l10n/l10n.dart';
 
 import '../cubit/register_cubit.dart';
 
@@ -22,12 +23,13 @@ class RegisterView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return Scaffold(
       backgroundColor: Colors.blueGrey.shade50,
       body: BlocListener<RegisterCubit, RegisterState>(
         listener: (context, state) {
           if (state.status == RegisterStatus.failure) {
-            // 🌟 تحسين شكل عرض الخطأ بناءً على نوعه
             final isNetworkError =
                 state.errorMessage != null &&
                 state.errorMessage!.contains('الإنترنت');
@@ -42,7 +44,9 @@ class RegisterView extends StatelessWidget {
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: Text(state.errorMessage ?? 'حدث خطأ غير معروف'),
+                      child: Text(
+                        state.errorMessage ?? l10n.homeUnexpectedError,
+                      ),
                     ),
                   ],
                 ),
@@ -61,17 +65,17 @@ class RegisterView extends StatelessWidget {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
-                title: const Row(
+                title: Row(
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.mark_email_unread,
                       color: Colors.indigo,
                       size: 30,
                     ),
-                    SizedBox(width: 10),
+                    const SizedBox(width: 10),
                     Text(
-                      'تأكيد البريد الإلكتروني',
-                      style: TextStyle(
+                      l10n.registerEmailConfirmTitle,
+                      style: const TextStyle(
                         color: Colors.indigo,
                         fontWeight: FontWeight.bold,
                       ),
@@ -82,27 +86,25 @@ class RegisterView extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'تم إرسال رابط التفعيل إلى بريدك الإلكتروني بنجاح.',
-                      style: TextStyle(
+                    Text(
+                      l10n.registerEmailConfirmSent,
+                      style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
                       ),
                     ),
                     const SizedBox(height: 16),
-                    const Text(
-                      'الخطوات المتبقية:',
-                      style: TextStyle(
+                    Text(
+                      l10n.registerStepsHeader,
+                      style: const TextStyle(
                         color: Colors.blueGrey,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     const SizedBox(height: 8),
-                    const Text(
-                      '1️⃣ قم بفتح بريدك الإلكتروني واضغط على رابط التفعيل.\n'
-                      '2️⃣ إذا كنت أول شخص يسجل في هذا النظام، سيتم تفعيل حسابك كمدير عام (Admin) تلقائياً.\n'
-                      '3️⃣ أما إذا كنت موظفاً جديداً، يرجى إبلاغ المدير ليقوم بتحديد صلاحياتك من لوحة التحكم.',
-                      style: TextStyle(height: 1.6, fontSize: 14),
+                    Text(
+                      '${l10n.registerStep1}\n${l10n.registerStep2}\n${l10n.registerStep3}',
+                      style: const TextStyle(height: 1.6, fontSize: 14),
                     ),
                     const SizedBox(height: 16),
                     Container(
@@ -122,7 +124,7 @@ class RegisterView extends StatelessWidget {
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
-                              'لن تتمكن من الدخول للنظام قبل تنفيذ هاتين الخطوتين.',
+                              l10n.registerNoticeWarning,
                               style: TextStyle(
                                 color: Colors.red.shade700,
                                 fontWeight: FontWeight.bold,
@@ -145,10 +147,10 @@ class RegisterView extends StatelessWidget {
                       ),
                     ),
                     onPressed: () {
-                      Navigator.of(ctx).pop(); // إغلاق النافذة
-                      Navigator.of(context).pop(); // العودة لشاشة تسجيل الدخول
+                      Navigator.of(ctx).pop();
+                      Navigator.of(context).pop();
                     },
-                    child: const Text('فهمت، العودة لتسجيل الدخول'),
+                    child: Text(l10n.registerBackToLogin),
                   ),
                 ],
               ),
@@ -180,76 +182,69 @@ class RegisterView extends StatelessWidget {
                     color: Colors.blueGrey,
                   ),
                   const SizedBox(height: 16),
-                  const Text(
-                    'حساب موظف جديد',
-                    style: TextStyle(
+                  Text(
+                    l10n.registerTitle,
+                    style: const TextStyle(
                       fontSize: 26,
                       fontWeight: FontWeight.bold,
                       color: Colors.blueGrey,
                     ),
                   ),
                   const SizedBox(height: 8),
-                  const Text(
-                    'أدخل بياناتك لطلب الانضمام للنظام',
-                    style: TextStyle(color: Colors.grey),
+                  Text(
+                    l10n.registerSubtitle,
+                    style: const TextStyle(color: Colors.grey),
                   ),
                   const SizedBox(height: 32),
 
-                  // 1. حقل الاسم
                   TextField(
                     onChanged: (val) =>
                         context.read<RegisterCubit>().fullNameChanged(val),
-                    decoration: const InputDecoration(
-                      labelText: 'الاسم الكامل الثلاثي',
-                      prefixIcon: Icon(Icons.person_outline),
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: l10n.registerFullName,
+                      prefixIcon: const Icon(Icons.person_outline),
+                      border: const OutlineInputBorder(),
                     ),
                   ),
                   const SizedBox(height: 16),
 
-                  // 2. حقل الإيميل
                   TextField(
                     onChanged: (val) =>
                         context.read<RegisterCubit>().emailChanged(val),
                     keyboardType: TextInputType.emailAddress,
-                    decoration: const InputDecoration(
-                      labelText: 'البريد الإلكتروني',
-                      prefixIcon: Icon(Icons.email_outlined),
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: l10n.registerEmail,
+                      prefixIcon: const Icon(Icons.email_outlined),
+                      border: const OutlineInputBorder(),
                     ),
                   ),
                   const SizedBox(height: 16),
 
-                  // 3. حقل الباسورد
                   TextField(
                     onChanged: (val) =>
                         context.read<RegisterCubit>().passwordChanged(val),
                     obscureText: true,
-                    decoration: const InputDecoration(
-                      labelText: 'كلمة المرور (6 أحرف على الأقل)',
-                      prefixIcon: Icon(Icons.lock_outline),
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: l10n.registerPassword,
+                      prefixIcon: const Icon(Icons.lock_outline),
+                      border: const OutlineInputBorder(),
                     ),
                   ),
                   const SizedBox(height: 16),
 
-                  // 🌟 4. حقل تأكيد الباسورد الجديد
                   TextField(
                     onChanged: (val) => context
                         .read<RegisterCubit>()
                         .confirmPasswordChanged(val),
                     obscureText: true,
-                    decoration: const InputDecoration(
-                      labelText: 'تأكيد كلمة المرور',
-                      prefixIcon: Icon(
-                        Icons.lock_reset,
-                      ), // أيقونة مختلفة قليلاً للتمييز
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: l10n.registerConfirmPassword,
+                      prefixIcon: const Icon(Icons.lock_reset),
+                      border: const OutlineInputBorder(),
                     ),
                   ),
                   const SizedBox(height: 32),
 
-                  // 5. زر إنشاء الحساب
                   BlocBuilder<RegisterCubit, RegisterState>(
                     builder: (context, state) {
                       return state.status == RegisterStatus.loading
@@ -267,9 +262,9 @@ class RegisterView extends StatelessWidget {
                                 ),
                                 onPressed: () =>
                                     context.read<RegisterCubit>().submit(),
-                                child: const Text(
-                                  'تسجيل الحساب',
-                                  style: TextStyle(
+                                child: Text(
+                                  l10n.registerSubmitBtn,
+                                  style: const TextStyle(
                                     fontSize: 18,
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -280,13 +275,12 @@ class RegisterView extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
 
-                  // 6. زر الرجوع
                   TextButton.icon(
                     onPressed: () => Navigator.pop(context),
                     icon: const Icon(Icons.arrow_back, color: Colors.blueGrey),
-                    label: const Text(
-                      'إلغاء والعودة',
-                      style: TextStyle(color: Colors.blueGrey),
+                    label: Text(
+                      l10n.registerCancelBtn,
+                      style: const TextStyle(color: Colors.blueGrey),
                     ),
                   ),
                 ],

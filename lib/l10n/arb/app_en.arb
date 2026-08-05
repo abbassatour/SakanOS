@@ -1240,5 +1240,93 @@
   "addHistPriceFillAllWarning": "Please fill in all material prices!",
   "addHistPriceSaving": "Adding price record to history... ⏳",
   "addHistPriceSuccess": "Added to history successfully! ✅",
-  "addHistPriceSaveBtn": "Save Historical Price"
+  "addHistPriceSaveBtn": "Save Historical Price",
+  "legalAddActionBtn": "Add Legal Action",
+  "legalAddActionTooltip": "Register new legal action",
+  "legalNoAddPermissionTooltip": "No permission to add",
+  "legalEditActionTooltip": "Edit Action",
+  "legalNoEditPermissionTooltip": "No permission to edit",
+  "legalDeleteActionTooltip": "Delete Action",
+  "legalNoDeletePermissionTooltip": "No permission to delete",
+  "legalArchiveEmpty": "Legal archive is empty. No actions recorded.",
+  "legalNoSearchHits": "No results match your search.",
+  "legalColType": "Action Type",
+  "legalColClientProperty": "Client / Property",
+  "legalColActualDate": "Actual Date",
+  "legalColAttachments": "Attachments",
+  "legalColCreatedBy": "By",
+  "legalColActions": "Manage",
+  "legalDeleteConfirmTitle": "Confirm Deletion",
+  "legalDeleteConfirmMessage": "Are you sure you want to delete this legal action?",
+  "legalSearchHint": "Search client name, action type, or notes...",
+  "legalSearchResultCount": "{count} action(s)",
+  "@legalSearchResultCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "legalDialogAddTitle": "Register Legal Action",
+  "legalDialogEditTitle": "Edit Legal Action",
+  "legalDialogSelectContractLabel": "Select Contract / Client",
+  "legalDialogSelectContractWarning": "Please select a contract first",
+  "legalDialogActionTypeLabel": "Action Type",
+  "legalDialogActionDateLabel": "Action Date",
+  "legalDialogNotesLabel": "Notes & Details",
+  "legalDialogSaveEditBtn": "Save Changes",
+  "legalDialogSaveActionBtn": "Save Action",
+  "legalTypeWarning": "Warning Notice",
+  "legalTypeTransfer": "Property Transfer",
+  "legalTypeMortgage": "Mortgage",
+  "legalTypeSettlement": "Settlement",
+  "legalTypeLawsuit": "Lawsuit",
+
+  "registerTitle": "New Employee Account",
+  "registerSubtitle": "Enter your details to request access to the system",
+  "registerFullName": "Full Triple Name",
+  "registerEmail": "Email Address",
+  "registerPassword": "Password (At least 6 characters)",
+  "registerConfirmPassword": "Confirm Password",
+  "registerSubmitBtn": "Register Account",
+  "registerCancelBtn": "Cancel & Return",
+  "registerEmailConfirmTitle": "Email Confirmation",
+  "registerEmailConfirmSent": "Activation link sent to your email successfully.",
+  "registerStepsHeader": "Remaining steps:",
+  "registerStep1": "1️⃣ Open your email and click the activation link.",
+  "registerStep2": "2️⃣ If you are the first person registering, your account will be auto-activated as Admin.",
+  "registerStep3": "3️⃣ If you are a new employee, inform the admin to set your permissions from the control panel.",
+  "registerNoticeWarning": "You will not be able to log in until these steps are completed.",
+  "registerBackToLogin": "Got it, back to login",
+
+  "dollarHistoryTitle": "USD Exchange Rate History",
+  "dollarHistoryAddBtn": "Add Historical Rate",
+  "dollarHistoryEmptyRange": "No records found in this selected period.",
+  "dollarHistoryEmpty": "No USD rate history yet.",
+  "dollarHistoryAddHint": "Click the button below to add a rate.",
+  "dollarHistoryColDate": "Rate Date",
+  "dollarHistoryColRate": "Exchange Rate (SYP)",
+  "dollarHistoryColUser": "Created/Modified By",
+  "dollarHistoryColActions": "Action",
+  "dollarHistoryDeleteTooltip": "Delete this rate",
+  "dollarHistoryDeleteSuccess": "Rate deleted successfully",
+  "dollarHistoryFilterRange": "Filter from: {start} to: {end}",
+  "@dollarHistoryFilterRange": {
+    "placeholders": {
+      "start": { "type": "String" },
+      "end": { "type": "String" }
+    }
+  },
+  "dollarHistoryClearFilter": "Clear Filter",
+  "dollarHistoryBackTooltip": "Back to Settings",
+  "dollarHistoryFilterTooltip": "Filter by date",
+  "dollarHistoryTotalCount": "Total: {count}",
+  "@dollarHistoryTotalCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+
+  "priceHistoryTitle": "Historical Pricing History",
+  "priceHistoryEmptyRange": "No material records found in this selected period.",
+  "priceHistoryEmpty": "No price history saved yet.",
+  "priceHistoryDeleteSuccess": "Price record deleted successfully"
 }

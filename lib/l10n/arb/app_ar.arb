@@ -1235,5 +1235,93 @@
   "addHistPriceFillAllWarning": "الرجاء تعبئة جميع أسعار المواد!",
   "addHistPriceSaving": "جاري إضافة التسعيرة للسجل... ⏳",
   "addHistPriceSuccess": "تمت الإضافة للسجل بنجاح! ✅",
-  "addHistPriceSaveBtn": "حفظ التسعيرة التاريخية"
+  "addHistPriceSaveBtn": "حفظ التسعيرة التاريخية",
+  "legalAddActionBtn": "إضافة إجراء قانوني",
+  "legalAddActionTooltip": "تسجيل إجراء قانوني جديد",
+  "legalNoAddPermissionTooltip": "لا تملك صلاحية الإضافة",
+  "legalEditActionTooltip": "تعديل الإجراء",
+  "legalNoEditPermissionTooltip": "لا تملك صلاحية التعديل",
+  "legalDeleteActionTooltip": "حذف الإجراء",
+  "legalNoDeletePermissionTooltip": "لا تملك صلاحية الحذف",
+  "legalArchiveEmpty": "الأرشيف القانوني فارغ. لا توجد إجراءات مسجلة.",
+  "legalNoSearchHits": "لا توجد نتائج مطابقة لبحثك.",
+  "legalColType": "نوع الإجراء",
+  "legalColClientProperty": "العميل / العقار",
+  "legalColActualDate": "التاريخ الفعلي",
+  "legalColAttachments": "المرفقات",
+  "legalColCreatedBy": "بواسطة",
+  "legalColActions": "إدارة",
+  "legalDeleteConfirmTitle": "تأكيد الحذف",
+  "legalDeleteConfirmMessage": "هل أنت متأكد من حذف هذا الإجراء القانوني؟",
+  "legalSearchHint": "ابحث باسم العميل، نوع الإجراء، أو الملاحظات...",
+  "legalSearchResultCount": "{count} إجراء",
+  "@legalSearchResultCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "legalDialogAddTitle": "تسجيل إجراء قانوني",
+  "legalDialogEditTitle": "تعديل إجراء قانوني",
+  "legalDialogSelectContractLabel": "اختر العقد / العميل",
+  "legalDialogSelectContractWarning": "الرجاء اختيار العقد أولاً",
+  "legalDialogActionTypeLabel": "نوع الإجراء",
+  "legalDialogActionDateLabel": "تاريخ الإجراء",
+  "legalDialogNotesLabel": "ملاحظات وتفاصيل",
+  "legalDialogSaveEditBtn": "حفظ التعديلات",
+  "legalDialogSaveActionBtn": "حفظ الإجراء",
+  "legalTypeWarning": "إنذار",
+  "legalTypeTransfer": "فراغ عقاري",
+  "legalTypeMortgage": "رهن",
+  "legalTypeSettlement": "تسوية",
+  "legalTypeLawsuit": "دعوى قضائية",
+
+  "registerTitle": "حساب موظف جديد",
+  "registerSubtitle": "أدخل بياناتك لطلب الانضمام للنظام",
+  "registerFullName": "الاسم الكامل الثلاثي",
+  "registerEmail": "البريد الإلكتروني",
+  "registerPassword": "كلمة المرور (6 أحرف على الأقل)",
+  "registerConfirmPassword": "تأكيد كلمة المرور",
+  "registerSubmitBtn": "تسجيل الحساب",
+  "registerCancelBtn": "إلغاء والعودة",
+  "registerEmailConfirmTitle": "تأكيد البريد الإلكتروني",
+  "registerEmailConfirmSent": "تم إرسال رابط التفعيل إلى بريدك الإلكتروني بنجاح.",
+  "registerStepsHeader": "الخطوات المتبقية:",
+  "registerStep1": "1️⃣ قم بفتح بريدك الإلكتروني واضغط على رابط التفعيل.",
+  "registerStep2": "2️⃣ إذا كنت أول شخص يسجل في هذا النظام، سيتم تفعيل حسابك كمدير عام (Admin) تلقائياً.",
+  "registerStep3": "3️⃣ أما إذا كنت موظفاً جديداً، يرجى إبلاغ المدير ليقوم بتحديد صلاحياتك من لوحة التحكم.",
+  "registerNoticeWarning": "لن تتمكن من الدخول للنظام قبل تنفيذ هاتين الخطوتين.",
+  "registerBackToLogin": "فهمت، العودة لتسجيل الدخول",
+
+  "dollarHistoryTitle": "سجل أسعار الدولار",
+  "dollarHistoryAddBtn": "إضافة تسعيرة قديمة",
+  "dollarHistoryEmptyRange": "لا يوجد سجلات في هذه الفترة المحددة.",
+  "dollarHistoryEmpty": "لا يوجد سجل لأسعار الدولار بعد.",
+  "dollarHistoryAddHint": "اضغط على الزر بالأسفل لإضافة تسعيرة.",
+  "dollarHistoryColDate": "تاريخ التسعيرة",
+  "dollarHistoryColRate": "سعر الصرف (ل.س)",
+  "dollarHistoryColUser": "مُدخل/مُعدِّل التسعيرة",
+  "dollarHistoryColActions": "إجراء",
+  "dollarHistoryDeleteTooltip": "حذف هذه التسعيرة",
+  "dollarHistoryDeleteSuccess": "تم حذف التسعيرة بنجاح",
+  "dollarHistoryFilterRange": "تصفية من:  {start}   إلى:  {end}",
+  "@dollarHistoryFilterRange": {
+    "placeholders": {
+      "start": { "type": "String" },
+      "end": { "type": "String" }
+    }
+  },
+  "dollarHistoryClearFilter": "إلغاء الفلتر",
+  "dollarHistoryBackTooltip": "العودة للإعدادات",
+  "dollarHistoryFilterTooltip": "تصفية حسب التاريخ",
+  "dollarHistoryTotalCount": "الإجمالي: {count}",
+  "@dollarHistoryTotalCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+
+  "priceHistoryTitle": "سجل التسعيرات التاريخية",
+  "priceHistoryEmptyRange": "لا يوجد سجلات مواد في هذه الفترة المحددة.",
+  "priceHistoryEmpty": "لا يوجد سجل أسعار محفوظ بعد.",
+  "priceHistoryDeleteSuccess": "تم حذف التسعيرة بنجاح"
 }

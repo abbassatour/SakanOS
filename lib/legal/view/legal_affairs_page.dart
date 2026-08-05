@@ -1,15 +1,13 @@
-// lib/legal/view/legal_affairs_page.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:local_storage_api/local_storage_api.dart' show LegalAction;
+import 'package:our_home_erp_app/l10n/l10n.dart';
 
 import 'legal_attachments_page.dart';
 import '../cubit/legal_affairs_cubit.dart';
 import '../../auth/cubit/auth_cubit.dart';
 import '../../core/constants/app_permissions.dart';
-import 'package:local_storage_api/local_storage_api.dart' show LegalAction;
-
-// استيراد النوافذ المستقلة
 import 'dialogs/add_legal_action_dialog.dart';
 
 class LegalAffairsPage extends StatelessWidget {
@@ -33,6 +31,7 @@ class _LegalAffairsViewState extends State<LegalAffairsView> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final authState = context.watch<AuthCubit>().state;
 
     final canAddAction = authState.hasPermission(AppPermissions.addLegalAction);
@@ -48,16 +47,15 @@ class _LegalAffairsViewState extends State<LegalAffairsView> {
 
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
-      // 🌟 تطبيق صلاحية "الإضافة"
       floatingActionButton: FloatingActionButton.extended(
         heroTag: 'add_legal_action_fab',
         onPressed: canAddAction
             ? () => showAddOrEditLegalActionDialog(context)
             : null,
         icon: const Icon(Icons.gavel),
-        label: const Text(
-          'إضافة إجراء قانوني',
-          style: TextStyle(fontWeight: FontWeight.bold),
+        label: Text(
+          l10n.legalAddActionBtn,
+          style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         backgroundColor: canAddAction
             ? Colors.brown.shade600
@@ -65,8 +63,8 @@ class _LegalAffairsViewState extends State<LegalAffairsView> {
         foregroundColor: canAddAction ? Colors.white : Colors.grey.shade600,
         elevation: canAddAction ? 6 : 0,
         tooltip: canAddAction
-            ? 'تسجيل إجراء قانوني جديد'
-            : 'لا تملك صلاحية الإضافة',
+            ? l10n.legalAddActionTooltip
+            : l10n.legalNoAddPermissionTooltip,
       ),
 
       body: SafeArea(
@@ -76,7 +74,7 @@ class _LegalAffairsViewState extends State<LegalAffairsView> {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(
-                    state.errorMessage ?? 'حدث خطأ',
+                    state.errorMessage ?? l10n.clientUnexpectedError,
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                   backgroundColor: Colors.red.shade700,
@@ -102,9 +100,12 @@ class _LegalAffairsViewState extends State<LegalAffairsView> {
                       color: Colors.brown.shade200,
                     ),
                     const SizedBox(height: 16),
-                    const Text(
-                      'الأرشيف القانوني فارغ. لا توجد إجراءات مسجلة.',
-                      style: TextStyle(fontSize: 18, color: Colors.blueGrey),
+                    Text(
+                      l10n.legalArchiveEmpty,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        color: Colors.blueGrey,
+                      ),
                     ),
                   ],
                 ),
@@ -129,12 +130,12 @@ class _LegalAffairsViewState extends State<LegalAffairsView> {
 
             return Column(
               children: [
-                _buildSearchBar(filteredActions.length),
+                _buildSearchBar(context, filteredActions.length),
                 Expanded(
                   child: filteredActions.isEmpty
                       ? Center(
                           child: Text(
-                            'لا توجد نتائج مطابقة لبحثك.',
+                            l10n.legalNoSearchHits,
                             style: TextStyle(
                               fontSize: 16,
                               color: Colors.grey.shade600,
@@ -172,11 +173,11 @@ class _LegalAffairsViewState extends State<LegalAffairsView> {
                                     ),
                                     dataRowMinHeight: 60,
                                     dataRowMaxHeight: 80,
-                                    columns: const [
+                                    columns: [
                                       DataColumn(
                                         label: Text(
-                                          'نوع الإجراء',
-                                          style: TextStyle(
+                                          l10n.legalColType,
+                                          style: const TextStyle(
                                             fontWeight: FontWeight.bold,
                                             color: Colors.brown,
                                           ),
@@ -184,8 +185,8 @@ class _LegalAffairsViewState extends State<LegalAffairsView> {
                                       ),
                                       DataColumn(
                                         label: Text(
-                                          'العميل / العقار',
-                                          style: TextStyle(
+                                          l10n.legalColClientProperty,
+                                          style: const TextStyle(
                                             fontWeight: FontWeight.bold,
                                             color: Colors.brown,
                                           ),
@@ -193,8 +194,8 @@ class _LegalAffairsViewState extends State<LegalAffairsView> {
                                       ),
                                       DataColumn(
                                         label: Text(
-                                          'التاريخ الفعلي',
-                                          style: TextStyle(
+                                          l10n.legalColActualDate,
+                                          style: const TextStyle(
                                             fontWeight: FontWeight.bold,
                                             color: Colors.brown,
                                           ),
@@ -202,8 +203,8 @@ class _LegalAffairsViewState extends State<LegalAffairsView> {
                                       ),
                                       DataColumn(
                                         label: Text(
-                                          'المرفقات',
-                                          style: TextStyle(
+                                          l10n.legalColAttachments,
+                                          style: const TextStyle(
                                             fontWeight: FontWeight.bold,
                                             color: Colors.brown,
                                           ),
@@ -211,8 +212,8 @@ class _LegalAffairsViewState extends State<LegalAffairsView> {
                                       ),
                                       DataColumn(
                                         label: Text(
-                                          'بواسطة',
-                                          style: TextStyle(
+                                          l10n.legalColCreatedBy,
+                                          style: const TextStyle(
                                             fontWeight: FontWeight.bold,
                                             color: Colors.brown,
                                           ),
@@ -220,8 +221,8 @@ class _LegalAffairsViewState extends State<LegalAffairsView> {
                                       ),
                                       DataColumn(
                                         label: Text(
-                                          'إدارة',
-                                          style: TextStyle(
+                                          l10n.legalColActions,
+                                          style: const TextStyle(
                                             fontWeight: FontWeight.bold,
                                             color: Colors.brown,
                                           ),
@@ -245,7 +246,6 @@ class _LegalAffairsViewState extends State<LegalAffairsView> {
                                                 )
                                                 .firstOrNull
                                           : null;
-                                      // نجلب المرفقات هنا فقط لمعرفة "العدد" وعرضه في الشارة
                                       final attachments =
                                           state.attachmentsMap[action.id] ?? [];
 
@@ -275,7 +275,8 @@ class _LegalAffairsViewState extends State<LegalAffairsView> {
                                                   CrossAxisAlignment.start,
                                               children: [
                                                 Text(
-                                                  client?.name ?? 'عميل محذوف',
+                                                  client?.name ??
+                                                      l10n.contractDeletedClient,
                                                   style: const TextStyle(
                                                     fontWeight: FontWeight.bold,
                                                     fontSize: 14,
@@ -283,7 +284,7 @@ class _LegalAffairsViewState extends State<LegalAffairsView> {
                                                 ),
                                                 Text(
                                                   contract?.apartmentDetails ??
-                                                      'غير محدد',
+                                                      l10n.bldUnspecified,
                                                   style: const TextStyle(
                                                     fontSize: 12,
                                                     color: Colors.grey,
@@ -302,8 +303,6 @@ class _LegalAffairsViewState extends State<LegalAffairsView> {
                                               ),
                                             ),
                                           ),
-
-                                          // 🌟 استدعاء صفحة المرفقات وتمرير صلاحية "إدارة المرفقات"
                                           DataCell(
                                             InkWell(
                                               onTap: () {
@@ -311,7 +310,7 @@ class _LegalAffairsViewState extends State<LegalAffairsView> {
                                                   context,
                                                   LegalAttachmentsPage.route(
                                                     action,
-                                                    canManageAttachments, // 👈 التعديل هنا: تمرير الصلاحية المخصصة
+                                                    canManageAttachments,
                                                     context
                                                         .read<
                                                           LegalAffairsCubit
@@ -370,7 +369,6 @@ class _LegalAffairsViewState extends State<LegalAffairsView> {
                                               ),
                                             ),
                                           ),
-
                                           DataCell(
                                             Column(
                                               mainAxisAlignment:
@@ -393,7 +391,7 @@ class _LegalAffairsViewState extends State<LegalAffairsView> {
                                                     Text(
                                                       state.userNamesMap[action
                                                               .userId] ??
-                                                          'مجهول',
+                                                          l10n.clientUnknownUser,
                                                       style: TextStyle(
                                                         fontWeight:
                                                             FontWeight.bold,
@@ -419,13 +417,10 @@ class _LegalAffairsViewState extends State<LegalAffairsView> {
                                               ],
                                             ),
                                           ),
-
-                                          // 🌟 تطبيق صلاحية التعديل والحذف
                                           DataCell(
                                             Row(
                                               mainAxisSize: MainAxisSize.min,
                                               children: [
-                                                // زر التعديل
                                                 IconButton(
                                                   icon: Icon(
                                                     Icons.edit,
@@ -434,8 +429,8 @@ class _LegalAffairsViewState extends State<LegalAffairsView> {
                                                         : Colors.grey.shade300,
                                                   ),
                                                   tooltip: canEditAction
-                                                      ? 'تعديل الإجراء'
-                                                      : 'لا تملك صلاحية التعديل',
+                                                      ? l10n.legalEditActionTooltip
+                                                      : l10n.legalNoEditPermissionTooltip,
                                                   onPressed: canEditAction
                                                       ? () =>
                                                             showAddOrEditLegalActionDialog(
@@ -445,7 +440,6 @@ class _LegalAffairsViewState extends State<LegalAffairsView> {
                                                             )
                                                       : null,
                                                 ),
-                                                // زر الحذف
                                                 IconButton(
                                                   icon: Icon(
                                                     Icons.delete_outline,
@@ -454,8 +448,8 @@ class _LegalAffairsViewState extends State<LegalAffairsView> {
                                                         : Colors.grey.shade300,
                                                   ),
                                                   tooltip: canDeleteAction
-                                                      ? 'حذف الإجراء'
-                                                      : 'لا تملك صلاحية الحذف',
+                                                      ? l10n.legalDeleteActionTooltip
+                                                      : l10n.legalNoDeletePermissionTooltip,
                                                   onPressed: canDeleteAction
                                                       ? () =>
                                                             _confirmDeleteAction(
@@ -485,10 +479,8 @@ class _LegalAffairsViewState extends State<LegalAffairsView> {
     );
   }
 
-  // ==========================================
-  // دوال مساعدة للواجهة
-  // ==========================================
-  Widget _buildSearchBar(int count) {
+  Widget _buildSearchBar(BuildContext context, int count) {
+    final l10n = context.l10n;
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
       decoration: BoxDecoration(
@@ -514,7 +506,7 @@ class _LegalAffairsViewState extends State<LegalAffairsView> {
                 ),
                 decoration: InputDecoration(
                   prefixIcon: const Icon(Icons.search, color: Colors.brown),
-                  hintText: 'ابحث باسم العميل، نوع الإجراء، أو الملاحظات...',
+                  hintText: l10n.legalSearchHint,
                   filled: true,
                   fillColor: Colors.grey.shade50,
                   contentPadding: const EdgeInsets.symmetric(
@@ -564,7 +556,7 @@ class _LegalAffairsViewState extends State<LegalAffairsView> {
               border: Border.all(color: Colors.brown.shade200),
             ),
             child: Text(
-              '$count إجراء',
+              l10n.legalSearchResultCount(count),
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 color: Colors.brown.shade700,
@@ -580,22 +572,24 @@ class _LegalAffairsViewState extends State<LegalAffairsView> {
   Widget _buildActionTypeChip(String type) {
     Color bgColor;
     Color textColor;
-    switch (type) {
-      case 'إنذار':
-        bgColor = Colors.orange.shade100;
-        textColor = Colors.orange.shade900;
-      case 'فراغ عقاري':
-        bgColor = Colors.green.shade100;
-        textColor = Colors.green.shade900;
-      case 'رهن':
-        bgColor = Colors.purple.shade100;
-        textColor = Colors.purple.shade900;
-      case 'دعوى قضائية':
-        bgColor = Colors.red.shade100;
-        textColor = Colors.red.shade900;
-      default:
-        bgColor = Colors.blue.shade100;
-        textColor = Colors.blue.shade900;
+    if (type.contains('إنذار') || type.toLowerCase().contains('warning')) {
+      bgColor = Colors.orange.shade100;
+      textColor = Colors.orange.shade900;
+    } else if (type.contains('فراغ') ||
+        type.toLowerCase().contains('transfer')) {
+      bgColor = Colors.green.shade100;
+      textColor = Colors.green.shade900;
+    } else if (type.contains('رهن') ||
+        type.toLowerCase().contains('mortgage')) {
+      bgColor = Colors.purple.shade100;
+      textColor = Colors.purple.shade900;
+    } else if (type.contains('دعوى') ||
+        type.toLowerCase().contains('lawsuit')) {
+      bgColor = Colors.red.shade100;
+      textColor = Colors.red.shade900;
+    } else {
+      bgColor = Colors.blue.shade100;
+      textColor = Colors.blue.shade900;
     }
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -615,15 +609,19 @@ class _LegalAffairsViewState extends State<LegalAffairsView> {
   }
 
   void _confirmDeleteAction(BuildContext context, LegalAction action) {
+    final l10n = context.l10n;
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('تأكيد الحذف', style: TextStyle(color: Colors.red)),
-        content: const Text('هل أنت متأكد من حذف هذا الإجراء القانوني؟'),
+        title: Text(
+          l10n.legalDeleteConfirmTitle,
+          style: const TextStyle(color: Colors.red),
+        ),
+        content: Text(l10n.legalDeleteConfirmMessage),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('إلغاء'),
+            child: Text(l10n.btnCancel),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -634,7 +632,7 @@ class _LegalAffairsViewState extends State<LegalAffairsView> {
               context.read<LegalAffairsCubit>().deleteLegalAction(action.id);
               Navigator.pop(ctx);
             },
-            child: const Text('حذف'),
+            child: Text(l10n.adminRolesDeleteConfirmBtn),
           ),
         ],
       ),

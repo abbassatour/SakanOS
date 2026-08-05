@@ -1,8 +1,8 @@
-// lib/legal/view/dialogs/add_legal_action_dialog.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:local_storage_api/local_storage_api.dart' show LegalAction;
+import 'package:our_home_erp_app/l10n/l10n.dart';
 
 import '../../cubit/legal_affairs_cubit.dart';
 
@@ -10,13 +10,12 @@ void showAddOrEditLegalActionDialog(
   BuildContext context, {
   LegalAction? actionToEdit,
 }) {
-  // 🌟 الحل: نلتقط الـ Cubit من سياق الصفحة قبل فتح النافذة المنبثقة
   final legalCubit = context.read<LegalAffairsCubit>();
 
   showDialog(
     context: context,
     builder: (ctx) => BlocProvider.value(
-      value: legalCubit, // 🌟 نمرر الـ Cubit للنافذة لكي لا تفقد الاتصال
+      value: legalCubit,
       child: AddOrEditLegalActionDialog(actionToEdit: actionToEdit),
     ),
   );
@@ -46,11 +45,8 @@ class _AddOrEditLegalActionDialogState
     super.initState();
     final cubit = context.read<LegalAffairsCubit>();
 
-    // 🌟 التعبئة التلقائية إذا كنا في وضع "التعديل"
     if (isEditing) {
       final action = widget.actionToEdit!;
-
-      // تأمين: التأكد من أن العقد القديم لا يزال موجوداً في القائمة
       bool contractExists = cubit.state.contracts.any(
         (c) => c.id == action.contractId,
       );
@@ -74,6 +70,19 @@ class _AddOrEditLegalActionDialogState
   Widget build(BuildContext context) {
     final cubit = context.read<LegalAffairsCubit>();
     final state = cubit.state;
+    final l10n = context.l10n;
+
+    final actionTypes = [
+      l10n.legalTypeWarning,
+      l10n.legalTypeTransfer,
+      l10n.legalTypeMortgage,
+      l10n.legalTypeSettlement,
+      l10n.legalTypeLawsuit,
+    ];
+
+    if (!actionTypes.contains(selectedActionType)) {
+      selectedActionType = actionTypes.first;
+    }
 
     return AlertDialog(
       title: Row(
@@ -84,7 +93,7 @@ class _AddOrEditLegalActionDialogState
           ),
           const SizedBox(width: 8),
           Text(
-            isEditing ? 'تعديل إجراء قانوني' : 'تسجيل إجراء قانوني',
+            isEditing ? l10n.legalDialogEditTitle : l10n.legalDialogAddTitle,
             style: const TextStyle(color: Colors.brown),
           ),
         ],
@@ -96,9 +105,9 @@ class _AddOrEditLegalActionDialogState
             mainAxisSize: MainAxisSize.min,
             children: [
               DropdownButtonFormField<String>(
-                decoration: const InputDecoration(
-                  labelText: 'اختر العقد / العميل',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: l10n.legalDialogSelectContractLabel,
+                  border: const OutlineInputBorder(),
                 ),
                 isExpanded: true,
                 value: selectedContractId,
@@ -109,7 +118,7 @@ class _AddOrEditLegalActionDialogState
                   return DropdownMenuItem(
                     value: contract.id,
                     child: Text(
-                      '${client?.name ?? "مجهول"} - ${contract.apartmentDetails}',
+                      '${client?.name ?? l10n.clientUnknownUser} - ${contract.apartmentDetails}',
                       overflow: TextOverflow.ellipsis,
                     ),
                   );
@@ -118,12 +127,12 @@ class _AddOrEditLegalActionDialogState
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
-                decoration: const InputDecoration(
-                  labelText: 'نوع الإجراء',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: l10n.legalDialogActionTypeLabel,
+                  border: const OutlineInputBorder(),
                 ),
                 value: selectedActionType,
-                items: ['إنذار', 'فراغ عقاري', 'رهن', 'تسوية', 'دعوى قضائية']
+                items: actionTypes
                     .map((e) => DropdownMenuItem(value: e, child: Text(e)))
                     .toList(),
                 onChanged: (val) => setState(() => selectedActionType = val!),
@@ -134,7 +143,7 @@ class _AddOrEditLegalActionDialogState
                   side: BorderSide(color: Colors.grey.shade400),
                   borderRadius: BorderRadius.circular(4),
                 ),
-                title: const Text('تاريخ الإجراء'),
+                title: Text(l10n.legalDialogActionDateLabel),
                 subtitle: Text(
                   DateFormat('yyyy-MM-dd').format(selectedDate),
                   style: const TextStyle(fontWeight: FontWeight.bold),
@@ -153,9 +162,9 @@ class _AddOrEditLegalActionDialogState
               const SizedBox(height: 16),
               TextField(
                 controller: notesController,
-                decoration: const InputDecoration(
-                  labelText: 'ملاحظات وتفاصيل',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: l10n.legalDialogNotesLabel,
+                  border: const OutlineInputBorder(),
                 ),
                 maxLines: 3,
               ),
@@ -166,7 +175,7 @@ class _AddOrEditLegalActionDialogState
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('إلغاء'),
+          child: Text(l10n.btnCancel),
         ),
         ElevatedButton(
           style: ElevatedButton.styleFrom(
@@ -176,13 +185,12 @@ class _AddOrEditLegalActionDialogState
           onPressed: () {
             if (selectedContractId == null) {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('الرجاء اختيار العقد أولاً')),
+                SnackBar(content: Text(l10n.legalDialogSelectContractWarning)),
               );
               return;
             }
 
             if (isEditing) {
-              // 🌟 استدعاء دالة التعديل
               cubit.updateLegalAction(
                 actionId: widget.actionToEdit!.id,
                 contractId: selectedContractId!,
@@ -191,7 +199,6 @@ class _AddOrEditLegalActionDialogState
                 notes: notesController.text,
               );
             } else {
-              // 🌟 استدعاء دالة الإضافة
               cubit.addLegalAction(
                 contractId: selectedContractId!,
                 actionType: selectedActionType,
@@ -201,7 +208,11 @@ class _AddOrEditLegalActionDialogState
             }
             Navigator.pop(context);
           },
-          child: Text(isEditing ? 'حفظ التعديلات' : 'حفظ الإجراء'),
+          child: Text(
+            isEditing
+                ? l10n.legalDialogSaveEditBtn
+                : l10n.legalDialogSaveActionBtn,
+          ),
         ),
       ],
     );
