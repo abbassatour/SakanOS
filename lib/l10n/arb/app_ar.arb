@@ -1678,5 +1678,6 @@
   "pdfClientSignature": "توقيع العميل",
   "pdfRecipientSignature": "توقيع المستلم",
   "pdfDelayPenalty": "غرامة تأخير:",
-  "pdfPriceAfterPenalty": "سعر المتر بعد الغرامة:"
+  "pdfPriceAfterPenalty": "سعر المتر بعد الغرامة:",
+  "currencySyp": "ل.س"
 }

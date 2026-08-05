@@ -33,6 +33,13 @@ class ContractsDataTable extends StatelessWidget {
   final Map<String, String> userNamesMap;
   final Map<String, List<ContractAttachment>> attachmentsMap;
 
+  String _getContractTypeLabel(BuildContext context, String type) {
+    final l10n = context.l10n;
+    if (type == 'متخصص') return l10n.contractTypeAllocatedName;
+    if (type == 'لاحق التخصص') return l10n.contractTypeUnallocatedName;
+    return type;
+  }
+
   Future<void> _navigateToContractDetails(
     BuildContext context,
     Contract contract,
@@ -230,10 +237,14 @@ class ContractsDataTable extends StatelessWidget {
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),
-                  DataCell(Text(contract.contractType)),
                   DataCell(
                     Text(
-                      '${NumberFormatters.formatWithCommas(contract.baseMeterPriceAtSigning)} ل.س',
+                      _getContractTypeLabel(context, contract.contractType),
+                    ),
+                  ),
+                  DataCell(
+                    Text(
+                      '${NumberFormatters.formatWithCommas(contract.baseMeterPriceAtSigning)} ${l10n.currencySyp}',
                       style: const TextStyle(
                         color: Colors.teal,
                         fontWeight: FontWeight.bold,

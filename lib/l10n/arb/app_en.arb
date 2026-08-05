@@ -1684,5 +1684,6 @@
   "pdfClientSignature": "Client Signature",
   "pdfRecipientSignature": "Recipient Signature",
   "pdfDelayPenalty": "Late Penalty:",
-  "pdfPriceAfterPenalty": "Price After Penalty:"
+  "pdfPriceAfterPenalty": "Price After Penalty:",
+  "currencySyp": "SYP"
 }
