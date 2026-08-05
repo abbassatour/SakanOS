@@ -1,6 +1,7 @@
 // contracts/widgets/contracts_search_bar.dart
 
 import 'package:flutter/material.dart';
+import 'package:our_home_erp_app/l10n/l10n.dart';
 
 class ContractsSearchBar extends StatelessWidget {
   const ContractsSearchBar({
@@ -16,6 +17,8 @@ class ContractsSearchBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
       decoration: BoxDecoration(
@@ -37,7 +40,7 @@ class ContractsSearchBar extends StatelessWidget {
                 ),
                 decoration: InputDecoration(
                   prefixIcon: const Icon(Icons.search, color: Colors.teal),
-                  hintText: 'ابحث عن اسم العميل، الوصف، أو رقم العقد...',
+                  hintText: l10n.contractSearchHint,
                   filled: true,
                   fillColor: Colors.white,
                   contentPadding: const EdgeInsets.symmetric(
@@ -83,7 +86,7 @@ class ContractsSearchBar extends StatelessWidget {
               border: Border.all(color: Colors.teal.shade200),
             ),
             child: Text(
-              'النتيجة: $resultCount',
+              l10n.contractSearchResultCount(resultCount),
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 color: Colors.teal.shade700,

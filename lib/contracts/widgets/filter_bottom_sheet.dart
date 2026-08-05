@@ -1,6 +1,7 @@
 // contracts/widgets/filter_bottom_sheet.dart
 
 import 'package:flutter/material.dart';
+import 'package:our_home_erp_app/l10n/l10n.dart';
 
 class ContractFilters {
   const ContractFilters({
@@ -108,19 +109,21 @@ class _FilterBottomSheetContentState extends State<_FilterBottomSheetContent> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return Padding(
       padding: const EdgeInsets.all(24),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             children: [
-              Icon(Icons.filter_alt, color: Colors.teal, size: 28),
-              SizedBox(width: 8),
+              const Icon(Icons.filter_alt, color: Colors.teal, size: 28),
+              const SizedBox(width: 8),
               Text(
-                'فرز وتصفية العقود',
-                style: TextStyle(
+                l10n.contractFilterTitle,
+                style: const TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                   color: Colors.teal,
@@ -129,9 +132,9 @@ class _FilterBottomSheetContentState extends State<_FilterBottomSheetContent> {
             ],
           ),
           const SizedBox(height: 24),
-          const Text(
-            '1. حالة العقد (أرشفة):',
-            style: TextStyle(
+          Text(
+            l10n.contractFilterStatusHeader,
+            style: const TextStyle(
               fontWeight: FontWeight.bold,
               color: Colors.black87,
             ),
@@ -143,21 +146,21 @@ class _FilterBottomSheetContentState extends State<_FilterBottomSheetContent> {
             children: [
               _buildChipRadio(
                 'all',
-                '🌐 الكل',
+                l10n.contractFilterStatusAll,
                 _tempStatus,
                 Colors.blueGrey,
                 (v) => setState(() => _tempStatus = v),
               ),
               _buildChipRadio(
                 'active',
-                '📈 عقود جارية',
+                l10n.contractFilterStatusActive,
                 _tempStatus,
                 Colors.teal,
                 (v) => setState(() => _tempStatus = v),
               ),
               _buildChipRadio(
                 'completed',
-                '🔒 عقود مكتملة',
+                l10n.contractFilterStatusCompleted,
                 _tempStatus,
                 Colors.green,
                 (v) => setState(() => _tempStatus = v),
@@ -165,9 +168,9 @@ class _FilterBottomSheetContentState extends State<_FilterBottomSheetContent> {
             ],
           ),
           const Divider(height: 32, thickness: 1.5),
-          const Text(
-            '2. نوع العقد:',
-            style: TextStyle(
+          Text(
+            l10n.contractFilterTypeHeader,
+            style: const TextStyle(
               fontWeight: FontWeight.bold,
               color: Colors.black87,
             ),
@@ -179,21 +182,21 @@ class _FilterBottomSheetContentState extends State<_FilterBottomSheetContent> {
             children: [
               _buildChipRadio(
                 'all',
-                '🌐 الكل',
+                l10n.contractFilterTypeAll,
                 _tempType,
                 Colors.blueGrey,
                 (v) => setState(() => _tempType = v),
               ),
               _buildChipRadio(
                 'allocated',
-                '🏢 متخصص (شقة محددة)',
+                l10n.contractFilterTypeAllocated,
                 _tempType,
                 Colors.indigo,
                 (v) => setState(() => _tempType = v),
               ),
               _buildChipRadio(
                 'unallocated',
-                '📊 لاحق التخصص',
+                l10n.contractFilterTypeUnallocated,
                 _tempType,
                 Colors.deepOrange,
                 (v) => setState(() => _tempType = v),
@@ -201,9 +204,9 @@ class _FilterBottomSheetContentState extends State<_FilterBottomSheetContent> {
             ],
           ),
           const Divider(height: 32, thickness: 1.5),
-          const Text(
-            '3. حالة التسليم الفعلي للشقة:',
-            style: TextStyle(
+          Text(
+            l10n.contractFilterHandoverHeader,
+            style: const TextStyle(
               fontWeight: FontWeight.bold,
               color: Colors.black87,
             ),
@@ -215,21 +218,21 @@ class _FilterBottomSheetContentState extends State<_FilterBottomSheetContent> {
             children: [
               _buildChipRadio(
                 'all',
-                '🌐 الكل',
+                l10n.contractFilterHandoverAll,
                 _tempHandover,
                 Colors.blueGrey,
                 (v) => setState(() => _tempHandover = v),
               ),
               _buildChipRadio(
                 'delivered',
-                '🔑 تم تسليم الشقة',
+                l10n.contractFilterHandoverDelivered,
                 _tempHandover,
                 Colors.green,
                 (v) => setState(() => _tempHandover = v),
               ),
               _buildChipRadio(
                 'pending',
-                '⏳ بانتظار التسليم',
+                l10n.contractFilterHandoverPending,
                 _tempHandover,
                 Colors.orange,
                 (v) => setState(() => _tempHandover = v),
@@ -246,9 +249,12 @@ class _FilterBottomSheetContentState extends State<_FilterBottomSheetContent> {
                 foregroundColor: Colors.white,
               ),
               icon: const Icon(Icons.check_circle),
-              label: const Text(
-                'تطبيق الفرز',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              label: Text(
+                l10n.contractFilterApply,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               onPressed: _applyFilters,
             ),

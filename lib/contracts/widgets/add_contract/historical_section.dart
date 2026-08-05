@@ -1,8 +1,8 @@
 // lib/contracts/widgets/add_contract/historical_section.dart
 
 import 'package:flutter/material.dart';
-
 import 'package:our_home_erp_app/core/utils/formatters.dart';
+import 'package:our_home_erp_app/l10n/l10n.dart';
 
 class HistoricalSection extends StatelessWidget {
   const HistoricalSection({
@@ -47,6 +47,8 @@ class HistoricalSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -55,17 +57,14 @@ class HistoricalSection extends StatelessWidget {
         child: Column(
           children: [
             SwitchListTile(
-              title: const Text(
-                'إدخال عقد قديم (تاريخي)',
-                style: TextStyle(
+              title: Text(
+                l10n.contractHistToggleTitle,
+                style: const TextStyle(
                   color: Colors.red,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              subtitle: const Text(
-                'يتيح لك تحديد تاريخ توقيع قديم وإدخال أسعار المواد '
-                'في ذلك الوقت.',
-              ),
+              subtitle: Text(l10n.contractHistToggleSubtitle),
               value: isHistorical,
               activeThumbColor: Colors.red,
               onChanged: onToggle,
@@ -75,9 +74,9 @@ class HistoricalSection extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    '📅 تاريخ التوقيع:',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                  Text(
+                    l10n.contractHistSignDateLabel,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                   TextButton.icon(
                     icon: const Icon(Icons.calendar_month, color: Colors.red),
@@ -103,9 +102,9 @@ class HistoricalSection extends StatelessWidget {
                 ),
                 child: Column(
                   children: [
-                    const Text(
-                      '💰 أسعار المواد في ذلك التاريخ (ل.س)',
-                      style: TextStyle(
+                    Text(
+                      l10n.contractHistMaterialsTitle,
+                      style: const TextStyle(
                         color: Colors.red,
                         fontWeight: FontWeight.bold,
                       ),
@@ -114,15 +113,24 @@ class HistoricalSection extends StatelessWidget {
                     Row(
                       children: [
                         Expanded(
-                          child: _buildPriceField('الحديد', histIronCtrl),
+                          child: _buildPriceField(
+                            l10n.contractHistIron,
+                            histIronCtrl,
+                          ),
                         ),
                         const SizedBox(width: 8),
                         Expanded(
-                          child: _buildPriceField('الإسمنت', histCementCtrl),
+                          child: _buildPriceField(
+                            l10n.contractHistCement,
+                            histCementCtrl,
+                          ),
                         ),
                         const SizedBox(width: 8),
                         Expanded(
-                          child: _buildPriceField('البلوك 15', histBlockCtrl),
+                          child: _buildPriceField(
+                            l10n.contractHistBlock,
+                            histBlockCtrl,
+                          ),
                         ),
                       ],
                     ),
@@ -131,21 +139,21 @@ class HistoricalSection extends StatelessWidget {
                       children: [
                         Expanded(
                           child: _buildPriceField(
-                            'الكوفراج',
+                            l10n.contractHistFormwork,
                             histFormworkCtrl,
                           ),
                         ),
                         const SizedBox(width: 8),
                         Expanded(
                           child: _buildPriceField(
-                            'حصويات',
+                            l10n.contractHistAggregates,
                             histAggregatesCtrl,
                           ),
                         ),
                         const SizedBox(width: 8),
                         Expanded(
                           child: _buildPriceField(
-                            'أجرة العامل',
+                            l10n.contractHistWorker,
                             histWorkerCtrl,
                           ),
                         ),

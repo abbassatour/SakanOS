@@ -1,6 +1,7 @@
-// contracts/widgets/add_contract/auto_coefficients_section.dart
+// lib/contracts/widgets/add_contract/auto_coefficients_section.dart
 
 import 'package:flutter/material.dart';
+import 'package:our_home_erp_app/l10n/l10n.dart';
 
 class AutoCoefficientsSection extends StatelessWidget {
   const AutoCoefficientsSection({
@@ -13,6 +14,7 @@ class AutoCoefficientsSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (coefficients.isEmpty) return const SizedBox.shrink();
+    final l10n = context.l10n;
 
     return Column(
       children: [
@@ -26,13 +28,13 @@ class AutoCoefficientsSection extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Row(
+              Row(
                 children: [
-                  Icon(Icons.auto_awesome, color: Colors.teal),
-                  SizedBox(width: 8),
+                  const Icon(Icons.auto_awesome, color: Colors.teal),
+                  const SizedBox(width: 8),
                   Text(
-                    'تم سحب معاملات التميز آلياً:',
-                    style: TextStyle(
+                    l10n.contractAutoCoeffsTitle,
+                    style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       color: Colors.teal,
                     ),

@@ -1,12 +1,13 @@
-// contracts/widgets/dialogs/verify_pin_dialog.dart
+// lib/contracts/widgets/dialogs/verify_pin_dialog.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:our_home_erp_app/auth/cubit/auth_cubit.dart';
+import 'package:our_home_erp_app/l10n/l10n.dart';
 
 Future<bool> showVerifyPinDialog(BuildContext context) async {
   final authCubit = context.read<AuthCubit>();
 
-  // 🌟 التحقق من فترة السماح للمطور
   if (authCubit.state.isPinGracePeriodActive) {
     return true;
   }
@@ -18,7 +19,6 @@ Future<bool> showVerifyPinDialog(BuildContext context) async {
     builder: (ctx) => _VerifyPinDialogContent(correctPin: correctPin),
   );
 
-  // 🌟 تفعيل الجلسة
   if (result == true) {
     authCubit.markPinVerified();
   }
@@ -51,12 +51,13 @@ class _VerifyPinDialogContentState extends State<_VerifyPinDialogContent> {
   }
 
   void _verify() {
+    final l10n = context.l10n;
     if (_pinController.text == widget.correctPin) {
       Navigator.pop(context, true);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('الرمز غير صحيح! ❌'),
+        SnackBar(
+          content: Text(l10n.pinErrorInvalid),
           backgroundColor: Colors.red,
         ),
       );
@@ -66,23 +67,26 @@ class _VerifyPinDialogContentState extends State<_VerifyPinDialogContent> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return AlertDialog(
-      title: const Row(
+      title: Row(
         children: [
-          Icon(Icons.lock_outline, color: Colors.red),
-          SizedBox(width: 8),
+          const Icon(Icons.lock_outline, color: Colors.red),
+          const SizedBox(width: 8),
           Text(
-            'تأكيد الصلاحية',
-            style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+            l10n.pinDialogTitle,
+            style: const TextStyle(
+              color: Colors.red,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ],
       ),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Text(
-            'هذه العملية حساسة مالياً. يرجى إدخال رمز الأمان الخاص بك:',
-          ),
+          Text(l10n.pinDialogSubtitle),
           const SizedBox(height: 16),
           TextField(
             controller: _pinController,
@@ -103,7 +107,10 @@ class _VerifyPinDialogContentState extends State<_VerifyPinDialogContent> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context, false),
-          child: const Text('إلغاء', style: TextStyle(color: Colors.grey)),
+          child: Text(
+            l10n.btnCancel,
+            style: const TextStyle(color: Colors.grey),
+          ),
         ),
         ElevatedButton(
           style: ElevatedButton.styleFrom(
@@ -111,7 +118,7 @@ class _VerifyPinDialogContentState extends State<_VerifyPinDialogContent> {
             foregroundColor: Colors.white,
           ),
           onPressed: _verify,
-          child: const Text('تأكيد'),
+          child: Text(l10n.btnConfirmPin),
         ),
       ],
     );

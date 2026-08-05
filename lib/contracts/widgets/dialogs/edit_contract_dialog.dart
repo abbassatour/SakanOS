@@ -8,13 +8,13 @@ import 'package:our_home_erp_app/auth/cubit/auth_cubit.dart';
 import 'package:our_home_erp_app/contracts/cubit/contracts_cubit.dart';
 import 'package:our_home_erp_app/contracts/widgets/dialogs/verify_pin_dialog.dart';
 import 'package:our_home_erp_app/core/constants/app_permissions.dart';
+import 'package:our_home_erp_app/l10n/l10n.dart';
 
 import 'edit_contract_sections/penalty_settings_section.dart';
 
 void showEditContractDialog(BuildContext parentContext, Contract contract) {
   final authState = parentContext.read<AuthCubit>().state;
   final canEdit = authState.hasPermission(AppPermissions.createContracts);
-  // صلاحية الحذف (عادة نربطها بصلاحية الإنشاء أو المدير)
   final canDelete = authState.hasPermission(AppPermissions.createContracts);
 
   unawaited(
@@ -86,17 +86,15 @@ class _EditContractDialogContentState
     super.dispose();
   }
 
-  // 🌟 دالة الحفظ الموحدة (يتم استدعاؤها من أزرار الحفظ في التبويبات المختلفة)
   Future<void> _saveContractData(String successMessage) async {
-    // 🛡️ حماية صارمة: منع الحقول الفارغة نهائياً
+    final l10n = context.l10n;
+
     if (isAllocated && isPenaltyActive) {
       if (penaltyPctCtrl.text.trim().isEmpty ||
           double.tryParse(penaltyPctCtrl.text) == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'أدخل نسبة غرامة صحيحة! الحقل لا يمكن أن يكون فارغاً.',
-            ),
+          SnackBar(
+            content: Text(l10n.contractEditValPenaltyPct),
             backgroundColor: Colors.red,
           ),
         );
@@ -106,8 +104,8 @@ class _EditContractDialogContentState
           int.tryParse(penaltyIntervalCtrl.text) == null ||
           int.parse(penaltyIntervalCtrl.text) <= 0) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('مدة التطبيق يجب أن تكون شهراً واحداً على الأقل.'),
+          SnackBar(
+            content: Text(l10n.contractEditValPenaltyInterval),
             backgroundColor: Colors.red,
           ),
         );
@@ -115,7 +113,7 @@ class _EditContractDialogContentState
       }
     }
 
-    Navigator.pop(context); // إغلاق النافذة
+    Navigator.pop(context);
     final isAuth = await showVerifyPinDialog(widget.parentContext);
 
     if (isAuth && widget.parentContext.mounted) {
@@ -126,7 +124,6 @@ class _EditContractDialogContentState
           guarantorName: guarantorController.text.isEmpty
               ? 'بدون كفيل'
               : guarantorController.text,
-          // الحفاظ على البيانات المالية
           installmentsCount: widget.contract.installmentsCount,
           agreedMonthlyAmount: widget.contract.agreedMonthlyAmount,
           contractDate: widget.contract.contractDate,
@@ -148,22 +145,23 @@ class _EditContractDialogContentState
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final contract = widget.contract;
     final canEdit = widget.canEdit;
 
     return AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       titlePadding: const EdgeInsets.all(0),
-      contentPadding: EdgeInsets.zero, // تصفير الحواف لتمتد التبويبات بشكل جميل
+      contentPadding: EdgeInsets.zero,
       backgroundColor: Colors.white,
       actionsPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       actions: [
         TextButton.icon(
           onPressed: () => Navigator.pop(context),
           icon: const Icon(Icons.close),
-          label: const Text(
-            'إغلاق النافذة',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          label: Text(
+            l10n.contractEditCloseWindow,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
           ),
           style: TextButton.styleFrom(
             foregroundColor: Colors.blueGrey.shade600,
@@ -171,15 +169,13 @@ class _EditContractDialogContentState
           ),
         ),
       ],
-      // 🌟 بناء هيكل التبويبات (Tabs) بتصميم عصري
       content: DefaultTabController(
         length: 2,
         child: SizedBox(
           width: 650,
-          height: 520, // زيادة مساحة النافذة للراحة البصرية
+          height: 520,
           child: Column(
             children: [
-              // --- 1. رأس النافذة والتبويبات ---
               Container(
                 decoration: BoxDecoration(
                   color: Colors.indigo.shade50.withOpacity(0.5),
@@ -213,7 +209,7 @@ class _EditContractDialogContentState
                               ),
                               const SizedBox(width: 12),
                               Text(
-                                'إدارة وإعدادات العقد',
+                                l10n.contractEditDialogTitle,
                                 style: TextStyle(
                                   color: Colors.indigo.shade900,
                                   fontWeight: FontWeight.bold,
@@ -222,11 +218,8 @@ class _EditContractDialogContentState
                               ),
                             ],
                           ),
-
-                          // 🌟 أزرار الأرشفة والحذف بتصميم "Chips"
                           Row(
                             children: [
-                              // حالة العقد + زر الأرشفة
                               InkWell(
                                 onTap: widget.canEdit ? _toggleArchive : null,
                                 borderRadius: BorderRadius.circular(20),
@@ -260,8 +253,8 @@ class _EditContractDialogContentState
                                       const SizedBox(width: 8),
                                       Text(
                                         contract.isCompleted
-                                            ? 'مغلق (انقر للفتح)'
-                                            : 'أرشفة وإغلاق',
+                                            ? l10n.contractEditClosedTag
+                                            : l10n.contractEditArchiveBtn,
                                         style: TextStyle(
                                           color: contract.isCompleted
                                               ? Colors.green.shade800
@@ -274,13 +267,10 @@ class _EditContractDialogContentState
                                   ),
                                 ),
                               ),
-
                               const SizedBox(width: 12),
-
-                              // زر الحذف
                               if (widget.canDelete)
                                 Tooltip(
-                                  message: 'تدمير العقد وحذفه',
+                                  message: l10n.contractEditDeleteBtn,
                                   child: InkWell(
                                     onTap: _confirmDelete,
                                     borderRadius: BorderRadius.circular(20),
@@ -305,7 +295,7 @@ class _EditContractDialogContentState
                                           ),
                                           const SizedBox(width: 6),
                                           Text(
-                                            'حذف',
+                                            l10n.contractEditDeleteBtn,
                                             style: TextStyle(
                                               color: Colors.red.shade800,
                                               fontWeight: FontWeight.bold,
@@ -332,27 +322,25 @@ class _EditContractDialogContentState
                         fontWeight: FontWeight.bold,
                         fontSize: 14,
                       ),
-                      tabs: const [
+                      tabs: [
                         Tab(
-                          icon: Icon(Icons.article_outlined),
-                          text: 'البيانات النصية',
+                          icon: const Icon(Icons.article_outlined),
+                          text: l10n.contractEditTabBasic,
                         ),
                         Tab(
-                          icon: Icon(Icons.gavel_outlined),
-                          text: 'الغرامات والجزاء',
+                          icon: const Icon(Icons.gavel_outlined),
+                          text: l10n.contractEditTabPenalty,
                         ),
                       ],
                     ),
                   ],
                 ),
               ),
-
-              // --- 2. محتوى التبويبات ---
               Expanded(
                 child: TabBarView(
                   children: [
-                    _buildBasicInfoTab(canEdit),
-                    _buildPenaltyTab(canEdit),
+                    _buildBasicInfoTab(canEdit, l10n),
+                    _buildPenaltyTab(canEdit, l10n),
                   ],
                 ),
               ),
@@ -363,10 +351,7 @@ class _EditContractDialogContentState
     );
   }
 
-  // ==========================================
-  // 📝 التبويب الأول: البيانات الإدارية
-  // ==========================================
-  Widget _buildBasicInfoTab(bool canEdit) {
+  Widget _buildBasicInfoTab(bool canEdit, AppLocalizations l10n) {
     return ListView(
       padding: const EdgeInsets.all(24),
       children: [
@@ -388,7 +373,7 @@ class _EditContractDialogContentState
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  'لتعديل (المبالغ المالية، مدة التقسيط، أو تاريخ التوقيع)، يرجى الذهاب إلى صفحة "المراقبة" واستخدام أدوات "إعادة الجدولة" أو "الخصائص" المخصصة لذلك لضمان دقة الحسابات.',
+                  l10n.contractEditInfoNotice,
                   style: TextStyle(
                     color: Colors.orange.shade900,
                     fontSize: 13,
@@ -406,7 +391,7 @@ class _EditContractDialogContentState
           enabled: canEdit,
           style: const TextStyle(fontWeight: FontWeight.bold),
           decoration: InputDecoration(
-            labelText: 'وصف العقد / التفاصيل الإضافية',
+            labelText: l10n.contractEditDetailsLabel,
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
             filled: true,
             fillColor: canEdit ? Colors.white : Colors.grey.shade100,
@@ -420,7 +405,7 @@ class _EditContractDialogContentState
           enabled: canEdit,
           style: const TextStyle(fontWeight: FontWeight.bold),
           decoration: InputDecoration(
-            labelText: 'اسم الكفيل الضامن',
+            labelText: l10n.contractEditGuarantorLabel,
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
             filled: true,
             fillColor: canEdit ? Colors.white : Colors.grey.shade100,
@@ -441,22 +426,22 @@ class _EditContractDialogContentState
                 ),
               ),
               icon: const Icon(Icons.save),
-              label: const Text(
-                'اعتماد وحفظ البيانات النصية',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              label: Text(
+                l10n.contractEditSaveTextBtn,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               onPressed: () =>
-                  _saveContractData('تم حفظ التعديلات النصية بنجاح ✅'),
+                  _saveContractData(l10n.contractEditSuccessTextMsg),
             ),
           ),
       ],
     );
   }
 
-  // ==========================================
-  // 🔑 التبويب الثاني: الغرامات والشروط الجزائية
-  // ==========================================
-  Widget _buildPenaltyTab(bool canEdit) {
+  Widget _buildPenaltyTab(bool canEdit, AppLocalizations l10n) {
     if (!isAllocated) {
       return Center(
         child: Column(
@@ -465,7 +450,7 @@ class _EditContractDialogContentState
             Icon(Icons.block, size: 80, color: Colors.grey.shade300),
             const SizedBox(height: 16),
             Text(
-              'الغرامات غير متاحة في عقود "المحفظة الاستثمارية".',
+              l10n.contractEditPenaltyUnallocatedNotice,
               style: TextStyle(
                 color: Colors.grey.shade600,
                 fontSize: 16,
@@ -501,22 +486,23 @@ class _EditContractDialogContentState
                 ),
               ),
               icon: const Icon(Icons.local_fire_department),
-              label: const Text(
-                'اعتماد وحفظ إعدادات الغرامة',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              label: Text(
+                l10n.contractEditSavePenaltyBtn,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               onPressed: () =>
-                  _saveContractData('تم تحديث الشروط الجزائية بنجاح ✅'),
+                  _saveContractData(l10n.contractEditSuccessPenaltyMsg),
             ),
           ),
       ],
     );
   }
 
-  // ==========================================
-  // 📦 دالة الأرشفة وإعادة الفتح (تم تطويرها بالكامل)
-  // ==========================================
   void _toggleArchive() {
+    final l10n = context.l10n;
     final isCompleted = widget.contract.isCompleted;
 
     showDialog(
@@ -545,7 +531,9 @@ class _EditContractDialogContentState
             ),
             const SizedBox(width: 16),
             Text(
-              isCompleted ? 'إعادة تنشيط العقد' : 'أرشفة وإغلاق العقد',
+              isCompleted
+                  ? l10n.contractArchiveTitleActivate
+                  : l10n.contractArchiveTitleClose,
               style: TextStyle(
                 color: isCompleted
                     ? Colors.green.shade800
@@ -564,8 +552,8 @@ class _EditContractDialogContentState
             children: [
               Text(
                 isCompleted
-                    ? 'هل أنت متأكد من رغبتك في إعادة فتح هذا العقد المغلق؟ إليك ما سيحدث:'
-                    : 'هل أنت متأكد من رغبتك في إغلاق وأرشفة هذا العقد نهائياً؟ إليك ما سيحدث:',
+                    ? l10n.contractArchiveConfirmActivateText
+                    : l10n.contractArchiveConfirmCloseText,
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 15,
@@ -574,26 +562,25 @@ class _EditContractDialogContentState
               const SizedBox(height: 16),
 
               if (!isCompleted) ...[
-                // ماذا يحدث عند الأرشفة
                 _buildInfoRowForDialog(
                   Icons.lock,
                   Colors.red,
-                  'حماية السجل:',
-                  'يُقفل العقد وتُمنع إضافة، تعديل، أو مسح أي دفعات أو أقساط مالية تخصه.',
+                  l10n.contractArchiveInfoLockTitle,
+                  l10n.contractArchiveInfoLockDesc,
                 ),
                 const SizedBox(height: 12),
                 _buildInfoRowForDialog(
                   Icons.visibility_off,
                   Colors.orange,
-                  'شاشات المراقبة:',
-                  'سيختفي العقد تماماً من رادار المتأخرات والمطالبات وقوائم الأقساط النشطة.',
+                  l10n.contractArchiveInfoRadarTitle,
+                  l10n.contractArchiveInfoRadarDesc,
                 ),
                 const SizedBox(height: 12),
                 _buildInfoRowForDialog(
                   Icons.pie_chart,
                   Colors.blue,
-                  'الإحصائيات (KPIs):',
-                  'سيبقى ضمن إجمالي المبيعات والأرباح، لكن سيُطرح من عداد "العقود الفعالة" في لوحة التحكم.',
+                  l10n.contractArchiveInfoKpiTitle,
+                  l10n.contractArchiveInfoKpiDesc,
                 ),
                 const SizedBox(height: 16),
                 Container(
@@ -612,7 +599,7 @@ class _EditContractDialogContentState
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          'يُستخدم هذا الخيار فقط عند اكتمال دفعات العميل وتسليمه الوحدة وإنهاء كافة الالتزامات.',
+                          l10n.contractArchiveUsageTip,
                           style: TextStyle(
                             color: Colors.green.shade900,
                             fontSize: 12,
@@ -624,26 +611,25 @@ class _EditContractDialogContentState
                   ),
                 ),
               ] else ...[
-                // ماذا يحدث عند إعادة الفتح
                 _buildInfoRowForDialog(
                   Icons.lock_open,
                   Colors.green,
-                  'استعادة الصلاحيات:',
-                  'سيتم تفعيل العقد من جديد وتتمكن من إضافة مدفوعات وتعديل بياناته بحرية.',
+                  l10n.contractArchiveUnlockPermTitle,
+                  l10n.contractArchiveUnlockPermDesc,
                 ),
                 const SizedBox(height: 12),
                 _buildInfoRowForDialog(
                   Icons.radar,
                   Colors.blue,
-                  'شاشات المراقبة:',
-                  'سيعود العقد للظهور في قوائم الرادار والأقساط المتأخرة إذا كان هناك أقساط غير مسددة.',
+                  l10n.contractArchiveUnlockRadarTitle,
+                  l10n.contractArchiveUnlockRadarDesc,
                 ),
                 const SizedBox(height: 12),
                 _buildInfoRowForDialog(
                   Icons.trending_up,
                   Colors.purple,
-                  'الإحصائيات (KPIs):',
-                  'سيُضاف العقد مجدداً إلى عداد "العقود الفعالة" في لوحة تحكم الإدارة.',
+                  l10n.contractArchiveUnlockKpiTitle,
+                  l10n.contractArchiveUnlockKpiDesc,
                 ),
               ],
               const SizedBox(height: 24),
@@ -657,9 +643,9 @@ class _EditContractDialogContentState
             style: TextButton.styleFrom(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             ),
-            child: const Text(
-              'إلغاء التراجع',
-              style: TextStyle(
+            child: Text(
+              l10n.contractArchiveCancelBtn,
+              style: const TextStyle(
                 fontSize: 16,
                 color: Colors.grey,
                 fontWeight: FontWeight.bold,
@@ -679,11 +665,13 @@ class _EditContractDialogContentState
             ),
             icon: Icon(isCompleted ? Icons.lock_open : Icons.archive, size: 20),
             label: Text(
-              isCompleted ? 'نعم، أعد فتح العقد' : 'نعم، أرشف وأغلق العقد',
+              isCompleted
+                  ? l10n.contractArchiveConfirmActivateBtn
+                  : l10n.contractArchiveConfirmCloseBtn,
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             onPressed: () async {
-              Navigator.pop(confirmCtx); // إغلاق نافذة التأكيد
+              Navigator.pop(confirmCtx);
 
               final isAuth = await showVerifyPinDialog(widget.parentContext);
               if (isAuth && widget.parentContext.mounted) {
@@ -691,8 +679,8 @@ class _EditContractDialogContentState
                   SnackBar(
                     content: Text(
                       isCompleted
-                          ? 'جاري تفعيل العقد... ⏳'
-                          : 'جاري أرشفة العقد... ⏳',
+                          ? l10n.contractArchiveProgressActivate
+                          : l10n.contractArchiveProgressClose,
                     ),
                     backgroundColor: Colors.teal,
                   ),
@@ -704,7 +692,7 @@ class _EditContractDialogContentState
                       contractId: widget.contract.id,
                       isCompleted: !isCompleted,
                     );
-                Navigator.pop(context); // إغلاق نافذة التعديل الرئيسية
+                Navigator.pop(context);
               }
             },
           ),
@@ -713,7 +701,6 @@ class _EditContractDialogContentState
     );
   }
 
-  // دالة مساعدة لرسم صفوف الشرح في ديالوج الأرشفة
   Widget _buildInfoRowForDialog(
     IconData icon,
     Color color,
@@ -748,30 +735,34 @@ class _EditContractDialogContentState
     );
   }
 
-  // ==========================================
-  // 🗑️ دالة تأكيد الحذف
-  // ==========================================
   void _confirmDelete() {
+    final l10n = context.l10n;
+
     showDialog(
       context: context,
       builder: (confirmCtx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Icons.warning_amber_rounded, color: Colors.red),
-            SizedBox(width: 8),
-            Text('تحذير تدمير العقد', style: TextStyle(color: Colors.red)),
+            const Icon(Icons.warning_amber_rounded, color: Colors.red),
+            const SizedBox(width: 8),
+            Text(
+              l10n.contractDeleteTitle,
+              style: const TextStyle(color: Colors.red),
+            ),
           ],
         ),
-        content: const Text(
-          'هل أنت متأكد من رغبتك في حذف هذا العقد ونقله إلى سلة المحذوفات؟\n\n'
-          'سيؤدي هذا إلى تصفير كافة الحسابات المتعلقة به وتحرير الشقة لتعود (متاحة للبيع) في الكتالوج.',
-          style: TextStyle(fontSize: 15, height: 1.5),
+        content: Text(
+          l10n.contractDeleteMsg,
+          style: const TextStyle(fontSize: 15, height: 1.5),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(confirmCtx),
-            child: const Text('إلغاء', style: TextStyle(color: Colors.grey)),
+            child: Text(
+              l10n.btnCancel,
+              style: const TextStyle(color: Colors.grey),
+            ),
           ),
           ElevatedButton.icon(
             style: ElevatedButton.styleFrom(
@@ -779,19 +770,19 @@ class _EditContractDialogContentState
               foregroundColor: Colors.white,
             ),
             icon: const Icon(Icons.delete_forever),
-            label: const Text('نعم، دمر العقد'),
+            label: Text(l10n.contractDeleteConfirmBtn),
             onPressed: () async {
-              Navigator.pop(confirmCtx); // إغلاق رسالة التأكيد
+              Navigator.pop(confirmCtx);
 
               final isAuth = await showVerifyPinDialog(widget.parentContext);
               if (isAuth && widget.parentContext.mounted) {
                 widget.parentContext.read<ContractsCubit>().deleteContract(
                   widget.contract.id,
                 );
-                Navigator.pop(context); // إغلاق نافذة التعديل
+                Navigator.pop(context);
                 ScaffoldMessenger.of(widget.parentContext).showSnackBar(
-                  const SnackBar(
-                    content: Text('تم حذف العقد وتحرير الشقة بنجاح ✅'),
+                  SnackBar(
+                    content: Text(l10n.contractDeleteSuccess),
                     backgroundColor: Colors.green,
                   ),
                 );

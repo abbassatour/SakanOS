@@ -11,6 +11,7 @@ import 'package:our_home_erp_app/contracts/cubit/contracts_cubit.dart';
 import 'package:our_home_erp_app/contracts/view/add_contract_page.dart';
 import 'package:our_home_erp_app/contracts/widgets/widgets.dart';
 import 'package:our_home_erp_app/core/constants/app_permissions.dart';
+import 'package:our_home_erp_app/l10n/l10n.dart';
 import 'package:our_home_erp_app/settings/cubit/settings_cubit.dart';
 
 class ContractsView extends StatefulWidget {
@@ -26,22 +27,25 @@ class _ContractsViewState extends State<ContractsView> {
   String _typeFilter = 'all';
   String _handoverFilter = 'all';
 
-  String _getStatusName(String f) {
-    if (f == 'active') return 'عقود جارية';
-    if (f == 'completed') return 'عقود مكتملة';
-    return 'جميع الحالات';
+  String _getStatusName(BuildContext context, String f) {
+    final l10n = context.l10n;
+    if (f == 'active') return l10n.contractStatusActiveName;
+    if (f == 'completed') return l10n.contractStatusCompletedName;
+    return l10n.contractStatusAllName;
   }
 
-  String _getTypeName(String f) {
-    if (f == 'allocated') return 'متخصص';
-    if (f == 'unallocated') return 'لاحق التخصص';
-    return 'جميع الأنواع';
+  String _getTypeName(BuildContext context, String f) {
+    final l10n = context.l10n;
+    if (f == 'allocated') return l10n.contractTypeAllocatedName;
+    if (f == 'unallocated') return l10n.contractTypeUnallocatedName;
+    return l10n.contractTypeAllName;
   }
 
-  String _getHandoverName(String f) {
-    if (f == 'delivered') return 'مُسلّمة';
-    if (f == 'pending') return 'بانتظار التسليم';
-    return 'الكل';
+  String _getHandoverName(BuildContext context, String f) {
+    final l10n = context.l10n;
+    if (f == 'delivered') return l10n.contractHandoverDeliveredName;
+    if (f == 'pending') return l10n.contractHandoverPendingName;
+    return l10n.contractHandoverAllName;
   }
 
   void _showFilterSheet() {
@@ -85,6 +89,7 @@ class _ContractsViewState extends State<ContractsView> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final canCreate = context.select<AuthCubit, bool>(
       (cubit) => cubit.state.hasPermission(AppPermissions.createContracts),
     );
@@ -95,16 +100,18 @@ class _ContractsViewState extends State<ContractsView> {
         heroTag: null,
         onPressed: canCreate ? _navigateToAddContract : null,
         icon: const Icon(Icons.add_home_work),
-        label: const Text(
-          'عقد جديد',
-          style: TextStyle(fontWeight: FontWeight.bold),
+        label: Text(
+          l10n.contractFabAdd,
+          style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         backgroundColor: canCreate
             ? Colors.teal.shade600
             : Colors.grey.shade300,
         foregroundColor: canCreate ? Colors.white : Colors.grey.shade600,
         elevation: canCreate ? 6 : 0,
-        tooltip: canCreate ? 'إنشاء عقد جديد' : 'لا تملك صلاحية إنشاء عقود',
+        tooltip: canCreate
+            ? l10n.contractFabTooltip
+            : l10n.contractFabNoPermission,
       ),
       body: SafeArea(
         child: BlocListener<ContractsCubit, ContractsState>(
@@ -113,7 +120,7 @@ class _ContractsViewState extends State<ContractsView> {
             if (state.status == ContractsStatus.failure) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text(state.errorMessage ?? 'خطأ'),
+                  content: Text(state.errorMessage ?? 'Error'),
                   backgroundColor: Colors.red,
                 ),
               );
@@ -129,16 +136,16 @@ class _ContractsViewState extends State<ContractsView> {
               }
 
               if (state.clients.isEmpty) {
-                return const EmptyContractsView(
-                  message: 'يرجى إضافة عميل أولاً من قسم العملاء.',
+                return EmptyContractsView(
+                  message: l10n.contractNoClients,
                   icon: Icons.group_add,
                   iconColor: Colors.grey,
                 );
               }
 
               if (state.contracts.isEmpty) {
-                return const EmptyContractsView(
-                  message: 'لم يتم توقيع أي عقود بعد.',
+                return EmptyContractsView(
+                  message: l10n.contractEmptyList,
                   icon: Icons.real_estate_agent,
                   iconColor: Colors.teal,
                 );
@@ -157,7 +164,6 @@ class _ContractsViewState extends State<ContractsView> {
                     (_typeFilter == 'unallocated' &&
                         contract.contractType == 'لاحق التخصص');
 
-                // تم الإصلاح هنا (بدون == true)
                 final passHandover =
                     _handoverFilter == 'all' ||
                     (_handoverFilter == 'delivered' && contract.isHandedOver) ||
@@ -227,8 +233,8 @@ class _ContractsViewState extends State<ContractsView> {
                             children: [
                               Text(
                                 hasActiveFilters
-                                    ? 'الفلاتر النشطة حالياً:'
-                                    : 'عرض جميع العقود (بدون فلترة)',
+                                    ? l10n.contractFilterActiveLabel
+                                    : l10n.contractFilterAllLabel,
                                 style: const TextStyle(
                                   color: Colors.grey,
                                   fontSize: 12,
@@ -236,9 +242,9 @@ class _ContractsViewState extends State<ContractsView> {
                               ),
                               if (hasActiveFilters)
                                 Text(
-                                  '${_getStatusName(_statusFilter)} | '
-                                  '${_getTypeName(_typeFilter)} | '
-                                  '${_getHandoverName(_handoverFilter)}',
+                                  '${_getStatusName(context, _statusFilter)} | '
+                                  '${_getTypeName(context, _typeFilter)} | '
+                                  '${_getHandoverName(context, _handoverFilter)}',
                                   style: const TextStyle(
                                     color: Colors.teal,
                                     fontWeight: FontWeight.bold,
@@ -262,16 +268,16 @@ class _ContractsViewState extends State<ContractsView> {
                           ),
                           onPressed: _showFilterSheet,
                           icon: const Icon(Icons.filter_alt, size: 18),
-                          label: const Text(
-                            'تصفية',
-                            style: TextStyle(fontWeight: FontWeight.bold),
+                          label: Text(
+                            l10n.contractFilterBtn,
+                            style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
                         ),
                         if (hasActiveFilters) ...[
                           const SizedBox(width: 8),
                           IconButton(
                             icon: const Icon(Icons.clear, color: Colors.red),
-                            tooltip: 'إلغاء الفلاتر',
+                            tooltip: l10n.contractFilterClearTooltip,
                             style: IconButton.styleFrom(
                               backgroundColor: Colors.red.shade50,
                             ),
@@ -300,9 +306,9 @@ class _ContractsViewState extends State<ContractsView> {
                                   color: Colors.grey.shade400,
                                 ),
                                 const SizedBox(height: 16),
-                                const Text(
-                                  'لا يوجد عقود تطابق الفلاتر المحددة',
-                                  style: TextStyle(
+                                Text(
+                                  l10n.contractNoHits,
+                                  style: const TextStyle(
                                     color: Colors.grey,
                                     fontSize: 16,
                                   ),
@@ -319,8 +325,7 @@ class _ContractsViewState extends State<ContractsView> {
                                 contracts: filteredContracts,
                                 clients: state.clients,
                                 userNamesMap: state.userNamesMap,
-                                attachmentsMap: state
-                                    .attachmentsMap, // 🌟 تمرير الخريطة الجديدة
+                                attachmentsMap: state.attachmentsMap,
                               ),
                             ],
                           ),

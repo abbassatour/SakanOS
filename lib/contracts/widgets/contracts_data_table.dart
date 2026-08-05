@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:our_home_erp_app/core/utils/formatters.dart';
 import 'package:our_home_erp_app/dashboard/cubit/dashboard_cubit.dart';
+import 'package:our_home_erp_app/l10n/l10n.dart';
 import 'package:our_home_erp_app/payments/cubit/payments_cubit.dart';
 import 'package:our_home_erp_app/profile/view/contract_details_page.dart';
 import 'package:our_home_erp_app/schedule/cubit/schedule_cubit.dart';
@@ -32,19 +33,17 @@ class ContractsDataTable extends StatelessWidget {
   final Map<String, String> userNamesMap;
   final Map<String, List<ContractAttachment>> attachmentsMap;
 
-  // ==========================================
-  // 🌟 الدالة السحرية للتوجيه الذكي الآمن
-  // ==========================================
   Future<void> _navigateToContractDetails(
     BuildContext context,
     Contract contract,
     Client actualClient,
   ) async {
+    final l10n = context.l10n;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('جاري جلب تفاصيل المحفظة والسجل القانوني... ⏳'),
+      SnackBar(
+        content: Text(l10n.contractLoadingDetails),
         backgroundColor: Colors.teal,
-        duration: Duration(seconds: 2),
+        duration: const Duration(seconds: 2),
       ),
     );
 
@@ -72,10 +71,8 @@ class ContractsDataTable extends StatelessWidget {
               BlocProvider.value(value: context.read<DashboardCubit>()),
               BlocProvider.value(value: context.read<PaymentsCubit>()),
               BlocProvider.value(value: context.read<ScheduleCubit>()),
-              // 🌟 أضف السطرين التاليين:
               BlocProvider.value(value: context.read<ContractsCubit>()),
               BlocProvider.value(value: context.read<BuildingsCubit>()),
-
               BlocProvider(create: (_) => clientProfileCubit),
             ],
             child: ContractDetailsPage(
@@ -91,6 +88,7 @@ class ContractsDataTable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final authState = context.watch<AuthCubit>().state;
     final canEditContracts = authState.hasPermission(
       AppPermissions.createContracts,
@@ -116,11 +114,11 @@ class ContractsDataTable extends StatelessWidget {
             headingRowColor: WidgetStateProperty.all(Colors.teal.shade50),
             dataRowMinHeight: 55,
             dataRowMaxHeight: 70,
-            columns: const [
+            columns: [
               DataColumn(
                 label: Text(
-                  'رقم العقد',
-                  style: TextStyle(
+                  l10n.contractColId,
+                  style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     color: Colors.teal,
                   ),
@@ -128,8 +126,8 @@ class ContractsDataTable extends StatelessWidget {
               ),
               DataColumn(
                 label: Text(
-                  'العميل',
-                  style: TextStyle(
+                  l10n.contractColClient,
+                  style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     color: Colors.teal,
                   ),
@@ -137,8 +135,8 @@ class ContractsDataTable extends StatelessWidget {
               ),
               DataColumn(
                 label: Text(
-                  'النوع',
-                  style: TextStyle(
+                  l10n.contractColType,
+                  style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     color: Colors.teal,
                   ),
@@ -146,8 +144,8 @@ class ContractsDataTable extends StatelessWidget {
               ),
               DataColumn(
                 label: Text(
-                  'سعر المتر',
-                  style: TextStyle(
+                  l10n.contractColMeterPrice,
+                  style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     color: Colors.teal,
                   ),
@@ -155,8 +153,8 @@ class ContractsDataTable extends StatelessWidget {
               ),
               DataColumn(
                 label: Text(
-                  'المرفقات',
-                  style: TextStyle(
+                  l10n.contractColAttachments,
+                  style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     color: Colors.teal,
                   ),
@@ -164,8 +162,8 @@ class ContractsDataTable extends StatelessWidget {
               ),
               DataColumn(
                 label: Text(
-                  'التسليم',
-                  style: TextStyle(
+                  l10n.contractColHandover,
+                  style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     color: Colors.teal,
                   ),
@@ -173,8 +171,8 @@ class ContractsDataTable extends StatelessWidget {
               ),
               DataColumn(
                 label: Text(
-                  'آخر تعديل',
-                  style: TextStyle(
+                  l10n.contractColUpdatedAt,
+                  style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     color: Colors.teal,
                   ),
@@ -182,8 +180,8 @@ class ContractsDataTable extends StatelessWidget {
               ),
               DataColumn(
                 label: Text(
-                  'إجراءات',
-                  style: TextStyle(
+                  l10n.contractColActions,
+                  style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     color: Colors.teal,
                   ),
@@ -200,7 +198,7 @@ class ContractsDataTable extends StatelessWidget {
               final actualClient = clientIdx >= 0 ? clients[clientIdx] : null;
               final clientName = actualClient != null
                   ? actualClient.name
-                  : 'عميل محذوف';
+                  : l10n.contractDeletedClient;
 
               final isAllocated = contract.contractType == 'متخصص';
               final isHandedOver = contract.isHandedOver;
@@ -212,9 +210,6 @@ class ContractsDataTable extends StatelessWidget {
                       index.isEven ? Colors.grey.withValues(alpha: 0.03) : null,
                 ),
                 cells: [
-                  // ==========================================
-                  // 🌟 رقم العقد (تفاعلي)
-                  // ==========================================
                   DataCell(
                     _InteractiveContractIdChip(
                       contractId: contract.id,
@@ -229,7 +224,6 @@ class ContractsDataTable extends StatelessWidget {
                       },
                     ),
                   ),
-
                   DataCell(
                     Text(
                       clientName,
@@ -246,10 +240,6 @@ class ContractsDataTable extends StatelessWidget {
                       ),
                     ),
                   ),
-
-                  // ==========================================
-                  // 🌟 المرفقات (تفاعلي وجديد)
-                  // ==========================================
                   DataCell(
                     _InteractiveAttachmentChip(
                       attachmentCount: attachmentsMap[contract.id]?.length ?? 0,
@@ -265,7 +255,6 @@ class ContractsDataTable extends StatelessWidget {
                       },
                     ),
                   ),
-
                   DataCell(
                     !isAllocated
                         ? const Center(
@@ -307,7 +296,9 @@ class ContractsDataTable extends StatelessWidget {
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
-                                  isHandedOver ? 'مُسلّم' : 'انتظار',
+                                  isHandedOver
+                                      ? l10n.contractHandoverDeliveredShort
+                                      : l10n.contractHandoverPendingShort,
                                   style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.bold,
@@ -320,7 +311,6 @@ class ContractsDataTable extends StatelessWidget {
                             ),
                           ),
                   ),
-
                   DataCell(
                     Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -336,7 +326,8 @@ class ContractsDataTable extends StatelessWidget {
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              userNamesMap[contract.userId] ?? 'مجهول',
+                              userNamesMap[contract.userId] ??
+                                  l10n.contractUnknownUser,
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 13,
@@ -367,15 +358,11 @@ class ContractsDataTable extends StatelessWidget {
                       ],
                     ),
                   ),
-
-                  // ==========================================
-                  // 🌟 زر التعديل فقط
-                  // ==========================================
                   DataCell(
                     IconButton(
                       tooltip: (!canEditContracts || isCompleted)
-                          ? 'غير مصرح أو العقد مغلق'
-                          : 'تعديل بيانات العقد',
+                          ? l10n.contractEditNoPermissionTooltip
+                          : l10n.contractEditTooltip,
                       icon: Icon(
                         Icons.edit_document,
                         color: (!canEditContracts || isCompleted)
@@ -398,9 +385,6 @@ class ContractsDataTable extends StatelessWidget {
   }
 }
 
-// ==========================================
-// 🌟 الويدجت التفاعلي لرقم العقد
-// ==========================================
 class _InteractiveContractIdChip extends StatefulWidget {
   final String contractId;
   final VoidCallback onTap;
@@ -469,9 +453,6 @@ class _InteractiveContractIdChipState
   }
 }
 
-// ==========================================
-// 🌟 الويدجت التفاعلي الجديد (للمرفقات)
-// ==========================================
 class _InteractiveAttachmentChip extends StatefulWidget {
   final int attachmentCount;
   final VoidCallback onTap;

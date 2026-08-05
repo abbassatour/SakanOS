@@ -1,4 +1,4 @@
-// contracts/widgets/empty_contracts_view.dart
+// lib/contracts/widgets/empty_contracts_view.dart
 
 import 'package:flutter/material.dart';
 

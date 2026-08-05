@@ -1,6 +1,7 @@
-// contracts/widgets/add_contract/shared_coefficients_section.dart
+// lib/contracts/widgets/add_contract/shared_coefficients_section.dart
 
 import 'package:flutter/material.dart';
+import 'package:our_home_erp_app/l10n/l10n.dart';
 
 class SharedCoefficientsSection extends StatelessWidget {
   const SharedCoefficientsSection({
@@ -22,6 +23,8 @@ class SharedCoefficientsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return Column(
       children: [
         Container(
@@ -34,9 +37,9 @@ class SharedCoefficientsSection extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                '🛠️ معاملات التجهيزات المشتركة (%)',
-                style: TextStyle(
+              Text(
+                l10n.contractSharedCoeffsTitle,
+                style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   color: Colors.blueGrey,
                 ),
@@ -47,9 +50,9 @@ class SharedCoefficientsSection extends StatelessWidget {
                   Expanded(
                     child: TextField(
                       controller: blockCoeffCtrl,
-                      decoration: const InputDecoration(
-                        labelText: 'بلوك %',
-                        border: OutlineInputBorder(),
+                      decoration: InputDecoration(
+                        labelText: l10n.contractSharedBlock,
+                        border: const OutlineInputBorder(),
                         isDense: true,
                         fillColor: Colors.white,
                         filled: true,
@@ -61,9 +64,9 @@ class SharedCoefficientsSection extends StatelessWidget {
                   Expanded(
                     child: TextField(
                       controller: coloredPlasterCoeffCtrl,
-                      decoration: const InputDecoration(
-                        labelText: 'كلسة ملونة %',
-                        border: OutlineInputBorder(),
+                      decoration: InputDecoration(
+                        labelText: l10n.contractSharedPlaster,
+                        border: const OutlineInputBorder(),
                         isDense: true,
                         fillColor: Colors.white,
                         filled: true,
@@ -75,9 +78,9 @@ class SharedCoefficientsSection extends StatelessWidget {
                   Expanded(
                     child: TextField(
                       controller: marbleStairsCoeffCtrl,
-                      decoration: const InputDecoration(
-                        labelText: 'درج رخام %',
-                        border: OutlineInputBorder(),
+                      decoration: InputDecoration(
+                        labelText: l10n.contractSharedStairs,
+                        border: const OutlineInputBorder(),
                         isDense: true,
                         fillColor: Colors.white,
                         filled: true,
@@ -93,9 +96,9 @@ class SharedCoefficientsSection extends StatelessWidget {
                   Expanded(
                     child: TextField(
                       controller: marbleFinsCoeffCtrl,
-                      decoration: const InputDecoration(
-                        labelText: 'سلاحات رخام %',
-                        border: OutlineInputBorder(),
+                      decoration: InputDecoration(
+                        labelText: l10n.contractSharedFins,
+                        border: const OutlineInputBorder(),
                         isDense: true,
                         fillColor: Colors.white,
                         filled: true,
@@ -107,9 +110,9 @@ class SharedCoefficientsSection extends StatelessWidget {
                   Expanded(
                     child: TextField(
                       controller: plumbingCoeffCtrl,
-                      decoration: const InputDecoration(
-                        labelText: 'نوازل صحية %',
-                        border: OutlineInputBorder(),
+                      decoration: InputDecoration(
+                        labelText: l10n.contractSharedPlumbing,
+                        border: const OutlineInputBorder(),
                         isDense: true,
                         fillColor: Colors.white,
                         filled: true,
@@ -121,9 +124,9 @@ class SharedCoefficientsSection extends StatelessWidget {
                   Expanded(
                     child: TextField(
                       controller: chimneysCoeffCtrl,
-                      decoration: const InputDecoration(
-                        labelText: 'صواعد مداخن %',
-                        border: OutlineInputBorder(),
+                      decoration: InputDecoration(
+                        labelText: l10n.contractSharedChimneys,
+                        border: const OutlineInputBorder(),
                         isDense: true,
                         fillColor: Colors.white,
                         filled: true,

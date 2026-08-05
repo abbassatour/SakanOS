@@ -13,6 +13,7 @@ import 'package:our_home_erp_app/contracts/contracts.dart';
 import 'package:our_home_erp_app/contracts/widgets/widgets.dart';
 import 'package:our_home_erp_app/core/utils/calculator_helper.dart';
 import 'package:our_home_erp_app/core/utils/formatters.dart';
+import 'package:our_home_erp_app/l10n/l10n.dart';
 import 'package:our_home_erp_app/settings/cubit/settings_cubit.dart';
 
 class AddContractPage extends StatefulWidget {
@@ -23,7 +24,6 @@ class AddContractPage extends StatefulWidget {
 }
 
 class _AddContractPageState extends State<AddContractPage> {
-  // 🌟 1. متغيرات التحكم بالخطوات (Stepper)
   int _currentStep = 0;
 
   bool _isSaving = false;
@@ -32,8 +32,7 @@ class _AddContractPageState extends State<AddContractPage> {
   String? selectedBuildingId;
   String? selectedApartmentId;
 
-  final detailsController =
-      TextEditingController(); // 🌟 تم إضافة هذا المتغير للوصف
+  final detailsController = TextEditingController();
   final areaController = TextEditingController();
   final priceController = TextEditingController();
   final monthsController = TextEditingController(text: '48');
@@ -119,20 +118,17 @@ class _AddContractPageState extends State<AddContractPage> {
     return int.tryParse(ctrl.text.replaceAll(',', '')) ?? defaultValue;
   }
 
-  // ==========================================
-  // 🛡️ 2. أنظمة التحقق لكل خطوة (Step Validation)
-  // ==========================================
-
   bool _validateStep1() {
+    final l10n = context.l10n;
     if (selectedClientId == null) {
-      _showError('يرجى اختيار العميل (الفريق الثاني) أولاً.');
+      _showError(l10n.contractValSelectClient);
       return false;
     }
     if (isHistoricalContract) {
       if (_safeParseDouble(histIronCtrl) == 0 ||
           _safeParseDouble(histCementCtrl) == 0 ||
           _safeParseDouble(histWorkerCtrl) == 0) {
-        _showError('الرجاء تعبئة أسعار المواد التاريخية الأساسية.');
+        _showError(l10n.contractValHistoricalMaterials);
         return false;
       }
     }
@@ -140,29 +136,29 @@ class _AddContractPageState extends State<AddContractPage> {
   }
 
   bool _validateStep2() {
+    final l10n = context.l10n;
     final isAllocated = selectedContractType == 'متخصص';
-    if (!isAllocated)
-      return true; // لا يتطلب الشروط التالية إذا كان لاحق التخصص
+    if (!isAllocated) return true;
 
     if (selectedApartmentId == null) {
-      _showError('يرجى اختيار شقة من الكتالوج!');
+      _showError(l10n.contractValSelectApartment);
       return false;
     }
     if (areaController.text.isEmpty) {
-      _showError('المساحة غير متوفرة! يرجى التأكد من بيانات الشقة.');
+      _showError(l10n.contractValMissingArea);
       return false;
     }
     if (agreedHandoverDate == null) {
-      _showError('يرجى تحديد الموعد المتفق عليه لتسليم الشقة!');
+      _showError(l10n.contractValSelectHandoverDate);
       return false;
     }
     if (isPenaltyActive) {
       if (_safeParseDouble(penaltyPctCtrl) <= 0) {
-        _showError('نسبة الغرامة يجب أن تكون أكبر من صفر!');
+        _showError(l10n.contractValInvalidPenaltyPct);
         return false;
       }
       if (_safeParseInt(penaltyIntervalCtrl) <= 0) {
-        _showError('مدة تطبيق الغرامة غير صالحة!');
+        _showError(l10n.contractValInvalidPenaltyInterval);
         return false;
       }
     }
@@ -170,26 +166,23 @@ class _AddContractPageState extends State<AddContractPage> {
   }
 
   bool _validateStep3() {
+    final l10n = context.l10n;
     if (priceController.text.isEmpty) {
-      _showError('يرجى حساب سعر المتر أولاً بالضغط على زر "حساب سعر المتر"!');
+      _showError(l10n.contractValCalculateMeterPrice);
       return false;
     }
     if (monthlyAmountCtrl.text.isEmpty) {
-      _showError('يرجى إدخال القسط الشهري المتفق عليه!');
+      _showError(l10n.contractValEnterMonthly);
       return false;
     }
     if (isDollarContract &&
         isHistoricalContract &&
         histDollarRateCtrl.text.isEmpty) {
-      _showError('الرجاء إدخال سعر صرف الدولار القديم!');
+      _showError(l10n.contractValEnterHistoricalDollar);
       return false;
     }
     return true;
   }
-
-  // ==========================================
-  // الدوال الهندسية والمالية
-  // ==========================================
 
   void _onApartmentSelected(
     String? aptId,
@@ -254,7 +247,7 @@ class _AddContractPageState extends State<AddContractPage> {
     addSharedCoeff('بلوك معزول', blockCoeffCtrl);
     addSharedCoeff('طينة ملونة', coloredPlasterCoeffCtrl);
     addSharedCoeff('أدراج رخام', marbleStairsCoeffCtrl);
-    addSharedCoeff('زعانف رخام', marbleFinsCoeffCtrl);
+    addSharedCoeff('سلاحات رخام', marbleFinsCoeffCtrl);
     addSharedCoeff('تمديد صحي', plumbingCoeffCtrl);
     addSharedCoeff('مداخن', chimneysCoeffCtrl);
 
@@ -262,6 +255,7 @@ class _AddContractPageState extends State<AddContractPage> {
   }
 
   void _calculatePrice(MaterialPricesHistoryData? currentPrices) {
+    final l10n = context.l10n;
     final isAllocated = selectedContractType == 'متخصص';
 
     MaterialPricesHistoryData targetPrices;
@@ -283,7 +277,7 @@ class _AddContractPageState extends State<AddContractPage> {
       );
     } else {
       if (currentPrices == null) {
-        _showError('يرجى ضبط أسعار المواد في الإعدادات أولاً.');
+        _showError(l10n.contractCalcMissingPrices);
         return;
       }
       targetPrices = currentPrices;
@@ -307,19 +301,24 @@ class _AddContractPageState extends State<AddContractPage> {
 
     _showSuccess(
       isHistoricalContract
-          ? 'تم الحساب بناءً على المواد التاريخية ✅'
-          : 'تم الحساب بناءً على أسعار اليوم ✅',
+          ? l10n.contractCalcHistoricalSuccess
+          : l10n.contractCalcTodaySuccess,
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
       appBar: AppBar(
-        title: const Text(
-          'توقيع عقد جديد',
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+        title: Text(
+          l10n.contractTitle,
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
         ),
         backgroundColor: Colors.teal.shade700,
         centerTitle: true,
@@ -332,10 +331,10 @@ class _AddContractPageState extends State<AddContractPage> {
               return BlocBuilder<SettingsCubit, SettingsState>(
                 builder: (context, settingsState) {
                   if (state.clients.isEmpty) {
-                    return const Center(
+                    return Center(
                       child: Text(
-                        'يرجى إضافة عميل أولاً من قسم العملاء.',
-                        style: TextStyle(fontSize: 18),
+                        l10n.contractNoClients,
+                        style: const TextStyle(fontSize: 18),
                       ),
                     );
                   }
@@ -349,9 +348,6 @@ class _AddContractPageState extends State<AddContractPage> {
                       )
                       .toList();
 
-                  // ==========================================
-                  // 🌟 3. تصميم واجهة الـ Stepper الجديدة
-                  // ==========================================
                   return Theme(
                     data: Theme.of(context).copyWith(
                       colorScheme: ColorScheme.light(
@@ -359,36 +355,29 @@ class _AddContractPageState extends State<AddContractPage> {
                       ),
                     ),
                     child: Stepper(
-                      type: StepperType
-                          .horizontal, // أفقي ليتناسب مع شاشة الكمبيوتر
+                      type: StepperType.horizontal,
                       currentStep: _currentStep,
                       elevation: 0,
-                      physics:
-                          const ClampingScrollPhysics(), // لمنع التمرير الداخلي المزدوج
+                      physics: const ClampingScrollPhysics(),
                       onStepTapped: (step) {
-                        // السماح بالعودة للخلف فقط بدون تخطي الشروط للأمام
                         if (step < _currentStep) {
                           setState(() => _currentStep = step);
                         }
                       },
                       onStepContinue: () {
-                        // التحقق قبل السماح بالانتقال للخطوة التالية
                         if (_currentStep == 0) {
                           if (_validateStep1()) setState(() => _currentStep++);
                         } else if (_currentStep == 1) {
                           if (_validateStep2()) setState(() => _currentStep++);
                         } else if (_currentStep == 2) {
-                          if (_validateStep3())
-                            _saveContract(); // الخطوة الأخيرة تقوم بالحفظ
+                          if (_validateStep3()) _saveContract();
                         }
                       },
                       onStepCancel: () {
                         if (_currentStep > 0) {
                           setState(() => _currentStep--);
                         } else {
-                          Navigator.pop(
-                            context,
-                          ); // العودة للصفحة السابقة إذا كان في أول خطوة
+                          Navigator.pop(context);
                         }
                       },
                       controlsBuilder:
@@ -421,8 +410,8 @@ class _AddContractPageState extends State<AddContractPage> {
                                           ),
                                     label: Text(
                                       isLastStep
-                                          ? 'اعتماد وتوقيع العقد'
-                                          : 'التالي',
+                                          ? l10n.contractStepSubmit
+                                          : l10n.contractStepNext,
                                       style: const TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 16,
@@ -451,9 +440,9 @@ class _AddContractPageState extends State<AddContractPage> {
                                           vertical: 16,
                                         ),
                                       ),
-                                      child: const Text(
-                                        'السابق',
-                                        style: TextStyle(
+                                      child: Text(
+                                        l10n.contractStepPrev,
+                                        style: const TextStyle(
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
@@ -463,11 +452,10 @@ class _AddContractPageState extends State<AddContractPage> {
                             );
                           },
                       steps: [
-                        // --- الخطوة 1: البيانات الأساسية ---
                         Step(
-                          title: const Text(
-                            'البيانات الأساسية',
-                            style: TextStyle(fontWeight: FontWeight.bold),
+                          title: Text(
+                            l10n.contractStepBasic,
+                            style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
                           isActive: _currentStep >= 0,
                           state: _currentStep > 0
@@ -547,7 +535,6 @@ class _AddContractPageState extends State<AddContractPage> {
                                 },
                               ),
                               const SizedBox(height: 16),
-                              // حقل الوصف الذي كان مفقوداً في النسخة الأصلية
                               Card(
                                 elevation: 2,
                                 shape: RoundedRectangleBorder(
@@ -557,11 +544,11 @@ class _AddContractPageState extends State<AddContractPage> {
                                   padding: const EdgeInsets.all(16),
                                   child: TextField(
                                     controller: detailsController,
-                                    decoration: const InputDecoration(
+                                    decoration: InputDecoration(
                                       labelText:
-                                          'وصف العقد وملاحظات إضافية (اختياري)',
-                                      border: OutlineInputBorder(),
-                                      prefixIcon: Icon(
+                                          l10n.contractAddDescriptionLabel,
+                                      border: const OutlineInputBorder(),
+                                      prefixIcon: const Icon(
                                         Icons.edit_note,
                                         color: Colors.teal,
                                       ),
@@ -573,12 +560,10 @@ class _AddContractPageState extends State<AddContractPage> {
                             ],
                           ),
                         ),
-
-                        // --- الخطوة 2: العقار والمواصفات ---
                         Step(
-                          title: const Text(
-                            'العقار والمواصفات',
-                            style: TextStyle(fontWeight: FontWeight.bold),
+                          title: Text(
+                            l10n.contractStepProperty,
+                            style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
                           isActive: _currentStep >= 1,
                           state: _currentStep > 1
@@ -610,7 +595,7 @@ class _AddContractPageState extends State<AddContractPage> {
                               ),
                               if (isAllocated) ...[
                                 const SizedBox(height: 16),
-                                _buildHandoverSection(), // قمنا بفصل قسم التسليم في دالة مساعدة لترتيب الكود
+                                _buildHandoverSection(),
                                 const SizedBox(height: 16),
                                 AutoCoefficientsSection(
                                   coefficients: autoImportedCoefficients,
@@ -628,12 +613,10 @@ class _AddContractPageState extends State<AddContractPage> {
                             ],
                           ),
                         ),
-
-                        // --- الخطوة 3: الحساب المالي ---
                         Step(
-                          title: const Text(
-                            'الحساب المالي والاعتماد',
-                            style: TextStyle(fontWeight: FontWeight.bold),
+                          title: Text(
+                            l10n.contractStepFinancial,
+                            style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
                           isActive: _currentStep >= 2,
                           state: _currentStep == 2
@@ -676,8 +659,9 @@ class _AddContractPageState extends State<AddContractPage> {
     );
   }
 
-  // 🌟 فصل كود قسم التسليم لتنظيف الـ build
   Widget _buildHandoverSection() {
+    final l10n = context.l10n;
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -693,7 +677,7 @@ class _AddContractPageState extends State<AddContractPage> {
               Icon(Icons.key, color: Colors.blue.shade700),
               const SizedBox(width: 8),
               Text(
-                'تفاصيل التسليم والشروط الجزائية',
+                l10n.contractHandoverDetailsHeader,
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 18,
@@ -715,13 +699,12 @@ class _AddContractPageState extends State<AddContractPage> {
                       initialDate: now.add(const Duration(days: 365)),
                       firstDate: now,
                       lastDate: DateTime(2050),
-                      helpText: 'حدد الموعد للتسليم',
                     );
                     if (date != null) setState(() => agreedHandoverDate = date);
                   },
                   child: InputDecorator(
                     decoration: InputDecoration(
-                      labelText: 'تاريخ التسليم المتوقع *',
+                      labelText: l10n.contractHandoverExpectedDateLabel,
                       border: const OutlineInputBorder(),
                       filled: true,
                       fillColor: Colors.white,
@@ -730,13 +713,13 @@ class _AddContractPageState extends State<AddContractPage> {
                         color: Colors.blue,
                       ),
                       errorText: agreedHandoverDate == null
-                          ? 'مطلوب للمتابعة'
+                          ? l10n.contractHandoverRequiredError
                           : null,
                     ),
                     child: Text(
                       agreedHandoverDate != null
                           ? '${agreedHandoverDate!.year}/${agreedHandoverDate!.month}/${agreedHandoverDate!.day}'
-                          : 'اضغط لاختيار التاريخ',
+                          : l10n.contractHandoverClickToSelect,
                       style: TextStyle(
                         color: agreedHandoverDate != null
                             ? Colors.black
@@ -752,12 +735,15 @@ class _AddContractPageState extends State<AddContractPage> {
                 child: TextFormField(
                   controller: gracePeriodCtrl,
                   keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    labelText: 'فترة السماح للمطور (أشهر)',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: l10n.contractHandoverGracePeriodLabel,
+                    border: const OutlineInputBorder(),
                     filled: true,
                     fillColor: Colors.white,
-                    prefixIcon: Icon(Icons.hourglass_empty, color: Colors.blue),
+                    prefixIcon: const Icon(
+                      Icons.hourglass_empty,
+                      color: Colors.blue,
+                    ),
                   ),
                 ),
               ),
@@ -768,9 +754,9 @@ class _AddContractPageState extends State<AddContractPage> {
             child: Divider(color: Colors.blueGrey),
           ),
           SwitchListTile(
-            title: const Text(
-              'تفعيل غرامة التأخير (تُطبق على العميل بعد استلام المفتاح)',
-              style: TextStyle(
+            title: Text(
+              l10n.contractPenaltyToggleTitle,
+              style: const TextStyle(
                 color: Colors.deepOrange,
                 fontWeight: FontWeight.bold,
               ),
@@ -790,12 +776,15 @@ class _AddContractPageState extends State<AddContractPage> {
                     keyboardType: const TextInputType.numberWithOptions(
                       decimal: true,
                     ),
-                    decoration: const InputDecoration(
-                      labelText: 'نسبة الغرامة %',
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: l10n.contractPenaltyPctLabel,
+                      border: const OutlineInputBorder(),
                       filled: true,
                       fillColor: Colors.white,
-                      prefixIcon: Icon(Icons.percent, color: Colors.deepOrange),
+                      prefixIcon: const Icon(
+                        Icons.percent,
+                        color: Colors.deepOrange,
+                      ),
                     ),
                   ),
                 ),
@@ -804,12 +793,15 @@ class _AddContractPageState extends State<AddContractPage> {
                   child: TextFormField(
                     controller: penaltyIntervalCtrl,
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'تُطبق كل (أشهر)',
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: l10n.contractPenaltyIntervalLabel,
+                      border: const OutlineInputBorder(),
                       filled: true,
                       fillColor: Colors.white,
-                      prefixIcon: Icon(Icons.update, color: Colors.deepOrange),
+                      prefixIcon: const Icon(
+                        Icons.update,
+                        color: Colors.deepOrange,
+                      ),
                     ),
                   ),
                 ),
@@ -821,13 +813,9 @@ class _AddContractPageState extends State<AddContractPage> {
     );
   }
 
-  // ==========================================
-  // دالة الحفظ النهائية (يتم استدعاؤها في الخطوة 3)
-  // ==========================================
   Future<void> _saveContract() async {
+    final l10n = context.l10n;
     if (_isSaving) return;
-
-    // تم التأكد مسبقاً من جميع الشروط بفضل الـ validation الخاص بالـ steps
 
     var exchangeRate = 1.0;
     if (isDollarContract) {
@@ -839,7 +827,7 @@ class _AddContractPageState extends State<AddContractPage> {
             .state
             .currentDollarPrice;
         if (currentDollar == null) {
-          _showError('سعر الدولار غير متوفر! يرجى إضافته في الإعدادات.');
+          _showError(l10n.contractFinDollarMissingRate);
           return;
         }
         exchangeRate = currentDollar.exchangeRate;
@@ -851,14 +839,13 @@ class _AddContractPageState extends State<AddContractPage> {
         _safeParseDouble(downPaymentCtrl) * exchangeRate;
 
     if (agreedAmountSYP <= 0) {
-      _showError('المبلغ الشهري المتفق عليه يجب أن يكون أكبر من صفر!');
+      _showError(l10n.contractValMonthlyZero);
       return;
     }
 
     final uiDisplayedPrice = _safeParseDouble(priceController);
     var finalBasePriceToSend = uiDisplayedPrice;
 
-    // امتصاص فجوات التقريب الطفيفة جداً
     if (_rawCalculatedPricePerSqm > 0 &&
         (uiDisplayedPrice - _rawCalculatedPricePerSqm).abs() < 20) {
       finalBasePriceToSend = _rawCalculatedPricePerSqm;
@@ -896,8 +883,8 @@ class _AddContractPageState extends State<AddContractPage> {
           : 48;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('جاري إنشاء العقد وحفظ الجداول الزمنية... ⏳'),
+        SnackBar(
+          content: Text(l10n.contractSavingMsg),
           backgroundColor: Colors.teal,
         ),
       );
@@ -952,13 +939,13 @@ class _AddContractPageState extends State<AddContractPage> {
 
       if (mounted) {
         Navigator.pop(context);
-        _showSuccess('تم توقيع العقد بنجاح وتم توليد جدول الأقساط! 🎉');
+        _showSuccess(l10n.contractSuccessCreated);
       }
     } catch (e, stackTrace) {
       if (mounted) {
         setState(() => _isSaving = false);
         log('حدث خطأ أثناء توقيع العقد', error: e, stackTrace: stackTrace);
-        _showError('حدث خطأ أثناء الحفظ: $e');
+        _showError(l10n.contractErrorSaving(e.toString()));
       }
     }
   }

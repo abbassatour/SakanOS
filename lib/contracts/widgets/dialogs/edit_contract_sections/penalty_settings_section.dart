@@ -1,6 +1,7 @@
-// مسار الملف: lib/contracts/widgets/dialogs/edit_contract_sections/penalty_settings_section.dart
+// lib/contracts/widgets/dialogs/edit_contract_sections/penalty_settings_section.dart
 
 import 'package:flutter/material.dart';
+import 'package:our_home_erp_app/l10n/l10n.dart';
 
 class PenaltySettingsSection extends StatelessWidget {
   const PenaltySettingsSection({
@@ -20,6 +21,8 @@ class PenaltySettingsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -32,16 +35,16 @@ class PenaltySettingsSection extends StatelessWidget {
         child: Column(
           children: [
             SwitchListTile(
-              title: const Text(
-                'تفعيل غرامة التأخير',
-                style: TextStyle(
+              title: Text(
+                l10n.contractPenaltyToggleTitle,
+                style: const TextStyle(
                   color: Colors.deepOrange,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              subtitle: const Text(
-                'تطبق آلياً بعد التسليم إذا تراكمت الديون',
-                style: TextStyle(fontSize: 11),
+              subtitle: Text(
+                l10n.contractPenaltyToggleTitle, // أو المفتاح الخاص بالوصف
+                style: const TextStyle(fontSize: 11),
               ),
               value: isPenaltyActive,
               activeThumbColor: Colors.deepOrange,
@@ -59,10 +62,9 @@ class PenaltySettingsSection extends StatelessWidget {
                       keyboardType: const TextInputType.numberWithOptions(
                         decimal: true,
                       ),
-                      decoration: const InputDecoration(
-                        labelText: 'النسبة',
-                        suffixText: '%',
-                        border: OutlineInputBorder(),
+                      decoration: InputDecoration(
+                        labelText: l10n.contractPenaltyPctLabel,
+                        border: const OutlineInputBorder(),
                         filled: true,
                         fillColor: Colors.white,
                       ),
@@ -74,10 +76,9 @@ class PenaltySettingsSection extends StatelessWidget {
                       controller: penaltyIntervalCtrl,
                       enabled: canEdit,
                       keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
-                        labelText: 'تطبق كل',
-                        suffixText: 'أشهر',
-                        border: OutlineInputBorder(),
+                      decoration: InputDecoration(
+                        labelText: l10n.contractPenaltyIntervalLabel,
+                        border: const OutlineInputBorder(),
                         filled: true,
                         fillColor: Colors.white,
                       ),

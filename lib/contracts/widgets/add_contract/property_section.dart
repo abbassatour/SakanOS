@@ -1,10 +1,9 @@
-// contracts/widgets/add_contract/property_section.dart
+// lib/contracts/widgets/add_contract/property_section.dart
 
 import 'package:flutter/material.dart';
-
-// ignore: depend_on_referenced_packages, reason: Needed for apartment model
 import 'package:local_storage_api/local_storage_api.dart'
     show Apartment, Building;
+import 'package:our_home_erp_app/l10n/l10n.dart';
 
 class PropertySection extends StatelessWidget {
   const PropertySection({
@@ -28,6 +27,8 @@ class PropertySection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     if (!isAllocated) {
       return Card(
         elevation: 2,
@@ -36,17 +37,16 @@ class PropertySection extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           side: BorderSide(color: Colors.blue.shade200),
         ),
-        child: const Padding(
-          padding: EdgeInsets.all(16),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
           child: Row(
             children: [
-              Icon(Icons.info_outline, color: Colors.blue, size: 24),
-              SizedBox(width: 8),
+              const Icon(Icons.info_outline, color: Colors.blue, size: 24),
+              const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'عقد محفظة: سيتم تخصيص العقار لاحقاً بناءً '
-                  'على الرصيد المتراكم.',
-                  style: TextStyle(
+                  l10n.contractPropertyUnallocatedNotice,
+                  style: const TextStyle(
                     color: Colors.blueGrey,
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
@@ -71,9 +71,9 @@ class PropertySection extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              '🏠 اختيار العقار من الكتالوج',
-              style: TextStyle(
+            Text(
+              l10n.contractPropertyHeader,
+              style: const TextStyle(
                 fontWeight: FontWeight.bold,
                 color: Colors.blueGrey,
                 fontSize: 16,
@@ -82,9 +82,9 @@ class PropertySection extends StatelessWidget {
             const SizedBox(height: 16),
             DropdownButtonFormField<String>(
               initialValue: selectedBuildingId,
-              decoration: const InputDecoration(
-                labelText: 'اختر المحضر',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: l10n.contractPropertySelectBuilding,
+                border: const OutlineInputBorder(),
                 filled: true,
                 fillColor: Colors.white,
               ),
@@ -101,9 +101,9 @@ class PropertySection extends StatelessWidget {
             const SizedBox(height: 16),
             DropdownButtonFormField<String>(
               initialValue: selectedApartmentId,
-              decoration: const InputDecoration(
-                labelText: 'اختر الشقة المتاحة',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: l10n.contractPropertySelectApartment,
+                border: const OutlineInputBorder(),
                 filled: true,
                 fillColor: Colors.white,
               ),
@@ -112,7 +112,10 @@ class PropertySection extends StatelessWidget {
                     (apt) => DropdownMenuItem<String>(
                       value: apt.id,
                       child: Text(
-                        'شقة: ${apt.apartmentNumber} | طابق: ${apt.floorName}',
+                        l10n.contractPropertyAptOption(
+                          apt.apartmentNumber,
+                          apt.floorName,
+                        ),
                       ),
                     ),
                   )
@@ -120,8 +123,8 @@ class PropertySection extends StatelessWidget {
               onChanged: selectedBuildingId == null ? null : onApartmentChanged,
               disabledHint: Text(
                 selectedBuildingId == null
-                    ? 'يرجى اختيار المحضر أولاً'
-                    : 'لا يوجد شقق متاحة!',
+                    ? l10n.contractPropertyNoBuildingHint
+                    : l10n.contractPropertyNoApartmentsHint,
               ),
             ),
           ],

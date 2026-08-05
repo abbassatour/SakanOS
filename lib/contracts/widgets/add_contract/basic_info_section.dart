@@ -1,9 +1,8 @@
 // contracts/widgets/add_contract/basic_info_section.dart
 
 import 'package:flutter/material.dart';
-
-// ignore: depend_on_referenced_packages, reason: Needed for client model
 import 'package:local_storage_api/local_storage_api.dart' show Client;
+import 'package:our_home_erp_app/l10n/l10n.dart';
 
 class BasicInfoSection extends StatelessWidget {
   const BasicInfoSection({
@@ -25,6 +24,8 @@ class BasicInfoSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -34,9 +35,9 @@ class BasicInfoSection extends StatelessWidget {
           children: [
             DropdownButtonFormField<String>(
               initialValue: selectedClientId,
-              decoration: const InputDecoration(
-                labelText: 'اختر العميل (الفريق الثاني)',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: l10n.contractBasicSelectClientLabel,
+                border: const OutlineInputBorder(),
               ),
               items: clients
                   .map(
@@ -51,17 +52,17 @@ class BasicInfoSection extends StatelessWidget {
             const SizedBox(height: 16),
             TextField(
               controller: guarantorController,
-              decoration: const InputDecoration(
-                labelText: 'اسم الكفيل الثلاثي',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: l10n.contractBasicGuarantorLabel,
+                border: const OutlineInputBorder(),
               ),
             ),
             const SizedBox(height: 16),
             DropdownButtonFormField<String>(
               initialValue: selectedContractType,
-              decoration: const InputDecoration(
-                labelText: 'نوع العقد',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: l10n.contractBasicTypeLabel,
+                border: const OutlineInputBorder(),
                 filled: true,
                 fillColor: Colors.white,
               ),
