@@ -181,20 +181,21 @@ class PaymentSummaryCard extends StatelessWidget {
                     _buildStatItem(
                       title: l10n.paymentSumTotalPaid,
                       value:
-                          '${NumberFormatters.formatWithCommas(totalPaid)} ل.س',
+                          '${NumberFormatters.formatWithCommas(totalPaid)} ${l10n.currencySyp}',
                       color: Colors.grey.shade700,
                       icon: Icons.history,
                     ),
                     _buildStatItem(
                       title: l10n.paymentSumMeters,
-                      value: '${totalMeters.toStringAsFixed(3)} م²',
+                      value:
+                          '${totalMeters.toStringAsFixed(3)} ${l10n.unitMetersSq}',
                       color: Colors.blue.shade700,
                       icon: Icons.square_foot,
                     ),
                     _buildStatItem(
                       title: l10n.paymentSumCurrentValue,
                       value: currentPrices != null
-                          ? '${NumberFormatters.formatWithCommas(currentValueBalance)} ل.س'
+                          ? '${NumberFormatters.formatWithCommas(currentValueBalance)} ${l10n.currencySyp}'
                           : l10n.paymentSumLoading,
                       color: Colors.orange.shade800,
                       icon: Icons.trending_up,
@@ -203,7 +204,8 @@ class PaymentSummaryCard extends StatelessWidget {
                     if (isAllocated)
                       _buildStatItem(
                         title: l10n.paymentSumRemaining,
-                        value: '${remainingMeters.toStringAsFixed(3)} م²',
+                        value:
+                            '${remainingMeters.toStringAsFixed(3)} ${l10n.unitMetersSq}',
                         color: remainingMeters > 0
                             ? Colors.red.shade600
                             : Colors.green.shade600,

@@ -1679,5 +1679,6 @@
   "pdfRecipientSignature": "توقيع المستلم",
   "pdfDelayPenalty": "غرامة تأخير:",
   "pdfPriceAfterPenalty": "سعر المتر بعد الغرامة:",
-  "currencySyp": "ل.س"
+  "currencySyp": "ل.س",
+  "unitMetersSq": "م²"
 }

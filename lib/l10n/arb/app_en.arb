@@ -1685,5 +1685,6 @@
   "pdfRecipientSignature": "Recipient Signature",
   "pdfDelayPenalty": "Late Penalty:",
   "pdfPriceAfterPenalty": "Price After Penalty:",
-  "currencySyp": "SYP"
+  "currencySyp": "SYP",
+  "unitMetersSq": "m²"
 }

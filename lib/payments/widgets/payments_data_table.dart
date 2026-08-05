@@ -205,7 +205,7 @@ class PaymentsDataTable extends StatelessWidget {
                             Text(
                               '${NumberFormatters.formatWithCommas(
                                 entry.amountPaid.abs(),
-                              )} ل.س',
+                              )} ${l10n.currencySyp}',
                               style: TextStyle(
                                 color: isRefund ? Colors.red : Colors.green,
                                 fontWeight: FontWeight.bold,
@@ -326,7 +326,7 @@ class PaymentsDataTable extends StatelessWidget {
                           child: Text(
                             '${isRefund ? "-" : "+"}'
                             '${entry.convertedMeters.abs().toStringAsFixed(3)} '
-                            'م²',
+                            '${l10n.unitMetersSq}',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: isRefund
