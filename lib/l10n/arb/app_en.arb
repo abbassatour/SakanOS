@@ -1688,5 +1688,8 @@
   "currencySyp": "SYP",
   "unitMetersSq": "m²",
   "pdfTitleDeposit": "Payment_Receipt",
-  "pdfTitleRefund": "Refund_Voucher"
+  "pdfTitleRefund": "Refund_Voucher",
+
+  "legalAttEmptyGallery": "Gallery is empty. No attachments for this action.",
+  "legalAttImageFallback": "Image"
 }

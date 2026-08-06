@@ -1682,5 +1682,8 @@
   "currencySyp": "ل.س",
   "unitMetersSq": "م²",
   "pdfTitleDeposit": "إيصال_دفع",
-  "pdfTitleRefund": "سند_استرداد"
+  "pdfTitleRefund": "سند_استرداد",
+
+  "legalAttEmptyGallery": "المعرض فارغ. لا توجد مرفقات لهذا الإجراء.",
+  "legalAttImageFallback": "صورة"
 }

@@ -1,28 +1,28 @@
 // lib/legal/view/legal_attachments_page.dart
 import 'dart:io';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:local_storage_api/local_storage_api.dart'
     show LegalAction, LegalActionAttachment;
-import 'package:http/http.dart' as http;
-import 'package:path_provider/path_provider.dart';
 import 'package:open_filex/open_filex.dart';
+import 'package:our_home_erp_app/l10n/l10n.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '../cubit/legal_affairs_cubit.dart';
 
 class LegalAttachmentsPage extends StatefulWidget {
-  final LegalAction action;
-  final bool canManage;
-
   const LegalAttachmentsPage({
     super.key,
     required this.action,
     required this.canManage,
   });
 
-  // 🌟 دالة مساعدة سحرية للانتقال لهذه الصفحة مع الحفاظ على الـ Cubit
+  final LegalAction action;
+  final bool canManage;
+
   static Route<void> route(
     LegalAction action,
     bool canManage,
@@ -30,7 +30,7 @@ class LegalAttachmentsPage extends StatefulWidget {
   ) {
     return MaterialPageRoute(
       builder: (ctx) => BlocProvider.value(
-        value: cubit, // نمرر الـ Cubit للصفحة الجديدة
+        value: cubit,
         child: LegalAttachmentsPage(
           action: action,
           canManage: canManage,
@@ -50,13 +50,12 @@ class _LegalAttachmentsPageState extends State<LegalAttachmentsPage> {
   int currentUploadIndex = 0;
   double totalSizeMB = 0.0;
   double uploadedMB = 0.0;
-  String currentSpeedStr = "0.00 MB/s";
+  String currentSpeedStr = '0.00 MB/s';
   String? errorMessage;
 
-  // ==========================================
-  // دالة لفتح الصور داخل التطبيق (In-App Viewer)
-  // ==========================================
   void _openImageInApp(String urlOrPath, String fileName, bool isLocal) {
+    final l10n = context.l10n;
+
     showDialog(
       context: context,
       builder: (dialogCtx) => Dialog(
@@ -90,16 +89,16 @@ class _LegalAttachmentsPageState extends State<LegalAttachmentsPage> {
                         errorBuilder: (c, e, s) => Container(
                           color: Colors.white,
                           padding: const EdgeInsets.all(20),
-                          child: const Column(
+                          child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(
+                              const Icon(
                                 Icons.broken_image,
                                 color: Colors.red,
                                 size: 50,
                               ),
-                              SizedBox(height: 10),
-                              Text('تعذر تحميل الصورة'),
+                              const SizedBox(height: 10),
+                              Text(l10n.attImageLoadError),
                             ],
                           ),
                         ),
@@ -143,26 +142,24 @@ class _LegalAttachmentsPageState extends State<LegalAttachmentsPage> {
     );
   }
 
-  // ==========================================
-  // دالة تحميل وفتح الملفات (PDF وغيرها)
-  // ==========================================
   Future<void> _downloadAndOpenFile(String urlOrPath, String fileName) async {
+    final l10n = context.l10n;
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('جاري فتح "$fileName"... ⏳'),
+        content: Text(l10n.attOpeningFile(fileName)),
         backgroundColor: Colors.indigo,
         duration: const Duration(seconds: 2),
       ),
     );
 
     try {
-      // 🌟 التعديل السحري: إذا كان المسار محلياً، نفتح الملف مباشرة دون تحميل
       if (!urlOrPath.startsWith('http')) {
         final result = await OpenFilex.open(urlOrPath);
         if (result.type != ResultType.done && mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('⚠️ تعذر فتح الملف المحلي: ${result.message}'),
+              content: Text(l10n.attLocalFileError(result.message)),
               backgroundColor: Colors.orange,
             ),
           );
@@ -170,7 +167,6 @@ class _LegalAttachmentsPageState extends State<LegalAttachmentsPage> {
         return;
       }
 
-      // إذا كان الرابط سحابياً (Secure URL)، نحمله للملفات المؤقتة ثم نفتحه
       final tempDir = await getTemporaryDirectory();
       final filePath = '${tempDir.path}/$fileName';
       final file = File(filePath);
@@ -180,7 +176,7 @@ class _LegalAttachmentsPageState extends State<LegalAttachmentsPage> {
         if (response.statusCode == 200) {
           await file.writeAsBytes(response.bodyBytes);
         } else {
-          throw Exception('فشل التحميل من السيرفر');
+          throw Exception('Failed to download');
         }
       }
 
@@ -188,7 +184,7 @@ class _LegalAttachmentsPageState extends State<LegalAttachmentsPage> {
       if (result.type != ResultType.done && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('⚠️ تعذر فتح الملف: ${result.message}'),
+            content: Text(l10n.attFileError(result.message)),
             backgroundColor: Colors.orange,
           ),
         );
@@ -197,7 +193,7 @@ class _LegalAttachmentsPageState extends State<LegalAttachmentsPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('❌ خطأ في فتح الملف: $e'),
+            content: Text(l10n.attOpenError(e.toString())),
             backgroundColor: Colors.red,
           ),
         );
@@ -215,16 +211,15 @@ class _LegalAttachmentsPageState extends State<LegalAttachmentsPage> {
   }
 
   Future<void> _startUploadProcess() async {
-    bool hasNet = await _hasInternetConnection();
+    final l10n = context.l10n;
+
+    final hasNet = await _hasInternetConnection();
     if (!hasNet) {
-      setState(
-        () => errorMessage =
-            '❌ لا يوجد اتصال بالإنترنت! تأكد من الشبكة وحاول مجدداً.',
-      );
+      setState(() => errorMessage = l10n.attErrorNoInternet);
       return;
     }
 
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
+    final result = await FilePicker.platform.pickFiles(
       allowMultiple: true,
       type: FileType.custom,
       allowedExtensions: [
@@ -241,7 +236,10 @@ class _LegalAttachmentsPageState extends State<LegalAttachmentsPage> {
 
     if (result == null || result.files.isEmpty) return;
 
-    double totalBytes = result.files.fold(0, (sum, file) => sum + file.size);
+    final double totalBytes = result.files.fold(
+      0,
+      (sum, file) => sum + file.size,
+    );
 
     setState(() {
       isUploading = true;
@@ -251,24 +249,23 @@ class _LegalAttachmentsPageState extends State<LegalAttachmentsPage> {
       currentUploadIndex = 0;
       totalSizeMB = totalBytes / (1024 * 1024);
       uploadedMB = 0.0;
-      currentSpeedStr = "0.00 MB/s";
+      currentSpeedStr = '0.00 MB/s';
     });
 
-    await Future.delayed(const Duration(milliseconds: 300));
-    Stopwatch stopwatch = Stopwatch()..start();
+    await Future<void>.delayed(const Duration(milliseconds: 300));
+    final stopwatch = Stopwatch()..start();
     final cubit = context.read<LegalAffairsCubit>();
 
-    for (int i = 0; i < result.files.length; i++) {
+    for (var i = 0; i < result.files.length; i++) {
       if (isCancelling) {
         setState(
-          () => errorMessage =
-              '⚠️ تم إلغاء الرفع. تم رفع $currentUploadIndex ملفات فقط.',
+          () => errorMessage = l10n.attUploadCancelled(currentUploadIndex),
         );
         break;
       }
 
       setState(() => currentUploadIndex = i + 1);
-      await Future.delayed(const Duration(milliseconds: 100));
+      await Future<void>.delayed(const Duration(milliseconds: 100));
 
       final file = result.files[i];
 
@@ -281,23 +278,21 @@ class _LegalAttachmentsPageState extends State<LegalAttachmentsPage> {
             originalFileName: file.name,
           );
 
-          double currentFileMB = file.size / (1024 * 1024);
+          final currentFileMB = file.size / (1024 * 1024);
           uploadedMB += currentFileMB;
-          double elapsedSec = stopwatch.elapsedMilliseconds / 1000.0;
-          double speed = elapsedSec > 0 ? (uploadedMB / elapsedSec) : 0.0;
+          final elapsedSec = stopwatch.elapsedMilliseconds / 1000.0;
+          final speed = elapsedSec > 0 ? (uploadedMB / elapsedSec) : 0.0;
 
-          setState(() => currentSpeedStr = "${speed.toStringAsFixed(2)} MB/s");
+          setState(() => currentSpeedStr = '${speed.toStringAsFixed(2)} MB/s');
         } catch (e) {
           if (mounted) {
             if (e is SocketException ||
                 e.toString().toLowerCase().contains('socket')) {
-              setState(
-                () => errorMessage = '❌ انقطع الاتصال بالإنترنت أثناء الرفع!',
-              );
+              setState(() => errorMessage = l10n.attInternetLostDuringUpload);
             } else {
               setState(
-                () => errorMessage =
-                    '❌ حدث خطأ أثناء رفع الملف (${file.name}): $e',
+                () =>
+                    errorMessage = l10n.attUploadError(file.name, e.toString()),
               );
             }
           }
@@ -312,7 +307,7 @@ class _LegalAttachmentsPageState extends State<LegalAttachmentsPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('تم رفع $totalFilesToUpload ملفات بنجاح! ✅'),
+            content: Text(l10n.attUploadSuccess(totalFilesToUpload)),
             backgroundColor: Colors.green,
           ),
         );
@@ -325,13 +320,15 @@ class _LegalAttachmentsPageState extends State<LegalAttachmentsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
     return PopScope(
       canPop: !isUploading,
       onPopInvoked: (didPop) {
         if (!didPop && mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('⚠️ الرجاء الانتظار حتى يكتمل الرفع.'),
+            SnackBar(
+              content: Text(l10n.attWaitUploadNotice),
               backgroundColor: Colors.orange,
             ),
           );
@@ -340,9 +337,9 @@ class _LegalAttachmentsPageState extends State<LegalAttachmentsPage> {
       child: Scaffold(
         backgroundColor: Colors.grey.shade50,
         appBar: AppBar(
-          title: const Text(
-            'معرض المرفقات',
-            style: TextStyle(fontWeight: FontWeight.bold),
+          title: Text(
+            l10n.legalPageTitle,
+            style: const TextStyle(fontWeight: FontWeight.bold),
           ),
           backgroundColor: Colors.indigo,
           foregroundColor: Colors.white,
@@ -357,9 +354,9 @@ class _LegalAttachmentsPageState extends State<LegalAttachmentsPage> {
                 ),
                 child: ElevatedButton.icon(
                   icon: const Icon(Icons.add_photo_alternate, size: 18),
-                  label: const Text(
-                    'رفع ملفات جديدة',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                  label: Text(
+                    l10n.attBtnUploadNew,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white,
@@ -387,6 +384,8 @@ class _LegalAttachmentsPageState extends State<LegalAttachmentsPage> {
   }
 
   Widget _buildUploadProgressView() {
+    final l10n = context.l10n;
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 40.0),
@@ -396,7 +395,7 @@ class _LegalAttachmentsPageState extends State<LegalAttachmentsPage> {
             const CircularProgressIndicator(color: Colors.indigo),
             const SizedBox(height: 24),
             Text(
-              'جاري معالجة ورفع الملف $currentUploadIndex من $totalFilesToUpload',
+              l10n.attUploadProgress(currentUploadIndex, totalFilesToUpload),
               style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
@@ -421,7 +420,7 @@ class _LegalAttachmentsPageState extends State<LegalAttachmentsPage> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'متوسط السرعة: $currentSpeedStr',
+                    l10n.attUploadSpeed(currentSpeedStr),
                     style: const TextStyle(
                       color: Colors.green,
                       fontWeight: FontWeight.bold,
@@ -449,7 +448,7 @@ class _LegalAttachmentsPageState extends State<LegalAttachmentsPage> {
               ),
               icon: const Icon(Icons.cancel),
               label: Text(
-                isCancelling ? 'جاري الإيقاف...' : 'إلغاء العملية',
+                isCancelling ? l10n.attBtnCancelling : l10n.attBtnCancel,
                 style: const TextStyle(fontSize: 16),
               ),
               onPressed: isCancelling
@@ -463,6 +462,8 @@ class _LegalAttachmentsPageState extends State<LegalAttachmentsPage> {
   }
 
   Widget _buildGalleryView(List<LegalActionAttachment> attachments) {
+    final l10n = context.l10n;
+
     return Column(
       children: [
         if (errorMessage != null)
@@ -491,20 +492,20 @@ class _LegalAttachmentsPageState extends State<LegalAttachmentsPage> {
             ),
           ),
         if (attachments.isEmpty)
-          const Expanded(
+          Expanded(
             child: Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.perm_media_outlined,
                     size: 100,
                     color: Colors.black12,
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   Text(
-                    'المعرض فارغ. لا توجد مرفقات.',
-                    style: TextStyle(color: Colors.grey, fontSize: 20),
+                    l10n.legalAttEmptyGallery,
+                    style: const TextStyle(color: Colors.grey, fontSize: 20),
                   ),
                 ],
               ),
@@ -528,8 +529,8 @@ class _LegalAttachmentsPageState extends State<LegalAttachmentsPage> {
                 final isPdf = ext == 'pdf';
                 final isExcel = ['xls', 'xlsx'].contains(ext);
 
-                IconData fileIcon = Icons.insert_drive_file;
-                Color fileColor = Colors.blueGrey;
+                var fileIcon = Icons.insert_drive_file;
+                var fileColor = Colors.blueGrey;
                 if (isPdf) {
                   fileIcon = Icons.picture_as_pdf;
                   fileColor = Colors.red;
@@ -541,7 +542,6 @@ class _LegalAttachmentsPageState extends State<LegalAttachmentsPage> {
                   fileColor = Colors.blue.shade800;
                 }
 
-                // 🌟 استخدام FutureBuilder لجلب الرابط الآمن 🌟
                 return FutureBuilder<String?>(
                   future: context
                       .read<LegalAffairsCubit>()
@@ -569,13 +569,14 @@ class _LegalAttachmentsPageState extends State<LegalAttachmentsPage> {
                                     if (isImage) {
                                       _openImageInApp(
                                         secureUrl,
-                                        att.fileName ?? 'صورة',
+                                        att.fileName ??
+                                            l10n.legalAttImageFallback,
                                         isLocal,
                                       );
                                     } else {
                                       _downloadAndOpenFile(
                                         secureUrl,
-                                        att.fileName ?? 'ملف.$ext',
+                                        att.fileName ?? 'file.$ext',
                                       );
                                     }
                                   },
@@ -622,7 +623,7 @@ class _LegalAttachmentsPageState extends State<LegalAttachmentsPage> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        att.fileName ?? 'بدون اسم',
+                                        att.fileName ?? l10n.attUnnamed,
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                         style: const TextStyle(
