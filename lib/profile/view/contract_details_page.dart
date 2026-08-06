@@ -312,6 +312,7 @@ class ContractDetailsPage extends StatelessWidget {
     );
 
     final pdfBytes = await HandoverPledgePdfHelper.generatePdf(
+      l10n: l10n, // 🌟 تمرير متغير الترجمة هنا
       contract: currentContract,
       client: client,
       apartment: apartment,

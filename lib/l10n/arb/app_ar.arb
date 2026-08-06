@@ -1748,5 +1748,39 @@
   "paymentErrorWhatsAppStatusFailed": "فشل في تحديث حالة الواتساب: {error}",
   "@paymentErrorWhatsAppStatusFailed": { "placeholders": { "error": { "type": "String" } } },
 
-  "paymentAddErrorGeneric": "حدث خطأ أثناء حفظ الدفعة: {error}"
+  "paymentAddErrorGeneric": "حدث خطأ أثناء حفظ الدفعة: {error}",
+
+  "pdfSakanOsSub": "للتطوير والاستثمار العقاري",
+  "pdfHandoverTitleMain": "محضر استلام مبدئي",
+  "pdfHandoverTitleSub": "وتعهد بالتجهيزات المشتركة",
+  "pdfHandoverPrintDate": "تاريخ الطباعة:",
+  "pdfHandoverClientInfo": "بيانات العميل (المستلم):",
+  "pdfHandoverNotRecorded": "غير مدون",
+  "pdfHandoverClientDetails": "{name}  |  هاتف: {phone}  |  رقم وطني: {nationalId}",
+  "@pdfHandoverClientDetails": {
+    "placeholders": {
+      "name": { "type": "String" },
+      "phone": { "type": "String" },
+      "nationalId": { "type": "String" }
+    }
+  },
+  "pdfHandoverPropertyDetails": "تفاصيل العقار:",
+  "pdfHandoverBuildingAptFloor": "محضر ({building})  |  شقة رقم ({apt})  |  {floor}",
+  "@pdfHandoverBuildingAptFloor": {
+    "placeholders": {
+      "building": { "type": "String" },
+      "apt": { "type": "String" },
+      "floor": { "type": "String" }
+    }
+  },
+  "pdfHandoverActualDate": "التاريخ الفعلي للاستلام:",
+  "pdfHandoverPledgeTitle": "إقرار وتعهد:",
+  "pdfHandoverPledgeP1": "أقر أنا الموقع أدناه (الفريق الثاني)، بأنني قد استلمت الوحدة العقارية المذكورة أعلاه من مكتب SakanOS للتطوير العقاري (الفريق الأول)، وذلك بعد معاينتها والتأكد من مطابقتها للمواصفات المتفق عليها في العقد الأساسي، وبذلك أُبرئ ذمة الفريق الأول من ناحية التسليم المبدئي للوحدة.",
+  "pdfHandoverPledgeP2": "كما أتعهد التزاماً تاماً بدفع حصتي المالية المترتبة عليّ تجاه التجهيزات المشتركة للمحضر (وتشمل على سبيل المثال لا الحصر: كلف المصعد، الرخام، الكسوة الخارجية، التمديدات الصحية، وأي تجهيزات مشتركة أخرى) وذلك فور البدء بتنفيذها أو عند مطالبة الإدارة بها، وفقاً لنسب المعاملات المتفق عليها في العقد الأساسي.",
+  "pdfHandoverPledgeP3": "وأتعهد أيضاً بعدم إحداث أي تغييرات هندسية أو معمارية تمس بالواجهة الخارجية للمحضر أو الأقسام المشتركة دون الحصول على موافقة خطية مسبقة من إدارة المكتب.",
+  "pdfHandoverNotesTitle": "ملاحظات / نواقص تم رصدها عند التسليم:",
+  "pdfHandoverSignClient": "توقيع العميل (المُستلم)",
+  "pdfHandoverFingerprint": "البصمة:",
+  "pdfHandoverSignEngineer": "مندوب التسليم (المهندس)",
+  "pdfHandoverSignOffice": "ختم المكتب (الفريق الأول)"
 }

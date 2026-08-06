@@ -4,14 +4,16 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:local_storage_api/local_storage_api.dart';
+import 'package:our_home_erp_app/l10n/l10n.dart'; // 🌟 إضافة استيراد الترجمة
 
 class HandoverPledgePdfHelper {
-  static String _formatDate(DateTime? date) {
-    if (date == null) return 'غير محدد';
+  static String _formatDate(DateTime? date, AppLocalizations l10n) {
+    if (date == null) return l10n.bldUnspecified;
     return '${date.year}/${date.month.toString().padLeft(2, '0')}/${date.day.toString().padLeft(2, '0')}';
   }
 
   static Future<Uint8List> generatePdf({
+    required AppLocalizations l10n, // 🌟 إضافة متطلب الترجمة
     required Contract contract,
     required Client client,
     required Apartment apartment,
@@ -19,7 +21,6 @@ class HandoverPledgePdfHelper {
   }) async {
     final pdf = pw.Document();
 
-    // 🌟 جلب الخطوط العربية
     final arabicFont = await PdfGoogleFonts.cairoRegular();
     final arabicBoldFont = await PdfGoogleFonts.cairoBold();
 
@@ -30,7 +31,10 @@ class HandoverPledgePdfHelper {
       pw.Page(
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(32),
-        textDirection: pw.TextDirection.rtl,
+        // 🌟 جعل اتجاه النص ديناميكي
+        textDirection: l10n.localeName == 'ar'
+            ? pw.TextDirection.rtl
+            : pw.TextDirection.ltr,
         theme: pw.ThemeData.withFont(base: arabicFont, bold: arabicBoldFont),
         build: (pw.Context context) {
           return pw.Column(
@@ -55,7 +59,7 @@ class HandoverPledgePdfHelper {
                         ),
                       ),
                       pw.Text(
-                        'للتطوير والاستثمار العقاري',
+                        l10n.pdfSakanOsSub,
                         style: pw.TextStyle(
                           font: arabicFont,
                           fontSize: 10,
@@ -68,7 +72,7 @@ class HandoverPledgePdfHelper {
                     crossAxisAlignment: pw.CrossAxisAlignment.end,
                     children: [
                       pw.Text(
-                        'محضر استلام مبدئي',
+                        l10n.pdfHandoverTitleMain,
                         style: pw.TextStyle(
                           font: arabicBoldFont,
                           fontSize: 18,
@@ -76,7 +80,7 @@ class HandoverPledgePdfHelper {
                         ),
                       ),
                       pw.Text(
-                        'وتعهد بالتجهيزات المشتركة',
+                        l10n.pdfHandoverTitleSub,
                         style: pw.TextStyle(
                           font: arabicBoldFont,
                           fontSize: 14,
@@ -85,7 +89,7 @@ class HandoverPledgePdfHelper {
                       ),
                       pw.SizedBox(height: 4),
                       pw.Text(
-                        'تاريخ الطباعة: ${_formatDate(DateTime.now())}',
+                        '${l10n.pdfHandoverPrintDate} ${_formatDate(DateTime.now(), l10n)}',
                         style: pw.TextStyle(font: arabicFont, fontSize: 9),
                       ),
                     ],
@@ -109,22 +113,30 @@ class HandoverPledgePdfHelper {
                 child: pw.Column(
                   children: [
                     _buildDataRow(
-                      'بيانات العميل (المستلم):',
-                      '${client.name}  |  هاتف: ${client.phone}  |  رقم وطني: ${client.nationalId ?? "غير مدون"}',
+                      l10n.pdfHandoverClientInfo,
+                      l10n.pdfHandoverClientDetails(
+                        client.name,
+                        client.phone,
+                        client.nationalId ?? l10n.pdfHandoverNotRecorded,
+                      ),
                       arabicFont,
                       arabicBoldFont,
                     ),
                     pw.Divider(color: borderColor),
                     _buildDataRow(
-                      'تفاصيل العقار:',
-                      'محضر (${building.name})  |  شقة رقم (${apartment.apartmentNumber})  |  ${apartment.floorName}',
+                      l10n.pdfHandoverPropertyDetails,
+                      l10n.pdfHandoverBuildingAptFloor(
+                        building.name,
+                        apartment.apartmentNumber,
+                        apartment.floorName,
+                      ),
                       arabicFont,
                       arabicBoldFont,
                     ),
                     pw.Divider(color: borderColor),
                     _buildDataRow(
-                      'التاريخ الفعلي للاستلام:',
-                      _formatDate(contract.actualHandoverDate),
+                      l10n.pdfHandoverActualDate,
+                      _formatDate(contract.actualHandoverDate, l10n),
                       arabicFont,
                       arabicBoldFont,
                     ),
@@ -137,7 +149,7 @@ class HandoverPledgePdfHelper {
               // ⚖️ 3. النص القانوني للتعهد
               // ==========================================
               pw.Text(
-                'إقرار وتعهد:',
+                l10n.pdfHandoverPledgeTitle,
                 style: pw.TextStyle(
                   font: arabicBoldFont,
                   fontSize: 14,
@@ -146,8 +158,7 @@ class HandoverPledgePdfHelper {
               ),
               pw.SizedBox(height: 8),
               pw.Paragraph(
-                text:
-                    'أقر أنا الموقع أدناه (الفريق الثاني)، بأنني قد استلمت الوحدة العقارية المذكورة أعلاه من مكتب SakanOS للتطوير العقاري (الفريق الأول)، وذلك بعد معاينتها والتأكد من مطابقتها للمواصفات المتفق عليها في العقد الأساسي، وبذلك أُبرئ ذمة الفريق الأول من ناحية التسليم المبدئي للوحدة.',
+                text: l10n.pdfHandoverPledgeP1,
                 style: pw.TextStyle(
                   font: arabicFont,
                   fontSize: 12,
@@ -155,8 +166,7 @@ class HandoverPledgePdfHelper {
                 ),
               ),
               pw.Paragraph(
-                text:
-                    'كما أتعهد التزاماً تاماً بدفع حصتي المالية المترتبة عليّ تجاه التجهيزات المشتركة للمحضر (وتشمل على سبيل المثال لا الحصر: كلف المصعد، الرخام، الكسوة الخارجية، التمديدات الصحية، وأي تجهيزات مشتركة أخرى) وذلك فور البدء بتنفيذها أو عند مطالبة الإدارة بها، وفقاً لنسب المعاملات المتفق عليها في العقد الأساسي.',
+                text: l10n.pdfHandoverPledgeP2,
                 style: pw.TextStyle(
                   font: arabicFont,
                   fontSize: 12,
@@ -164,8 +174,7 @@ class HandoverPledgePdfHelper {
                 ),
               ),
               pw.Paragraph(
-                text:
-                    'وأتعهد أيضاً بعدم إحداث أي تغييرات هندسية أو معمارية تمس بالواجهة الخارجية للمحضر أو الأقسام المشتركة دون الحصول على موافقة خطية مسبقة من إدارة المكتب.',
+                text: l10n.pdfHandoverPledgeP3,
                 style: pw.TextStyle(
                   font: arabicBoldFont,
                   fontSize: 12,
@@ -188,7 +197,7 @@ class HandoverPledgePdfHelper {
                     crossAxisAlignment: pw.CrossAxisAlignment.start,
                     children: [
                       pw.Text(
-                        'ملاحظات / نواقص تم رصدها عند التسليم:',
+                        l10n.pdfHandoverNotesTitle,
                         style: pw.TextStyle(
                           font: arabicBoldFont,
                           fontSize: 11,
@@ -223,11 +232,10 @@ class HandoverPledgePdfHelper {
                     crossAxisAlignment: pw.CrossAxisAlignment.center,
                     children: [
                       pw.Text(
-                        'توقيع العميل (المُستلم)',
+                        l10n.pdfHandoverSignClient,
                         style: pw.TextStyle(font: arabicBoldFont, fontSize: 12),
                       ),
                       pw.SizedBox(height: 40),
-                      // 🌟 التصحيح: وضعنا border داخل BoxDecoration
                       pw.Container(
                         width: 120,
                         decoration: const pw.BoxDecoration(
@@ -241,7 +249,7 @@ class HandoverPledgePdfHelper {
                       ),
                       pw.SizedBox(height: 8),
                       pw.Text(
-                        'البصمة:',
+                        l10n.pdfHandoverFingerprint,
                         style: pw.TextStyle(
                           font: arabicFont,
                           fontSize: 10,
@@ -254,7 +262,7 @@ class HandoverPledgePdfHelper {
                     crossAxisAlignment: pw.CrossAxisAlignment.center,
                     children: [
                       pw.Text(
-                        'مندوب التسليم (المهندس)',
+                        l10n.pdfHandoverSignEngineer,
                         style: pw.TextStyle(font: arabicBoldFont, fontSize: 12),
                       ),
                       pw.SizedBox(height: 40),
@@ -275,7 +283,7 @@ class HandoverPledgePdfHelper {
                     crossAxisAlignment: pw.CrossAxisAlignment.center,
                     children: [
                       pw.Text(
-                        'ختم المكتب (الفريق الأول)',
+                        l10n.pdfHandoverSignOffice,
                         style: pw.TextStyle(font: arabicBoldFont, fontSize: 12),
                       ),
                       pw.SizedBox(height: 40),

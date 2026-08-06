@@ -1756,5 +1756,39 @@
   "paymentErrorWhatsAppStatusFailed": "Failed to update WhatsApp status: {error}",
   "@paymentErrorWhatsAppStatusFailed": { "placeholders": { "error": { "type": "String" } } },
 
-  "paymentAddErrorGeneric": "An error occurred while saving payment: {error}"
+  "paymentAddErrorGeneric": "An error occurred while saving payment: {error}",
+
+  "pdfSakanOsSub": "Real Estate Development & Investment",
+  "pdfHandoverTitleMain": "Preliminary Handover Record",
+  "pdfHandoverTitleSub": "& Commitment to Shared Facilities",
+  "pdfHandoverPrintDate": "Print Date:",
+  "pdfHandoverClientInfo": "Client Data (Recipient):",
+  "pdfHandoverNotRecorded": "Not recorded",
+  "pdfHandoverClientDetails": "{name}  |  Phone: {phone}  |  National ID: {nationalId}",
+  "@pdfHandoverClientDetails": {
+    "placeholders": {
+      "name": { "type": "String" },
+      "phone": { "type": "String" },
+      "nationalId": { "type": "String" }
+    }
+  },
+  "pdfHandoverPropertyDetails": "Property Details:",
+  "pdfHandoverBuildingAptFloor": "Building ({building})  |  Apt No. ({apt})  |  {floor}",
+  "@pdfHandoverBuildingAptFloor": {
+    "placeholders": {
+      "building": { "type": "String" },
+      "apt": { "type": "String" },
+      "floor": { "type": "String" }
+    }
+  },
+  "pdfHandoverActualDate": "Actual Handover Date:",
+  "pdfHandoverPledgeTitle": "Declaration & Commitment:",
+  "pdfHandoverPledgeP1": "I, the undersigned (Second Party), declare that I have received the aforementioned real estate unit from SakanOS Real Estate Development (First Party), after inspecting it and verifying its compliance with the specifications agreed upon in the master contract. Thus, I clear the First Party of any liability regarding the preliminary handover of the unit.",
+  "pdfHandoverPledgeP2": "I also strictly commit to paying my financial share for the shared facilities of the building (including but not limited to: elevator costs, marble, exterior cladding, plumbing, and any other shared equipment) immediately upon commencement of their implementation or when requested by management, according to the multiplier percentages agreed upon in the master contract.",
+  "pdfHandoverPledgeP3": "I further commit not to make any engineering or architectural changes affecting the exterior facade of the building or shared sections without prior written approval from the office management.",
+  "pdfHandoverNotesTitle": "Notes / Missing items observed during handover:",
+  "pdfHandoverSignClient": "Client Signature (Recipient)",
+  "pdfHandoverFingerprint": "Fingerprint:",
+  "pdfHandoverSignEngineer": "Handover Rep. (Engineer)",
+  "pdfHandoverSignOffice": "Office Stamp (First Party)"
 }
