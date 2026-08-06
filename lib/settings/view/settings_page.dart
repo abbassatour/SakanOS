@@ -3,12 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:erp_repository/erp_repository.dart';
-// 🌟 استيراد ملفات الترجمة والـ Cubit
+
 import '../../l10n/cubit/locale_cubit.dart';
 import '../../l10n/l10n.dart';
 import '../cubit/settings_cubit.dart';
 import 'price_history_page.dart';
-// 🌟 استدعاء شاشة سجل الدولار
 import 'dollar_history_page.dart';
 
 import 'dialogs/confirm_restore_dialog.dart';
@@ -17,9 +16,6 @@ import '../../recycle_bin/view/recycle_bin_page.dart';
 import '../../auth/cubit/auth_cubit.dart';
 import '../../core/constants/app_permissions.dart';
 
-// ==========================================
-// 🌟 أداة تنسيق الأرقام بالفواصل
-// ==========================================
 class ThousandsFormatter extends TextInputFormatter {
   @override
   TextEditingValue formatEditUpdate(
@@ -52,9 +48,6 @@ String formatNumber(num number) {
   );
 }
 
-// ==========================================
-// 🌟 الصفحة الرئيسية
-// ==========================================
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
 
@@ -76,7 +69,6 @@ class SettingsView extends StatefulWidget {
 }
 
 class _SettingsViewState extends State<SettingsView> {
-  // متحكمات أسعار المواد
   final ironController = TextEditingController();
   final cementController = TextEditingController();
   final blockController = TextEditingController();
@@ -84,7 +76,6 @@ class _SettingsViewState extends State<SettingsView> {
   final aggregatesController = TextEditingController();
   final workerController = TextEditingController();
 
-  // 🌟 متحكم سعر الدولار الجديد
   final dollarController = TextEditingController();
 
   final ScrollController _scrollController = ScrollController();
@@ -102,10 +93,6 @@ class _SettingsViewState extends State<SettingsView> {
     _scrollController.dispose();
     super.dispose();
   }
-
-  // ==========================================
-  // 🎯 دوال الحفظ (Actions)
-  // ==========================================
 
   void _saveMaterialPrices(BuildContext context) {
     final l10n = context.l10n;
@@ -229,7 +216,7 @@ class _SettingsViewState extends State<SettingsView> {
             if (state.status == SettingsStatus.failure) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text('خطأ: ${state.errorMessage}'),
+                  content: Text('Error: ${state.errorMessage}'),
                   backgroundColor: Colors.red,
                   duration: const Duration(seconds: 5),
                 ),
@@ -261,7 +248,6 @@ class _SettingsViewState extends State<SettingsView> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // 🌟 العنوان
                           Row(
                             children: [
                               Container(
@@ -291,21 +277,12 @@ class _SettingsViewState extends State<SettingsView> {
                           ),
                           const SizedBox(height: 24),
 
-                          // ==========================================
-                          // 🌍 بطاقة تبديل اللغة (Language Switcher)
-                          // ==========================================
                           _buildLanguageCard(context),
                           const SizedBox(height: 24),
 
-                          // ==========================================
-                          // 💵 بطاقة إعداد سعر الدولار
-                          // ==========================================
                           _buildDollarCard(context, hasUpdatePermission, l10n),
                           const SizedBox(height: 24),
 
-                          // ==========================================
-                          // 🧱 بطاقة إعداد الأسعار الإفرادية للمواد
-                          // ==========================================
                           _buildMaterialPricesCard(
                             context,
                             hasUpdatePermission,
@@ -313,9 +290,6 @@ class _SettingsViewState extends State<SettingsView> {
                           ),
                           const SizedBox(height: 24),
 
-                          // ==========================================
-                          // 🗑️ بطاقة سلة المحذوفات
-                          // ==========================================
                           if (authState.hasPermission(
                             AppPermissions.viewRecycleBin,
                           )) ...[
@@ -323,9 +297,6 @@ class _SettingsViewState extends State<SettingsView> {
                             const SizedBox(height: 24),
                           ],
 
-                          // ==========================================
-                          // 🔐 بطاقة معلومات الرخصة ورمز الأمان
-                          // ==========================================
                           if (authState.isSystemAdmin) ...[
                             _buildSubscriptionCard(
                               context,
@@ -341,9 +312,6 @@ class _SettingsViewState extends State<SettingsView> {
                             const SizedBox(height: 36),
                           ],
 
-                          // ==========================================
-                          // 🛡️ بطاقة النسخ الاحتياطي والاستعادة
-                          // ==========================================
                           _buildBackupRestoreCard(
                             context,
                             authState.isSystemAdmin,
@@ -364,11 +332,6 @@ class _SettingsViewState extends State<SettingsView> {
     );
   }
 
-  // ==========================================
-  // 🧩 تصميم الأجزاء (Components) المنفصلة
-  // ==========================================
-
-  // 💵 1. بطاقة الدولار
   Widget _buildDollarCard(
     BuildContext context,
     bool hasPermission,
@@ -393,11 +356,9 @@ class _SettingsViewState extends State<SettingsView> {
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment:
-                CrossAxisAlignment.start, // 🌟 إصلاح الـ Overflow
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
-                // 🌟 تم إضافة Expanded لحماية النصوص الطويلة
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -459,6 +420,7 @@ class _SettingsViewState extends State<SettingsView> {
             children: [
               Expanded(
                 child: _buildPriceField(
+                  context,
                   controller: dollarController,
                   label: l10n.settingsDollarInputLabel,
                   icon: Icons.attach_money,
@@ -501,7 +463,6 @@ class _SettingsViewState extends State<SettingsView> {
     );
   }
 
-  // 🧱 2. بطاقة أسعار المواد
   Widget _buildMaterialPricesCard(
     BuildContext context,
     bool hasPermission,
@@ -526,11 +487,9 @@ class _SettingsViewState extends State<SettingsView> {
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment:
-                CrossAxisAlignment.start, // 🌟 إصلاح الـ Overflow
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
-                // 🌟 تم إضافة Expanded لحماية النصوص الطويلة
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -589,6 +548,7 @@ class _SettingsViewState extends State<SettingsView> {
             children: [
               Expanded(
                 child: _buildPriceField(
+                  context,
                   controller: ironController,
                   label: l10n.settingsIronLabel,
                   icon: Icons.hardware,
@@ -598,6 +558,7 @@ class _SettingsViewState extends State<SettingsView> {
               const SizedBox(width: 16),
               Expanded(
                 child: _buildPriceField(
+                  context,
                   controller: cementController,
                   label: l10n.settingsCementLabel,
                   icon: Icons.foundation,
@@ -611,6 +572,7 @@ class _SettingsViewState extends State<SettingsView> {
             children: [
               Expanded(
                 child: _buildPriceField(
+                  context,
                   controller: blockController,
                   label: l10n.settingsBlockLabel,
                   icon: Icons.view_in_ar,
@@ -620,6 +582,7 @@ class _SettingsViewState extends State<SettingsView> {
               const SizedBox(width: 16),
               Expanded(
                 child: _buildPriceField(
+                  context,
                   controller: formworkController,
                   label: l10n.settingsFormworkLabel,
                   icon: Icons.architecture,
@@ -633,6 +596,7 @@ class _SettingsViewState extends State<SettingsView> {
             children: [
               Expanded(
                 child: _buildPriceField(
+                  context,
                   controller: aggregatesController,
                   label: l10n.settingsAggregatesLabel,
                   icon: Icons.landslide,
@@ -642,6 +606,7 @@ class _SettingsViewState extends State<SettingsView> {
               const SizedBox(width: 16),
               Expanded(
                 child: _buildPriceField(
+                  context,
                   controller: workerController,
                   label: l10n.settingsWorkerLabel,
                   icon: Icons.engineering,
@@ -683,7 +648,6 @@ class _SettingsViewState extends State<SettingsView> {
     );
   }
 
-  // 🗑️ 3. بطاقة سلة المحذوفات
   Widget _buildRecycleBinCard(BuildContext context, AppLocalizations l10n) {
     return Container(
       padding: const EdgeInsets.all(24),
@@ -756,7 +720,6 @@ class _SettingsViewState extends State<SettingsView> {
     );
   }
 
-  // 🔐 بطاقة رمز الأمان
   Widget _buildSecurityCard(
     BuildContext context,
     String currentPin,
@@ -830,7 +793,6 @@ class _SettingsViewState extends State<SettingsView> {
     );
   }
 
-  // ديالوج تغيير الـ PIN
   void _showChangePinDialog(BuildContext parentContext, String currentPin) {
     final l10n = parentContext.l10n;
     final oldPinCtrl = TextEditingController();
@@ -921,7 +883,6 @@ class _SettingsViewState extends State<SettingsView> {
     );
   }
 
-  // 🛡️ 4. بطاقة النسخ الاحتياطي
   Widget _buildBackupRestoreCard(
     BuildContext context,
     bool isAdmin,
@@ -1036,14 +997,16 @@ class _SettingsViewState extends State<SettingsView> {
     );
   }
 
-  // 🔹 أداة حقل الإدخال المشتركة
-  Widget _buildPriceField({
+  Widget _buildPriceField(
+    BuildContext context, {
     required TextEditingController controller,
     required String label,
     required IconData icon,
     required TextInputAction textInputAction,
     void Function(String)? onSubmitted,
   }) {
+    final l10n = context.l10n;
+
     return TextField(
       controller: controller,
       inputFormatters: [ThousandsFormatter()],
@@ -1058,7 +1021,7 @@ class _SettingsViewState extends State<SettingsView> {
       decoration: InputDecoration(
         labelText: label,
         prefixIcon: Icon(icon, color: Colors.blueGrey.shade400, size: 22),
-        suffixText: 'ل.س',
+        suffixText: l10n.currencySyp,
         suffixStyle: TextStyle(
           color: Colors.blueGrey.shade300,
           fontWeight: FontWeight.bold,
@@ -1086,9 +1049,6 @@ class _SettingsViewState extends State<SettingsView> {
     );
   }
 
-  // ==========================================
-  // 📜 بطاقة معلومات الرخصة والاشتراك (للمدير فقط)
-  // ==========================================
   Widget _buildSubscriptionCard(
     BuildContext context,
     DateTime? expiryDate,
@@ -1241,9 +1201,6 @@ class _SettingsViewState extends State<SettingsView> {
     );
   }
 
-  // ==========================================
-  // 🌍 بطاقة تبديل اللغة (Language Switcher)
-  // ==========================================
   Widget _buildLanguageCard(BuildContext context) {
     final currentLocale = context.watch<LocaleCubit>().state;
     final l10n = context.l10n;
