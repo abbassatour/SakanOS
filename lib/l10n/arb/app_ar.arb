@@ -1746,5 +1746,7 @@
   "@paymentErrorUpdateFailed": { "placeholders": { "error": { "type": "String" } } },
   "paymentErrorOldCancellationBlocked": "تحذير محاسبي: لا يمكن إلغاء دفعة قديمة! يجب التراجع عن الدفعات الأحدث أولاً لتسوية الحسابات بالترتيب.",
   "paymentErrorWhatsAppStatusFailed": "فشل في تحديث حالة الواتساب: {error}",
-  "@paymentErrorWhatsAppStatusFailed": { "placeholders": { "error": { "type": "String" } } }
+  "@paymentErrorWhatsAppStatusFailed": { "placeholders": { "error": { "type": "String" } } },
+
+  "paymentAddErrorGeneric": "حدث خطأ أثناء حفظ الدفعة: {error}"
 }

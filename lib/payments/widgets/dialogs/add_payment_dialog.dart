@@ -484,7 +484,9 @@ class _AddPaymentDialogContentState extends State<_AddPaymentDialogContent> {
                         if (!widget.parentContext.mounted) return;
                         ScaffoldMessenger.of(widget.parentContext).showSnackBar(
                           SnackBar(
-                            content: Text('حدث خطأ: $e'),
+                            content: Text(
+                              l10n.paymentAddErrorGeneric(e.toString()),
+                            ),
                             backgroundColor: Colors.red,
                           ),
                         );
