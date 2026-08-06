@@ -5,6 +5,58 @@ import 'package:our_home_erp_app/l10n/l10n.dart';
 import '../../cubit/schedule_cubit.dart';
 import '../dialogs/take_action_dialog.dart';
 
+String formatApartmentDetails(BuildContext context, String rawDetails) {
+  final l10n = context.l10n;
+  if (rawDetails == 'أسهم/غير مخصص' ||
+      rawDetails == 'أسهم استثمارية غير مخصصة' ||
+      rawDetails == 'محفظة استثمارية (عقد لاحق التخصص)' ||
+      (rawDetails.contains('غير مخصص') && !rawDetails.contains('شقة')) ||
+      (rawDetails.contains('استثمارية') && !rawDetails.contains('شقة'))) {
+    if (rawDetails.contains('عقود متفاوتة الدفع') ||
+        rawDetails.contains('منفاوتة')) {
+      return l10n.localeName == 'en'
+          ? 'Investment Shares (Flexible Payments)'
+          : 'أسهم استثمارية غير مخصصة (عقود متفاوتة الدفع)';
+    }
+    return l10n.contractAutoDetailsUnallocated;
+  }
+
+  var formatted = rawDetails;
+  if (l10n.localeName == 'en') {
+    formatted = formatted
+        .replaceAll('مشروع السلموني', 'Al-Salamoni Project')
+        .replaceAll('مشروع', 'Project:')
+        .replaceAll('عقار 1593', 'Property 1593')
+        .replaceAll('عقار', 'Property:')
+        .replaceAll('محضر:', 'Building:')
+        .replaceAll('شقة:', 'Apt:')
+        .replaceAll('شقة', 'Apt')
+        .replaceAll('طابق:', 'Floor:')
+        .replaceAll('الطابق الأرضي', 'Ground Floor')
+        .replaceAll('الطابق الأول', '1st Floor')
+        .replaceAll('الطابق الثاني', '2nd Floor')
+        .replaceAll('الطابق الثالث', '3rd Floor')
+        .replaceAll('الطابق الرابع', '4th Floor')
+        .replaceAll('الطابق الخامس', '5th Floor')
+        .replaceAll('الطابق السادس', '6th Floor')
+        .replaceAll('الطابق السابع', '7th Floor')
+        .replaceAll('الطابق الثامن', '8th Floor')
+        .replaceAll('الطابق التاسع', '9th Floor')
+        .replaceAll('الطابق العاشر', '10th Floor')
+        .replaceAll('الطابق الحادي عشر', '11th Floor')
+        .replaceAll('الطابق الثاني عشر', '12th Floor')
+        .replaceAll('الطابق 1', '1st Floor')
+        .replaceAll('الطابق 2', '2nd Floor')
+        .replaceAll('الطابق 3', '3rd Floor')
+        .replaceAll('الطابق 4', '4th Floor')
+        .replaceAll('الطابق 5', '5th Floor')
+        .replaceAll('القبو الأول', '1st Basement')
+        .replaceAll('القبو الثاني', '2nd Basement')
+        .replaceAll('القبو الثالث', '3rd Basement');
+  }
+  return formatted;
+}
+
 class RadarTab extends StatefulWidget {
   final ScheduleState state;
 
@@ -100,7 +152,7 @@ class _RadarTabState extends State<RadarTab> {
                           ),
                         ),
                         Text(
-                          '${_getUrgencyName(context, _urgencyFilter)}  |  ${l10n.radarSpeedLabel} ${_speedRange.start.toStringAsFixed(1)} إلى ${_speedRange.end == 10.0 ? '10+' : _speedRange.end.toStringAsFixed(1)} m²',
+                          '${_getUrgencyName(context, _urgencyFilter)}  |  ${l10n.radarSpeedLabel} ${_speedRange.start.toStringAsFixed(1)} ${l10n.localeName == 'en' ? 'to' : 'إلى'} ${_speedRange.end == 10.0 ? '10+' : _speedRange.end.toStringAsFixed(1)} m²',
                           style: const TextStyle(
                             color: Colors.indigo,
                             fontWeight: FontWeight.bold,
@@ -324,7 +376,12 @@ class _RadarTabState extends State<RadarTab> {
                                               ),
                                               const SizedBox(height: 4),
                                               Text(
-                                                alert.contract.apartmentDetails,
+                                                formatApartmentDetails(
+                                                  context,
+                                                  alert
+                                                      .contract
+                                                      .apartmentDetails,
+                                                ),
                                                 style: TextStyle(
                                                   fontSize: 11,
                                                   color: Colors.grey.shade600,
@@ -373,7 +430,7 @@ class _RadarTabState extends State<RadarTab> {
                                                   ),
                                                   const SizedBox(width: 8),
                                                   Text(
-                                                    '${alert.accumulatedMeters.toStringAsFixed(1)} / $target م²',
+                                                    '${alert.accumulatedMeters.toStringAsFixed(1)} / $target ${l10n.unitMetersSq}',
                                                     style: TextStyle(
                                                       fontSize: 12,
                                                       fontWeight:
@@ -669,7 +726,7 @@ class _RadarTabState extends State<RadarTab> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
-                          '${tempSpeedRange.start.toStringAsFixed(1)}  إلى  ${tempSpeedRange.end == 10.0 ? "10+" : tempSpeedRange.end.toStringAsFixed(1)}',
+                          '${tempSpeedRange.start.toStringAsFixed(1)}  ${l10n.localeName == 'en' ? 'to' : 'إلى'}  ${tempSpeedRange.end == 10.0 ? "10+" : tempSpeedRange.end.toStringAsFixed(1)}',
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             color: Colors.indigo,

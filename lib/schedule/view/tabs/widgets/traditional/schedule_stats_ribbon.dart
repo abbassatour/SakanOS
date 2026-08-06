@@ -71,7 +71,7 @@ class ScheduleStatsRibbon extends StatelessWidget {
                 ),
                 _buildDesktopStatItem(
                   l10n.scheduleStatMonthlyDue,
-                  '$formattedAgreedAmount ل.س',
+                  '$formattedAgreedAmount ${l10n.currencySyp}',
                   Colors.teal,
                 ),
               ],

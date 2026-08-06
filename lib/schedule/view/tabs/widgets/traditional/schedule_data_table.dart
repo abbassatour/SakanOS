@@ -196,8 +196,8 @@ class ScheduleDataTable extends StatelessWidget {
                           )
                         : Text(
                             isCustom
-                                ? '${_formatMoney(schedule.expectedAmount!)} ل.س'
-                                : '$formattedAgreedAmount ل.س',
+                                ? '${_formatMoney(schedule.expectedAmount!)} ${l10n.currencySyp}'
+                                : '$formattedAgreedAmount ${l10n.currencySyp}',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: isCustom ? Colors.indigo : Colors.teal,
