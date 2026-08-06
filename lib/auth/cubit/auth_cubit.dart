@@ -1,3 +1,4 @@
+// lib/auth/cubit/auth_cubit.dart
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:async';
@@ -41,8 +42,7 @@ class AuthCubit extends Cubit<AuthState> {
           emit(
             state.copyWith(
               status: AuthStatus.error,
-              errorMessage:
-                  'بيانات المستخدم غير موجودة في النظام. تواصل مع الإدارة.',
+              errorMessage: 'authErrorUserNotFound',
             ),
           );
           return;
@@ -51,7 +51,6 @@ class AuthCubit extends Cubit<AuthState> {
       } else {
         await _processUserPermissions(localUser);
       }
-      // lib/auth/cubit/auth_cubit.dart
     } catch (e, stackTrace) {
       log(
         'خطأ أثناء التحقق من جلسة المستخدم',
@@ -61,16 +60,12 @@ class AuthCubit extends Cubit<AuthState> {
       emit(
         state.copyWith(
           status: AuthStatus.error,
-          // 🌟 التعديل هنا: إزالة كلمة Exception من رسالة الخطأ
           errorMessage: e.toString().replaceAll('Exception: ', ''),
         ),
       );
     }
   }
 
-  // ==========================================
-  // 🛡️ دالة سحرية لتنظيف وفك تشفير الـ JSON المعطوب يدوياً
-  // ==========================================
   List<String> _safeParsePermissions(String? jsonString) {
     if (jsonString == null ||
         jsonString.trim().isEmpty ||
@@ -81,16 +76,13 @@ class AuthCubit extends Cubit<AuthState> {
     final trimmed = jsonString.trim();
 
     try {
-      // 1. المحاولة الأولى: فك تشفير نظامي
       final decoded = jsonDecode(trimmed) as List<dynamic>;
       return decoded.map((e) => e.toString()).toList();
     } catch (e) {
-      // 2. المحاولة الثانية: إذا فشل بسبب إدخال يدوي خاطئ مثل [all_access] أو [admin, user]
       log(
         '⚠️ تم اكتشاف JSON غير قياسي، جاري تنظيفه واستخلاص الصلاحيات: $trimmed',
       );
 
-      // إزالة الأقواس المربعة وعلامات التنصيص المفردة والمزدوجة
       String cleaned = trimmed
           .replaceAll('[', '')
           .replaceAll(']', '')
@@ -99,7 +91,6 @@ class AuthCubit extends Cubit<AuthState> {
 
       if (cleaned.trim().isEmpty) return [];
 
-      // تقسيم النص بناءً على الفواصل وتنظيف الفراغات
       return cleaned
           .split(',')
           .map((e) => e.trim())
@@ -108,15 +99,12 @@ class AuthCubit extends Cubit<AuthState> {
     }
   }
 
-  // ==========================================
-  // 🌟 محرك دمج الصلاحيات
-  // ==========================================
   Future<void> _processUserPermissions(LocalUser localUser) async {
     if (localUser.isActive == false) {
       emit(
         state.copyWith(
           status: AuthStatus.error,
-          errorMessage: 'هذا الحساب تم إيقافه من قبل الإدارة.',
+          errorMessage: 'authErrorAccountDisabled',
         ),
       );
       return;
@@ -126,7 +114,6 @@ class AuthCubit extends Cubit<AuthState> {
     var isSystemAdmin = false;
     final finalPermissions = <String>{};
 
-    // 1. جلب صلاحيات الدور (Role) بأمان تام
     if (localUser.roleId != null && localUser.roleId!.isNotEmpty) {
       final role = await _erpRepository.getRoleById(localUser.roleId!);
       if (role != null) {
@@ -138,26 +125,22 @@ class AuthCubit extends Cubit<AuthState> {
       }
     }
 
-    // 2. إضافة الاستثناءات (Extra) بأمان تام
     final extraPerms = _safeParsePermissions(localUser.extraPermissionsJson);
     finalPermissions.addAll(extraPerms);
 
-    // 3. طرح الصلاحيات المسحوبة (Revoked) بأمان تام
     final revokedPerms = _safeParsePermissions(
       localUser.revokedPermissionsJson,
     );
     finalPermissions.removeAll(revokedPerms);
-    // 👇👇 [التحقق من اشتراك المكتب السحابي] 👇👇
+
     final expiryDate = await _erpRepository.getLocalSubscriptionExpiry();
     final now = SecureTime.now();
 
-    // 1. إذا لم يجد تاريخ (تلاعب)، أو 2. إذا تجاوز تاريخ اليوم تاريخ الانتهاء (انتهى الاشتراك)
     if (expiryDate == null || now.isAfter(expiryDate)) {
       emit(
         state.copyWith(
           status: AuthStatus.subscriptionExpired,
-          errorMessage:
-              'انتهت صلاحية اشتراك المكتب في النظام. يرجى التواصل مع المطور لتسوية الدفعات وتجديد رخصة العمل.',
+          errorMessage: 'authErrorSubscriptionExpired',
           userId: localUser.id,
           userName: localUser.fullName ?? localUser.email,
           roleName: roleName,
@@ -165,19 +148,11 @@ class AuthCubit extends Cubit<AuthState> {
           permissions: finalPermissions.toList(),
         ),
       );
-      return; // 🛑 منع الدخول تماماً
+      return;
     }
-    // 👆👆 [نهاية فحص الاشتراك] 👆👆
 
-    // 👇👇 [الأسطر الجديدة للتحقق من النبضة (Heartbeat)] 👇👇
-    // ========================================================
-    // 🛡️ 1. فحص نبض السحابة (Offline Limit) والتلاعب بالوقت أولاً!
-    // ========================================================
     final lastHeartbeat = await _erpRepository.getLastHeartbeatTime();
 
-    // نستخدم التوقيت الآمن بدلاً من التوقيت المحلي المزور
-
-    // تقليص فترة السماح إلى 5 دقائق بدلاً من 24 ساعة لسد الثغرة الأولى بالكامل
     final bool isTimeTampered =
         lastHeartbeat != null &&
         now.isBefore(lastHeartbeat.subtract(const Duration(minutes: 5)));
@@ -186,14 +161,13 @@ class AuthCubit extends Cubit<AuthState> {
         ? now.difference(lastHeartbeat).inDays
         : 999;
 
-    // الطرد الفوري إذا تم إرجاع الزمن للوراء أو تجاوز 7 أيام
     if (lastHeartbeat == null || daysPassed >= 7 || isTimeTampered) {
       emit(
         state.copyWith(
           status: AuthStatus.offlineLock,
           errorMessage: isTimeTampered
-              ? 'تم اكتشاف تلاعب في ساعة النظام (محاولة إرجاع الزمن). يرجى المزامنة لفك القفل.'
-              : 'تجاوزت الحد المسموح للعمل دون اتصال بالإنترنت (7 أيام). يرجى المزامنة.',
+              ? 'authErrorTimeTampered'
+              : 'authErrorOfflineLimitExceeded',
           userId: localUser.id,
           userName: localUser.fullName ?? localUser.email,
           roleName: roleName,
@@ -201,17 +175,10 @@ class AuthCubit extends Cubit<AuthState> {
           permissions: finalPermissions.toList(),
         ),
       );
-      return; // 🛑 خروج فوري ومنع الدخول للتطبيق
+      return;
     }
 
-    // ========================================================
-    // 💳 2. فحص رخصة اشتراك المكتب (بعد التأكد من سلامة الوقت)
-    // ========================================================
-
-    // السحر المحاسبي: نقارن تاريخ الانتهاء مع (أحدث وقت موثوق به)
-    // سواء كان الآن، أو آخر نبضة حقيقية من السيرفر، أيهما أحدث.
     final referenceTime = now.isAfter(lastHeartbeat) ? now : lastHeartbeat;
-
     final bool isFreshInstall = lastHeartbeat == null && expiryDate == null;
 
     if (!isFreshInstall &&
@@ -219,8 +186,7 @@ class AuthCubit extends Cubit<AuthState> {
       emit(
         state.copyWith(
           status: AuthStatus.subscriptionExpired,
-          errorMessage:
-              'انتهت صلاحية رخصة النظام. يرجى التواصل مع المطور لتسوية الدفعات وتجديد رخصة العمل.',
+          errorMessage: 'authErrorSubscriptionExpired',
           userId: localUser.id,
           userName: localUser.fullName ?? localUser.email,
           roleName: roleName,
@@ -228,10 +194,9 @@ class AuthCubit extends Cubit<AuthState> {
           permissions: finalPermissions.toList(),
         ),
       );
-      return; // 🛑 منع الدخول تماماً
+      return;
     }
 
-    // 3. حفظ النتيجة النهائية النظيفة في الحالة (State) (في الوضع الطبيعي)
     emit(
       state.copyWith(
         status: AuthStatus.authenticated,

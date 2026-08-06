@@ -16,6 +16,24 @@ import 'package:our_home_erp_app/dashboard/view/dashboard_page.dart';
 import 'package:our_home_erp_app/login/view/login_page.dart';
 import 'package:window_manager/window_manager.dart';
 
+String _resolveAuthErrorMessage(BuildContext context, String? errorKey) {
+  final l10n = context.l10n;
+  switch (errorKey) {
+    case 'authErrorUserNotFound':
+      return l10n.authErrorUserNotFound;
+    case 'authErrorAccountDisabled':
+      return l10n.authErrorAccountDisabled;
+    case 'authErrorTimeTampered':
+      return l10n.authErrorTimeTampered;
+    case 'authErrorOfflineLimitExceeded':
+      return l10n.authErrorOfflineLimitExceeded;
+    case 'authErrorSubscriptionExpired':
+      return l10n.authErrorSubscriptionExpired;
+    default:
+      return errorKey ?? l10n.homeUnexpectedError;
+  }
+}
+
 class App extends StatelessWidget {
   const App({
     required this.erpRepository,
@@ -192,6 +210,8 @@ class _SubscriptionLockScreenState extends State<_SubscriptionLockScreen> {
     final l10n = context.l10n;
     final state = context.watch<AuthCubit>().state;
 
+    final errorMessage = _resolveAuthErrorMessage(context, state.errorMessage);
+
     return Scaffold(
       backgroundColor: Colors.black87,
       body: Center(
@@ -242,7 +262,7 @@ class _SubscriptionLockScreenState extends State<_SubscriptionLockScreen> {
                   border: Border.all(color: Colors.red.shade200),
                 ),
                 child: Text(
-                  state.errorMessage ?? l10n.lockSubscriptionDefaultError,
+                  errorMessage,
                   style: TextStyle(
                     fontSize: 14,
                     color: Colors.red.shade900,
@@ -359,6 +379,8 @@ class _OfflineLockScreenState extends State<_OfflineLockScreen> {
     final l10n = context.l10n;
     final state = context.watch<AuthCubit>().state;
 
+    final errorMessage = _resolveAuthErrorMessage(context, state.errorMessage);
+
     return Scaffold(
       backgroundColor: Colors.blueGrey.shade900,
       body: Center(
@@ -409,7 +431,7 @@ class _OfflineLockScreenState extends State<_OfflineLockScreen> {
                   border: Border.all(color: Colors.orange.shade200),
                 ),
                 child: Text(
-                  state.errorMessage ?? l10n.lockOfflineDefaultError,
+                  errorMessage,
                   style: TextStyle(
                     fontSize: 14,
                     color: Colors.orange.shade900,

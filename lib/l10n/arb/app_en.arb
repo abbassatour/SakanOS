@@ -1706,5 +1706,11 @@
   "registerErrorNoInternet": "No internet connection! Account creation requires a cloud connection. 🌐❌",
   "registerErrorDefault": "Registration failed. Please check your details or network connection.",
   "registerErrorEmailExists": "Email address is already in use! Please log in or use another email.",
-  "registerErrorConnectionLost": "Internet connection lost during registration. 🌐❌"
+  "registerErrorConnectionLost": "Internet connection lost during registration. 🌐❌",
+
+  "authErrorUserNotFound": "User data not found in system. Please contact administration.",
+  "authErrorAccountDisabled": "This account has been disabled by administration.",
+  "authErrorTimeTampered": "System clock tampering detected (time rollback attempt). Please sync to unlock.",
+  "authErrorOfflineLimitExceeded": "Exceeded offline limit (7 days). Please sync with cloud.",
+  "authErrorSubscriptionExpired": "System license has expired. Please contact developer to renew."
 }
