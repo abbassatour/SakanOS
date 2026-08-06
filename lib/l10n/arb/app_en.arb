@@ -1691,5 +1691,20 @@
   "pdfTitleRefund": "Refund_Voucher",
 
   "legalAttEmptyGallery": "Gallery is empty. No attachments for this action.",
-  "legalAttImageFallback": "Image"
+  "legalAttImageFallback": "Image",
+
+  "loginErrorEmptyFields": "Please enter your email address and password.",
+  "loginErrorNoInternet": "No internet connection! Please check your network and try again. 🌐❌",
+  "loginErrorDefault": "Login failed. Please verify your credentials or network connection.",
+  "loginErrorEmailNotConfirmed": "Please confirm your email address first via the link we sent you.",
+  "loginErrorInvalidCredentials": "Invalid email address or password.",
+  "loginErrorConnectionLost": "Internet connection lost during login. 🌐❌",
+
+  "registerErrorFillFields": "Please fill in all fields correctly.",
+  "registerErrorPasswordMismatch": "Passwords do not match! Please check both fields.",
+  "registerErrorPasswordTooShort": "Password must be at least 6 characters long.",
+  "registerErrorNoInternet": "No internet connection! Account creation requires a cloud connection. 🌐❌",
+  "registerErrorDefault": "Registration failed. Please check your details or network connection.",
+  "registerErrorEmailExists": "Email address is already in use! Please log in or use another email.",
+  "registerErrorConnectionLost": "Internet connection lost during registration. 🌐❌"
 }

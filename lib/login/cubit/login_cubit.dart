@@ -3,7 +3,7 @@ import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
 import 'package:bloc/bloc.dart';
-import 'package:equatable/equatable.dart';
+import 'package:equatable/equatable.dart'; // 👈 تم تصحيح الكلمة هنا
 import 'package:erp_repository/erp_repository.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
@@ -13,7 +13,6 @@ part 'login_state.dart';
 class LoginCubit extends Cubit<LoginState> {
   LoginCubit(
     this._erpRepository, {
-    // 🌟 حقن التبعية: نسمح بتمرير دالة الفحص من الخارج لتسهيل الاختبار
     Future<bool> Function()? checkInternetConnection,
   }) : _checkInternetConnection =
            checkInternetConnection ?? _defaultCheckInternet,
@@ -22,7 +21,6 @@ class LoginCubit extends Cubit<LoginState> {
   final ErpRepository _erpRepository;
   final Future<bool> Function() _checkInternetConnection;
 
-  // 🌟 الدالة الافتراضية التي سيستخدمها التطبيق الحقيقي
   static Future<bool> _defaultCheckInternet() async {
     try {
       final result = await InternetAddress.lookup(
@@ -45,7 +43,7 @@ class LoginCubit extends Cubit<LoginState> {
           emit(state.copyWith(email: savedEmail, rememberMe: true));
         }
       }
-    } catch (e) {}
+    } catch (_) {}
   }
 
   void emailChanged(String value) {
@@ -65,7 +63,7 @@ class LoginCubit extends Cubit<LoginState> {
       emit(
         state.copyWith(
           status: LoginStatus.failure,
-          errorMessage: 'الرجاء إدخال البريد الإلكتروني وكلمة المرور.',
+          errorMessage: 'loginErrorEmptyFields',
         ),
       );
       return;
@@ -74,25 +72,18 @@ class LoginCubit extends Cubit<LoginState> {
     emit(state.copyWith(status: LoginStatus.loading));
 
     try {
-      // ==========================================
-      // 🛡️ 1. الفحص المسبق للإنترنت (باستخدام الدالة المحقونة)
-      // ==========================================
       final hasInternet = await _checkInternetConnection();
 
       if (!hasInternet) {
         emit(
           state.copyWith(
             status: LoginStatus.failure,
-            errorMessage:
-                'لا يوجد اتصال بالإنترنت! يرجى التحقق من الشبكة والمحاولة مجدداً. 🌐❌',
+            errorMessage: 'loginErrorNoInternet',
           ),
         );
-        return; // خروج لعدم استدعاء قاعدة البيانات
+        return;
       }
 
-      // ==========================================
-      // 🔄 2. محاولة تسجيل الدخول الفعلية
-      // ==========================================
       await _erpRepository.signIn(
         email: state.email.trim(),
         password: state.password,
@@ -109,31 +100,25 @@ class LoginCubit extends Cubit<LoginState> {
 
       emit(state.copyWith(status: LoginStatus.success));
     } catch (e, stackTrace) {
-      // 🌟 1. طباعة الخطأ الحقيقي والتفصيلي في الكونسول للمطور
       log('🚨 Supabase Login Error: $e', stackTrace: stackTrace);
 
-      // ==========================================
-      // 🐛 2. تخصيص الرسائل العربية وعرضها للمستخدم على الشاشة
-      // ==========================================
-      String msg =
-          'فشل تسجيل الدخول. تأكد من صحة البيانات أو اتصالك بالإنترنت.';
+      String errorKey = 'loginErrorDefault';
       final errorString = e.toString().toLowerCase();
 
       if (errorString.contains('email not confirmed')) {
-        msg = 'يرجى تأكيد بريدك الإلكتروني أولاً عبر الرابط الذي أرسلناه إليك.';
+        errorKey = 'loginErrorEmailNotConfirmed';
       } else if (errorString.contains('invalid login credentials')) {
-        msg = 'البريد الإلكتروني أو كلمة المرور غير صحيحة.';
+        errorKey = 'loginErrorInvalidCredentials';
       } else if (errorString.contains('socketexception') ||
           errorString.contains('failed host lookup') ||
           errorString.contains('clientexception')) {
-        msg = 'انقطع الاتصال بالإنترنت أثناء تسجيل الدخول. 🌐❌';
+        errorKey = 'loginErrorConnectionLost';
       }
 
-      // 🌟 3. إرسال الرسالة العربية فقط للواجهة
       emit(
         state.copyWith(
           status: LoginStatus.failure,
-          errorMessage: msg,
+          errorMessage: errorKey,
         ),
       );
     }

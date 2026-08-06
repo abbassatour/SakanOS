@@ -37,6 +37,26 @@ class _LoginViewState extends State<LoginView> {
     super.dispose();
   }
 
+  String _resolveLoginErrorMessage(BuildContext context, String? errorKey) {
+    final l10n = context.l10n;
+    switch (errorKey) {
+      case 'loginErrorEmptyFields':
+        return l10n.loginErrorEmptyFields;
+      case 'loginErrorNoInternet':
+        return l10n.loginErrorNoInternet;
+      case 'loginErrorEmailNotConfirmed':
+        return l10n.loginErrorEmailNotConfirmed;
+      case 'loginErrorInvalidCredentials':
+        return l10n.loginErrorInvalidCredentials;
+      case 'loginErrorConnectionLost':
+        return l10n.loginErrorConnectionLost;
+      case 'loginErrorDefault':
+        return l10n.loginErrorDefault;
+      default:
+        return errorKey ?? l10n.homeUnexpectedError;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
@@ -54,7 +74,13 @@ class _LoginViewState extends State<LoginView> {
               if (state.status == LoginStatus.failure) {
                 final isNetworkError =
                     state.errorMessage != null &&
-                    state.errorMessage!.contains('الإنترنت');
+                    (state.errorMessage == 'loginErrorNoInternet' ||
+                        state.errorMessage == 'loginErrorConnectionLost');
+
+                final translatedMsg = _resolveLoginErrorMessage(
+                  context,
+                  state.errorMessage,
+                );
 
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
@@ -66,9 +92,7 @@ class _LoginViewState extends State<LoginView> {
                         ),
                         const SizedBox(width: 12),
                         Expanded(
-                          child: Text(
-                            state.errorMessage ?? l10n.homeUnexpectedError,
-                          ),
+                          child: Text(translatedMsg),
                         ),
                       ],
                     ),

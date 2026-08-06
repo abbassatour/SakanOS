@@ -1685,5 +1685,20 @@
   "pdfTitleRefund": "سند_استرداد",
 
   "legalAttEmptyGallery": "المعرض فارغ. لا توجد مرفقات لهذا الإجراء.",
-  "legalAttImageFallback": "صورة"
+  "legalAttImageFallback": "صورة",
+
+  "loginErrorEmptyFields": "الرجاء إدخال البريد الإلكتروني وكلمة المرور.",
+  "loginErrorNoInternet": "لا يوجد اتصال بالإنترنت! يرجى التحقق من الشبكة والمحاولة مجدداً. 🌐❌",
+  "loginErrorDefault": "فشل تسجيل الدخول. تأكد من صحة البيانات أو اتصالك بالإنترنت.",
+  "loginErrorEmailNotConfirmed": "يرجى تأكيد بريدك الإلكتروني أولاً عبر الرابط الذي أرسلناه إليك.",
+  "loginErrorInvalidCredentials": "البريد الإلكتروني أو كلمة المرور غير صحيحة.",
+  "loginErrorConnectionLost": "انقطع الاتصال بالإنترنت أثناء تسجيل الدخول. 🌐❌",
+
+  "registerErrorFillFields": "يرجى تعبئة جميع الحقول بشكل صحيح.",
+  "registerErrorPasswordMismatch": "كلمتا المرور غير متطابقتين! يرجى التأكد منهما.",
+  "registerErrorPasswordTooShort": "كلمة المرور يجب أن تتكون من 6 أحرف أو أرقام على الأقل.",
+  "registerErrorNoInternet": "لا يوجد اتصال بالإنترنت! إنشاء الحساب يتطلب اتصالاً بالسحابة. 🌐❌",
+  "registerErrorDefault": "فشل التسجيل. يرجى التأكد من البيانات أو اتصالك بالشبكة.",
+  "registerErrorEmailExists": "البريد الإلكتروني مستخدم بالفعل! يرجى تسجيل الدخول أو استخدام بريد آخر.",
+  "registerErrorConnectionLost": "انقطع الاتصال بالإنترنت أثناء محاولة التسجيل. 🌐❌"
 }

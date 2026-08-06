@@ -21,6 +21,28 @@ class RegisterPage extends StatelessWidget {
 class RegisterView extends StatelessWidget {
   const RegisterView({super.key});
 
+  String _resolveRegisterErrorMessage(BuildContext context, String? errorKey) {
+    final l10n = context.l10n;
+    switch (errorKey) {
+      case 'registerErrorFillFields':
+        return l10n.registerErrorFillFields;
+      case 'registerErrorPasswordMismatch':
+        return l10n.registerErrorPasswordMismatch;
+      case 'registerErrorPasswordTooShort':
+        return l10n.registerErrorPasswordTooShort;
+      case 'registerErrorNoInternet':
+        return l10n.registerErrorNoInternet;
+      case 'registerErrorEmailExists':
+        return l10n.registerErrorEmailExists;
+      case 'registerErrorConnectionLost':
+        return l10n.registerErrorConnectionLost;
+      case 'registerErrorDefault':
+        return l10n.registerErrorDefault;
+      default:
+        return errorKey ?? l10n.homeUnexpectedError;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
@@ -32,7 +54,13 @@ class RegisterView extends StatelessWidget {
           if (state.status == RegisterStatus.failure) {
             final isNetworkError =
                 state.errorMessage != null &&
-                state.errorMessage!.contains('الإنترنت');
+                (state.errorMessage == 'registerErrorNoInternet' ||
+                    state.errorMessage == 'registerErrorConnectionLost');
+
+            final translatedMsg = _resolveRegisterErrorMessage(
+              context,
+              state.errorMessage,
+            );
 
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -44,9 +72,7 @@ class RegisterView extends StatelessWidget {
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: Text(
-                        state.errorMessage ?? l10n.homeUnexpectedError,
-                      ),
+                      child: Text(translatedMsg),
                     ),
                   ],
                 ),

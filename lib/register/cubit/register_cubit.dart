@@ -1,6 +1,6 @@
 // lib/register/cubit/register_cubit.dart
-import 'dart:async'; // 🌟 لاستخدام المهلة timeout
-import 'dart:io'; // 🌟 لاختبار الاتصال
+import 'dart:async';
+import 'dart:io';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:erp_repository/erp_repository.dart';
@@ -23,7 +23,6 @@ class RegisterCubit extends Cubit<RegisterState> {
   );
 
   Future<void> submit() async {
-    // 1. التحقق من الحقول الفارغة
     if (state.fullName.isEmpty ||
         state.email.isEmpty ||
         state.password.isEmpty ||
@@ -31,30 +30,27 @@ class RegisterCubit extends Cubit<RegisterState> {
       emit(
         state.copyWith(
           status: RegisterStatus.failure,
-          errorMessage: 'يرجى تعبئة جميع الحقول بشكل صحيح.',
+          errorMessage: 'registerErrorFillFields',
         ),
       );
       return;
     }
 
-    // 2. التحقق من تطابق كلمتي المرور
     if (state.password != state.confirmPassword) {
       emit(
         state.copyWith(
           status: RegisterStatus.failure,
-          errorMessage: 'كلمتا المرور غير متطابقتين! يرجى التأكد منهما.',
+          errorMessage: 'registerErrorPasswordMismatch',
         ),
       );
       return;
     }
 
-    // 3. التحقق من طول كلمة المرور
     if (state.password.length < 6) {
       emit(
         state.copyWith(
           status: RegisterStatus.failure,
-          errorMessage:
-              'كلمة المرور يجب أن تتكون من 6 أحرف أو أرقام على الأقل.',
+          errorMessage: 'registerErrorPasswordTooShort',
         ),
       );
       return;
@@ -63,9 +59,6 @@ class RegisterCubit extends Cubit<RegisterState> {
     emit(state.copyWith(status: RegisterStatus.loading));
 
     try {
-      // ==========================================
-      // 🛡️ الفحص المسبق للإنترنت (مهلة 5 ثوانٍ فقط)
-      // ==========================================
       bool hasInternet = false;
       try {
         final result = await InternetAddress.lookup(
@@ -79,21 +72,16 @@ class RegisterCubit extends Cubit<RegisterState> {
         hasInternet = false;
       }
 
-      // ⛔ إذا لم يكن هناك إنترنت، نوقف العملية فوراً
       if (!hasInternet) {
         emit(
           state.copyWith(
             status: RegisterStatus.failure,
-            errorMessage:
-                'لا يوجد اتصال بالإنترنت! إنشاء الحساب يتطلب اتصالاً بالسحابة. 🌐❌',
+            errorMessage: 'registerErrorNoInternet',
           ),
         );
-        return; // خروج لعدم استدعاء قاعدة البيانات
+        return;
       }
 
-      // ==========================================
-      // 🔄 محاولة التسجيل الفعلية (الإنترنت متوفر)
-      // ==========================================
       await _erpRepository.signUp(
         fullName: state.fullName.trim(),
         email: state.email.trim(),
@@ -102,28 +90,21 @@ class RegisterCubit extends Cubit<RegisterState> {
 
       emit(state.copyWith(status: RegisterStatus.success));
     } catch (e) {
-      // ==========================================
-      // 🐛 التقاط الأخطاء الخاصة بالتسجيل
-      // ==========================================
-      String msg = 'فشل التسجيل. يرجى التأكد من البيانات أو اتصالك بالشبكة.';
+      String errorKey = 'registerErrorDefault';
       final errorString = e.toString().toLowerCase();
 
-      // اصطياد أخطاء Supabase الشائعة في التسجيل
       if (errorString.contains('user already exists') ||
           errorString.contains('already registered')) {
-        msg =
-            'البريد الإلكتروني مستخدم بالفعل! يرجى تسجيل الدخول أو استخدام بريد آخر.';
-      }
-      // في حال انقطع الإنترنت فجأة أثناء إرسال الطلب
-      else if (errorString.contains('socketexception') ||
+        errorKey = 'registerErrorEmailExists';
+      } else if (errorString.contains('socketexception') ||
           errorString.contains('failed host lookup')) {
-        msg = 'انقطع الاتصال بالإنترنت أثناء محاولة التسجيل. 🌐❌';
+        errorKey = 'registerErrorConnectionLost';
       }
 
       emit(
         state.copyWith(
           status: RegisterStatus.failure,
-          errorMessage: msg,
+          errorMessage: errorKey,
         ),
       );
     }
