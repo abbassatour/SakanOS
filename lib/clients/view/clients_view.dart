@@ -17,6 +17,16 @@ class ClientsView extends StatefulWidget {
 class _ClientsViewState extends State<ClientsView> {
   String _searchQuery = '';
 
+  String _resolveClientErrorMessage(BuildContext context, String? errorKey) {
+    final l10n = context.l10n;
+    switch (errorKey) {
+      case 'clientErrorDeleteHasContracts':
+        return l10n.clientErrorDeleteHasContracts;
+      default:
+        return errorKey ?? l10n.clientUnexpectedError;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
@@ -49,10 +59,15 @@ class _ClientsViewState extends State<ClientsView> {
           listenWhen: (previous, current) => previous.status != current.status,
           listener: (context, state) {
             if (state.status == ClientsStatus.failure) {
+              final resolvedMsg = _resolveClientErrorMessage(
+                context,
+                state.errorMessage,
+              );
+
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(
-                    state.errorMessage ?? l10n.clientUnexpectedError,
+                    resolvedMsg,
                     style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,

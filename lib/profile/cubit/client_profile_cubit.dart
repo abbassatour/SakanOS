@@ -12,19 +12,13 @@ class ClientProfileCubit extends Cubit<ClientProfileState> {
 
   final ErpRepository _erpRepository;
 
-  // ==========================================
-  // 🛡️ مساعد التقريب المالي (Financial Guarding)
-  // ==========================================
-
-  // تقريب المبالغ المالية لأقرب 10 ليرات (قاعدتنا الموحدة في كامل النظام)
   double _roundTo10(double val) => (val / 10).round() * 10.0;
 
-  // 🌟 دالة مساعدة لحساب الأشهر المنقضية بدقة
   int _monthsBetween(DateTime from, DateTime to) {
     int years = to.year - from.year;
     int months = to.month - from.month;
     int totalMonths = years * 12 + months;
-    if (to.day < from.day) totalMonths--; // لم يكتمل الشهر تماماً
+    if (to.day < from.day) totalMonths--;
     return totalMonths > 0 ? totalMonths : 0;
   }
 
@@ -32,7 +26,6 @@ class ClientProfileCubit extends Cubit<ClientProfileState> {
     emit(state.copyWith(status: ClientProfileStatus.loading, client: client));
 
     try {
-      // 1. جلب كل البيانات المطلوبة (تجنب N+1 Queries)
       final clientContracts = await _erpRepository.getContractsForClient(
         client.id,
       );
@@ -45,9 +38,7 @@ class ClientProfileCubit extends Cubit<ClientProfileState> {
 
       final now = SecureTime.now();
 
-      // 2. الدخول في حلقة لجلب الإحصائيات الدقيقة لكل عقد
       for (final contract in clientContracts) {
-        // أ. حساب إجمالي المدفوع لهذا العقد (وتقريبه للأمان)
         final contractPayments = allPayments
             .where((p) => p.contractId == contract.id && !p.isDeleted)
             .toList();
@@ -59,30 +50,23 @@ class ClientProfileCubit extends Cubit<ClientProfileState> {
 
         grandTotalPaid += totalPaidForContract;
 
-        // ب. حساب عدد الحركات المسددة
         final schedules = await _erpRepository.getContractSchedule(contract.id);
         final paidCount = schedules.where((s) => s.status == 'paid').length;
 
-        // ==========================================
-        // 🌟 الخوارزمية المحصنة لحساب الديون المتأخرة + الغرامات
-        // ==========================================
         double baseOverdueAmount = 0.0;
         double penaltyAmount = 0.0;
 
         if (!contract.isCompleted) {
-          // أزلنا شرط > 0
           int monthsPassed = _monthsBetween(contract.contractDate, now);
           if (monthsPassed > contract.installmentsCount) {
             monthsPassed = contract.installmentsCount;
           }
 
-          // 1. حساب المتوجب الأساسي (مقدم + أقساط عادية)
           double expectedPayment = contract.downPayment;
           if (contract.agreedMonthlyAmount > 0) {
             expectedPayment += (monthsPassed * contract.agreedMonthlyAmount);
           }
 
-          // 2. 🌟 إضافة الدفعات الاستثنائية المستحقة
           for (final s in schedules) {
             if (s.expectedAmount != null && s.dueDate.isBefore(now)) {
               expectedPayment += s.expectedAmount!;
@@ -92,10 +76,8 @@ class ClientProfileCubit extends Cubit<ClientProfileState> {
           double overdue = expectedPayment - totalPaidForContract;
 
           if (overdue > 0) {
-            // 🛡️ تقريب الدين الأساسي لأقرب 10
             baseOverdueAmount = _roundTo10(overdue);
 
-            // تطبيق غرامة ما بعد الاستلام (إن وجدت)
             if (contract.isHandedOver &&
                 contract.isPenaltyActive &&
                 contract.actualHandoverDate != null) {
@@ -113,7 +95,6 @@ class ClientProfileCubit extends Cubit<ClientProfileState> {
                       baseOverdueAmount *
                       ((contract.penaltyPercentage ?? 0) / 100) *
                       penaltyApplications;
-                  // 🛡️ تقريب مبلغ الغرامة لأقرب 10 ليرات
                   penaltyAmount = _roundTo10(rawPenalty);
                 }
               }
@@ -121,13 +102,11 @@ class ClientProfileCubit extends Cubit<ClientProfileState> {
           }
         }
 
-        // إجمالي المطلوب لهذا العقد
         final totalOverdueWithPenalty = _roundTo10(
           baseOverdueAmount + penaltyAmount,
         );
         globalOverdue += totalOverdueWithPenalty;
 
-        // جلب وترتيب الإجراءات القانونية
         final contractLegalActions = allLegalActions
             .where((a) => a.contractId == contract.id)
             .toList();
@@ -148,7 +127,6 @@ class ClientProfileCubit extends Cubit<ClientProfileState> {
         );
       }
 
-      // 3. ترتيب العقود (الأحدث أولاً)
       summaries.sort(
         (a, b) => b.contract.contractDate.compareTo(a.contract.contractDate),
       );
@@ -157,7 +135,6 @@ class ClientProfileCubit extends Cubit<ClientProfileState> {
         state.copyWith(
           status: ClientProfileStatus.success,
           contractsSummary: summaries,
-          // 🛡️ تقريب الإجماليات النهائية كخطوة حماية أخيرة
           grandTotalPaid: _roundTo10(grandTotalPaid),
           totalOverdueAcrossAll: _roundTo10(globalOverdue),
         ),
@@ -166,7 +143,7 @@ class ClientProfileCubit extends Cubit<ClientProfileState> {
       emit(
         state.copyWith(
           status: ClientProfileStatus.failure,
-          errorMessage: 'فشل تحميل الملف التعريفي: $e',
+          errorMessage: 'clientProfileErrorFetch:$e',
         ),
       );
     }

@@ -1725,5 +1725,11 @@
 
 
   "bldErrorDeleteHasSoldUnits": "⛔ Cannot delete building because it contains sold units. Delete available units manually first.",
-  "bldErrorDeleteUnitNotAvailable": "⚠️ Cannot delete this unit because it is not available for sale (sold or delivered)."
+  "bldErrorDeleteUnitNotAvailable": "⚠️ Cannot delete this unit because it is not available for sale (sold or delivered).",
+
+
+
+  "clientErrorDeleteHasContracts": "⛔ Security Warning: Cannot delete client because they have active contracts. Please cancel their contracts first so units return to the catalog.",
+
+  "clientProfileErrorFetch": "Failed to load client profile: {error}"
 }

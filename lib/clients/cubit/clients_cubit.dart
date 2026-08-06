@@ -64,7 +64,7 @@ class ClientsCubit extends Cubit<ClientsState> {
       emit(
         state.copyWith(
           status: ClientsStatus.failure,
-          errorMessage: 'حدث خطأ أثناء إضافة العميل: $e',
+          errorMessage: e.toString(),
         ),
       );
     }
@@ -90,7 +90,7 @@ class ClientsCubit extends Cubit<ClientsState> {
       emit(
         state.copyWith(
           status: ClientsStatus.failure,
-          errorMessage: 'حدث خطأ أثناء تعديل بيانات العميل: $e',
+          errorMessage: e.toString(),
         ),
       );
     }
@@ -152,9 +152,7 @@ class ClientsCubit extends Cubit<ClientsState> {
         emit(
           state.copyWith(
             status: ClientsStatus.failure,
-            errorMessage:
-                'تحذير أمني: لا يمكن حذف العميل لأن لديه عقود مسجلة. '
-                'الرجاء إلغاء عقوده أولاً لكي تعود الشقق للكتالوج.',
+            errorMessage: 'clientErrorDeleteHasContracts',
           ),
         );
         return;

@@ -68,6 +68,19 @@ class ClientProfilePage extends StatelessWidget {
 
   const ClientProfilePage({super.key, required this.client});
 
+  String _resolveClientProfileErrorMessage(
+    BuildContext context,
+    String? errorKey,
+  ) {
+    final l10n = context.l10n;
+    if (errorKey == null) return l10n.clientUnexpectedError;
+    if (errorKey.startsWith('clientProfileErrorFetch:')) {
+      final rawError = errorKey.replaceFirst('clientProfileErrorFetch:', '');
+      return l10n.clientProfileErrorFetch(rawError);
+    }
+    return errorKey;
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
@@ -83,9 +96,13 @@ class ClientProfilePage extends StatelessWidget {
               );
             }
             if (state.status == ClientProfileStatus.failure) {
+              final msg = _resolveClientProfileErrorMessage(
+                context,
+                state.errorMessage,
+              );
               return Center(
                 child: Text(
-                  state.errorMessage ?? l10n.clientUnexpectedError,
+                  msg,
                   style: const TextStyle(color: Colors.red),
                 ),
               );
