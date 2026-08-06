@@ -48,6 +48,53 @@ String formatNumber(num number) {
   );
 }
 
+// 🌟 دالة مساعدة لترجمة مفاتيح أخطاء الإعدادات
+String _resolveSettingsErrorMessage(BuildContext context, String? errorKey) {
+  final l10n = context.l10n;
+  if (errorKey == null) return l10n.homeUnexpectedError;
+
+  if (errorKey == 'settingsErrorOffline') {
+    return l10n.settingsErrorOffline;
+  }
+  if (errorKey.startsWith('settingsErrorUpdatePin:')) {
+    final err = errorKey
+        .replaceFirst('settingsErrorUpdatePin:', '')
+        .replaceAll('Exception: ', '')
+        .trim();
+    return l10n.settingsErrorUpdatePin(err);
+  }
+  if (errorKey.startsWith('settingsErrorFetchHistory:')) {
+    final err = errorKey
+        .replaceFirst('settingsErrorFetchHistory:', '')
+        .replaceAll('Exception: ', '')
+        .trim();
+    return l10n.settingsErrorFetchHistory(err);
+  }
+  if (errorKey.startsWith('settingsErrorFetchDollarHistory:')) {
+    final err = errorKey
+        .replaceFirst('settingsErrorFetchDollarHistory:', '')
+        .replaceAll('Exception: ', '')
+        .trim();
+    return l10n.settingsErrorFetchDollarHistory(err);
+  }
+  if (errorKey.startsWith('settingsErrorDelete:')) {
+    final err = errorKey
+        .replaceFirst('settingsErrorDelete:', '')
+        .replaceAll('Exception: ', '')
+        .trim();
+    return l10n.settingsErrorDelete(err);
+  }
+  if (errorKey.startsWith('settingsErrorSavePrice:')) {
+    final err = errorKey
+        .replaceFirst('settingsErrorSavePrice:', '')
+        .replaceAll('Exception: ', '')
+        .trim();
+    return l10n.settingsErrorSavePrice(err);
+  }
+
+  return errorKey.replaceAll('Exception: ', '').trim();
+}
+
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
 
@@ -214,11 +261,20 @@ class _SettingsViewState extends State<SettingsView> {
               );
             }
             if (state.status == SettingsStatus.failure) {
+              final resolvedMsg = _resolveSettingsErrorMessage(
+                context,
+                state.errorMessage,
+              );
+
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text('Error: ${state.errorMessage}'),
+                  content: Text(
+                    resolvedMsg,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
                   backgroundColor: Colors.red,
-                  duration: const Duration(seconds: 5),
+                  behavior: SnackBarBehavior.floating,
+                  duration: const Duration(seconds: 4),
                 ),
               );
             }

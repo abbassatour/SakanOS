@@ -1893,5 +1893,17 @@
   "scheduleErrorAddSeasonal": "Failed to add seasonal payment: {error}",
   "@scheduleErrorAddSeasonal": { "placeholders": { "error": { "type": "String" } } },
   "scheduleErrorGeneral": "Operation failed: {error}",
-  "@scheduleErrorGeneral": { "placeholders": { "error": { "type": "String" } } }
+  "@scheduleErrorGeneral": { "placeholders": { "error": { "type": "String" } } },
+
+  "settingsErrorOffline": "Could not connect to cloud (You are working offline).",
+  "settingsErrorUpdatePin": "Failed to update security PIN: {error}",
+  "@settingsErrorUpdatePin": { "placeholders": { "error": { "type": "String" } } },
+  "settingsErrorFetchHistory": "Cannot fetch price history: {error}",
+  "@settingsErrorFetchHistory": { "placeholders": { "error": { "type": "String" } } },
+  "settingsErrorFetchDollarHistory": "Cannot fetch dollar rate history: {error}",
+  "@settingsErrorFetchDollarHistory": { "placeholders": { "error": { "type": "String" } } },
+  "settingsErrorDelete": "An error occurred during deletion: {error}",
+  "@settingsErrorDelete": { "placeholders": { "error": { "type": "String" } } },
+  "settingsErrorSavePrice": "Failed to save price record: {error}",
+  "@settingsErrorSavePrice": { "placeholders": { "error": { "type": "String" } } }
 }

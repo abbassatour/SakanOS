@@ -1885,5 +1885,16 @@
   "scheduleErrorAddSeasonal": "فشل إضافة الدفعة الموسمية: {error}",
   "@scheduleErrorAddSeasonal": { "placeholders": { "error": { "type": "String" } } },
   "scheduleErrorGeneral": "فشل العملية: {error}",
-  "@scheduleErrorGeneral": { "placeholders": { "error": { "type": "String" } } }
+  "@scheduleErrorGeneral": { "placeholders": { "error": { "type": "String" } } },
+  "settingsErrorOffline": "تعذر الاتصال بالسحابة (أنت تعمل الآن Offline).",
+  "settingsErrorUpdatePin": "فشل تحديث رمز الأمان: {error}",
+  "@settingsErrorUpdatePin": { "placeholders": { "error": { "type": "String" } } },
+  "settingsErrorFetchHistory": "تعذر جلب السجل: {error}",
+  "@settingsErrorFetchHistory": { "placeholders": { "error": { "type": "String" } } },
+  "settingsErrorFetchDollarHistory": "تعذر جلب سجل الدولار: {error}",
+  "@settingsErrorFetchDollarHistory": { "placeholders": { "error": { "type": "String" } } },
+  "settingsErrorDelete": "حدث خطأ أثناء الحذف: {error}",
+  "@settingsErrorDelete": { "placeholders": { "error": { "type": "String" } } },
+  "settingsErrorSavePrice": "فشل حفظ التسعيرة: {error}",
+  "@settingsErrorSavePrice": { "placeholders": { "error": { "type": "String" } } }
 }

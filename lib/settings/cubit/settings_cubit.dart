@@ -62,13 +62,13 @@ class SettingsCubit extends Cubit<SettingsState> {
   Future<void> fetchPrices() async {
     emit(state.copyWith(status: SettingsStatus.loading));
     try {
-      await fetchSubscriptionInfo(); // 🌟 أضف هذا السطر هنا
+      await fetchSubscriptionInfo();
       await _erpRepository.pullDataFromCloud();
     } on Exception catch (_) {
       emit(
         state.copyWith(
           status: SettingsStatus.success,
-          errorMessage: 'تعذر الاتصال بالسحابة (أنت تعمل الآن Offline).',
+          errorMessage: 'settingsErrorOffline', // 🌟 استخدام المفتاح
         ),
       );
     }
@@ -95,7 +95,7 @@ class SettingsCubit extends Cubit<SettingsState> {
 
       unawaited(
         _erpRepository.forceSyncWithCloud().catchError((Object e) {
-          return '';
+          return;
         }),
       );
     } on Exception catch (e) {
@@ -115,7 +115,7 @@ class SettingsCubit extends Cubit<SettingsState> {
 
       unawaited(
         _erpRepository.forceSyncWithCloud().catchError((Object e) {
-          return '';
+          return;
         }),
       );
     } on Exception catch (e) {
@@ -128,9 +128,6 @@ class SettingsCubit extends Cubit<SettingsState> {
     }
   }
 
-  // ==========================================
-  // 🔐 تغيير رمز الأمان الخاص بالمستخدم
-  // ==========================================
   Future<void> updateSecurityPin(String newPin) async {
     final userId = _erpRepository.currentUserId;
     if (userId == null) return;
@@ -143,7 +140,7 @@ class SettingsCubit extends Cubit<SettingsState> {
       emit(
         state.copyWith(
           status: SettingsStatus.failure,
-          errorMessage: 'فشل تحديث رمز الأمان: $e',
+          errorMessage: 'settingsErrorUpdatePin:$e', // 🌟 استخدام المفتاح
         ),
       );
     }
@@ -166,7 +163,7 @@ class SettingsCubit extends Cubit<SettingsState> {
         ),
       );
     } on Exception catch (e) {
-      emit(state.copyWith(errorMessage: 'تعذر جلب السجل: $e'));
+      emit(state.copyWith(errorMessage: 'settingsErrorFetchHistory:$e')); // 🌟
     }
   }
 
@@ -187,7 +184,9 @@ class SettingsCubit extends Cubit<SettingsState> {
         ),
       );
     } on Exception catch (e) {
-      emit(state.copyWith(errorMessage: 'تعذر جلب سجل الدولار: $e'));
+      emit(
+        state.copyWith(errorMessage: 'settingsErrorFetchDollarHistory:$e'),
+      ); // 🌟
     }
   }
 
@@ -196,7 +195,7 @@ class SettingsCubit extends Cubit<SettingsState> {
       await _erpRepository.softDeleteMaterialPrice(id);
       await fetchPriceHistory();
     } on Exception catch (e) {
-      emit(state.copyWith(errorMessage: 'حدث خطأ أثناء الحذف: $e'));
+      emit(state.copyWith(errorMessage: 'settingsErrorDelete:$e')); // 🌟
     }
   }
 
@@ -205,7 +204,7 @@ class SettingsCubit extends Cubit<SettingsState> {
       await _erpRepository.softDeleteDollarPrice(id);
       await fetchDollarHistory();
     } on Exception catch (e) {
-      emit(state.copyWith(errorMessage: 'حدث خطأ أثناء الحذف: $e'));
+      emit(state.copyWith(errorMessage: 'settingsErrorDelete:$e')); // 🌟
     }
   }
 
@@ -234,7 +233,7 @@ class SettingsCubit extends Cubit<SettingsState> {
       emit(
         state.copyWith(
           status: SettingsStatus.failure,
-          errorMessage: 'فشل حفظ التسعيرة: $e',
+          errorMessage: 'settingsErrorSavePrice:$e', // 🌟
         ),
       );
     }
@@ -255,7 +254,7 @@ class SettingsCubit extends Cubit<SettingsState> {
       emit(
         state.copyWith(
           status: SettingsStatus.failure,
-          errorMessage: 'فشل حفظ التسعيرة: $e',
+          errorMessage: 'settingsErrorSavePrice:$e', // 🌟
         ),
       );
     }
@@ -266,18 +265,12 @@ class SettingsCubit extends Cubit<SettingsState> {
 
   Future<String> restoreDatabase() async => _erpRepository.restoreDatabase();
 
-  // أضف هذه الدالة داخل كلاس SettingsCubit في ملف lib/settings/cubit/settings_cubit.dart
-
   Future<void> fetchSubscriptionInfo() async {
     try {
       final expiryDate = await _erpRepository.getLocalSubscriptionExpiry();
       emit(state.copyWith(subscriptionExpiryDate: expiryDate));
-    } catch (_) {
-      // تجاهل الخطأ بصمت، فقط لن تظهر معلومات الرخصة
-    }
+    } catch (_) {}
   }
-
-  // 🌟 قم بتعديل دالة fetchPrices لتستدعي دالة الاشتراك أيضاً
 
   @override
   Future<void> close() {
