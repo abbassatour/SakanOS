@@ -1736,5 +1736,7 @@
   "contractErrorDeleteAttach": "فشل حذف المرفق: {error}",
   "@contractErrorDeleteAttach": { "placeholders": { "error": { "type": "String" } } },
   "contractErrorSecureUrl": "فشل إنشاء الرابط الآمن: {error}",
-  "@contractErrorSecureUrl": { "placeholders": { "error": { "type": "String" } } }
+  "@contractErrorSecureUrl": { "placeholders": { "error": { "type": "String" } } },
+
+  "contractPenaltyToggleSubtitle": "تُحسب آلياً على الديون المتأخرة بعد تاريخ التسليم الفعلي."
 }

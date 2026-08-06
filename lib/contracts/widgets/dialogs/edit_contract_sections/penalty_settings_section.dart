@@ -43,7 +43,7 @@ class PenaltySettingsSection extends StatelessWidget {
                 ),
               ),
               subtitle: Text(
-                l10n.contractPenaltyToggleTitle, // أو المفتاح الخاص بالوصف
+                l10n.contractPenaltyToggleSubtitle,
                 style: const TextStyle(fontSize: 11),
               ),
               value: isPenaltyActive,

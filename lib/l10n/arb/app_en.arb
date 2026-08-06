@@ -1745,5 +1745,6 @@
   "contractErrorDeleteAttach": "Attachment deletion failed: {error}",
   "@contractErrorDeleteAttach": { "placeholders": { "error": { "type": "String" } } },
   "contractErrorSecureUrl": "Failed to generate secure link: {error}",
-  "@contractErrorSecureUrl": { "placeholders": { "error": { "type": "String" } } }
+  "@contractErrorSecureUrl": { "placeholders": { "error": { "type": "String" } } },
+  "contractPenaltyToggleSubtitle": "Calculated automatically on overdue debts after actual handover date."
 }
