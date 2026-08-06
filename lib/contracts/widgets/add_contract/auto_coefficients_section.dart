@@ -11,6 +11,32 @@ class AutoCoefficientsSection extends StatelessWidget {
 
   final Map<String, double> coefficients;
 
+  String _getLocalizedCoeffKey(BuildContext context, String key) {
+    final l10n = context.l10n;
+    switch (key) {
+      case 'الموقع':
+        return l10n.coeffLocation;
+      case 'الشارع':
+        return l10n.coeffStreet;
+      case 'المصعد':
+        return l10n.coeffElevator;
+      case 'شمالي':
+        return l10n.coeffNorth;
+      case 'جنوبي':
+        return l10n.coeffSouth;
+      case 'شرقي':
+        return l10n.coeffEast;
+      case 'غربي':
+        return l10n.coeffWest;
+      case 'هامش الربح':
+        return l10n.coeffProfitMargin;
+      case 'معامل التميز للوجيبة':
+        return l10n.coeffYardExcellence;
+      default:
+        return key;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (coefficients.isEmpty) return const SizedBox.shrink();
@@ -46,8 +72,9 @@ class AutoCoefficientsSection extends StatelessWidget {
                 spacing: 8,
                 runSpacing: 8,
                 children: coefficients.entries.map((e) {
+                  final localizedKey = _getLocalizedCoeffKey(context, e.key);
                   return Chip(
-                    label: Text('${e.key}: ${e.value}%'),
+                    label: Text('$localizedKey: ${e.value}%'),
                     backgroundColor: Colors.white,
                     side: const BorderSide(color: Colors.teal),
                   );
