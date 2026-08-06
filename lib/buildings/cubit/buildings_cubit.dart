@@ -1,16 +1,12 @@
 // lib/buildings/cubit/buildings_cubit.dart
-// ignore_for_file: depend_on_referenced_packages
-
 import 'dart:developer';
-import 'dart:io'; // 🌟 السطر الجديد
+import 'dart:io';
 
-import 'package:local_storage_api/local_storage_api.dart'
-    show Apartment, Building, BuildingAttachment;
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:erp_repository/erp_repository.dart';
 import 'package:local_storage_api/local_storage_api.dart'
-    show Apartment, Building;
+    show Apartment, Building, BuildingAttachment, ApartmentAttachment;
 
 part 'buildings_state.dart';
 
@@ -30,7 +26,6 @@ class BuildingsCubit extends Cubit<BuildingsState> {
         for (final user in allUsers) user.id: user.fullName ?? 'مدير النظام',
       };
 
-      // 🌟 1. جلب مرفقات المحاضر وتوزيعها
       final allBldAttachments = await _erpRepository
           .getAllBuildingAttachments();
       final attachmentsMap = <String, List<BuildingAttachment>>{};
@@ -38,7 +33,6 @@ class BuildingsCubit extends Cubit<BuildingsState> {
         attachmentsMap.putIfAbsent(att.buildingId, () => []).add(att);
       }
 
-      // 🌟 2. جلب مرفقات الشقق وتوزيعها
       final allAptAttachments = await _erpRepository
           .getAllApartmentAttachments();
       final aptAttachmentsMap = <String, List<ApartmentAttachment>>{};
@@ -52,8 +46,8 @@ class BuildingsCubit extends Cubit<BuildingsState> {
           buildings: buildings,
           apartments: apartments,
           userNamesMap: namesMap,
-          attachmentsMap: attachmentsMap, // 🌟 خريطة المحاضر
-          apartmentAttachmentsMap: aptAttachmentsMap, // 🌟 خريطة الشقق
+          attachmentsMap: attachmentsMap,
+          apartmentAttachmentsMap: aptAttachmentsMap,
         ),
       );
     } catch (e, stackTrace) {
@@ -140,7 +134,7 @@ class BuildingsCubit extends Cubit<BuildingsState> {
       emit(
         state.copyWith(
           status: BuildingsStatus.failure,
-          errorMessage: 'فشل تعديل المحضر: $e',
+          errorMessage: e.toString(),
         ),
       );
     }
@@ -165,7 +159,7 @@ class BuildingsCubit extends Cubit<BuildingsState> {
       emit(
         state.copyWith(
           status: BuildingsStatus.failure,
-          errorMessage: 'فشل تعديل الشقة: $e',
+          errorMessage: e.toString(),
         ),
       );
     }
@@ -177,10 +171,15 @@ class BuildingsCubit extends Cubit<BuildingsState> {
       await loadData();
     } catch (e, stackTrace) {
       log('خطأ في حذف المحضر', error: e, stackTrace: stackTrace);
+      final rawMsg = e.toString();
+      String errorKey = rawMsg.replaceAll('Exception:', '').trim();
+      if (rawMsg.contains('لوجود وحدات مباعة')) {
+        errorKey = 'bldErrorDeleteHasSoldUnits';
+      }
       emit(
         state.copyWith(
           status: BuildingsStatus.failure,
-          errorMessage: e.toString().replaceAll('Exception:', '').trim(),
+          errorMessage: errorKey,
         ),
       );
     }
@@ -192,18 +191,19 @@ class BuildingsCubit extends Cubit<BuildingsState> {
       await loadData();
     } catch (e, stackTrace) {
       log('خطأ في حذف الشقة', error: e, stackTrace: stackTrace);
+      final rawMsg = e.toString();
+      String errorKey = rawMsg.replaceAll('Exception:', '').trim();
+      if (rawMsg.contains('حالتها')) {
+        errorKey = 'bldErrorDeleteUnitNotAvailable';
+      }
       emit(
         state.copyWith(
           status: BuildingsStatus.failure,
-          errorMessage: e.toString().replaceAll('Exception:', '').trim(),
+          errorMessage: errorKey,
         ),
       );
     }
   }
-
-  // ==========================================
-  // 📎 دوال إدارة المرفقات للشقق
-  // ==========================================
 
   Future<void> attachFileToApartmentGallery({
     required String apartmentId,
@@ -222,12 +222,12 @@ class BuildingsCubit extends Cubit<BuildingsState> {
         originalFileName: originalFileName,
       );
 
-      await loadData(); // تحديث الواجهة بعد الرفع
+      await loadData();
     } on Exception catch (e) {
       emit(
         state.copyWith(
           status: BuildingsStatus.failure,
-          errorMessage: 'فشل إرفاق الملف: $e',
+          errorMessage: e.toString(),
         ),
       );
     }
@@ -242,15 +242,11 @@ class BuildingsCubit extends Cubit<BuildingsState> {
       emit(
         state.copyWith(
           status: BuildingsStatus.failure,
-          errorMessage: 'فشل حذف المرفق: $e',
+          errorMessage: e.toString(),
         ),
       );
     }
   }
-
-  // ==========================================
-  // 📎 دوال إدارة مرفقات المحاضر
-  // ==========================================
 
   Future<void> attachFileToBuildingGallery({
     required String buildingId,
@@ -269,12 +265,12 @@ class BuildingsCubit extends Cubit<BuildingsState> {
         originalFileName: originalFileName,
       );
 
-      await loadData(); // تحديث الواجهة بعد الرفع
+      await loadData();
     } on Exception catch (e) {
       emit(
         state.copyWith(
           status: BuildingsStatus.failure,
-          errorMessage: 'فشل إرفاق الملف: $e',
+          errorMessage: e.toString(),
         ),
       );
     }
@@ -289,7 +285,7 @@ class BuildingsCubit extends Cubit<BuildingsState> {
       emit(
         state.copyWith(
           status: BuildingsStatus.failure,
-          errorMessage: 'فشل حذف المرفق: $e',
+          errorMessage: e.toString(),
         ),
       );
     }
@@ -297,7 +293,6 @@ class BuildingsCubit extends Cubit<BuildingsState> {
 
   Future<String?> getSecureAttachmentUrl(String storedPath) async {
     try {
-      // 🌟 نطلب الرابط الآمن من السلة الجديدة building_attachments
       return await _erpRepository.resolveFileUrl(
         'building_attachments',
         storedPath,
@@ -306,7 +301,7 @@ class BuildingsCubit extends Cubit<BuildingsState> {
       emit(
         state.copyWith(
           status: BuildingsStatus.failure,
-          errorMessage: 'فشل إنشاء الرابط الآمن: $e',
+          errorMessage: e.toString(),
         ),
       );
       return null;

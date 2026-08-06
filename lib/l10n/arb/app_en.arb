@@ -1721,5 +1721,9 @@
       "roleName": { "type": "String" },
       "count": { "type": "int" }
     }
-  }
+  },
+
+
+  "bldErrorDeleteHasSoldUnits": "⛔ Cannot delete building because it contains sold units. Delete available units manually first.",
+  "bldErrorDeleteUnitNotAvailable": "⚠️ Cannot delete this unit because it is not available for sale (sold or delivered)."
 }

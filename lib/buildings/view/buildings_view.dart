@@ -8,6 +8,18 @@ import 'package:our_home_erp_app/l10n/l10n.dart';
 class BuildingsView extends StatelessWidget {
   const BuildingsView({super.key});
 
+  String _resolveBuildingErrorMessage(BuildContext context, String? errorKey) {
+    final l10n = context.l10n;
+    switch (errorKey) {
+      case 'bldErrorDeleteHasSoldUnits':
+        return l10n.bldErrorDeleteHasSoldUnits;
+      case 'bldErrorDeleteUnitNotAvailable':
+        return l10n.bldErrorDeleteUnitNotAvailable;
+      default:
+        return errorKey ?? l10n.bldUnexpectedError;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
@@ -33,10 +45,15 @@ class BuildingsView extends StatelessWidget {
           listenWhen: (previous, current) => previous.status != current.status,
           listener: (context, state) {
             if (state.status == BuildingsStatus.failure) {
+              final resolvedMsg = _resolveBuildingErrorMessage(
+                context,
+                state.errorMessage,
+              );
+
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(
-                    state.errorMessage ?? l10n.bldUnexpectedError,
+                    resolvedMsg,
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       color: Colors.white,

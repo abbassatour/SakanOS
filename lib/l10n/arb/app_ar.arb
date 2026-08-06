@@ -1714,5 +1714,8 @@
       "roleName": { "type": "String" },
       "count": { "type": "int" }
     }
-  }
+  },
+
+  "bldErrorDeleteHasSoldUnits": "⛔ لا يمكن حذف المحضر لوجود وحدات مباعة. احذف المتاحة يدوياً أولاً.",
+  "bldErrorDeleteUnitNotAvailable": "⚠️ لا يمكن حذف هذه الوحدة لأنها غير متاحة للبيع (مباعة أو مُسلّمة)."
 }
