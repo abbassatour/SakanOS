@@ -4,6 +4,58 @@ import 'package:our_home_erp_app/l10n/l10n.dart';
 import '../../cubit/schedule_cubit.dart';
 import '../../../core/utils/whatsapp_helper.dart';
 
+String formatApartmentDetails(BuildContext context, String rawDetails) {
+  final l10n = context.l10n;
+  if (rawDetails == 'أسهم/غير مخصص' ||
+      rawDetails == 'أسهم استثمارية غير مخصصة' ||
+      rawDetails == 'محفظة استثمارية (عقد لاحق التخصص)' ||
+      (rawDetails.contains('غير مخصص') && !rawDetails.contains('شقة')) ||
+      (rawDetails.contains('استثمارية') && !rawDetails.contains('شقة'))) {
+    if (rawDetails.contains('عقود متفاوتة الدفع') ||
+        rawDetails.contains('منفاوتة')) {
+      return l10n.localeName == 'en'
+          ? 'Investment Shares (Flexible Payments)'
+          : 'أسهم استثمارية غير مخصصة (عقود متفاوتة الدفع)';
+    }
+    return l10n.contractAutoDetailsUnallocated;
+  }
+
+  var formatted = rawDetails;
+  if (l10n.localeName == 'en') {
+    formatted = formatted
+        .replaceAll('مشروع السلموني', 'Al-Salamoni Project')
+        .replaceAll('مشروع', 'Project:')
+        .replaceAll('عقار 1593', 'Property 1593')
+        .replaceAll('عقار', 'Property:')
+        .replaceAll('محضر:', 'Building:')
+        .replaceAll('شقة:', 'Apt:')
+        .replaceAll('شقة', 'Apt')
+        .replaceAll('طابق:', 'Floor:')
+        .replaceAll('الطابق الأرضي', 'Ground Floor')
+        .replaceAll('الطابق الأول', '1st Floor')
+        .replaceAll('الطابق الثاني', '2nd Floor')
+        .replaceAll('الطابق الثالث', '3rd Floor')
+        .replaceAll('الطابق الرابع', '4th Floor')
+        .replaceAll('الطابق الخامس', '5th Floor')
+        .replaceAll('الطابق السادس', '6th Floor')
+        .replaceAll('الطابق السابع', '7th Floor')
+        .replaceAll('الطابق الثامن', '8th Floor')
+        .replaceAll('الطابق التاسع', '9th Floor')
+        .replaceAll('الطابق العاشر', '10th Floor')
+        .replaceAll('الطابق الحادي عشر', '11th Floor')
+        .replaceAll('الطابق الثاني عشر', '12th Floor')
+        .replaceAll('الطابق 1', '1st Floor')
+        .replaceAll('الطابق 2', '2nd Floor')
+        .replaceAll('الطابق 3', '3rd Floor')
+        .replaceAll('الطابق 4', '4th Floor')
+        .replaceAll('الطابق 5', '5th Floor')
+        .replaceAll('القبو الأول', '1st Basement')
+        .replaceAll('القبو الثاني', '2nd Basement')
+        .replaceAll('القبو الثالث', '3rd Basement');
+  }
+  return formatted;
+}
+
 class OverdueRadarTab extends StatelessWidget {
   final ScheduleState state;
 
@@ -66,6 +118,10 @@ class OverdueRadarTab extends StatelessWidget {
         }
 
         final oldestSchedule = alert.overdueSchedules.first;
+        final details = formatApartmentDetails(
+          context,
+          alert.contract.apartmentDetails,
+        );
 
         return Card(
           elevation: 1,
@@ -147,7 +203,7 @@ class OverdueRadarTab extends StatelessWidget {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                '${alert.contract.apartmentDetails} | 📱 ${alert.client.phone}',
+                                '$details | 📱 ${alert.client.phone}',
                                 style: TextStyle(
                                   fontSize: 11,
                                   color: Colors.grey.shade700,
