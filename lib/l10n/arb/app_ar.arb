@@ -1680,5 +1680,7 @@
   "pdfDelayPenalty": "غرامة تأخير:",
   "pdfPriceAfterPenalty": "سعر المتر بعد الغرامة:",
   "currencySyp": "ل.س",
-  "unitMetersSq": "م²"
+  "unitMetersSq": "م²",
+  "pdfTitleDeposit": "إيصال_دفع",
+  "pdfTitleRefund": "سند_استرداد"
 }

@@ -527,8 +527,8 @@ class PaymentsDataTable extends StatelessWidget {
 
                                 if (context.mounted) {
                                   final titleStr = isRefundCall
-                                      ? 'سند_استرداد_${client.name}'
-                                      : 'إيصال_دفع_${client.name}';
+                                      ? '${l10n.pdfTitleRefund}_${client.name}'
+                                      : '${l10n.pdfTitleDeposit}_${client.name}';
                                   unawaited(
                                     Navigator.push<void>(
                                       context,

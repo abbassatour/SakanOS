@@ -28,6 +28,20 @@ class DepositPdfGenerator {
     }
   }
 
+  static String _formatApartmentDetails(
+    AppLocalizations l10n,
+    String rawDetails,
+  ) {
+    if (rawDetails == 'أسهم/غير مخصص' ||
+        rawDetails == 'أسهم استثمارية غير مخصصة' ||
+        rawDetails == 'محفظة استثمارية (عقد لاحق التخصص)' ||
+        rawDetails.contains('غير مخصص') ||
+        rawDetails.contains('استثمارية')) {
+      return l10n.contractAutoDetailsUnallocated;
+    }
+    return rawDetails;
+  }
+
   static Future<Uint8List> generate({
     required AppLocalizations l10n,
     required PaymentsLedgerData entry,
@@ -72,8 +86,13 @@ class DepositPdfGenerator {
       final dateStr =
           '${entry.paymentDate.year}/${entry.paymentDate.month}/${entry.paymentDate.day}';
 
+      final formattedDetails = _formatApartmentDetails(
+        l10n,
+        contract.apartmentDetails,
+      );
+
       return pw.Container(
-        margin: const pw.EdgeInsets.only(right: 40),
+        margin: const pw.EdgeInsets.only(right: 20, left: 10),
         padding: const pw.EdgeInsets.all(6),
         child: pw.Column(
           crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -123,7 +142,7 @@ class DepositPdfGenerator {
             ),
             pw.Text(
               l10n.pdfReceiptApartment(
-                contract.apartmentDetails,
+                formattedDetails,
                 _fmtArea(contract.totalArea),
               ),
               style: pw.TextStyle(font: arabicFont, fontSize: 8),
@@ -262,7 +281,7 @@ class DepositPdfGenerator {
                 ),
               ],
             ),
-            pw.Spacer(),
+            pw.SizedBox(height: 12),
             pw.Row(
               mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
               children: [
@@ -306,7 +325,7 @@ class DepositPdfGenerator {
                 pw.Expanded(
                   child: buildCompactReceipt(l10n.pdfOfficeCopy),
                 ),
-                pw.SizedBox(width: 20),
+                pw.SizedBox(width: 10),
                 pw.Expanded(
                   child: buildCompactReceipt(l10n.pdfClientCopy),
                 ),

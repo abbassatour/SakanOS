@@ -1686,5 +1686,7 @@
   "pdfDelayPenalty": "Late Penalty:",
   "pdfPriceAfterPenalty": "Price After Penalty:",
   "currencySyp": "SYP",
-  "unitMetersSq": "m²"
+  "unitMetersSq": "m²",
+  "pdfTitleDeposit": "Payment_Receipt",
+  "pdfTitleRefund": "Refund_Voucher"
 }
