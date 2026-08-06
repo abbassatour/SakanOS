@@ -1738,5 +1738,13 @@
   "contractErrorSecureUrl": "فشل إنشاء الرابط الآمن: {error}",
   "@contractErrorSecureUrl": { "placeholders": { "error": { "type": "String" } } },
 
-  "contractPenaltyToggleSubtitle": "تُحسب آلياً على الديون المتأخرة بعد تاريخ التسليم الفعلي."
+  "contractPenaltyToggleSubtitle": "تُحسب آلياً على الديون المتأخرة بعد تاريخ التسليم الفعلي.",
+
+  "paymentErrorContractNotFound": "هذا العقد غير موجود في النظام.",
+  "paymentErrorMissingMaterialPrices": "يرجى إضافة أسعار المواد أولاً في الإعدادات لتحديد سعر المتر.",
+  "paymentErrorUpdateFailed": "فشل تعديل الدفعة: {error}",
+  "@paymentErrorUpdateFailed": { "placeholders": { "error": { "type": "String" } } },
+  "paymentErrorOldCancellationBlocked": "تحذير محاسبي: لا يمكن إلغاء دفعة قديمة! يجب التراجع عن الدفعات الأحدث أولاً لتسوية الحسابات بالترتيب.",
+  "paymentErrorWhatsAppStatusFailed": "فشل في تحديث حالة الواتساب: {error}",
+  "@paymentErrorWhatsAppStatusFailed": { "placeholders": { "error": { "type": "String" } } }
 }

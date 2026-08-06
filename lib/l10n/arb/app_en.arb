@@ -1746,5 +1746,13 @@
   "@contractErrorDeleteAttach": { "placeholders": { "error": { "type": "String" } } },
   "contractErrorSecureUrl": "Failed to generate secure link: {error}",
   "@contractErrorSecureUrl": { "placeholders": { "error": { "type": "String" } } },
-  "contractPenaltyToggleSubtitle": "Calculated automatically on overdue debts after actual handover date."
+  "contractPenaltyToggleSubtitle": "Calculated automatically on overdue debts after actual handover date.",
+
+  "paymentErrorContractNotFound": "This contract is not found in the system.",
+  "paymentErrorMissingMaterialPrices": "Please set material prices in settings first to determine meter price.",
+  "paymentErrorUpdateFailed": "Failed to update payment: {error}",
+  "@paymentErrorUpdateFailed": { "placeholders": { "error": { "type": "String" } } },
+  "paymentErrorOldCancellationBlocked": "Accounting Warning: Cannot cancel an older payment! Newer payments must be cancelled first to maintain order.",
+  "paymentErrorWhatsAppStatusFailed": "Failed to update WhatsApp status: {error}",
+  "@paymentErrorWhatsAppStatusFailed": { "placeholders": { "error": { "type": "String" } } }
 }

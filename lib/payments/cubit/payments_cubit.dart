@@ -111,7 +111,9 @@ class PaymentsCubit extends Cubit<PaymentsState> {
       final contractIndex = state.contracts.indexWhere(
         (c) => c.id == contractId,
       );
-      if (contractIndex == -1) throw Exception('هذا العقد غير موجود.');
+      if (contractIndex == -1) {
+        throw Exception('paymentErrorContractNotFound');
+      }
       final contract = state.contracts[contractIndex];
 
       final contractCoefficients = <String, double>{};
@@ -119,7 +121,6 @@ class PaymentsCubit extends Cubit<PaymentsState> {
         final decodedMap =
             jsonDecode(contract.coefficients) as Map<String, dynamic>;
 
-        // تم حل مشكلة cascade_invocations باستخدام for loop عادية
         for (final entry in decodedMap.entries) {
           contractCoefficients[entry.key] = (entry.value as num).toDouble();
         }
@@ -178,7 +179,7 @@ class PaymentsCubit extends Cubit<PaymentsState> {
       } else {
         final currentPrices = await _erpRepository.getLatestPrices();
         if (currentPrices == null) {
-          throw Exception('يرجى إضافة أسعار المواد أولاً في الإعدادات.');
+          throw Exception('paymentErrorMissingMaterialPrices');
         }
 
         final calculations = CalculatorHelper.calculateContractValues(
@@ -228,9 +229,6 @@ class PaymentsCubit extends Cubit<PaymentsState> {
 
       unawaited(
         _erpRepository.forceSyncWithCloud().catchError((Object e) {
-          // reason: Logging background sync failures
-          // ignore: avoid_print
-          print('Sync Error: $e');
           return '';
         }),
       );
@@ -268,9 +266,6 @@ class PaymentsCubit extends Cubit<PaymentsState> {
 
       unawaited(
         _erpRepository.forceSyncWithCloud().catchError((Object e) {
-          // reason: Logging background sync failures
-          // ignore: avoid_print
-          print('Sync Error: $e');
           return '';
         }),
       );
@@ -278,54 +273,42 @@ class PaymentsCubit extends Cubit<PaymentsState> {
       emit(
         state.copyWith(
           status: PaymentsStatus.failure,
-          errorMessage: 'فشل تعديل الدفعة: $e',
+          errorMessage: 'paymentErrorUpdateFailed:$e',
         ),
       );
     }
   }
 
-  // 🌟 الدالة الجديدة المدمجة: تطبيق المنطق المصرفي (Bank-Level Logic)
   Future<void> cancelPaymentSmartly(PaymentsLedgerData entryToCancel) async {
     emit(state.copyWith(status: PaymentsStatus.loading));
     try {
-      // 1. التحقق: هل هذه الدفعة هي "آخر دفعة" فعلاً؟
       final allEntriesForContract = await _erpRepository.getContractLedger(
         entryToCancel.contractId,
       );
 
       if (allEntriesForContract.isEmpty ||
           allEntriesForContract.first.id != entryToCancel.id) {
-        throw Exception(
-          'تحذير محاسبي: لا يمكن إلغاء دفعة قديمة! يجب التراجع عن الدفعات الأحدث أولاً لتسوية الحسابات بالترتيب.',
-        );
+        throw Exception('paymentErrorOldCancellationBlocked');
       }
 
-      // 2. حساب الوقت المنقضي
       final minutesPassed = DateTime.now()
           .toUtc()
           .difference(entryToCancel.createdAt)
           .inMinutes;
 
       if (minutesPassed <= 5) {
-        // ==========================================
-        // 🗑️ الخيار الأول: إبطال فوري (خلال 5 دقائق)
-        // ==========================================
         await _erpRepository.softDeleteLedgerEntry(entryToCancel.id);
       } else {
-        // ==========================================
-        // 🔄 الخيار الثاني: قيد عكسي آلي (بعد 5 دقائق)
-        // ==========================================
         final receiptNum =
             entryToCancel.receiptNumber ??
             entryToCancel.id.split('-').first.toUpperCase();
 
         await _erpRepository.addLedgerEntry(
           contractId: entryToCancel.contractId,
-          amountPaid: -(entryToCancel.amountPaid), // 🌟 نعكس المبلغ
-          convertedMeters: -(entryToCancel.convertedMeters), // 🌟 نعكس الأمتار
-          meterPriceAtPayment:
-              entryToCancel.meterPriceAtPayment, // السعر يبقى موجباً لأنه مؤشر
-          discountPercentage: 0, // تصفير البونص في العكسي
+          amountPaid: -(entryToCancel.amountPaid),
+          convertedMeters: -(entryToCancel.convertedMeters),
+          meterPriceAtPayment: entryToCancel.meterPriceAtPayment,
+          discountPercentage: 0,
           pricesSnapshotJson: jsonEncode({
             'note':
                 'قيد عكسي آلي وتسوية محاسبية لإلغاء الإيصال رقم ($receiptNum)',
@@ -333,7 +316,6 @@ class PaymentsCubit extends Cubit<PaymentsState> {
         );
       }
 
-      // 🌟 3. الخطوة الأهم: إعادة فتح القسط للعميل (في كلتا الحالتين)
       if (entryToCancel.scheduleId != null) {
         await _erpRepository.updateScheduleStatus(
           entryToCancel.scheduleId!,
@@ -341,7 +323,6 @@ class PaymentsCubit extends Cubit<PaymentsState> {
         );
       }
 
-      // 4. تحديث الواجهة
       await selectContract(entryToCancel.contractId);
 
       unawaited(
@@ -410,7 +391,7 @@ class PaymentsCubit extends Cubit<PaymentsState> {
       emit(
         state.copyWith(
           status: PaymentsStatus.failure,
-          errorMessage: 'فشل في تحديث حالة الواتساب: $e',
+          errorMessage: 'paymentErrorWhatsAppStatusFailed:$e',
         ),
       );
     }
