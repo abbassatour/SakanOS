@@ -48,6 +48,42 @@ class _ContractsViewState extends State<ContractsView> {
     return l10n.contractHandoverAllName;
   }
 
+  String _resolveContractErrorMessage(BuildContext context, String? errorKey) {
+    final l10n = context.l10n;
+    if (errorKey == null) return l10n.homeUnexpectedError;
+
+    if (errorKey.startsWith('contractErrorUpdate:')) {
+      final err = errorKey.replaceFirst('contractErrorUpdate:', '');
+      return l10n.contractErrorUpdate(err);
+    }
+    if (errorKey.startsWith('contractErrorHandover:')) {
+      final err = errorKey.replaceFirst('contractErrorHandover:', '');
+      return l10n.contractErrorHandover(err);
+    }
+    if (errorKey.startsWith('contractErrorCancelHandover:')) {
+      final err = errorKey.replaceFirst('contractErrorCancelHandover:', '');
+      return l10n.contractErrorCancelHandover(err);
+    }
+    if (errorKey.startsWith('contractErrorToggleCompletion:')) {
+      final err = errorKey.replaceFirst('contractErrorToggleCompletion:', '');
+      return l10n.contractErrorToggleCompletion(err);
+    }
+    if (errorKey.startsWith('contractErrorAttachFile:')) {
+      final err = errorKey.replaceFirst('contractErrorAttachFile:', '');
+      return l10n.contractErrorAttachFile(err);
+    }
+    if (errorKey.startsWith('contractErrorDeleteAttach:')) {
+      final err = errorKey.replaceFirst('contractErrorDeleteAttach:', '');
+      return l10n.contractErrorDeleteAttach(err);
+    }
+    if (errorKey.startsWith('contractErrorSecureUrl:')) {
+      final err = errorKey.replaceFirst('contractErrorSecureUrl:', '');
+      return l10n.contractErrorSecureUrl(err);
+    }
+
+    return errorKey;
+  }
+
   void _showFilterSheet() {
     unawaited(
       () async {
@@ -118,9 +154,14 @@ class _ContractsViewState extends State<ContractsView> {
           listenWhen: (previous, current) => previous.status != current.status,
           listener: (context, state) {
             if (state.status == ContractsStatus.failure) {
+              final resolvedMsg = _resolveContractErrorMessage(
+                context,
+                state.errorMessage,
+              );
+
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text(state.errorMessage ?? 'Error'),
+                  content: Text(resolvedMsg),
                   backgroundColor: Colors.red,
                 ),
               );

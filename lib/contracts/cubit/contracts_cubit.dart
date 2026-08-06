@@ -25,7 +25,6 @@ class ContractsCubit extends Cubit<ContractsState> {
         for (final user in allUsers) user.id: user.fullName ?? 'مدير النظام',
       };
 
-      // 🌟 جلب المرفقات وتوزيعها
       final allAttachments = await _erpRepository.getAllContractAttachments();
       final attachmentsMap = <String, List<ContractAttachment>>{};
       for (final att in allAttachments) {
@@ -38,7 +37,7 @@ class ContractsCubit extends Cubit<ContractsState> {
           clients: clients,
           contracts: allContracts,
           userNamesMap: namesMap,
-          attachmentsMap: attachmentsMap, // 🌟 حفظ المرفقات في الـ State
+          attachmentsMap: attachmentsMap,
         ),
       );
     } catch (e, stackTrace) {
@@ -134,10 +133,6 @@ class ContractsCubit extends Cubit<ContractsState> {
     }
   }
 
-  // ==========================================
-  // 📎 دوال إدارة المرفقات المتعددة (النظام الجديد)
-  // ==========================================
-
   Future<void> attachFileToContractGallery({
     required String contractId,
     required String filePath,
@@ -155,12 +150,12 @@ class ContractsCubit extends Cubit<ContractsState> {
         originalFileName: originalFileName,
       );
 
-      await fetchData(); // تحديث الواجهة بعد الرفع
+      await fetchData();
     } on Exception catch (e) {
       emit(
         state.copyWith(
           status: ContractsStatus.failure,
-          errorMessage: 'فشل إرفاق الملف: $e',
+          errorMessage: 'contractErrorAttachFile:$e',
         ),
       );
     }
@@ -175,7 +170,7 @@ class ContractsCubit extends Cubit<ContractsState> {
       emit(
         state.copyWith(
           status: ContractsStatus.failure,
-          errorMessage: 'فشل حذف المرفق: $e',
+          errorMessage: 'contractErrorDeleteAttach:$e',
         ),
       );
     }
@@ -183,7 +178,6 @@ class ContractsCubit extends Cubit<ContractsState> {
 
   Future<String?> getSecureAttachmentUrl(String storedPath) async {
     try {
-      // 🌟 نطلب الرابط الآمن من السلة الجديدة contract_attachments
       return await _erpRepository.resolveFileUrl(
         'contract_attachments',
         storedPath,
@@ -192,7 +186,7 @@ class ContractsCubit extends Cubit<ContractsState> {
       emit(
         state.copyWith(
           status: ContractsStatus.failure,
-          errorMessage: 'فشل إنشاء الرابط الآمن: $e',
+          errorMessage: 'contractErrorSecureUrl:$e',
         ),
       );
       return null;
@@ -283,7 +277,7 @@ class ContractsCubit extends Cubit<ContractsState> {
       emit(
         state.copyWith(
           status: ContractsStatus.failure,
-          errorMessage: 'حدث خطأ أثناء تعديل العقد: $e',
+          errorMessage: 'contractErrorUpdate:$e',
         ),
       );
     }
@@ -311,7 +305,7 @@ class ContractsCubit extends Cubit<ContractsState> {
       emit(
         state.copyWith(
           status: ContractsStatus.failure,
-          errorMessage: 'فشل عملية تسليم الشقة: $e',
+          errorMessage: 'contractErrorHandover:$e',
         ),
       );
     }
@@ -333,7 +327,7 @@ class ContractsCubit extends Cubit<ContractsState> {
       emit(
         state.copyWith(
           status: ContractsStatus.failure,
-          errorMessage: 'فشل إلغاء التسليم: $e',
+          errorMessage: 'contractErrorCancelHandover:$e',
         ),
       );
     }
@@ -356,7 +350,7 @@ class ContractsCubit extends Cubit<ContractsState> {
       emit(
         state.copyWith(
           status: ContractsStatus.failure,
-          errorMessage: 'فشل تغيير حالة العقد: $e',
+          errorMessage: 'contractErrorToggleCompletion:$e',
         ),
       );
     }
@@ -369,7 +363,7 @@ class ContractsCubit extends Cubit<ContractsState> {
       emit(
         state.copyWith(
           status: ContractsStatus.failure,
-          errorMessage: 'فشل إنشاء الرابط الآمن: $e',
+          errorMessage: 'contractErrorSecureUrl:$e',
         ),
       );
       return null;

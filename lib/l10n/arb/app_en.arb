@@ -1731,5 +1731,19 @@
 
   "clientErrorDeleteHasContracts": "⛔ Security Warning: Cannot delete client because they have active contracts. Please cancel their contracts first so units return to the catalog.",
 
-  "clientProfileErrorFetch": "Failed to load client profile: {error}"
+  "clientProfileErrorFetch": "Failed to load client profile: {error}",
+  "contractErrorUpdate": "Error modifying contract: {error}",
+  "@contractErrorUpdate": { "placeholders": { "error": { "type": "String" } } },
+  "contractErrorHandover": "Handover operation failed: {error}",
+  "@contractErrorHandover": { "placeholders": { "error": { "type": "String" } } },
+  "contractErrorCancelHandover": "Handover cancellation failed: {error}",
+  "@contractErrorCancelHandover": { "placeholders": { "error": { "type": "String" } } },
+  "contractErrorToggleCompletion": "Failed to change contract status: {error}",
+  "@contractErrorToggleCompletion": { "placeholders": { "error": { "type": "String" } } },
+  "contractErrorAttachFile": "File attachment failed: {error}",
+  "@contractErrorAttachFile": { "placeholders": { "error": { "type": "String" } } },
+  "contractErrorDeleteAttach": "Attachment deletion failed: {error}",
+  "@contractErrorDeleteAttach": { "placeholders": { "error": { "type": "String" } } },
+  "contractErrorSecureUrl": "Failed to generate secure link: {error}",
+  "@contractErrorSecureUrl": { "placeholders": { "error": { "type": "String" } } }
 }

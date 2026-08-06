@@ -1721,5 +1721,20 @@
 
   "clientErrorDeleteHasContracts": "⛔ تحذير أمني: لا يمكن حذف العميل لأن لديه عقود مسجلة. الرجاء إلغاء عقوده أولاً لكي تعود الشقق للكتالوج.",
 
-  "clientProfileErrorFetch": "فشل تحميل الملف التعريفي للعميل: {error}"
+  "clientProfileErrorFetch": "فشل تحميل الملف التعريفي للعميل: {error}",
+
+  "contractErrorUpdate": "حدث خطأ أثناء تعديل العقد: {error}",
+  "@contractErrorUpdate": { "placeholders": { "error": { "type": "String" } } },
+  "contractErrorHandover": "فشل عملية تسليم الشقة: {error}",
+  "@contractErrorHandover": { "placeholders": { "error": { "type": "String" } } },
+  "contractErrorCancelHandover": "فشل إلغاء التسليم: {error}",
+  "@contractErrorCancelHandover": { "placeholders": { "error": { "type": "String" } } },
+  "contractErrorToggleCompletion": "فشل تغيير حالة العقد: {error}",
+  "@contractErrorToggleCompletion": { "placeholders": { "error": { "type": "String" } } },
+  "contractErrorAttachFile": "فشل إرفاق الملف: {error}",
+  "@contractErrorAttachFile": { "placeholders": { "error": { "type": "String" } } },
+  "contractErrorDeleteAttach": "فشل حذف المرفق: {error}",
+  "@contractErrorDeleteAttach": { "placeholders": { "error": { "type": "String" } } },
+  "contractErrorSecureUrl": "فشل إنشاء الرابط الآمن: {error}",
+  "@contractErrorSecureUrl": { "placeholders": { "error": { "type": "String" } } }
 }
