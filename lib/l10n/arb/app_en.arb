@@ -1881,5 +1881,17 @@
   "recycleErrorRestoreContractAptDeleted": "⛔ The unit linked to this contract is still deleted. Please restore it first.",
   "recycleErrorRestorePaymentContractDeleted": "⛔ Cannot restore this payment because its contract is still deleted. Please restore the contract first.",
   "recycleErrorHardDeleteAptHasContract": "⛔ Cannot destroy this unit because it is linked to a sales contract. Destroy the contract first!",
-  "recycleErrorHardDeleteClientHasContracts": "⛔ Cannot destroy this client as they are linked to contracts. Please destroy their contracts first."
+  "recycleErrorHardDeleteClientHasContracts": "⛔ Cannot destroy this client as they are linked to contracts. Please destroy their contracts first.",
+  "scheduleErrorSaveAction": "Failed to save action: {error}",
+  "@scheduleErrorSaveAction": { "placeholders": { "error": { "type": "String" } } },
+  "scheduleErrorUpdateDate": "Failed to update date: {error}",
+  "@scheduleErrorUpdateDate": { "placeholders": { "error": { "type": "String" } } },
+  "scheduleErrorReschedule": "Failed to reschedule: {error}",
+  "@scheduleErrorReschedule": { "placeholders": { "error": { "type": "String" } } },
+  "scheduleErrorUpdateSchedule": "Failed to update installment: {error}",
+  "@scheduleErrorUpdateSchedule": { "placeholders": { "error": { "type": "String" } } },
+  "scheduleErrorAddSeasonal": "Failed to add seasonal payment: {error}",
+  "@scheduleErrorAddSeasonal": { "placeholders": { "error": { "type": "String" } } },
+  "scheduleErrorGeneral": "Operation failed: {error}",
+  "@scheduleErrorGeneral": { "placeholders": { "error": { "type": "String" } } }
 }

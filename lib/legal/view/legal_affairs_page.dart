@@ -10,6 +10,53 @@ import '../../auth/cubit/auth_cubit.dart';
 import '../../core/constants/app_permissions.dart';
 import 'dialogs/add_legal_action_dialog.dart';
 
+// 🌟 دالة تحليل وترجمة مفاتيح أخطاء الشؤون القانونية
+String _resolveLegalErrorMessage(BuildContext context, String? errorKey) {
+  final l10n = context.l10n;
+  if (errorKey == null) return l10n.homeUnexpectedError;
+
+  if (errorKey.startsWith('legalErrorFetchArchive:')) {
+    final err = errorKey
+        .replaceFirst('legalErrorFetchArchive:', '')
+        .replaceAll('Exception: ', '')
+        .trim();
+    return l10n.legalErrorFetchArchive(err);
+  }
+  if (errorKey.startsWith('legalErrorEdit:')) {
+    final err = errorKey
+        .replaceFirst('legalErrorEdit:', '')
+        .replaceAll('Exception: ', '')
+        .trim();
+    return l10n.legalErrorEdit(err);
+  }
+  if (errorKey.startsWith('legalErrorAttach:')) {
+    final err = errorKey
+        .replaceFirst('legalErrorAttach:', '')
+        .replaceAll('Exception: ', '')
+        .trim();
+    return l10n.legalErrorAttach(err);
+  }
+  if (errorKey.startsWith('legalErrorDeleteAttach:')) {
+    final err = errorKey
+        .replaceFirst('legalErrorDeleteAttach:', '')
+        .replaceAll('Exception: ', '')
+        .trim();
+    return l10n.legalErrorDeleteAttach(err);
+  }
+  if (errorKey.startsWith('legalErrorSecureUrl:')) {
+    final err = errorKey
+        .replaceFirst('legalErrorSecureUrl:', '')
+        .replaceAll('Exception: ', '')
+        .trim();
+    return l10n.legalErrorSecureUrl(err);
+  }
+  if (errorKey == 'legalErrorMustLogin') {
+    return l10n.legalErrorMustLogin;
+  }
+
+  return errorKey.replaceAll('Exception: ', '').trim();
+}
+
 class LegalAffairsPage extends StatelessWidget {
   const LegalAffairsPage({super.key});
 
@@ -71,13 +118,19 @@ class _LegalAffairsViewState extends State<LegalAffairsView> {
         child: BlocConsumer<LegalAffairsCubit, LegalAffairsState>(
           listener: (context, state) {
             if (state.status == LegalAffairsStatus.failure) {
+              final resolvedMsg = _resolveLegalErrorMessage(
+                context,
+                state.errorMessage,
+              );
+
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(
-                    state.errorMessage ?? l10n.clientUnexpectedError,
+                    resolvedMsg,
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                   backgroundColor: Colors.red.shade700,
+                  behavior: SnackBarBehavior.floating,
                 ),
               );
             }

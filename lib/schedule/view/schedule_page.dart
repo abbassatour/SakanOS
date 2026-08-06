@@ -8,6 +8,57 @@ import 'tabs/radar_tab.dart';
 import 'tabs/traditional_schedule_tab.dart';
 import 'tabs/overdue_radar_tab.dart';
 
+// 🌟 دالة تحليل وترجمة مفاتيح أخطاء المراقبة
+String _resolveScheduleErrorMessage(BuildContext context, String? errorKey) {
+  final l10n = context.l10n;
+  if (errorKey == null) return l10n.homeUnexpectedError;
+
+  if (errorKey.startsWith('scheduleErrorSaveAction:')) {
+    final err = errorKey
+        .replaceFirst('scheduleErrorSaveAction:', '')
+        .replaceAll('Exception: ', '')
+        .trim();
+    return l10n.scheduleErrorSaveAction(err);
+  }
+  if (errorKey.startsWith('scheduleErrorUpdateDate:')) {
+    final err = errorKey
+        .replaceFirst('scheduleErrorUpdateDate:', '')
+        .replaceAll('Exception: ', '')
+        .trim();
+    return l10n.scheduleErrorUpdateDate(err);
+  }
+  if (errorKey.startsWith('scheduleErrorReschedule:')) {
+    final err = errorKey
+        .replaceFirst('scheduleErrorReschedule:', '')
+        .replaceAll('Exception: ', '')
+        .trim();
+    return l10n.scheduleErrorReschedule(err);
+  }
+  if (errorKey.startsWith('scheduleErrorUpdateSchedule:')) {
+    final err = errorKey
+        .replaceFirst('scheduleErrorUpdateSchedule:', '')
+        .replaceAll('Exception: ', '')
+        .trim();
+    return l10n.scheduleErrorUpdateSchedule(err);
+  }
+  if (errorKey.startsWith('scheduleErrorAddSeasonal:')) {
+    final err = errorKey
+        .replaceFirst('scheduleErrorAddSeasonal:', '')
+        .replaceAll('Exception: ', '')
+        .trim();
+    return l10n.scheduleErrorAddSeasonal(err);
+  }
+  if (errorKey.startsWith('scheduleErrorGeneral:')) {
+    final err = errorKey
+        .replaceFirst('scheduleErrorGeneral:', '')
+        .replaceAll('Exception: ', '')
+        .trim();
+    return l10n.scheduleErrorGeneral(err);
+  }
+
+  return errorKey.replaceAll('Exception: ', '').trim();
+}
+
 class SchedulePage extends StatefulWidget {
   const SchedulePage({super.key});
 
@@ -49,14 +100,41 @@ class _SchedulePageState extends State<SchedulePage>
   Widget build(BuildContext context) {
     final l10n = context.l10n;
 
-    return BlocListener<ScheduleCubit, ScheduleState>(
-      listenWhen: (previous, current) =>
-          previous.activeTabIndex != current.activeTabIndex,
-      listener: (context, state) {
-        if (_tabController.index != state.activeTabIndex) {
-          _tabController.animateTo(state.activeTabIndex);
-        }
-      },
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<ScheduleCubit, ScheduleState>(
+          listenWhen: (previous, current) =>
+              previous.activeTabIndex != current.activeTabIndex,
+          listener: (context, state) {
+            if (_tabController.index != state.activeTabIndex) {
+              _tabController.animateTo(state.activeTabIndex);
+            }
+          },
+        ),
+        // 🌟 الاستماع للأخطاء وإظهارها مترجمة
+        BlocListener<ScheduleCubit, ScheduleState>(
+          listenWhen: (previous, current) => previous.status != current.status,
+          listener: (context, state) {
+            if (state.status == ScheduleStatus.failure) {
+              final resolvedMsg = _resolveScheduleErrorMessage(
+                context,
+                state.errorMessage,
+              );
+
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    resolvedMsg,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  backgroundColor: Colors.red.shade700,
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+            }
+          },
+        ),
+      ],
       child: Scaffold(
         appBar: AppBar(
           backgroundColor: Colors.indigo,

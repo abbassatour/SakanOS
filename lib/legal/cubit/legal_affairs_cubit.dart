@@ -58,7 +58,7 @@ class LegalAffairsCubit extends Cubit<LegalAffairsState> {
       emit(
         state.copyWith(
           status: LegalAffairsStatus.failure,
-          errorMessage: 'خطأ في جلب بيانات الأرشيف: $e',
+          errorMessage: 'legalErrorFetchArchive:$e', // 🌟 تحويل لمفتاح
         ),
       );
     }
@@ -85,7 +85,7 @@ class LegalAffairsCubit extends Cubit<LegalAffairsState> {
       emit(
         state.copyWith(
           status: LegalAffairsStatus.failure,
-          errorMessage: 'خطأ في التعديل: $e',
+          errorMessage: 'legalErrorEdit:$e', // 🌟 تحويل لمفتاح
         ),
       );
     }
@@ -154,7 +154,7 @@ class LegalAffairsCubit extends Cubit<LegalAffairsState> {
       emit(
         state.copyWith(
           status: LegalAffairsStatus.failure,
-          errorMessage: 'فشل إرفاق الملف: $e',
+          errorMessage: 'legalErrorAttach:$e', // 🌟 تحويل لمفتاح
         ),
       );
     }
@@ -169,7 +169,7 @@ class LegalAffairsCubit extends Cubit<LegalAffairsState> {
       emit(
         state.copyWith(
           status: LegalAffairsStatus.failure,
-          errorMessage: 'فشل حذف المرفق: $e',
+          errorMessage: 'legalErrorDeleteAttach:$e', // 🌟 تحويل لمفتاح
         ),
       );
     }
@@ -185,7 +185,7 @@ class LegalAffairsCubit extends Cubit<LegalAffairsState> {
       emit(
         state.copyWith(
           status: LegalAffairsStatus.failure,
-          errorMessage: 'فشل إنشاء الرابط الآمن: $e',
+          errorMessage: 'legalErrorSecureUrl:$e', // 🌟 تحويل لمفتاح
         ),
       );
       return null;

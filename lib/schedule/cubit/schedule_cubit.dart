@@ -33,7 +33,6 @@ class ScheduleCubit extends Cubit<ScheduleState> {
 
       final overdueAlerts = await _generateOverdueRadar(contracts, clients);
 
-      // 🌟 الحماية هنا: إذا تم إقفال التطبيق أو تسجيل الخروج أثناء الحساب، توقف!
       if (isClosed) return;
 
       emit(
@@ -46,7 +45,7 @@ class ScheduleCubit extends Cubit<ScheduleState> {
         ),
       );
     } on Exception catch (e) {
-      if (isClosed) return; // 🌟 وهنا أيضاً
+      if (isClosed) return;
       emit(
         state.copyWith(
           status: ScheduleStatus.failure,
@@ -142,7 +141,6 @@ class ScheduleCubit extends Cubit<ScheduleState> {
       if (averageMetersPerMonth > 0) {
         var metersLeft = targetAllocationMeters - accumulatedMeters;
         if (metersLeft < 0) metersLeft = 0;
-        // 🛡️ حماية ضد الأرقام الفلكية أو الـ Infinity
         final double calcMonths = metersLeft / averageMetersPerMonth;
         if (calcMonths.isInfinite || calcMonths.isNaN) {
           estimatedMonthsLeft = 999;
@@ -212,7 +210,7 @@ class ScheduleCubit extends Cubit<ScheduleState> {
       emit(
         state.copyWith(
           status: ScheduleStatus.failure,
-          errorMessage: 'فشل حفظ الإجراء: $e',
+          errorMessage: 'scheduleErrorSaveAction:$e', // 🌟 استخدام المفتاح
         ),
       );
     }
@@ -267,7 +265,7 @@ class ScheduleCubit extends Cubit<ScheduleState> {
       emit(
         state.copyWith(
           status: ScheduleStatus.failure,
-          errorMessage: 'فشل تعديل التاريخ: $e',
+          errorMessage: 'scheduleErrorUpdateDate:$e', // 🌟 استخدام المفتاح
         ),
       );
     }
@@ -291,7 +289,7 @@ class ScheduleCubit extends Cubit<ScheduleState> {
       emit(
         state.copyWith(
           status: ScheduleStatus.failure,
-          errorMessage: 'فشل إعادة الجدولة: $e',
+          errorMessage: 'scheduleErrorReschedule:$e', // 🌟 استخدام المفتاح
         ),
       );
     }
@@ -318,7 +316,7 @@ class ScheduleCubit extends Cubit<ScheduleState> {
       emit(
         state.copyWith(
           status: ScheduleStatus.failure,
-          errorMessage: 'فشل تعديل القسط: $e',
+          errorMessage: 'scheduleErrorUpdateSchedule:$e', // 🌟 استخدام المفتاح
         ),
       );
     }
@@ -332,7 +330,6 @@ class ScheduleCubit extends Cubit<ScheduleState> {
   }) async {
     emit(state.copyWith(status: ScheduleStatus.loading));
     try {
-      // 🌟 تم تطهير الكيوبيت تماماً وإرسال البيانات الخام
       await _erpRepository.addCustomSchedule(
         contractId: contractId,
         dueDate: dueDate,
@@ -346,7 +343,7 @@ class ScheduleCubit extends Cubit<ScheduleState> {
       emit(
         state.copyWith(
           status: ScheduleStatus.failure,
-          errorMessage: 'فشل إضافة الدفعة الموسمية: $e',
+          errorMessage: 'scheduleErrorAddSeasonal:$e', // 🌟 استخدام المفتاح
         ),
       );
     }
@@ -372,7 +369,7 @@ class ScheduleCubit extends Cubit<ScheduleState> {
       emit(
         state.copyWith(
           status: ScheduleStatus.failure,
-          errorMessage: 'فشل العملية: $e',
+          errorMessage: 'scheduleErrorGeneral:$e', // 🌟 استخدام المفتاح
         ),
       );
     }

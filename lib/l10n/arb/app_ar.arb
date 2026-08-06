@@ -1873,5 +1873,17 @@
   "recycleErrorRestoreContractAptDeleted": "⛔ الوحدة العقارية المرتبطة بهذا العقد لا تزال محذوفة. الرجاء استعادتها أولاً.",
   "recycleErrorRestorePaymentContractDeleted": "⛔ لا يمكنك استعادة هذه الدفعة لأن عقدها لا يزال محذوفاً. الرجاء استعادة العقد أولاً.",
   "recycleErrorHardDeleteAptHasContract": "⛔ لا يمكن تدمير هذه الوحدة لأنها مرتبطة بعقد بيع (سواء فعال أو محذوف). يجب تدمير العقد أولاً!",
-  "recycleErrorHardDeleteClientHasContracts": "⛔ لا يمكن تدمير هذا العميل لارتباطه بعقود في النظام. الرجاء تدمير عقوده أولاً ليُسمح لك بذلك."
+  "recycleErrorHardDeleteClientHasContracts": "⛔ لا يمكن تدمير هذا العميل لارتباطه بعقود في النظام. الرجاء تدمير عقوده أولاً ليُسمح لك بذلك.",
+  "scheduleErrorSaveAction": "فشل حفظ الإجراء: {error}",
+  "@scheduleErrorSaveAction": { "placeholders": { "error": { "type": "String" } } },
+  "scheduleErrorUpdateDate": "فشل تعديل التاريخ: {error}",
+  "@scheduleErrorUpdateDate": { "placeholders": { "error": { "type": "String" } } },
+  "scheduleErrorReschedule": "فشل إعادة الجدولة: {error}",
+  "@scheduleErrorReschedule": { "placeholders": { "error": { "type": "String" } } },
+  "scheduleErrorUpdateSchedule": "فشل تعديل القسط: {error}",
+  "@scheduleErrorUpdateSchedule": { "placeholders": { "error": { "type": "String" } } },
+  "scheduleErrorAddSeasonal": "فشل إضافة الدفعة الموسمية: {error}",
+  "@scheduleErrorAddSeasonal": { "placeholders": { "error": { "type": "String" } } },
+  "scheduleErrorGeneral": "فشل العملية: {error}",
+  "@scheduleErrorGeneral": { "placeholders": { "error": { "type": "String" } } }
 }
