@@ -109,6 +109,22 @@ class _AddApartmentDialogContentState
     super.dispose();
   }
 
+  String _getLocalizedDirName(BuildContext context, String dir) {
+    final l10n = context.l10n;
+    switch (dir) {
+      case 'شمالي':
+        return l10n.coeffNorth;
+      case 'جنوبي':
+        return l10n.coeffSouth;
+      case 'شرقي':
+        return l10n.coeffEast;
+      case 'غربي':
+        return l10n.coeffWest;
+      default:
+        return dir;
+    }
+  }
+
   void _updateCalculatedArea() {
     final slab = double.tryParse(_slabAreaCtrl.text) ?? 0.0;
     final terrace = double.tryParse(_terraceAreaCtrl.text) ?? 0.0;
@@ -508,9 +524,11 @@ class _AddApartmentDialogContentState
                       children: _mainDirections.map((dir) {
                         final dirPercentage =
                             (_generalCoeffs[dir] as num?)?.toDouble() ?? 0.0;
+                        final localizedDir = _getLocalizedDirName(context, dir);
+
                         return FilterChip(
                           label: Text(
-                            '$dir ($dirPercentage%)',
+                            '$localizedDir ($dirPercentage%)',
                             style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
                           selected: _selectedDirections[dir]!,
