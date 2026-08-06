@@ -23,24 +23,19 @@ class SyncRepository {
 
   String? get currentUserId => _cloudApi.currentUserId;
 
-  Future<String> forceSyncWithCloud() async {
-    try {
-      await syncPendingData();
-      await pullDataFromCloud();
+  /// 🌟 إرجاع void وترمى الأخطاء كاستثناءات ليترجمها الـ UI بناءً على مفاتيح الترجمة
+  Future<void> forceSyncWithCloud() async {
+    await syncPendingData();
+    await pullDataFromCloud();
 
-      // لا يتم تحديث النبضة والوقت إلا إذا نجحت العمليتان
-      await _updateHeartbeat();
+    // لا يتم تحديث النبضة والوقت إلا إذا نجحت العمليتان
+    await _updateHeartbeat();
 
-      // 🌟 المكان الآمن: الآن نحن متأكدون أن الوقت المعتمد حقيقي وليس مزوراً
-      await _localApi.autoCleanOldDeletedClients();
-      await _localApi.autoCleanOldDeletedContracts();
-      await _localApi.autoCleanOldDeletedLedgerEntries();
-      await _localApi.database.autoCleanOldDeletedBuildingsAndApartments();
-
-      return 'تمت المزامنة مع السحابة بنجاح! ☁️✓';
-    } on Exception catch (e) {
-      return 'حدث خطأ أثناء المزامنة: $e';
-    }
+    // 🌟 المكان الآمن: الآن نحن متأكدون أن الوقت المعتمد حقيقي وليس مزوراً
+    await _localApi.autoCleanOldDeletedClients();
+    await _localApi.autoCleanOldDeletedContracts();
+    await _localApi.autoCleanOldDeletedLedgerEntries();
+    await _localApi.database.autoCleanOldDeletedBuildingsAndApartments();
   }
 
   Future<void> pullDataFromCloud() async {
@@ -50,16 +45,15 @@ class SyncRepository {
         'google.com',
       ).timeout(const Duration(seconds: 3));
       if (result.isEmpty || result[0].rawAddress.isEmpty) {
-        throw Exception('لا يوجد اتصال بالإنترنت.');
+        throw Exception('errorNoInternetSync');
       }
     } catch (_) {
-      throw Exception('لا يوجد اتصال بالإنترنت لجلب بياناتك.');
+      throw Exception('errorNoInternetSync');
     }
 
     try {
       final prefs = await SharedPreferences.getInstance();
 
-      // 👇👇 [الأسطر الجديدة الخاصة بالاشتراك] 👇👇
       // 💳 جلب حالة الاشتراك من السحابة وتحديثها محلياً
       final subStatus = await _cloudApi.getSubscriptionStatus();
       if (subStatus != null) {
@@ -76,10 +70,8 @@ class SyncRepository {
           }
         }
       }
-      // 👆👆 [نهاية إضافة الاشتراك] 👆👆
 
       final lastSyncStr = prefs.getString('last_pull_timestamp');
-      // ... باقي الكود يبقى كما هو (سحب العملاء، العقود، الخ)...
       DateTime? lastSyncTime;
 
       final existingClients = await _localApi.getClients();
@@ -404,10 +396,7 @@ class SyncRepository {
           email: u['email']?.toString() ?? '',
           fullName: drift.Value(u['full_name']?.toString()),
           roleId: drift.Value(u['role_id']?.toString()),
-
-          // 🌟 السطر الجديد: جلب الـ PIN من السحابة
           securityPin: drift.Value(u['security_pin']?.toString() ?? '0000'),
-
           extraPermissionsJson: drift.Value(
             u['extra_permissions']?.toString() ?? '[]',
           ),
@@ -516,7 +505,7 @@ class SyncRepository {
         await _localApi.database.syncApartmentAttachment(attachment);
       }
 
-      // 13. سحب المرفقات الخاصة بالمحاضر
+      // 14. سحب المرفقات الخاصة بالمحاضر
       final cloudBuildingAttachments = await _cloudApi.getBuildingAttachments(
         lastSync: lastSyncTime,
       );
@@ -548,31 +537,16 @@ class SyncRepository {
           latestServerTimestamp!.toIso8601String(),
         );
       }
-
-      // ==========================================
-      // 🌟 حفظ أحدث توقيت سيرفر للمزامنة القادمة (إن وُجد)
-      // ==========================================
-      if (latestServerTimestamp != null) {
-        await prefs.setString(
-          'last_pull_timestamp',
-          latestServerTimestamp!.toIso8601String(),
-        );
-      }
-
-      // ❌ تم إزالة _updateHeartbeat() من هنا ❌
     } on Exception catch (e) {
       print('❌ Cloud Pull Failed: $e');
-      // 🌟 إجبار الدالة على رمي الخطأ ليوقفه forceSyncWithCloud
-      throw Exception(
-        'تعذر استرداد البيانات من السحابة. تحقق من اتصالك أو من صحة تاريخ الكمبيوتر.',
-      );
+      // 🌟 رمز الخطأ القابل للترجمة
+      throw Exception('errorCloudPullFailed');
     }
-  } // ✅ هذا القوس فقط لإنهاء دالة pullDataFromCloud
+  }
 
   Future<void> syncPendingData() async {
     if (_isSyncing || currentUserId == null) return;
 
-    // 🌟 فحص سريع للإنترنت، في حال عدم وجود شبكة، يخرج بصمت ليدعم وضع الـ Offline
     try {
       final result = await InternetAddress.lookup(
         'google.com',
@@ -585,10 +559,8 @@ class SyncRepository {
     }
 
     _isSyncing = true;
-
     bool hasErrors = false;
     final db = _localApi.database;
-    // ... باقي الكود يبقى كما هو ...
 
     double safeNum(double? val) {
       if (val == null) return 0.0;
@@ -1093,7 +1065,7 @@ class SyncRepository {
       hasErrors = true;
     }
 
-    // 14. مزامنة المرفقات الخاصة بالمحاضر
+    // 15. مزامنة المرفقات الخاصة بالمحاضر
     try {
       final pendingBuildingAttachments = await (db.select(
         db.buildingAttachments,
@@ -1157,11 +1129,8 @@ class SyncRepository {
     _isSyncing = false;
 
     if (hasErrors) {
-      throw Exception(
-        'فشل رفع بعض التعديلات المحلية. تم إيقاف السحب من السحابة لحماية بياناتك من المسح.',
-      );
+      throw Exception('errorSyncPushFailed');
     }
-    // ❌ تم إزالة _updateHeartbeat() من هنا ❌
   }
 
   Map<String, dynamic> _mapDollarPriceToCloud(
@@ -1198,14 +1167,12 @@ class SyncRepository {
       isSynced: const drift.Value(true),
     );
   }
+
   // ==========================================
   // 💓 دوال نبض السحابة المحصنة (Encrypted Heartbeat)
   // ==========================================
-
-  // 1. المفتاح السري الديناميكي (يتغير حسب المستخدم لمنع نسخ الملفات بين الحواسيب)
   String get _secretKey => '${currentUserId ?? "SYSTEM"}_ERP_OUR_HOME_2026_!@#';
 
-  // 2. خوارزمية التشفير (XOR + Base64)
   String _encodeToken(String text) {
     final textBytes = utf8.encode(text);
     final keyBytes = utf8.encode(_secretKey);
@@ -1216,7 +1183,6 @@ class SyncRepository {
     return base64.encode(encrypted);
   }
 
-  // 3. خوارزمية فك التشفير
   String? _decodeToken(String base64Text) {
     try {
       final encrypted = base64.decode(base64Text);
@@ -1227,16 +1193,10 @@ class SyncRepository {
       }
       return utf8.decode(decrypted);
     } catch (_) {
-      // 🚨 تم اكتشاف محاولة تلاعب بالملف!
       return null;
     }
   }
 
-  // ==========================================
-  // 💓 دوال نبض السحابة والوقت الآمن المحصنة
-  // ==========================================
-
-  // 🌟 (الثغرة الثالثة) جلب التوقيت الحقيقي من عدة سيرفرات لمنع حجب الخدمة
   Future<DateTime> _getTrueNetworkTime() async {
     final testUrls = [
       'https://google.com',
@@ -1254,43 +1214,34 @@ class SyncRepository {
           return HttpDate.parse(dateHeader).toUtc();
         }
       } catch (_) {
-        continue; // إذا فشل أو تم حجبه، جرب السيرفر الذي يليه
+        continue;
       }
     }
-    throw Exception(
-      'لا يمكن التحقق من الوقت الفعلي. تأكد من أنك لست متصلاً بشبكة مقيدة (Captive Portal).',
-    );
+    throw Exception('errorTimeCheckFailed');
   }
 
-  /// دالة تحديث التوقيت المشفر وتحديث الفجوة (Offset)
   Future<void> _updateHeartbeat() async {
     final prefs = await SharedPreferences.getInstance();
 
-    // 1. جلب الوقت الحقيقي
     final realTime = await _getTrueNetworkTime();
     final localTime = SecureTime.now();
 
-    // 2. حساب الفجوة الزمنية (Offset) بين السيرفر والجهاز
     final offset = realTime.difference(localTime);
-    SecureTime.setOffset(offset); // تحديثها في الذاكرة الحية
+    SecureTime.setOffset(offset);
 
-    // حفظ الفجوة مشفرة (نحفظ الثواني)
     final encryptedOffset = _encodeToken(offset.inSeconds.toString());
     await prefs.setString('sys_time_drift_offset', encryptedOffset);
 
-    // 3. تشفير تاريخ النبضة (Heartbeat)
     final encryptedToken = _encodeToken(realTime.toIso8601String());
     await prefs.setString('sys_pulse_token', encryptedToken);
     await prefs.remove('heartbeat_last_sync');
   }
 
-  /// دالة لتحميل الـ Offset فور فتح التطبيق
   Future<void> loadSecureTimeOffsetLocally() async {
     final prefs = await SharedPreferences.getInstance();
     final encryptedOffset = prefs.getString('sys_time_drift_offset');
 
     if (encryptedOffset != null) {
-      // 🌟 التصحيح هنا: استخدام encryptedOffset بدلاً من encryptedToken
       final decryptedStr = _decodeToken(encryptedOffset);
       if (decryptedStr != null) {
         final seconds = int.tryParse(decryptedStr) ?? 0;
@@ -1299,7 +1250,6 @@ class SyncRepository {
     }
   }
 
-  /// دالة استخراج التوقيت (نبضة السحابة)
   Future<DateTime?> getLastHeartbeatTime() async {
     final prefs = await SharedPreferences.getInstance();
 
@@ -1320,16 +1270,12 @@ class SyncRepository {
     return null;
   }
 
-  /// 💳 دالة حفظ توقيت انتهاء الاشتراك السحابي بشكل مشفر
   Future<void> _updateSubscriptionExpiryLocally(DateTime expiryDate) async {
     final prefs = await SharedPreferences.getInstance();
-    // تشفير التاريخ
     final encryptedToken = _encodeToken(expiryDate.toUtc().toIso8601String());
-    // حفظه باسم مبهم لا يلفت الانتباه
     await prefs.setString('sys_config_node_exp', encryptedToken);
   }
 
-  /// 💳 دالة استخراج توقيت انتهاء الاشتراك محلياً
   Future<DateTime?> getLocalSubscriptionExpiry() async {
     final prefs = await SharedPreferences.getInstance();
     final encryptedToken = prefs.getString('sys_config_node_exp');
@@ -1340,6 +1286,6 @@ class SyncRepository {
         return DateTime.tryParse(decryptedStr)?.toUtc();
       }
     }
-    return null; // إذا فشل أو تم التلاعب به
+    return null;
   }
 }

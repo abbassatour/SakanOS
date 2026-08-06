@@ -163,7 +163,9 @@ class ErpRepository {
   // ==========================================
   // 🔄 المزامنة (Sync Facade)
   // ==========================================
-  Future<String> forceSyncWithCloud() => _syncRepo.forceSyncWithCloud();
+  // 🌟 التعديل هنا: الدالة الآن تعيد Future<void> بدلاً من Future<String>
+  Future<void> forceSyncWithCloud() => _syncRepo.forceSyncWithCloud();
+
   Future<void> pullDataFromCloud() => _syncRepo.pullDataFromCloud();
   Future<void> syncPendingData() => _syncRepo.syncPendingData();
   Future<DateTime?> getLastHeartbeatTime() => _syncRepo.getLastHeartbeatTime();

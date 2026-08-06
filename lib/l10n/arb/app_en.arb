@@ -1842,5 +1842,26 @@
   "pdfTblBonusPct": "Bonus %",
   "pdfTblTransferredMeters": "Transferred Meters",
   "pdfValFirstPayment": "(First Payment)",
-  "pdfAllocatedNote": "* Important Note: The purchased meters are a vested right of the client, protected against inflation and unaffected by future material price fluctuations."
+  "pdfAllocatedNote": "* Important Note: The purchased meters are a vested right of the client, protected against inflation and unaffected by future material price fluctuations.",
+  "pdfLedgerUnallocatedTitle": "Investment Ledger (Portfolio)",
+  "pdfInvestorDetails": "Second Party (Investor) Details",
+  "pdfColInvestorName": "Investor Name",
+  "pdfPortfolioContractDetails": "Investment Portfolio Contractual Details",
+  "pdfColPortfolioOpenDate": "Portfolio Open Date",
+  "pdfColContractNature": "Contract Nature",
+  "pdfValUnallocatedShares": "Unallocated Shares (Assigned Later)",
+  "pdfSumInvestedAmounts": "Total Invested Amounts (Paid)",
+  "pdfSumAcquiredMeters": "Total Acquired Meters in Portfolio",
+  "pdfTblAcquiredMeters": "Acquired Meters",
+  "pdfUnallocatedNote": "* Note: This is an investment portfolio statement. The meters recorded here are unallocated shares not yet assigned to a specific property. (Red color in the table indicates refunds or withdrawals).",
+
+  "syncSuccessMessage": "Synced with the cloud successfully! ☁️✓",
+  "errorMustLoginToUpload": "You must log in to upload files.",
+  "errorSecureSessionFailed": "Failed to obtain a secure session token.",
+  "errorUploadFailed": "Upload failed: {statusCode}",
+  "@errorUploadFailed": { "placeholders": { "statusCode": { "type": "String" } } },
+  "errorNoInternetSync": "No internet connection.",
+  "errorCloudPullFailed": "Failed to retrieve data from the cloud. Check your connection or computer's date/time.",
+  "errorSyncPushFailed": "Failed to upload some local changes. Cloud pull was stopped to protect your data.",
+  "errorTimeCheckFailed": "Cannot verify actual time. Make sure you are not connected to a captive portal network."
 }

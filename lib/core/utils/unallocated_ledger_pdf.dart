@@ -5,6 +5,7 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:erp_repository/erp_repository.dart';
 import 'package:local_storage_api/local_storage_api.dart';
+import 'package:our_home_erp_app/l10n/l10n.dart'; // 🌟 إضافة استيراد الترجمة
 
 class UnallocatedLedgerPdf {
   static const primaryColor = PdfColor.fromInt(
@@ -23,12 +24,13 @@ class UnallocatedLedgerPdf {
     );
   }
 
-  static String _formatDate(DateTime? date) {
-    if (date == null) return 'غير محدد';
+  static String _formatDate(DateTime? date, AppLocalizations l10n) {
+    if (date == null) return l10n.bldUnspecified; // 🌟 تعريب
     return '${date.year}/${date.month.toString().padLeft(2, '0')}/${date.day.toString().padLeft(2, '0')}';
   }
 
   static Future<Uint8List> generatePdf({
+    required AppLocalizations l10n, // 🌟 إضافة متطلب الترجمة
     required List<PaymentsLedgerData> ledgerEntries,
     required Contract contract,
     required Client client,
@@ -144,7 +146,9 @@ class UnallocatedLedgerPdf {
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(24),
-        textDirection: pw.TextDirection.rtl,
+        textDirection: l10n.localeName == 'ar'
+            ? pw.TextDirection.rtl
+            : pw.TextDirection.ltr, // 🌟 اتجاه ديناميكي
         theme: pw.ThemeData.withFont(base: arabicFont, bold: arabicBoldFont),
 
         header: (context) => pw.Column(
@@ -165,7 +169,7 @@ class UnallocatedLedgerPdf {
                       ),
                     ),
                     pw.Text(
-                      'للتطوير والاستثمار العقاري',
+                      l10n.pdfSakanOsSub,
                       style: pw.TextStyle(
                         font: arabicFont,
                         fontSize: 9,
@@ -178,7 +182,7 @@ class UnallocatedLedgerPdf {
                   crossAxisAlignment: pw.CrossAxisAlignment.end,
                   children: [
                     pw.Text(
-                      'كشف حساب استثماري (محفظة)',
+                      l10n.pdfLedgerUnallocatedTitle,
                       style: pw.TextStyle(
                         font: arabicBoldFont,
                         fontSize: 14,
@@ -197,7 +201,7 @@ class UnallocatedLedgerPdf {
                         borderRadius: pw.BorderRadius.circular(4),
                       ),
                       child: pw.Text(
-                        'تاريخ الإصدار: ${_formatDate(DateTime.now())}',
+                        l10n.pdfIssueDate(_formatDate(DateTime.now(), l10n)),
                         style: pw.TextStyle(font: arabicFont, fontSize: 8),
                       ),
                     ),
@@ -218,7 +222,7 @@ class UnallocatedLedgerPdf {
               mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
               children: [
                 pw.Text(
-                  'نظام SakanOS العقاري لإدارة الأملاك',
+                  l10n.pdfFooterSystemName,
                   style: pw.TextStyle(
                     font: arabicFont,
                     color: PdfColors.grey600,
@@ -226,7 +230,10 @@ class UnallocatedLedgerPdf {
                   ),
                 ),
                 pw.Text(
-                  'صفحة ${context.pageNumber} من ${context.pagesCount}',
+                  l10n.pdfFooterPageInfo(
+                    context.pageNumber,
+                    context.pagesCount,
+                  ),
                   style: pw.TextStyle(
                     font: arabicFont,
                     color: PdfColors.grey600,
@@ -236,7 +243,7 @@ class UnallocatedLedgerPdf {
                 pw.Row(
                   children: [
                     pw.Text(
-                      'توقيع المحاسب: ',
+                      l10n.pdfFooterAccountantSign,
                       style: pw.TextStyle(
                         font: arabicFont,
                         color: PdfColors.grey600,
@@ -263,7 +270,7 @@ class UnallocatedLedgerPdf {
 
         build: (context) => [
           buildSectionTitle(
-            'بيانات المستثمر (الفريق الثاني)',
+            l10n.pdfInvestorDetails,
             const pw.IconData(0xe7fd),
           ),
           pw.Container(
@@ -274,11 +281,16 @@ class UnallocatedLedgerPdf {
             child: pw.Column(
               children: [
                 buildGridRow(
-                  ['اسم المستثمر', 'رقم الهاتف', 'الرقم الوطني', 'كود العميل'],
+                  [
+                    l10n.pdfColInvestorName,
+                    l10n.pdfColPhone,
+                    l10n.pdfColNationalId,
+                    l10n.pdfColClientId,
+                  ],
                   [
                     client.name,
                     client.phone,
-                    client.nationalId ?? 'غير مدون',
+                    client.nationalId ?? l10n.pdfHandoverNotRecorded,
                     client.id.split('-').first.toUpperCase(),
                   ],
                 ),
@@ -287,7 +299,7 @@ class UnallocatedLedgerPdf {
           ),
 
           buildSectionTitle(
-            'التفاصيل التعاقدية للمحفظة الاستثمارية',
+            l10n.pdfPortfolioContractDetails,
             const pw.IconData(0xe873),
           ),
           pw.Container(
@@ -299,15 +311,15 @@ class UnallocatedLedgerPdf {
               children: [
                 buildGridRow(
                   [
-                    'تاريخ فتح المحفظة',
-                    'طبيعة العقد',
-                    'الدفعة المقدمة',
-                    'اسم الكفيل',
+                    l10n.pdfColPortfolioOpenDate,
+                    l10n.pdfColContractNature,
+                    l10n.pdfColDownPayment,
+                    l10n.pdfColGuarantor,
                   ],
                   [
-                    _formatDate(contract.contractDate),
-                    'أسهم غير مخصصة (يتم التخصيص لاحقاً)',
-                    '${_formatWithCommas(contract.downPayment)} ل.س',
+                    _formatDate(contract.contractDate, l10n),
+                    l10n.pdfValUnallocatedShares,
+                    '${_formatWithCommas(contract.downPayment)} ${l10n.currencySyp}',
                     contract.guarantorName,
                   ],
                 ),
@@ -330,14 +342,14 @@ class UnallocatedLedgerPdf {
               mainAxisAlignment: pw.MainAxisAlignment.spaceAround,
               children: [
                 buildSummaryCol(
-                  'إجمالي المبالغ المُستثمرة (المسددة)',
-                  '${_formatWithCommas(totalPaid)} ل.س',
+                  l10n.pdfSumInvestedAmounts,
+                  '${_formatWithCommas(totalPaid)} ${l10n.currencySyp}',
                   PdfColors.green400,
                 ),
                 pw.Container(width: 1, height: 30, color: PdfColors.grey500),
                 buildSummaryCol(
-                  'إجمالي الأمتار المكتسبة في المحفظة',
-                  '${totalMeters.toStringAsFixed(3)} م²',
+                  l10n.pdfSumAcquiredMeters,
+                  '${totalMeters.toStringAsFixed(3)} ${l10n.unitMetersSq}',
                   PdfColors.white,
                 ),
               ],
@@ -346,7 +358,7 @@ class UnallocatedLedgerPdf {
 
           pw.SizedBox(height: 16),
           buildSectionTitle(
-            'السجل المالي المفصل وحركة الأمتار',
+            l10n.pdfDetailedFinancialRecord,
             const pw.IconData(0xe85d),
           ),
 
@@ -365,12 +377,12 @@ class UnallocatedLedgerPdf {
                 decoration: const pw.BoxDecoration(color: greyBgColor),
                 children:
                     [
-                          'رقم الإيصال',
-                          'تاريخ الدفع',
-                          'المبلغ (ل.س)',
-                          'سعر المتر المعتمد',
-                          'البونص %',
-                          'الأمتار المكتسبة',
+                          l10n.pdfTblReceipt,
+                          l10n.pdfTblPayDate,
+                          '${l10n.pdfTblAmount} (${l10n.currencySyp})',
+                          l10n.pdfTblApprovedMeterPrice,
+                          l10n.pdfTblBonusPct,
+                          l10n.pdfTblAcquiredMeters,
                         ]
                         .map(
                           (text) => pw.Padding(
@@ -416,7 +428,7 @@ class UnallocatedLedgerPdf {
                           ),
                           if (isFirstPayment && !isRefund)
                             pw.Text(
-                              '(دفعة أولى)',
+                              l10n.pdfValFirstPayment,
                               style: pw.TextStyle(
                                 font: arabicBoldFont,
                                 fontSize: 6,
@@ -430,7 +442,7 @@ class UnallocatedLedgerPdf {
                       padding: const pw.EdgeInsets.all(6),
                       child: pw.Center(
                         child: pw.Text(
-                          _formatDate(entry.paymentDate),
+                          _formatDate(entry.paymentDate, l10n),
                           style: pw.TextStyle(font: arabicFont, fontSize: 8),
                         ),
                       ),
@@ -486,7 +498,7 @@ class UnallocatedLedgerPdf {
           ),
           pw.SizedBox(height: 12),
           pw.Text(
-            '* ملاحظة: هذا كشف حساب لمحفظة استثمارية، والأمتار المسجلة هنا هي أسهم غير مخصصة لعقار معين بعد. (اللون الأحمر في الجدول يشير لعمليات الاسترداد أو السحب).',
+            l10n.pdfUnallocatedNote,
             style: pw.TextStyle(
               font: arabicFont,
               fontSize: 7,

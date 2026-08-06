@@ -292,7 +292,7 @@ class CloudStorageClient {
     final fileName = 'attach_$attachmentId.$extension';
 
     var session = _supabase.auth.currentSession;
-    if (session == null) throw Exception('يجب تسجيل الدخول لرفع الملفات.');
+    if (session == null) throw Exception('errorMustLoginToUpload');
 
     if (session.isExpired) {
       final response = await _supabase.auth.refreshSession();
@@ -300,7 +300,7 @@ class CloudStorageClient {
     }
 
     final jwtToken = session?.accessToken;
-    if (jwtToken == null) throw Exception('فشل الحصول على مفتاح الجلسة الآمن.');
+    if (jwtToken == null) throw Exception('errorSecureSessionFailed');
 
     final bytes = file.readAsBytesSync();
 
@@ -331,9 +331,7 @@ class CloudStorageClient {
     if (response.statusCode == 200) {
       return fileName;
     } else {
-      throw Exception(
-        'فشل رفع مرفق المحضر: ${response.statusCode} - ${response.body}',
-      );
+      throw Exception('errorUploadFailed:${response.statusCode}');
     }
   }
 

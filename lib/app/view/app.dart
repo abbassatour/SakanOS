@@ -180,11 +180,8 @@ class _SubscriptionLockScreenState extends State<_SubscriptionLockScreen> {
         throw Exception(l10n.lockSubscriptionNoInternet);
       }
 
-      final msg = await context.read<ErpRepository>().forceSyncWithCloud();
-
-      if (!msg.contains('بنجاح')) {
-        throw Exception(msg);
-      }
+      // 🌟 التعديل السحري: الاعتماد على رمي الأخطاء (Exceptions) بدلاً من فحص النصوص الثابتة
+      await context.read<ErpRepository>().forceSyncWithCloud();
 
       if (mounted) {
         await context.read<AuthCubit>().checkSession();
@@ -193,7 +190,13 @@ class _SubscriptionLockScreenState extends State<_SubscriptionLockScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(e.toString().replaceAll('Exception: ', '')),
+            // 🌟 تنظيف مظهر رسالة الخطأ
+            content: Text(
+              e
+                  .toString()
+                  .replaceAll('Exception: ', '')
+                  .replaceAll('Exception', ''),
+            ),
             backgroundColor: Colors.red.shade800,
           ),
         );
@@ -340,11 +343,8 @@ class _OfflineLockScreenState extends State<_OfflineLockScreen> {
         throw Exception(l10n.lockOfflineNoInternet);
       }
 
-      final msg = await context.read<ErpRepository>().forceSyncWithCloud();
-
-      if (!msg.contains('بنجاح')) {
-        throw Exception(msg);
-      }
+      // 🌟 التعديل السحري: الاعتماد على رمي الأخطاء (Exceptions) بدلاً من فحص النصوص الثابتة
+      await context.read<ErpRepository>().forceSyncWithCloud();
 
       if (mounted) {
         await context.read<AuthCubit>().checkSession();
@@ -358,7 +358,12 @@ class _OfflineLockScreenState extends State<_OfflineLockScreen> {
                 const Icon(Icons.wifi_off, color: Colors.white),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: Text(e.toString().replaceAll('Exception: ', '')),
+                  child: Text(
+                    e
+                        .toString()
+                        .replaceAll('Exception: ', '')
+                        .replaceAll('Exception', ''),
+                  ),
                 ),
               ],
             ),

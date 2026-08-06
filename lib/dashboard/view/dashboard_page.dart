@@ -16,7 +16,7 @@ import '../../contracts/view/contracts_page.dart';
 import '../../core/constants/app_permissions.dart';
 import '../../home/cubit/home_cubit.dart';
 import '../../home/view/home_page.dart';
-import '../../l10n/l10n.dart'; // 🌟 استدعاء مكتبة الترجمة
+import '../../l10n/l10n.dart';
 import '../../legal/cubit/legal_affairs_cubit.dart';
 import '../../legal/view/legal_affairs_page.dart';
 import '../../payments/cubit/payments_cubit.dart';
@@ -26,6 +26,24 @@ import '../../schedule/view/schedule_page.dart';
 import '../../settings/cubit/settings_cubit.dart';
 import '../../settings/view/settings_page.dart';
 import '../cubit/dashboard_cubit.dart';
+
+// 🌟 دالة مساعدة لترجمة مفاتيح أخطاء المزامنة القادمة من المستودع
+String _resolveSyncErrorMessage(BuildContext context, String errorKey) {
+  final l10n = context.l10n;
+  switch (errorKey) {
+    case 'errorNoInternetSync':
+      return l10n.errorNoInternetSync;
+    case 'errorCloudPullFailed':
+      return l10n.errorCloudPullFailed;
+    case 'errorSyncPushFailed':
+      return l10n.errorSyncPushFailed;
+    case 'errorTimeCheckFailed':
+      return l10n.errorTimeCheckFailed;
+    default:
+      // إذا كان خطأ غير متوقع، نمرره كما هو للرسالة الافتراضية
+      return l10n.navSyncError(errorKey);
+  }
+}
 
 class NavTab {
   NavTab({
@@ -76,7 +94,7 @@ class DashboardView extends StatelessWidget {
   Widget build(BuildContext context) {
     final selectedIndex = context.watch<DashboardCubit>().state;
     final authState = context.watch<AuthCubit>().state;
-    final l10n = context.l10n; // 🌟 استخدام اختصار الترجمة
+    final l10n = context.l10n;
 
     final availableTabs = <NavTab>[
       // 1. الرئيسية
@@ -315,7 +333,8 @@ class DashboardView extends StatelessWidget {
                           }
 
                           try {
-                            final resultMessage = await context
+                            // 🌟 التعديل هنا: الدالة لم تعد تُرجع نصاً
+                            await context
                                 .read<ErpRepository>()
                                 .forceSyncWithCloud();
 
@@ -325,11 +344,10 @@ class DashboardView extends StatelessWidget {
                               ).hideCurrentSnackBar();
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
-                                  content: Text(resultMessage),
-                                  backgroundColor:
-                                      resultMessage.contains('بنجاح')
-                                      ? Colors.green
-                                      : Colors.orange,
+                                  content: Text(
+                                    l10n.syncSuccessMessage,
+                                  ), // 🌟 نستخدم نص الترجمة هنا
+                                  backgroundColor: Colors.green,
                                   behavior: SnackBarBehavior.floating,
                                 ),
                               );
@@ -338,11 +356,22 @@ class DashboardView extends StatelessWidget {
                             }
                           } catch (e) {
                             if (context.mounted) {
+                              ScaffoldMessenger.of(
+                                context,
+                              ).hideCurrentSnackBar();
+                              // 🌟 استخلاص الكود السري وترجمته
+                              final errorKey = e
+                                  .toString()
+                                  .replaceAll('Exception: ', '')
+                                  .trim();
+                              final resolvedMessage = _resolveSyncErrorMessage(
+                                context,
+                                errorKey,
+                              );
+
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
-                                  content: Text(
-                                    l10n.navSyncError(e.toString()),
-                                  ),
+                                  content: Text(resolvedMessage),
                                   backgroundColor: Colors.red.shade900,
                                   behavior: SnackBarBehavior.floating,
                                 ),

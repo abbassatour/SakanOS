@@ -1833,5 +1833,28 @@
   "pdfTblBonusPct": "البونص %",
   "pdfTblTransferredMeters": "الأمتار المحولة",
   "pdfValFirstPayment": "(دفعة أولى)",
-  "pdfAllocatedNote": "* ملاحظة هامة: عدد الأمتار المشتراة يعتبر حقاً مكتسباً للعميل، وهو محمي ضد التضخم ولا يتأثر بتقلبات أسعار المواد المستقبلية."
+  "pdfAllocatedNote": "* ملاحظة هامة: عدد الأمتار المشتراة يعتبر حقاً مكتسباً للعميل، وهو محمي ضد التضخم ولا يتأثر بتقلبات أسعار المواد المستقبلية.",
+
+
+  "pdfLedgerUnallocatedTitle": "كشف حساب استثماري (محفظة)",
+  "pdfInvestorDetails": "بيانات المستثمر (الفريق الثاني)",
+  "pdfColInvestorName": "اسم المستثمر",
+  "pdfPortfolioContractDetails": "التفاصيل التعاقدية للمحفظة الاستثمارية",
+  "pdfColPortfolioOpenDate": "تاريخ فتح المحفظة",
+  "pdfColContractNature": "طبيعة العقد",
+  "pdfValUnallocatedShares": "أسهم غير مخصصة (يتم التخصيص لاحقاً)",
+  "pdfSumInvestedAmounts": "إجمالي المبالغ المُستثمرة (المسددة)",
+  "pdfSumAcquiredMeters": "إجمالي الأمتار المكتسبة في المحفظة",
+  "pdfTblAcquiredMeters": "الأمتار المكتسبة",
+  "pdfUnallocatedNote": "* ملاحظة: هذا كشف حساب لمحفظة استثمارية، والأمتار المسجلة هنا هي أسهم غير مخصصة لعقار معين بعد. (اللون الأحمر في الجدول يشير لعمليات الاسترداد أو السحب).",
+
+  "syncSuccessMessage": "تمت المزامنة مع السحابة بنجاح! ☁️✓",
+  "errorMustLoginToUpload": "يجب تسجيل الدخول لرفع الملفات.",
+  "errorSecureSessionFailed": "فشل الحصول على مفتاح الجلسة الآمن.",
+  "errorUploadFailed": "فشل الرفع: {statusCode}",
+  "@errorUploadFailed": { "placeholders": { "statusCode": { "type": "String" } } },
+  "errorNoInternetSync": "لا يوجد اتصال بالإنترنت.",
+  "errorCloudPullFailed": "تعذر استرداد البيانات من السحابة. تحقق من اتصالك أو من صحة تاريخ الكمبيوتر.",
+  "errorSyncPushFailed": "فشل رفع بعض التعديلات المحلية. تم إيقاف السحب لحماية بياناتك من المسح.",
+  "errorTimeCheckFailed": "لا يمكن التحقق من الوقت الفعلي. تأكد من أنك لست متصلاً بشبكة مقيدة (Captive Portal)."
 }
