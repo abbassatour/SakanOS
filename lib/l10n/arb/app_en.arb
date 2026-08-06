@@ -1712,5 +1712,14 @@
   "authErrorAccountDisabled": "This account has been disabled by administration.",
   "authErrorTimeTampered": "System clock tampering detected (time rollback attempt). Please sync to unlock.",
   "authErrorOfflineLimitExceeded": "Exceeded offline limit (7 days). Please sync with cloud.",
-  "authErrorSubscriptionExpired": "System license has expired. Please contact developer to renew."
+  "authErrorSubscriptionExpired": "System license has expired. Please contact developer to renew.",
+
+
+  "adminRoleDeleteHasUsersError": "⛔ Cannot delete role \"{roleName}\" because {count} employee(s) are currently assigned to it. Please reassign their roles first.",
+  "@adminRoleDeleteHasUsersError": {
+    "placeholders": {
+      "roleName": { "type": "String" },
+      "count": { "type": "int" }
+    }
+  }
 }

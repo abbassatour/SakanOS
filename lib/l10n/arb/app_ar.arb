@@ -1706,5 +1706,13 @@
   "authErrorAccountDisabled": "هذا الحساب تم إيقافه من قبل الإدارة.",
   "authErrorTimeTampered": "تم اكتشاف تلاعب في ساعة النظام (محاولة إرجاع الزمن). يرجى المزامنة لفك القفل.",
   "authErrorOfflineLimitExceeded": "تجاوزت الحد المسموح للعمل دون اتصال بالإنترنت (7 أيام). يرجى المزامنة.",
-  "authErrorSubscriptionExpired": "انتهت صلاحية رخصة النظام. يرجى التواصل مع المطور لتسوية الدفعات وتجديد رخصة العمل."
+  "authErrorSubscriptionExpired": "انتهت صلاحية رخصة النظام. يرجى التواصل مع المطور لتسوية الدفعات وتجديد رخصة العمل.",
+
+  "adminRoleDeleteHasUsersError": "⛔ لا يمكن حذف دور \"{roleName}\" لأن هناك {count} موظفين معينين عليه حالياً. الرجاء تغيير أدوارهم أولاً.",
+  "@adminRoleDeleteHasUsersError": {
+    "placeholders": {
+      "roleName": { "type": "String" },
+      "count": { "type": "int" }
+    }
+  }
 }

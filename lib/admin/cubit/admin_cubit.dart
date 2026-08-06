@@ -1,6 +1,4 @@
 // lib/admin/cubit/admin_cubit.dart
-// ignore_for_file: depend_on_referenced_packages
-
 import 'dart:developer';
 
 import 'package:bloc/bloc.dart';
@@ -102,7 +100,6 @@ class AdminCubit extends Cubit<AdminState> {
   }
 
   Future<void> deleteRole(String roleId, String roleName) async {
-    // 🌟 1. الفحص الآمن: هل يوجد مستخدمون يملكون هذا الدور؟
     final usersWithThisRole = state.users
         .where((u) => u.roleId == roleId)
         .toList();
@@ -112,19 +109,17 @@ class AdminCubit extends Cubit<AdminState> {
         state.copyWith(
           status: AdminStatus.failure,
           errorMessage:
-              '⛔ لا يمكن حذف دور "$roleName" لأن هناك ${usersWithThisRole.length} موظفين معينين عليه حالياً. الرجاء تغيير أدوارهم أولاً.',
+              'adminRoleDeleteHasUsersError:$roleName:${usersWithThisRole.length}',
         ),
       );
-      // إعادة الحالة إلى success لكي لا يعلق على خطأ
       emit(state.copyWith(status: AdminStatus.success));
       return;
     }
 
-    // 🌟 2. إذا لم يكن هناك أحد، نفذ الحذف
     emit(state.copyWith(status: AdminStatus.loading));
     try {
       await _erpRepository.deleteRole(roleId);
-      await loadAdminData(); // إعادة تحميل البيانات لتحديث الواجهة
+      await loadAdminData();
     } catch (e, stackTrace) {
       log('خطأ في حذف الدور', error: e, stackTrace: stackTrace);
       emit(

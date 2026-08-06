@@ -43,6 +43,20 @@ class _AdminViewState extends State<AdminView>
     super.dispose();
   }
 
+  String _resolveAdminErrorMessage(BuildContext context, String? errorMsg) {
+    final l10n = context.l10n;
+    if (errorMsg == null) return l10n.adminUnexpectedError;
+    if (errorMsg.startsWith('adminRoleDeleteHasUsersError:')) {
+      final parts = errorMsg.split(':');
+      if (parts.length >= 3) {
+        final roleName = parts[1];
+        final count = int.tryParse(parts[2]) ?? 0;
+        return l10n.adminRoleDeleteHasUsersError(roleName, count);
+      }
+    }
+    return errorMsg;
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
@@ -53,11 +67,14 @@ class _AdminViewState extends State<AdminView>
         child: BlocConsumer<AdminCubit, AdminState>(
           listener: (context, state) {
             if (state.status == AdminStatus.failure) {
+              final resolvedMsg = _resolveAdminErrorMessage(
+                context,
+                state.errorMessage,
+              );
+
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text(
-                    state.errorMessage ?? l10n.adminUnexpectedError,
-                  ),
+                  content: Text(resolvedMsg),
                   backgroundColor: Colors.red,
                 ),
               );
