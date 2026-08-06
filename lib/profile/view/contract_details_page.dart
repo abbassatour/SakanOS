@@ -30,9 +30,53 @@ String formatWithCommas(num number) {
   );
 }
 
-String _formatDateSafely(DateTime? date) {
-  if (date == null) return 'غير محدد';
+String _formatDateSafely(BuildContext context, DateTime? date) {
+  if (date == null) return context.l10n.bldUnspecified;
   return '${date.year}/${date.month.toString().padLeft(2, '0')}/${date.day.toString().padLeft(2, '0')}';
+}
+
+String _getContractTypeLabel(BuildContext context, String type) {
+  final l10n = context.l10n;
+  if (type == 'متخصص') return l10n.contractTypeAllocatedName;
+  if (type == 'لاحق التخصص') return l10n.contractTypeUnallocatedName;
+  return type;
+}
+
+String _formatApartmentDetails(BuildContext context, String rawDetails) {
+  final l10n = context.l10n;
+  if (rawDetails == 'أسهم/غير مخصص' ||
+      rawDetails == 'أسهم استثمارية غير مخصصة' ||
+      rawDetails == 'محفظة استثمارية (عقد لاحق التخصص)' ||
+      rawDetails.contains('غير مخصص') ||
+      rawDetails.contains('استثمارية')) {
+    return l10n.contractAutoDetailsUnallocated;
+  }
+
+  var formatted = rawDetails;
+  if (l10n.localeName == 'en') {
+    formatted = formatted
+        .replaceAll('محضر:', 'Building:')
+        .replaceAll('شقة:', 'Apt:')
+        .replaceAll('طابق:', 'Floor:')
+        .replaceAll('شقة', 'Apt')
+        .replaceAll('الطابق الأرضي', 'Ground Floor')
+        .replaceAll('الطابق الأول', '1st Floor')
+        .replaceAll('الطابق الثاني', '2nd Floor')
+        .replaceAll('الطابق الثالث', '3rd Floor')
+        .replaceAll('الطابق الرابع', '4th Floor')
+        .replaceAll('الطابق الخامس', '5th Floor')
+        .replaceAll('الطابق السادس', '6th Floor')
+        .replaceAll('الطابق السابع', '7th Floor')
+        .replaceAll('الطابق الثامن', '8th Floor')
+        .replaceAll('الطابق التاسع', '9th Floor')
+        .replaceAll('الطابق العاشر', '10th Floor')
+        .replaceAll('الطابق الحادي عشر', '11th Floor')
+        .replaceAll('الطابق الثاني عشر', '12th Floor')
+        .replaceAll('القبو الأول', '1st Basement')
+        .replaceAll('القبو الثاني', '2nd Basement')
+        .replaceAll('القبو الثالث', '3rd Basement');
+  }
+  return formatted;
 }
 
 class ContractDetailsPage extends StatelessWidget {
@@ -403,7 +447,10 @@ class ContractDetailsPage extends StatelessWidget {
                                           ),
                                           const SizedBox(width: 6),
                                           Text(
-                                            currentContract.contractType,
+                                            _getContractTypeLabel(
+                                              context,
+                                              currentContract.contractType,
+                                            ),
                                             style: const TextStyle(
                                               color: Colors.white,
                                               fontWeight: FontWeight.bold,
@@ -782,7 +829,10 @@ class ContractDetailsPage extends StatelessWidget {
                             children: [
                               _buildInfoRow(
                                 l10n.contractDetailsSignDate,
-                                _formatDateSafely(currentContract.contractDate),
+                                _formatDateSafely(
+                                  context,
+                                  currentContract.contractDate,
+                                ),
                                 Icons.calendar_month,
                               ),
                               const Divider(height: 24),
@@ -802,7 +852,10 @@ class ContractDetailsPage extends StatelessWidget {
                               const Divider(height: 24),
                               _buildInfoRow(
                                 l10n.contractDetailsPropertyDesc,
-                                currentContract.apartmentDetails,
+                                _formatApartmentDetails(
+                                  context,
+                                  currentContract.apartmentDetails,
+                                ),
                                 Icons.apartment,
                                 isBold: true,
                                 valueColor: Colors.black87,
@@ -871,6 +924,7 @@ class ContractDetailsPage extends StatelessWidget {
                                 _buildInfoRow(
                                   l10n.contractDetailsAgreedHandoverDate,
                                   _formatDateSafely(
+                                    context,
                                     currentContract.agreedHandoverDate,
                                   ),
                                   Icons.event,
@@ -904,6 +958,7 @@ class ContractDetailsPage extends StatelessWidget {
                                   _buildInfoRow(
                                     l10n.contractDetailsActualHandoverDate,
                                     _formatDateSafely(
+                                      context,
                                       currentContract.actualHandoverDate,
                                     ),
                                     Icons.event_available,
@@ -1136,6 +1191,7 @@ class ContractDetailsPage extends StatelessWidget {
                                                     const SizedBox(width: 4),
                                                     Text(
                                                       _formatDateSafely(
+                                                        context,
                                                         action.actionDate,
                                                       ),
                                                       style: const TextStyle(
