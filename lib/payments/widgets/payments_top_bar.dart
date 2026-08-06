@@ -164,6 +164,7 @@ class PaymentsTopBar extends StatelessWidget {
           return null;
         }
         return AllocatedLedgerPdf.generatePdf(
+          l10n: l10n, // 🌟 تمرير متغير الترجمة
           ledgerEntries: state.ledgerEntries,
           contract: contract,
           client: client,
