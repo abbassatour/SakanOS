@@ -12,6 +12,58 @@ import 'package:our_home_erp_app/l10n/l10n.dart';
 
 import 'edit_contract_sections/penalty_settings_section.dart';
 
+String formatApartmentDetails(BuildContext context, String rawDetails) {
+  final l10n = context.l10n;
+  if (rawDetails == 'أسهم/غير مخصص' ||
+      rawDetails == 'أسهم استثمارية غير مخصصة' ||
+      rawDetails == 'محفظة استثمارية (عقد لاحق التخصص)' ||
+      (rawDetails.contains('غير مخصص') && !rawDetails.contains('شقة')) ||
+      (rawDetails.contains('استثمارية') && !rawDetails.contains('شقة'))) {
+    if (rawDetails.contains('عقود متفاوتة الدفع') ||
+        rawDetails.contains('منفاوتة')) {
+      return l10n.localeName == 'en'
+          ? 'Investment Shares (Flexible Payments)'
+          : 'أسهم استثمارية غير مخصصة (عقود متفاوتة الدفع)';
+    }
+    return l10n.contractAutoDetailsUnallocated;
+  }
+
+  var formatted = rawDetails;
+  if (l10n.localeName == 'en') {
+    formatted = formatted
+        .replaceAll('مشروع السلموني', 'Al-Salamoni Project')
+        .replaceAll('مشروع', 'Project:')
+        .replaceAll('عقار 1593', 'Property 1593')
+        .replaceAll('عقار', 'Property:')
+        .replaceAll('محضر:', 'Building:')
+        .replaceAll('شقة:', 'Apt:')
+        .replaceAll('شقة', 'Apt')
+        .replaceAll('طابق:', 'Floor:')
+        .replaceAll('الطابق الأرضي', 'Ground Floor')
+        .replaceAll('الطابق الأول', '1st Floor')
+        .replaceAll('الطابق الثاني', '2nd Floor')
+        .replaceAll('الطابق الثالث', '3rd Floor')
+        .replaceAll('الطابق الرابع', '4th Floor')
+        .replaceAll('الطابق الخامس', '5th Floor')
+        .replaceAll('الطابق السادس', '6th Floor')
+        .replaceAll('الطابق السابع', '7th Floor')
+        .replaceAll('الطابق الثامن', '8th Floor')
+        .replaceAll('الطابق التاسع', '9th Floor')
+        .replaceAll('الطابق العاشر', '10th Floor')
+        .replaceAll('الطابق الحادي عشر', '11th Floor')
+        .replaceAll('الطابق الثاني عشر', '12th Floor')
+        .replaceAll('الطابق 1', '1st Floor')
+        .replaceAll('الطابق 2', '2nd Floor')
+        .replaceAll('الطابق 3', '3rd Floor')
+        .replaceAll('الطابق 4', '4th Floor')
+        .replaceAll('الطابق 5', '5th Floor')
+        .replaceAll('القبو الأول', '1st Basement')
+        .replaceAll('القبو الثاني', '2nd Basement')
+        .replaceAll('القبو الثالث', '3rd Basement');
+  }
+  return formatted;
+}
+
 void showEditContractDialog(BuildContext parentContext, Contract contract) {
   final authState = parentContext.read<AuthCubit>().state;
   final canEdit = authState.hasPermission(AppPermissions.createContracts);
@@ -75,6 +127,18 @@ class _EditContractDialogContentState
     penaltyIntervalCtrl = TextEditingController(
       text: contract.penaltyIntervalMonths.toString(),
     );
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final formatted = formatApartmentDetails(
+      context,
+      widget.contract.apartmentDetails,
+    );
+    if (detailsController.text == widget.contract.apartmentDetails) {
+      detailsController.text = formatted;
+    }
   }
 
   @override
@@ -172,7 +236,7 @@ class _EditContractDialogContentState
       content: DefaultTabController(
         length: 2,
         child: SizedBox(
-          width: 650,
+          width: 680,
           height: 520,
           child: Column(
             children: [
@@ -189,44 +253,50 @@ class _EditContractDialogContentState
                 child: Column(
                   children: [
                     Padding(
-                      padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+                      padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
                       child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: Colors.indigo.shade100,
-                                  borderRadius: BorderRadius.circular(10),
+                          Expanded(
+                            child: Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: Colors.indigo.shade100,
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Icon(
+                                    Icons.edit_document,
+                                    color: Colors.indigo.shade700,
+                                    size: 26,
+                                  ),
                                 ),
-                                child: Icon(
-                                  Icons.edit_document,
-                                  color: Colors.indigo.shade700,
-                                  size: 28,
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Text(
+                                    l10n.contractEditDialogTitle,
+                                    style: TextStyle(
+                                      color: Colors.indigo.shade900,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(width: 12),
-                              Text(
-                                l10n.contractEditDialogTitle,
-                                style: TextStyle(
-                                  color: Colors.indigo.shade900,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 20,
-                                ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
+                          const SizedBox(width: 8),
                           Row(
+                            mainAxisSize: MainAxisSize.min,
                             children: [
                               InkWell(
                                 onTap: widget.canEdit ? _toggleArchive : null,
                                 borderRadius: BorderRadius.circular(20),
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 8,
+                                    horizontal: 12,
+                                    vertical: 6,
                                   ),
                                   decoration: BoxDecoration(
                                     color: contract.isCompleted
@@ -240,17 +310,18 @@ class _EditContractDialogContentState
                                     ),
                                   ),
                                   child: Row(
+                                    mainAxisSize: MainAxisSize.min,
                                     children: [
                                       Icon(
                                         contract.isCompleted
                                             ? Icons.lock
                                             : Icons.archive_outlined,
-                                        size: 18,
+                                        size: 16,
                                         color: contract.isCompleted
                                             ? Colors.green.shade700
                                             : Colors.blueGrey.shade700,
                                       ),
-                                      const SizedBox(width: 8),
+                                      const SizedBox(width: 4),
                                       Text(
                                         contract.isCompleted
                                             ? l10n.contractEditClosedTag
@@ -260,15 +331,15 @@ class _EditContractDialogContentState
                                               ? Colors.green.shade800
                                               : Colors.blueGrey.shade800,
                                           fontWeight: FontWeight.bold,
-                                          fontSize: 13,
+                                          fontSize: 12,
                                         ),
                                       ),
                                     ],
                                   ),
                                 ),
                               ),
-                              const SizedBox(width: 12),
-                              if (widget.canDelete)
+                              if (widget.canDelete) ...[
+                                const SizedBox(width: 8),
                                 Tooltip(
                                   message: l10n.contractEditDeleteBtn,
                                   child: InkWell(
@@ -276,8 +347,8 @@ class _EditContractDialogContentState
                                     borderRadius: BorderRadius.circular(20),
                                     child: Container(
                                       padding: const EdgeInsets.symmetric(
-                                        horizontal: 16,
-                                        vertical: 8,
+                                        horizontal: 12,
+                                        vertical: 6,
                                       ),
                                       decoration: BoxDecoration(
                                         color: Colors.red.shade50,
@@ -287,19 +358,20 @@ class _EditContractDialogContentState
                                         ),
                                       ),
                                       child: Row(
+                                        mainAxisSize: MainAxisSize.min,
                                         children: [
                                           Icon(
                                             Icons.delete_forever,
-                                            size: 18,
+                                            size: 16,
                                             color: Colors.red.shade700,
                                           ),
-                                          const SizedBox(width: 6),
+                                          const SizedBox(width: 4),
                                           Text(
                                             l10n.contractEditDeleteBtn,
                                             style: TextStyle(
                                               color: Colors.red.shade800,
                                               fontWeight: FontWeight.bold,
-                                              fontSize: 13,
+                                              fontSize: 12,
                                             ),
                                           ),
                                         ],
@@ -307,6 +379,7 @@ class _EditContractDialogContentState
                                     ),
                                   ),
                                 ),
+                              ],
                             ],
                           ),
                         ],
