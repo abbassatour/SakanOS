@@ -19,6 +19,50 @@ String formatWithCommas(num number) {
   );
 }
 
+String _getContractTypeLabel(BuildContext context, String type) {
+  final l10n = context.l10n;
+  if (type == 'متخصص') return l10n.contractTypeAllocatedName;
+  if (type == 'لاحق التخصص') return l10n.contractTypeUnallocatedName;
+  return type;
+}
+
+String _formatApartmentDetails(BuildContext context, String rawDetails) {
+  final l10n = context.l10n;
+  if (rawDetails == 'أسهم/غير مخصص' ||
+      rawDetails == 'أسهم استثمارية غير مخصصة' ||
+      rawDetails == 'محفظة استثمارية (عقد لاحق التخصص)' ||
+      rawDetails.contains('غير مخصص') ||
+      rawDetails.contains('استثمارية')) {
+    return l10n.contractAutoDetailsUnallocated;
+  }
+
+  var formatted = rawDetails;
+  if (l10n.localeName == 'en') {
+    formatted = formatted
+        .replaceAll('محضر:', 'Building:')
+        .replaceAll('شقة:', 'Apt:')
+        .replaceAll('طابق:', 'Floor:')
+        .replaceAll('شقة', 'Apt')
+        .replaceAll('الطابق الأرضي', 'Ground Floor')
+        .replaceAll('الطابق الأول', '1st Floor')
+        .replaceAll('الطابق الثاني', '2nd Floor')
+        .replaceAll('الطابق الثالث', '3rd Floor')
+        .replaceAll('الطابق الرابع', '4th Floor')
+        .replaceAll('الطابق الخامس', '5th Floor')
+        .replaceAll('الطابق السادس', '6th Floor')
+        .replaceAll('الطابق السابع', '7th Floor')
+        .replaceAll('الطابق الثامن', '8th Floor')
+        .replaceAll('الطابق التاسع', '9th Floor')
+        .replaceAll('الطابق العاشر', '10th Floor')
+        .replaceAll('الطابق الحادي عشر', '11th Floor')
+        .replaceAll('الطابق الثاني عشر', '12th Floor')
+        .replaceAll('القبو الأول', '1st Basement')
+        .replaceAll('القبو الثاني', '2nd Basement')
+        .replaceAll('القبو الثالث', '3rd Basement');
+  }
+  return formatted;
+}
+
 class ClientProfilePage extends StatelessWidget {
   final Client client;
 
@@ -320,7 +364,6 @@ class ClientProfilePage extends StatelessWidget {
                                       .read<ContractsCubit>();
                                   final buildingsCubit = context
                                       .read<BuildingsCubit>();
-                                  // 🌟 الحل هنا: جلب الـ Cubit الحالي
                                   final clientProfileCubit = context
                                       .read<ClientProfileCubit>();
 
@@ -344,7 +387,6 @@ class ClientProfilePage extends StatelessWidget {
                                           BlocProvider.value(
                                             value: buildingsCubit,
                                           ),
-                                          // 🌟 وتمريره للصفحة الجديدة
                                           BlocProvider.value(
                                             value: clientProfileCubit,
                                           ),
@@ -400,7 +442,10 @@ class ClientProfilePage extends StatelessWidget {
                                                 CrossAxisAlignment.start,
                                             children: [
                                               Text(
-                                                contract.apartmentDetails,
+                                                _formatApartmentDetails(
+                                                  context,
+                                                  contract.apartmentDetails,
+                                                ),
                                                 style: const TextStyle(
                                                   fontWeight: FontWeight.bold,
                                                   fontSize: 16,
@@ -413,7 +458,10 @@ class ClientProfilePage extends StatelessWidget {
                                               Row(
                                                 children: [
                                                   Text(
-                                                    contract.contractType,
+                                                    _getContractTypeLabel(
+                                                      context,
+                                                      contract.contractType,
+                                                    ),
                                                     style: TextStyle(
                                                       fontSize: 12,
                                                       fontWeight:
