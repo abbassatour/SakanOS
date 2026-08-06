@@ -1856,5 +1856,22 @@
   "errorNoInternetSync": "لا يوجد اتصال بالإنترنت.",
   "errorCloudPullFailed": "تعذر استرداد البيانات من السحابة. تحقق من اتصالك أو من صحة تاريخ الكمبيوتر.",
   "errorSyncPushFailed": "فشل رفع بعض التعديلات المحلية. تم إيقاف السحب لحماية بياناتك من المسح.",
-  "errorTimeCheckFailed": "لا يمكن التحقق من الوقت الفعلي. تأكد من أنك لست متصلاً بشبكة مقيدة (Captive Portal)."
+  "errorTimeCheckFailed": "لا يمكن التحقق من الوقت الفعلي. تأكد من أنك لست متصلاً بشبكة مقيدة (Captive Portal).",
+
+  "recycleErrorRestoreAptBuildingDeleted": "⛔ لا يمكنك استعادة هذه الشقة لأن محضرها ({buildingName}) لا يزال محذوفاً.",
+  "@recycleErrorRestoreAptBuildingDeleted": {
+    "placeholders": {
+      "buildingName": { "type": "String" }
+    }
+  },
+  "recycleErrorRestoreContractClientDeleted": "⛔ العميل ({clientName}) الخاص بهذا العقد لا يزال محذوفاً. الرجاء استعادته أولاً.",
+  "@recycleErrorRestoreContractClientDeleted": {
+    "placeholders": {
+      "clientName": { "type": "String" }
+    }
+  },
+  "recycleErrorRestoreContractAptDeleted": "⛔ الوحدة العقارية المرتبطة بهذا العقد لا تزال محذوفة. الرجاء استعادتها أولاً.",
+  "recycleErrorRestorePaymentContractDeleted": "⛔ لا يمكنك استعادة هذه الدفعة لأن عقدها لا يزال محذوفاً. الرجاء استعادة العقد أولاً.",
+  "recycleErrorHardDeleteAptHasContract": "⛔ لا يمكن تدمير هذه الوحدة لأنها مرتبطة بعقد بيع (سواء فعال أو محذوف). يجب تدمير العقد أولاً!",
+  "recycleErrorHardDeleteClientHasContracts": "⛔ لا يمكن تدمير هذا العميل لارتباطه بعقود في النظام. الرجاء تدمير عقوده أولاً ليُسمح لك بذلك."
 }

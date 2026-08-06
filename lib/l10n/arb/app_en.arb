@@ -1863,5 +1863,23 @@
   "errorNoInternetSync": "No internet connection.",
   "errorCloudPullFailed": "Failed to retrieve data from the cloud. Check your connection or computer's date/time.",
   "errorSyncPushFailed": "Failed to upload some local changes. Cloud pull was stopped to protect your data.",
-  "errorTimeCheckFailed": "Cannot verify actual time. Make sure you are not connected to a captive portal network."
+  "errorTimeCheckFailed": "Cannot verify actual time. Make sure you are not connected to a captive portal network.",
+
+
+  "recycleErrorRestoreAptBuildingDeleted": "⛔ Cannot restore this unit because its building ({buildingName}) is still deleted.",
+  "@recycleErrorRestoreAptBuildingDeleted": {
+    "placeholders": {
+      "buildingName": { "type": "String" }
+    }
+  },
+  "recycleErrorRestoreContractClientDeleted": "⛔ Client ({clientName}) for this contract is still deleted. Please restore the client first.",
+  "@recycleErrorRestoreContractClientDeleted": {
+    "placeholders": {
+      "clientName": { "type": "String" }
+    }
+  },
+  "recycleErrorRestoreContractAptDeleted": "⛔ The unit linked to this contract is still deleted. Please restore it first.",
+  "recycleErrorRestorePaymentContractDeleted": "⛔ Cannot restore this payment because its contract is still deleted. Please restore the contract first.",
+  "recycleErrorHardDeleteAptHasContract": "⛔ Cannot destroy this unit because it is linked to a sales contract. Destroy the contract first!",
+  "recycleErrorHardDeleteClientHasContracts": "⛔ Cannot destroy this client as they are linked to contracts. Please destroy their contracts first."
 }

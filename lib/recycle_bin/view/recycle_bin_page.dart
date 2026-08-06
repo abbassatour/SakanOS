@@ -7,7 +7,6 @@ import 'package:our_home_erp_app/l10n/l10n.dart';
 import '../cubit/recycle_bin_cubit.dart';
 import 'dialogs/verify_hard_delete_dialog.dart';
 
-// 🌟 استدعاء الحارس الشخصي والصلاحيات
 import '../../auth/cubit/auth_cubit.dart';
 import '../../core/constants/app_permissions.dart';
 
@@ -17,6 +16,40 @@ String formatWithCommas(num number) {
     reg,
     (Match match) => '${match[1]},',
   );
+}
+
+// 🌟 دالة مساعدة لترجمة مفاتيح الأخطاء القادمة من الـ Cubit
+String _resolveRecycleBinErrorMessage(BuildContext context, String? errorKey) {
+  final l10n = context.l10n;
+  if (errorKey == null) return l10n.homeUnexpectedError;
+
+  if (errorKey.startsWith('recycleErrorRestoreAptBuildingDeleted:')) {
+    final buildingName = errorKey.replaceFirst(
+      'recycleErrorRestoreAptBuildingDeleted:',
+      '',
+    );
+    return l10n.recycleErrorRestoreAptBuildingDeleted(buildingName);
+  }
+  if (errorKey.startsWith('recycleErrorRestoreContractClientDeleted:')) {
+    final clientName = errorKey.replaceFirst(
+      'recycleErrorRestoreContractClientDeleted:',
+      '',
+    );
+    return l10n.recycleErrorRestoreContractClientDeleted(clientName);
+  }
+
+  switch (errorKey) {
+    case 'recycleErrorRestoreContractAptDeleted':
+      return l10n.recycleErrorRestoreContractAptDeleted;
+    case 'recycleErrorRestorePaymentContractDeleted':
+      return l10n.recycleErrorRestorePaymentContractDeleted;
+    case 'recycleErrorHardDeleteAptHasContract':
+      return l10n.recycleErrorHardDeleteAptHasContract;
+    case 'recycleErrorHardDeleteClientHasContracts':
+      return l10n.recycleErrorHardDeleteClientHasContracts;
+    default:
+      return errorKey.replaceAll('Exception: ', '').trim();
+  }
 }
 
 class RecycleBinPage extends StatelessWidget {
@@ -92,13 +125,22 @@ class RecycleBinView extends StatelessWidget {
         body: BlocConsumer<RecycleBinCubit, RecycleBinState>(
           listener: (context, state) {
             if (state.status == RecycleBinStatus.failure) {
+              final resolvedMsg = _resolveRecycleBinErrorMessage(
+                context,
+                state.errorMessage,
+              );
+
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(
-                    state.errorMessage ?? l10n.homeUnexpectedError,
-                    style: const TextStyle(color: Colors.white),
+                    resolvedMsg,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   backgroundColor: Colors.red,
+                  behavior: SnackBarBehavior.floating,
                 ),
               );
             }

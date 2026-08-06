@@ -87,8 +87,7 @@ class RecycleBinCubit extends Cubit<RecycleBinState> {
           state.copyWith(
             status: RecycleBinStatus.failure,
             errorMessage:
-                '⛔ لا يمكنك استعادة هذه الشقة لأن محضرها التابعة '
-                'له (${building.name}) لا يزال محذوفاً.',
+                'recycleErrorRestoreAptBuildingDeleted:${building.name}',
           ),
         );
         emit(state.copyWith(status: RecycleBinStatus.success));
@@ -135,7 +134,7 @@ class RecycleBinCubit extends Cubit<RecycleBinState> {
           state.copyWith(
             status: RecycleBinStatus.failure,
             errorMessage:
-                '⛔ العميل (${client.name}) الخاص بهذا العقد لا يزال محذوفاً. الرجاء استعادته أولاً.',
+                'recycleErrorRestoreContractClientDeleted:${client.name}',
           ),
         );
         emit(state.copyWith(status: RecycleBinStatus.success));
@@ -150,8 +149,7 @@ class RecycleBinCubit extends Cubit<RecycleBinState> {
           emit(
             state.copyWith(
               status: RecycleBinStatus.failure,
-              errorMessage:
-                  '⛔ الوحدة العقارية المرتبطة بهذا العقد لا تزال محذوفة. الرجاء استعادتها أولاً.',
+              errorMessage: 'recycleErrorRestoreContractAptDeleted',
             ),
           );
           emit(state.copyWith(status: RecycleBinStatus.success));
@@ -159,7 +157,6 @@ class RecycleBinCubit extends Cubit<RecycleBinState> {
         }
       }
 
-      // 🌟 الحل هنا: تمرير المتغيرات الثلاثة، وتم تغليفها بـ Try-Catch لكي لا تفشل بصمت
       await _erpRepository.restoreContract(
         id,
         contract.apartmentId,
@@ -171,10 +168,9 @@ class RecycleBinCubit extends Cubit<RecycleBinState> {
       emit(
         state.copyWith(
           status: RecycleBinStatus.failure,
-          errorMessage: 'خطأ في استعادة العقد: $e',
+          errorMessage: e.toString(),
         ),
       );
-      // إجبار الكيوبت على العودة للنجاح لكي لا يعلق على رسالة الخطأ
       emit(state.copyWith(status: RecycleBinStatus.success));
     }
   }
@@ -191,9 +187,7 @@ class RecycleBinCubit extends Cubit<RecycleBinState> {
         emit(
           state.copyWith(
             status: RecycleBinStatus.failure,
-            errorMessage:
-                '⛔ لا يمكنك استعادة هذه الدفعة لأن عقدها لا يزال '
-                'محذوفاً. الرجاء استعادة العقد أولاً.',
+            errorMessage: 'recycleErrorRestorePaymentContractDeleted',
           ),
         );
         emit(state.copyWith(status: RecycleBinStatus.success));
@@ -237,9 +231,7 @@ class RecycleBinCubit extends Cubit<RecycleBinState> {
         emit(
           state.copyWith(
             status: RecycleBinStatus.failure,
-            errorMessage:
-                '⛔ لا يمكن تدمير هذه الوحدة لأنها مرتبطة بعقد بيع '
-                '(سواء فعال أو محذوف). يجب تدمير العقد أولاً!',
+            errorMessage: 'recycleErrorHardDeleteAptHasContract',
           ),
         );
         emit(state.copyWith(status: RecycleBinStatus.success));
@@ -268,9 +260,7 @@ class RecycleBinCubit extends Cubit<RecycleBinState> {
         emit(
           state.copyWith(
             status: RecycleBinStatus.failure,
-            errorMessage:
-                '⛔ لا يمكن تدمير هذا العميل لارتباطه بعقود في النظام. '
-                'الرجاء تدمير عقوده أولاً ليُسمح لك بذلك.',
+            errorMessage: 'recycleErrorHardDeleteClientHasContracts',
           ),
         );
         emit(state.copyWith(status: RecycleBinStatus.success));
