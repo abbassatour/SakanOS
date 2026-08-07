@@ -24,15 +24,15 @@ class CurrencySection extends StatelessWidget {
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: isDollarPayment ? Colors.green.shade50 : Colors.white,
-        border: Border.all(
-          color: isDollarPayment ? Colors.green : Colors.grey.shade300,
-        ),
-        borderRadius: BorderRadius.circular(8),
-      ),
       child: Material(
-        color: Colors.transparent,
+        color: isDollarPayment ? Colors.green.shade50 : Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+          side: BorderSide(
+            color: isDollarPayment ? Colors.green : Colors.grey.shade300,
+          ),
+        ),
+        clipBehavior: Clip.antiAlias,
         child: SwitchListTile(
           title: Text(
             l10n.paymentAddCurrencyTitle,

@@ -48,31 +48,27 @@ class HistoricalSection extends StatelessWidget {
 
     return Column(
       children: [
-        Container(
-          decoration: BoxDecoration(
-            color: isHistoricalPayment
-                ? Colors.blue.shade50
-                : Colors.transparent,
-            border: Border.all(
+        Material(
+          color: isHistoricalPayment ? Colors.blue.shade50 : Colors.transparent,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+            side: BorderSide(
               color: isHistoricalPayment ? Colors.blue : Colors.transparent,
             ),
-            borderRadius: BorderRadius.circular(8),
           ),
-          child: Material(
-            color: Colors.transparent,
-            child: SwitchListTile(
-              title: Text(
-                l10n.paymentAddHistTitle,
-                style: const TextStyle(
-                  color: Colors.blue,
-                  fontWeight: FontWeight.bold,
-                ),
+          clipBehavior: Clip.antiAlias,
+          child: SwitchListTile(
+            title: Text(
+              l10n.paymentAddHistTitle,
+              style: const TextStyle(
+                color: Colors.blue,
+                fontWeight: FontWeight.bold,
               ),
-              subtitle: Text(l10n.paymentAddHistSubtitle),
-              value: isHistoricalPayment,
-              activeThumbColor: Colors.blue,
-              onChanged: onHistoricalToggle,
             ),
+            subtitle: Text(l10n.paymentAddHistSubtitle),
+            value: isHistoricalPayment,
+            activeThumbColor: Colors.blue,
+            onChanged: onHistoricalToggle,
           ),
         ),
 

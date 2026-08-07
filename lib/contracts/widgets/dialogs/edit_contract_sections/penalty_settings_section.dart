@@ -23,15 +23,15 @@ class PenaltySettingsSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
 
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.deepOrange.shade50,
-        border: Border.all(color: Colors.deepOrange.shade200),
+    return Material(
+      color: Colors.deepOrange.shade50,
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),
+        side: BorderSide(color: Colors.deepOrange.shade200),
       ),
-      child: Material(
-        color: Colors.transparent,
+      clipBehavior: Clip.antiAlias,
+      child: Padding(
+        padding: const EdgeInsets.all(12),
         child: Column(
           children: [
             SwitchListTile(
