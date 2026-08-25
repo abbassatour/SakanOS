@@ -114,3 +114,90 @@
 ---
 
 ## 🛠️ البنية التحتية التقنية (Technical Architecture)
+
+
+
+┌───────────────────────────────────┐
+                       │     SakanOS Flutter Desktop UI     │
+                       └─────────────────┬─────────────────┘
+                                         │
+                        ┌────────────────┴────────────────┐
+                        │   BLoC / Cubit State Engine     │
+                        └────────────────┬────────────────┘
+                                         │
+                     ┌───────────────────┴───────────────────┐
+                     │         ErpRepository Facade          │
+                     └─────────┬───────────────────┬─────────┘
+                               │                   │
+                               ▼                   ▼
+                     ┌──────────────────┐ ┌──────────────────┐
+                     │ LocalStorageApi  │ │ CloudStorageApi  │
+                     │  (Drift / SQLite)│ │ (Supabase Client)│
+                     └──────────────────┘ └────────┬─────────┘
+                                                   │
+                                                   ▼
+                                         ┌──────────────────┐
+                                         │ Supabase Cloud   │
+                                         │  (PostgreSQL)    │
+                                         └──────────────────┘
+معمارية العمل بدون إنترنت (Offline-First):
+الواجهة تتعامل مباشرة مع قاعدة بيانات Drift (SQLite) على الجهاز المحلي لسرعة أداء فائقة وموثوقية أثناء انقطاع الشبكة.
+استخدام المعرفات الفريدة UUID v7 (المرتبة زمنياً) لمنع حدوث أي تضارب (Collisions) عند المزامنة بين أجهزة متعددة.
+محرك المزامنة الخلفي (Ghost Background Sync):
+رفع التعديلات (Push): رفع البيانات المحلية غير المتزامنة تتابعياً للسحابة مع حماية ضد مسح البيانات.
+سحب التحديثات (Pull): استيراد البيانات الجديدة المقسمة لحزم (Pagination chunks of 1000) لضمان أداء مستقر ومستمر دون تجميد الواجهة.
+معمارية موزع الشركات (Tenant Router Multi-Tenancy Architecture):
+دعم الفصل التام لبيانات العملاء والشركات العقارية في قواعد بيانات سحابية مستقلة لرفع معايير الخصوصية والأمان.
+👨‍💻 التقنيات والمكتبات المعتمدة (Tech Stack)
+الواجهة والمنصة: Dart / Flutter (مخصص لأنظمة Windows Desktop, macOS, Android).
+إدارة الحالة (State Management): flutter_bloc / cubit + equatable.
+قاعدة البيانات المحلية: drift (SQLite Native) للسرعة والموثوقية المطلقة.
+قاعدة البيانات السحابية والمصادقة: supabase_flutter (PostgreSQL + Auth + Storage).
+التقارير والطباعة: pdf, printing, excel.
+الرسوم البيانية: fl_chart.
+التدويل واللغات (i18n): flutter_localizations (ملفات ARB: app_ar.arb, app_en.arb).
+إدارة المتغيرات والمفاتيح: envied للتشفير والتعمية الآمنة لمفاتيح الربط السحابية.
+التواصل الخارجي: url_launcher لتوجيه رسائل WhatsApp والتفاعل مع الملفات.
+🚀 طريقة التشغيل والإعداد (Getting Started)
+
+1. المتطلبات الأساسية
+   بيئة Flutter SDK (الإصدار 3.11+ أو أحدث).
+   بيئة تطوير مفضلة (VS Code أو Android Studio).
+2. تثبيت الحزم وتوليد الأكواد
+   code
+   Bash
+
+# 1. استคลون المستودع
+
+git clone https://github.com/your-org/sakanos-erp.git
+cd sakanos-erp
+
+# 2. تثبيت الاعتمادات والحزم
+
+flutter pub get
+
+# 3. إعداد ملف البيئة (.env) في الجذر الرئيسي للمشروع
+
+echo "SUPABASE_URL=https://your-supabase-url.supabase.co" > .env
+echo "SUPABASE_ANON_KEY=your-supabase-anon-key" >> .env
+
+# 4. تشغيل مولد الأكواد (Drift / Envied / L10n)
+
+dart run build_runner build --delete-conflicting-outputs
+3. أوامر التشغيل حسب البيئة (Launch Configurations)
+يمتلك المشروع 3 بيئات تشغيلية معزولة ومستقلة:
+code
+Bash
+
+# بيئة التطوير (Development)
+
+flutter run -t lib/main_development.dart
+
+# بيئة الاختبار (Staging)
+
+flutter run -t lib/main_staging.dart
+
+# بيئة الإنتاج (Production)
+
+flutter run -t lib/main_production.dart
+نظام SakanOS ليس مجرد برنامج محاسبي، بل هو نواتك الاستراتيجية نحو التحول الرقمي وإدارة الاستثمارات العقارية بأسلوب رياضي وبرمجي متين.

@@ -60,9 +60,9 @@ flutter:
 
 flutter_launcher_icons:
   image_path: "assets/images/logo.png"
-  android: true
-  ios: true
-  remove_alpha_ios: true
+  android: false
+  ios: false
+  remove_alpha_ios: false
   windows:
     generate: true
     image_path: "assets/images/logo.png"
