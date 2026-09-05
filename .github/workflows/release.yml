@@ -1,0 +1,71 @@
+name: Build & Release SakanOS (Windows)
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release Version (e.g. 1.0.0)'
+        required: true
+        default: '1.0.0'
+      release_notes:
+        description: 'Release Notes / Changelog'
+        required: false
+        default: 'Production release built via GitHub Actions.'
+
+jobs:
+  build-windows:
+    name: Build & Package Windows Installer
+    runs-on: windows-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: 📚 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 🐦 Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: 🛠️ Install Inno Setup
+        run: choco install innosetup -y
+
+      - name: 🔐 Prepare Environment Variables (.env)
+        shell: bash
+        run: |
+          cat <<EOF > .env
+          SUPABASE_URL=${{ secrets.SUPABASE_URL || 'https://placeholder.supabase.co' }}
+          SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY || 'placeholder_anon_key' }}
+          EOF
+
+      - name: 📦 Install Package Dependencies
+        run: |
+          cd packages/cloud_storage_api && flutter pub get && cd ../..
+          cd packages/local_storage_api && flutter pub get && dart run build_runner build --delete-conflicting-outputs && cd ../..
+          cd packages/erp_repository && flutter pub get && cd ../..
+          flutter pub get
+
+      - name: ⚙️ Generate Code (Envied & Drift)
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      - name: 🏗️ Build Flutter Windows Release
+        run: flutter build windows --release -t lib/main_production.dart
+
+      - name: 📦 Compile Inno Setup Installer
+        shell: cmd
+        run: |
+          "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" /DMyAppVersion=${{ github.event.inputs.version }} sakanos_setup.iss
+
+      - name: 🚀 Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ github.event.inputs.version }}
+          name: SakanOS v${{ github.event.inputs.version }}
+          body: ${{ github.event.inputs.release_notes }}
+          draft: false
+          prerelease: false
+          files: |
+            Output/SakanOS_Setup_v${{ github.event.inputs.version }}_x64.exe
