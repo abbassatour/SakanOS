@@ -4,7 +4,9 @@
 ; =====================================================================
 
 #define MyAppName        "SakanOS"
-#define MyAppVersion     "1.0.0"
+#ifndef MyAppVersion
+  #define MyAppVersion "1.0.0"
+#endif
 #define MyAppPublisher   "SakanOS Team"
 #define MyAppURL         "https://github.com/your-username/our_home_erp_app"
 #define MyAppExeName     "our_home_erp_app.exe"

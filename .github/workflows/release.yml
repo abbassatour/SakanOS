@@ -94,4 +94,4 @@ jobs:
           draft: false
           prerelease: false
           files: |
-            Output/SakanOS_Setup_v${{ github.event.inputs.version }}_x64.exe
+            Output/*.exe
