@@ -209,11 +209,24 @@ class AuthCubit extends Cubit<AuthState> {
     );
   }
 
+  // lib/auth/cubit/auth_cubit.dart
   Future<void> logout() async {
     _gracePeriodTimer?.cancel();
     emit(state.copyWith(status: AuthStatus.loading));
-    await _erpRepository.signOut();
-    emit(const AuthState(status: AuthStatus.unauthenticated));
+
+    try {
+      // Add a reasonable timeout in case of network latency with Supabase
+      await _erpRepository.signOut().timeout(
+        const Duration(seconds: 5),
+        onTimeout: () =>
+            log('Logout timed out, proceeding to unauthenticated state.'),
+      );
+    } catch (e, stack) {
+      log('Error during logout cleanup: $e', stackTrace: stack);
+    } finally {
+      // Always transition to unauthenticated state
+      emit(const AuthState(status: AuthStatus.unauthenticated));
+    }
   }
 
   static const int gracePeriodMinutes = 5;

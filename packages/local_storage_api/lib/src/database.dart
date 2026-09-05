@@ -814,22 +814,31 @@ class AppDatabase extends _$AppDatabase {
     );
   }
 
+  // packages/local_storage_api/lib/src/database.dart
   Future<void> clearAllData() {
     return transaction(() async {
+      // 1. Delete all attachments first (leaf nodes)
       await delete(contractAttachments).go();
       await delete(legalActionAttachments).go();
+      await delete(apartmentAttachments).go();
+      await delete(buildingAttachments).go(); // Added missing table
+
+      // 2. Delete actions, payments, and schedules
       await delete(legalActions).go();
-      await delete(localUsers).go();
-      await delete(appRoles).go();
       await delete(paymentsLedger).go();
       await delete(installmentsSchedule).go();
-      await delete(materialPricesHistory).go();
-      await delete(dollarPricesHistory).go();
+
+      // 3. Delete contracts, apartments, and buildings
       await delete(contracts).go();
       await delete(apartments).go();
       await delete(buildings).go();
+
+      // 4. Delete root tables & history
       await delete(clients).go();
-      await delete(apartmentAttachments).go(); // 🌟 السطر الجديد
+      await delete(localUsers).go();
+      await delete(appRoles).go();
+      await delete(materialPricesHistory).go();
+      await delete(dollarPricesHistory).go();
     });
   }
   // ==========================================

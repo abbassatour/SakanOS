@@ -51,6 +51,14 @@ unlinked.ds
 unlinked_spec.ds
 .fvm/
 
+
+
+*.appx
+
+# Temporary Inno Setup files
+_isetup._xx
+*.tmp
+
 # Android related
 **/android/**/gradle-wrapper.jar
 **/android/.gradle
