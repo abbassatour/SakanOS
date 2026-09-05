@@ -54,6 +54,32 @@ jobs:
       - name: 🏗️ Build Flutter Windows Release
         run: flutter build windows --release -t lib/main_production.dart
 
+      - name: 🧩 Bundle sqlite3.dll into Release Directory
+        shell: pwsh
+        run: |
+          $targetDir = "build\windows\x64\runner\Release"
+          
+          # 1. Try copying from Redist folder if available
+          if (Test-Path "Redist\sqlite3.dll") {
+            Write-Host "Found sqlite3.dll in Redist, copying to $targetDir..."
+            Copy-Item "Redist\sqlite3.dll" -Destination "$targetDir\sqlite3.dll" -Force
+          }
+          # 2. Automated fallback: Download official 64-bit SQLite DLL if not found
+          elseif (-not (Test-Path "$targetDir\sqlite3.dll")) {
+            Write-Host "sqlite3.dll not found locally. Downloading official x64 SQLite DLL..."
+            Invoke-WebRequest -Uri "https://www.sqlite.org/2024/sqlite-dll-win-x64-3450100.zip" -OutFile "sqlite.zip"
+            Expand-Archive -Path "sqlite.zip" -DestinationPath "sqlite_extracted" -Force
+            Copy-Item "sqlite_extracted\sqlite3.dll" -Destination "$targetDir\sqlite3.dll" -Force
+          }
+
+          # Verify sqlite3.dll is present
+          if (Test-Path "$targetDir\sqlite3.dll") {
+            Write-Host "✅ sqlite3.dll verified in $targetDir"
+          } else {
+            Write-Error "❌ sqlite3.dll could not be located or bundled!"
+            exit 1
+          }
+
       - name: 📦 Compile Inno Setup Installer
         shell: cmd
         run: |
