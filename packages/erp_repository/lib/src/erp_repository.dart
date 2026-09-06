@@ -169,7 +169,11 @@ class ErpRepository {
   // 🌟 التعديل هنا: الدالة الآن تعيد Future<void> بدلاً من Future<String>
   Future<void> forceSyncWithCloud() => _syncRepo.forceSyncWithCloud();
 
-  Future<void> pullDataFromCloud() => _syncRepo.pullDataFromCloud();
+  // 🌟 التعديل الجديد: تمرير دالة تتبع مسار التحميل (Progress)
+  Future<void> pullDataFromCloud({
+    void Function(String messageKey, double progress)? onProgress,
+  }) => _syncRepo.pullDataFromCloud(onProgress: onProgress);
+
   Future<void> syncPendingData() => _syncRepo.syncPendingData();
   Future<DateTime?> getLastHeartbeatTime() => _syncRepo.getLastHeartbeatTime();
   Future<DateTime?> getLocalSubscriptionExpiry() =>

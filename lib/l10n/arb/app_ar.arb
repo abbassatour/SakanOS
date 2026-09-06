@@ -1896,5 +1896,15 @@
   "settingsErrorDelete": "حدث خطأ أثناء الحذف: {error}",
   "@settingsErrorDelete": { "placeholders": { "error": { "type": "String" } } },
   "settingsErrorSavePrice": "فشل حفظ التسعيرة: {error}",
-  "@settingsErrorSavePrice": { "placeholders": { "error": { "type": "String" } } }
+  "@settingsErrorSavePrice": { "placeholders": { "error": { "type": "String" } } },
+  "syncStepConnecting": "جاري تهيئة الاتصال السحابي...",
+  "syncStepClients": "جاري مزامنة بيانات العملاء...",
+  "syncStepContracts": "جاري استرداد العقود والمحافظ...",
+  "syncStepPrices": "جاري تحديث أسعار المواد...",
+  "syncStepSchedules": "جاري بناء جداول الاستحقاقات...",
+  "syncStepPayments": "جاري مطابقة الدفعات المالية...",
+  "syncStepBuildings": "جاري تحميل المشاريع والوحدات...",
+  "syncStepUsers": "جاري التحقق من صلاحيات الموظفين...",
+  "syncStepLegal": "جاري تحميل الأرشيف القانوني...",
+  "syncStepFinishing": "اكتمل التحميل، جاري فتح النظام..."
 }

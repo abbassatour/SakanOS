@@ -138,12 +138,133 @@ class AppView extends StatelessWidget {
 class _LoadingScreen extends StatelessWidget {
   const _LoadingScreen();
 
+  // دالة لترجمة المفتاح القادم من الـ Cubit
+  String _resolveLoadingMessage(BuildContext context, String key) {
+    final l10n = context.l10n;
+    switch (key) {
+      case 'syncStepConnecting':
+        return l10n.syncStepConnecting;
+      case 'syncStepClients':
+        return l10n.syncStepClients;
+      case 'syncStepContracts':
+        return l10n.syncStepContracts;
+      case 'syncStepPrices':
+        return l10n.syncStepPrices;
+      case 'syncStepSchedules':
+        return l10n.syncStepSchedules;
+      case 'syncStepPayments':
+        return l10n.syncStepPayments;
+      case 'syncStepBuildings':
+        return l10n.syncStepBuildings;
+      case 'syncStepUsers':
+        return l10n.syncStepUsers;
+      case 'syncStepLegal':
+        return l10n.syncStepLegal;
+      case 'syncStepFinishing':
+        return l10n.syncStepFinishing;
+      default:
+        return l10n.syncStepConnecting;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      backgroundColor: Colors.blueGrey,
-      body: Center(
-        child: CircularProgressIndicator(color: Colors.white),
+    return Scaffold(
+      backgroundColor: Colors.blueGrey.shade50,
+      body: BlocBuilder<AuthCubit, AuthState>(
+        builder: (context, state) {
+          final message = _resolveLoadingMessage(
+            context,
+            state.loadingMessageKey,
+          );
+          final progress = state.loadingProgress;
+
+          return Center(
+            child: Container(
+              width: 400,
+              padding: const EdgeInsets.all(40),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 20,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Logo
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: Image.asset(
+                      'assets/images/logo.png',
+                      height: 90,
+                      fit: BoxFit.contain,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // App Name
+                  const Text(
+                    'SakanOS',
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blueGrey,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+
+                  // Progress Bar
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: LinearProgressIndicator(
+                      value: progress > 0
+                          ? progress
+                          : null, // إذا 0 يظل يدور بشكل غير محدد
+                      backgroundColor: Colors.blueGrey.shade100,
+                      color: Colors.blueAccent.shade700,
+                      minHeight: 8,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Animated Percentage & Message
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          message,
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blueGrey.shade600,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      Text(
+                        '${(progress * 100).toInt()}%',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.blueAccent.shade700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
   }

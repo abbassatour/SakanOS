@@ -35,7 +35,20 @@ class AuthCubit extends Cubit<AuthState> {
       final localUser = await _erpRepository.getLocalUserById(userId);
 
       if (localUser == null) {
-        await _erpRepository.pullDataFromCloud();
+        // 🌟 نمرر الدالة لالتقاط التقدم
+        await _erpRepository.pullDataFromCloud(
+          onProgress: (messageKey, progress) {
+            if (!isClosed) {
+              emit(
+                state.copyWith(
+                  loadingMessageKey: messageKey,
+                  loadingProgress: progress,
+                ),
+              );
+            }
+          },
+        );
+
         final retryUser = await _erpRepository.getLocalUserById(userId);
 
         if (retryUser == null) {

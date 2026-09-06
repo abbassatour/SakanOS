@@ -1905,5 +1905,15 @@
   "settingsErrorDelete": "An error occurred during deletion: {error}",
   "@settingsErrorDelete": { "placeholders": { "error": { "type": "String" } } },
   "settingsErrorSavePrice": "Failed to save price record: {error}",
-  "@settingsErrorSavePrice": { "placeholders": { "error": { "type": "String" } } }
+  "@settingsErrorSavePrice": { "placeholders": { "error": { "type": "String" } } },
+  "syncStepConnecting": "Initializing cloud connection...",
+  "syncStepClients": "Syncing client data...",
+  "syncStepContracts": "Retrieving contracts and portfolios...",
+  "syncStepPrices": "Updating material prices...",
+  "syncStepSchedules": "Building installment schedules...",
+  "syncStepPayments": "Reconciling financial payments...",
+  "syncStepBuildings": "Loading projects and units...",
+  "syncStepUsers": "Verifying employee permissions...",
+  "syncStepLegal": "Loading legal archive...",
+  "syncStepFinishing": "Loading complete, starting system..."
 }

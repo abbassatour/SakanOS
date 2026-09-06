@@ -22,7 +22,10 @@ class AuthState extends Equatable {
     this.isSystemAdmin = false,
     this.permissions = const [],
     this.errorMessage,
-    this.lastPinVerificationTime, // 🌟 [جديد] وقت آخر إدخال للـ PIN
+    this.lastPinVerificationTime, // وقت آخر إدخال للـ PIN
+    this.loadingMessageKey =
+        'syncStepConnecting', // 🌟 [جديد] مفتاح ترجمة الخطوة الحالية
+    this.loadingProgress = 0.0, // 🌟 [جديد] نسبة تقدم التحميل من 0.0 إلى 1.0
   });
 
   final AuthStatus status;
@@ -33,14 +36,16 @@ class AuthState extends Equatable {
   final bool isSystemAdmin;
   final List<String> permissions;
   final String? errorMessage;
-  final DateTime? lastPinVerificationTime; // 🌟 [جديد]
+  final DateTime? lastPinVerificationTime;
+  final String loadingMessageKey; // 🌟 [جديد]
+  final double loadingProgress; // 🌟 [جديد]
 
   bool hasPermission(String permission) {
     if (isSystemAdmin) return true;
     return permissions.contains(permission);
   }
 
-  // 🌟 [جديد] دالة للتحقق من صلاحية الجلسة المفتوحة (5 دقائق)
+  // 🌟 دالة للتحقق من صلاحية الجلسة المفتوحة (5 دقائق)
   bool get isPinGracePeriodActive {
     if (lastPinVerificationTime == null) return false;
     final difference = DateTime.now().difference(lastPinVerificationTime!);
@@ -57,7 +62,9 @@ class AuthState extends Equatable {
     List<String>? permissions,
     String? errorMessage,
     DateTime? lastPinVerificationTime,
-    bool clearGracePeriod = false, // 🌟 [جديد] لإجبار مسح الجلسة
+    bool clearGracePeriod = false, // لإجبار مسح الجلسة
+    String? loadingMessageKey, // 🌟 [جديد]
+    double? loadingProgress, // 🌟 [جديد]
   }) {
     return AuthState(
       status: status ?? this.status,
@@ -68,10 +75,12 @@ class AuthState extends Equatable {
       isSystemAdmin: isSystemAdmin ?? this.isSystemAdmin,
       permissions: permissions ?? this.permissions,
       errorMessage: errorMessage ?? this.errorMessage,
-      // 🌟 إذا تم طلب المسح، نجعله null، وإلا نأخذ الجديد، وإلا نحتفظ بالقديم
       lastPinVerificationTime: clearGracePeriod
           ? null
           : (lastPinVerificationTime ?? this.lastPinVerificationTime),
+      loadingMessageKey:
+          loadingMessageKey ?? this.loadingMessageKey, // 🌟 [جديد]
+      loadingProgress: loadingProgress ?? this.loadingProgress, // 🌟 [جديد]
     );
   }
 
@@ -85,6 +94,8 @@ class AuthState extends Equatable {
     isSystemAdmin,
     permissions,
     errorMessage,
-    lastPinVerificationTime, // 🌟
+    lastPinVerificationTime,
+    loadingMessageKey, // 🌟 [جديد]
+    loadingProgress, // 🌟 [جديد]
   ];
 }

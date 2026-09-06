@@ -19,7 +19,11 @@ Write-Host ">>> [4/4] Compiling Inno Setup Installer..." -ForegroundColor Yellow
 $iscc = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
 if (Test-Path $iscc) {
     & $iscc /DMyAppVersion=test-local sakanos_setup.iss
-    Write-Host "`nSUCCESS: Local build complete! Test installer created in Output/" -ForegroundColor Green
+    if ($LASTEXITCODE -eq 0) {
+        Write-Host "`nSUCCESS: Local build complete! Test installer created in Output/" -ForegroundColor Green
+    } else {
+        Write-Host "`nERROR: Inno Setup compilation failed with exit code $LASTEXITCODE" -ForegroundColor Red
+    }
 } else {
     Write-Host "`nERROR: Inno Setup compiler not found at $iscc" -ForegroundColor Red
 }
