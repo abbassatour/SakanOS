@@ -1,30 +1,49 @@
 // lib/login/cubit/login_cubit.dart
+import 'dart:async';
 import 'dart:developer';
+import 'dart:io';
 import 'package:bloc/bloc.dart';
-import 'package:equatable/equatable.dart';
+import 'package:equatable/equatable.dart'; // 👈 تم تصحيح الكلمة هنا
 import 'package:erp_repository/erp_repository.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as p;
 
 part 'login_state.dart';
 
 class LoginCubit extends Cubit<LoginState> {
-  LoginCubit(this._erpRepository) : super(const LoginState());
+  LoginCubit(
+    this._erpRepository, {
+    Future<bool> Function()? checkInternetConnection,
+  }) : _checkInternetConnection =
+           checkInternetConnection ?? _defaultCheckInternet,
+       super(const LoginState());
 
   final ErpRepository _erpRepository;
-  static const String _rememberEmailKey = 'saved_remember_me_email';
+  final Future<bool> Function() _checkInternetConnection;
 
-  /// Loads the saved email from SharedPreferences if "Remember Me" was previously checked.
+  static Future<bool> _defaultCheckInternet() async {
+    try {
+      final result = await InternetAddress.lookup(
+        'google.com',
+      ).timeout(const Duration(seconds: 5));
+      return result.isNotEmpty && result[0].rawAddress.isNotEmpty;
+    } catch (_) {
+      return false;
+    }
+  }
+
   Future<void> loadSavedEmail() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final savedEmail = prefs.getString(_rememberEmailKey);
-      if (savedEmail != null && savedEmail.isNotEmpty) {
-        emit(state.copyWith(email: savedEmail, rememberMe: true));
+      final dir = await getApplicationSupportDirectory();
+      final file = File(p.join(dir.path, 'remember_me.txt'));
+
+      if (file.existsSync()) {
+        final savedEmail = await file.readAsString();
+        if (savedEmail.isNotEmpty) {
+          emit(state.copyWith(email: savedEmail, rememberMe: true));
+        }
       }
-    } catch (e, stack) {
-      log('Failed to load saved email', error: e, stackTrace: stack);
-    }
+    } catch (_) {}
   }
 
   void emailChanged(String value) {
@@ -40,8 +59,7 @@ class LoginCubit extends Cubit<LoginState> {
   }
 
   Future<void> submit() async {
-    final trimmedEmail = state.email.trim();
-    if (trimmedEmail.isEmpty || state.password.isEmpty) {
+    if (state.email.isEmpty || state.password.isEmpty) {
       emit(
         state.copyWith(
           status: LoginStatus.failure,
@@ -54,55 +72,46 @@ class LoginCubit extends Cubit<LoginState> {
     emit(state.copyWith(status: LoginStatus.loading));
 
     try {
-      // Direct sign-in attempt via repository
+      final hasInternet = await _checkInternetConnection();
+
+      if (!hasInternet) {
+        emit(
+          state.copyWith(
+            status: LoginStatus.failure,
+            errorMessage: 'loginErrorNoInternet',
+          ),
+        );
+        return;
+      }
+
       await _erpRepository.signIn(
-        email: trimmedEmail,
+        email: state.email.trim(),
         password: state.password,
       );
 
-      // Persist or clear Remember Me email
-      final prefs = await SharedPreferences.getInstance();
+      final dir = await getApplicationSupportDirectory();
+      final file = File(p.join(dir.path, 'remember_me.txt'));
+
       if (state.rememberMe) {
-        await prefs.setString(_rememberEmailKey, trimmedEmail);
+        await file.writeAsString(state.email.trim());
       } else {
-        await prefs.remove(_rememberEmailKey);
+        if (file.existsSync()) await file.delete();
       }
 
       emit(state.copyWith(status: LoginStatus.success));
-    } on AuthException catch (e, stackTrace) {
-      log(
-        'Supabase AuthException: ${e.message} (code: ${e.code})',
-        stackTrace: stackTrace,
-      );
-
-      String errorKey = 'loginErrorDefault';
-      final msg = e.message.toLowerCase();
-
-      if (msg.contains('email not confirmed') ||
-          e.code == 'email_not_confirmed') {
-        errorKey = 'loginErrorEmailNotConfirmed';
-      } else if (msg.contains('invalid') ||
-          e.code == 'invalid_credentials' ||
-          e.statusCode == '400') {
-        errorKey = 'loginErrorInvalidCredentials';
-      }
-
-      emit(
-        state.copyWith(
-          status: LoginStatus.failure,
-          errorMessage: errorKey,
-        ),
-      );
     } catch (e, stackTrace) {
-      log('Unexpected Login Error: $e', stackTrace: stackTrace);
+      log('🚨 Supabase Login Error: $e', stackTrace: stackTrace);
 
-      final errorString = e.toString().toLowerCase();
       String errorKey = 'loginErrorDefault';
+      final errorString = e.toString().toLowerCase();
 
-      if (errorString.contains('socketexception') ||
+      if (errorString.contains('email not confirmed')) {
+        errorKey = 'loginErrorEmailNotConfirmed';
+      } else if (errorString.contains('invalid login credentials')) {
+        errorKey = 'loginErrorInvalidCredentials';
+      } else if (errorString.contains('socketexception') ||
           errorString.contains('failed host lookup') ||
-          errorString.contains('clientexception') ||
-          errorString.contains('handshakeexception')) {
+          errorString.contains('clientexception')) {
         errorKey = 'loginErrorConnectionLost';
       }
 
