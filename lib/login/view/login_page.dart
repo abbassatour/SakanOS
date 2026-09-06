@@ -30,10 +30,12 @@ class LoginView extends StatefulWidget {
 
 class _LoginViewState extends State<LoginView> {
   final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
 
   @override
   void dispose() {
     _emailController.dispose();
+    _passwordController.dispose();
     super.dispose();
   }
 
@@ -72,6 +74,12 @@ class _LoginViewState extends State<LoginView> {
               }
 
               if (state.status == LoginStatus.failure) {
+                // 🌟 مسح حقل كلمة المرور تلقائياً إذا كانت البيانات خاطئة
+                if (state.errorMessage == 'loginErrorInvalidCredentials') {
+                  _passwordController.clear();
+                  context.read<LoginCubit>().passwordChanged('');
+                }
+
                 final isNetworkError =
                     state.errorMessage != null &&
                     (state.errorMessage == 'loginErrorNoInternet' ||
@@ -81,6 +89,9 @@ class _LoginViewState extends State<LoginView> {
                   context,
                   state.errorMessage,
                 );
+
+                // 🌟 إخفاء أي رسالة خطأ سابقة لمنع التراكم
+                ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
@@ -111,6 +122,8 @@ class _LoginViewState extends State<LoginView> {
           BlocListener<AuthCubit, AuthState>(
             listener: (context, state) {
               if (state.status == AuthStatus.error) {
+                // 🌟 إخفاء أي رسالة خطأ سابقة لمنع التراكم
+                ScaffoldMessenger.of(context).hideCurrentSnackBar();
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(
@@ -171,7 +184,7 @@ class _LoginViewState extends State<LoginView> {
                   _EmailInput(controller: _emailController),
                   const SizedBox(height: 20),
 
-                  const _PasswordInput(),
+                  _PasswordInput(controller: _passwordController),
                   const SizedBox(height: 12),
 
                   const _RememberMeCheckbox(),
@@ -222,6 +235,7 @@ class _EmailInput extends StatelessWidget {
       controller: controller,
       onChanged: (email) => context.read<LoginCubit>().emailChanged(email),
       keyboardType: TextInputType.emailAddress,
+      textInputAction: TextInputAction.next, // 🌟 نقل التحديد لحقل كلمة المرور
       decoration: InputDecoration(
         labelText: l10n.loginEmailLabel,
         prefixIcon: const Icon(Icons.email_outlined),
@@ -231,26 +245,49 @@ class _EmailInput extends StatelessWidget {
   }
 }
 
-class _PasswordInput extends StatelessWidget {
-  const _PasswordInput();
+class _PasswordInput extends StatefulWidget {
+  const _PasswordInput({required this.controller});
+
+  final TextEditingController controller;
+
+  @override
+  State<_PasswordInput> createState() => _PasswordInputState();
+}
+
+class _PasswordInputState extends State<_PasswordInput> {
+  bool _isObscure = true;
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    return BlocBuilder<LoginCubit, LoginState>(
-      buildWhen: (previous, current) => previous.password != current.password,
-      builder: (context, state) {
-        return TextField(
-          onChanged: (password) =>
-              context.read<LoginCubit>().passwordChanged(password),
-          obscureText: true,
-          decoration: InputDecoration(
-            labelText: l10n.loginPasswordLabel,
-            prefixIcon: const Icon(Icons.lock_outline),
-            border: const OutlineInputBorder(),
+
+    return TextField(
+      controller: widget.controller,
+      onChanged: (password) =>
+          context.read<LoginCubit>().passwordChanged(password),
+      obscureText: _isObscure,
+      textInputAction: TextInputAction.done, // 🌟 إظهار زر "تم" في الكيبورد
+      onSubmitted: (_) => context
+          .read<LoginCubit>()
+          .submit(), // 🌟 تسجيل الدخول عند الضغط على Enter
+      decoration: InputDecoration(
+        labelText: l10n.loginPasswordLabel,
+        prefixIcon: const Icon(Icons.lock_outline),
+        suffixIcon: IconButton(
+          icon: Icon(
+            _isObscure
+                ? Icons.visibility_outlined
+                : Icons.visibility_off_outlined,
+            color: Colors.blueGrey,
           ),
-        );
-      },
+          onPressed: () {
+            setState(() {
+              _isObscure = !_isObscure;
+            });
+          },
+        ),
+        border: const OutlineInputBorder(),
+      ),
     );
   }
 }
