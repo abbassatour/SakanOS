@@ -98,7 +98,15 @@ class LoginCubit extends Cubit<LoginState> {
         if (file.existsSync()) await file.delete();
       }
 
+      // 🌟 تسجيل الدخول نجح
       emit(state.copyWith(status: LoginStatus.success));
+
+      // 🌟 تنظيف الـ State بعد قليل لكي لا تبقى معلقة إذا قام بالخروج لاحقاً
+      Future.delayed(const Duration(seconds: 1), () {
+        if (!isClosed) {
+          emit(state.copyWith(status: LoginStatus.initial, password: ''));
+        }
+      });
     } catch (e, stackTrace) {
       log('🚨 Supabase Login Error: $e', stackTrace: stackTrace);
 

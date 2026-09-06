@@ -103,32 +103,31 @@ class AppView extends StatelessWidget {
             await windowManager.setTitle('  SakanOS');
           }
         },
-        buildWhen: (previous, current) {
-          if ((previous.status == AuthStatus.unauthenticated ||
-                  previous.status == AuthStatus.error) &&
-              current.status == AuthStatus.loading) {
-            return false;
-          }
-          return true;
-        },
+        // 🌟 التعديل السحري هنا: قمنا بتبسيط المنطق لمنع الوميض تماماً
         builder: (context, state) {
+          // 1. عند تشغيل التطبيق لأول مرة (التمهيد)
           if (state.status == AuthStatus.initial ||
-              state.status == AuthStatus.loading) {
+              (state.status == AuthStatus.loading &&
+                  state.userId == null &&
+                  state.errorMessage == null)) {
             return const _LoadingScreen();
           }
 
+          // 2. شاشات القفل (الاشتراك أو عدم الاتصال)
           if (state.status == AuthStatus.offlineLock) {
             return const _OfflineLockScreen();
           }
-
           if (state.status == AuthStatus.subscriptionExpired) {
             return const _SubscriptionLockScreen();
           }
 
+          // 3. الدخول الناجح
           if (state.status == AuthStatus.authenticated) {
             return const DashboardPage();
           }
 
+          // 4. في حالة الـ unauthenticated، أو الـ error، أو الـ loading القادم من محاولة تسجيل الدخول
+          // نبقي المستخدم في صفحة الـ Login (حيث سيدور زر التسجيل ولن تختفي الشاشة فجأة)
           return const LoginPage();
         },
       ),
