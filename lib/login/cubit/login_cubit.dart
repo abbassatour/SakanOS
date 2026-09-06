@@ -25,7 +25,7 @@ class LoginCubit extends Cubit<LoginState> {
     try {
       final result = await InternetAddress.lookup(
         'google.com',
-      ).timeout(const Duration(seconds: 5));
+      ).timeout(const Duration(seconds: 1)); // 🌟 تم تخفيضها من 5 إلى 1 ثانية
       return result.isNotEmpty && result[0].rawAddress.isNotEmpty;
     } catch (_) {
       return false;

@@ -111,9 +111,12 @@ class ErpRepository {
   String? get currentUserId => _authRepo.currentUserId;
 
   Future<void> signIn({required String email, required String password}) async {
+    // 1. تسجيل الدخول عبر Supabase فقط
     await _authRepo.signIn(email: email, password: password);
-    // الربط الذكي: السحب والاستماع يتم إدارته من الـ Facade
-    await pullDataFromCloud();
+
+    // ❌ قمنا بحذف await pullDataFromCloud(); من هنا لمنع تجميد زر الـ Login
+
+    // 2. تفعيل مستمع التغييرات الحية
     _startCloudListener();
   }
 
